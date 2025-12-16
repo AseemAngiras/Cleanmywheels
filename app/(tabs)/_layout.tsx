@@ -14,11 +14,20 @@ export default function TabsLayout() {
             }}
             />
             <Tabs.Screen 
-            name="services"
+            name="my-cars"
             options={{
-                title: "Services",
+                title: "My cars",
                 tabBarIcon: ({color, size}) => (
-                    <Ionicons name="car-sport-outline" color={color} size={size}/>
+                    <Ionicons name="car-outline" color={color} size={size}/>
+                )
+            }}
+            />
+            <Tabs.Screen 
+            name="bookings"
+            options={{
+                title: "Bookings",
+                tabBarIcon: ({color, size}) => (
+                    <Ionicons name="book-outline" color={color} size={size}/>
                 )
             }}
             />
@@ -31,6 +40,7 @@ export default function TabsLayout() {
                 )
             }}
             />
+         
         </Tabs>
     )
 }

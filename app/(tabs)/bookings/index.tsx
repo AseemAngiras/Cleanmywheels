@@ -9,15 +9,15 @@ export default function ServicesScreen() {
         <Text style={styles.title}>Car wash services</Text>
             <Button 
             title='Available Services'
-            onPress={() => router.push("/services/available-services")}
+            onPress={() => router.push("/bookings/available-services")}
             />
             <Button 
             title='Book a service'
-            onPress={() => router.push("/services/booking")}
+            onPress={() => router.push("/bookings/booking")}
             />
             <Button 
             title='Service history'
-            onPress={() => router.push("/services/service-history")}
+            onPress={() => router.push("/bookings/service-history")}
             />
     </View>
   )

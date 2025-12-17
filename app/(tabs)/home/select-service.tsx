@@ -1,0 +1,325 @@
+import { Ionicons } from '@expo/vector-icons';
+import { useNavigation, useRouter } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import { Image, LayoutAnimation, Platform, SafeAreaView, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, UIManager, View } from 'react-native';
+
+if (Platform.OS === 'android') {
+    if (UIManager.setLayoutAnimationEnabledExperimental) {
+        UIManager.setLayoutAnimationEnabledExperimental(true);
+    }
+}
+
+export default function SelectServiceScreen() {
+    const router = useRouter();
+    const navigation = useNavigation();
+    const [selectedService, setSelectedService] = useState('premium');
+    const [addons, setAddons] = useState({
+        wheelWash: false,
+        acService: false,
+        matPolish: false,
+    });
+    const [expandedService, setExpandedService] = useState<string | null>(null);
+
+    useEffect(() => {
+        // Hide the bottom tab bar when this screen is mounted
+        navigation.getParent()?.setOptions({
+            tabBarStyle: {
+                display: "none"
+            }
+        });
+        return () => {
+            // Restore tab bar (Custom floating style)
+            navigation.getParent()?.setOptions({
+                tabBarStyle: {
+                    height: 80,
+                    position: 'absolute',
+                    bottom: 2,
+                    left: 20,
+                    right: 20,
+                    elevation: 5,
+                    backgroundColor: '#ffffff',
+                    borderRadius: 25,
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 10 },
+                    shadowOpacity: 0.1,
+                    shadowRadius: 10,
+                    borderTopWidth: 0,
+                    paddingBottom: 20,
+                    paddingTop: 10,
+                    display: 'flex'
+                }
+            });
+        };
+    }, [navigation]);
+
+    const services = [
+        {
+            id: 'basic',
+            name: 'Basic Wash',
+            price: 15,
+            description: 'Exterior rinse & soap wash.',
+            details: 'Includes high-pressure water rinse, foam soap formatting, and hand dry.',
+            image: 'https://images.unsplash.com/photo-1601362840469-51e4d8d58785?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80',
+        },
+        {
+            id: 'premium',
+            name: 'Premium Wash',
+            price: 25,
+            description: 'Exterior + Interior vacuum.',
+            details: 'Includes Basic Wash features plus interior vacuuming, dashboard wiping, and window cleaning.',
+            image: 'https://images.unsplash.com/photo-1552930294-6b595f4c2974?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80',
+            isBestseller: true,
+        },
+        {
+            id: 'detailing',
+            name: 'Full Detailing',
+            price: 80,
+            description: 'Complete restoration & wax.',
+            details: 'Comprehensive cleaning including clay bar treatment, machine polishing, waxing, and deep interior shampoo.',
+            image: 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80',
+        },
+    ];
+
+    const addonList = [
+        { id: 'wheelWash', name: 'Wheel Wash', price: 5 },
+        { id: 'acService', name: 'AC Service', price: 10 },
+        { id: 'matPolish', name: 'Mat Polish', price: 5 },
+    ];
+
+    const toggleAddon = (id: keyof typeof addons) => {
+        setAddons((prev) => ({ ...prev, [id]: !prev[id] }));
+    };
+
+    const toggleDetails = (id: string, e: any) => {
+        e.stopPropagation(); // Prevent selecting the card when easy toggling
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+        setExpandedService(expandedService === id ? null : id);
+    };
+
+    const calculateTotal = () => {
+        const servicePrice = services.find((s) => s.id === selectedService)?.price || 0;
+        let addonTotal = 0;
+        if (addons.wheelWash) addonTotal += 5;
+        if (addons.acService) addonTotal += 10;
+        if (addons.matPolish) addonTotal += 5;
+        return servicePrice + addonTotal;
+    };
+
+    return (
+        <SafeAreaView style={styles.safeArea}>
+            <View style={styles.header}>
+                <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+                    <Ionicons name="chevron-back" size={24} color="#000" />
+                </TouchableOpacity>
+                <Text style={styles.headerTitle}>Select Service</Text>
+                <View style={{ width: 24 }} />
+            </View>
+
+            <ScrollView contentContainerStyle={styles.container}>
+                {services.map((service) => (
+                    <TouchableOpacity
+                        key={service.id}
+                        style={[
+                            styles.serviceCard,
+                            selectedService === service.id && styles.selectedServiceCard,
+                        ]}
+                        onPress={() => setSelectedService(service.id)}
+                        activeOpacity={0.9}
+                    >
+                        <View style={styles.cardHeader}>
+                            <Image source={{ uri: service.image }} style={styles.serviceImage} />
+                            <View style={styles.serviceInfo}>
+                                {service.isBestseller && (
+                                    <View style={styles.bestsellerBadge}>
+                                        <Text style={styles.bestsellerText}>BESTSELLER</Text>
+                                    </View>
+                                )}
+                                <Text style={styles.serviceName}>{service.name}</Text>
+                                <Text style={styles.serviceDesc}>{service.description}</Text>
+                            </View>
+
+                            <View style={styles.priceContainer}>
+                                <Text style={styles.servicePrice}>₹{service.price}</Text>
+                                <TouchableOpacity onPress={(e) => toggleDetails(service.id, e)} style={styles.dropdownButton}>
+                                    <Ionicons
+                                        name={expandedService === service.id ? "chevron-up" : "chevron-down"}
+                                        size={20}
+                                        color="#999"
+                                    />
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+
+                        {expandedService === service.id && (
+                            <View style={styles.detailsContainer}>
+                                <View style={styles.separator} />
+                                <Text style={styles.detailsText}>{service.details}</Text>
+                            </View>
+                        )}
+                    </TouchableOpacity>
+                ))}
+
+                <Text style={styles.sectionTitle}>Make it Shine (Add-ons)</Text>
+
+                {addonList.map((addon) => (
+                    <View key={addon.id} style={styles.addonRow}>
+                        <View>
+                            <Text style={styles.addonName}>{addon.name}</Text>
+                            <Text style={styles.addonPrice}>+₹{addon.price}</Text>
+                        </View>
+                        <Switch
+                            trackColor={{ false: '#e0e0e0', true: '#84c95c' }}
+                            thumbColor={'#fff'}
+                            onValueChange={() => toggleAddon(addon.id as keyof typeof addons)}
+                            value={addons[addon.id as keyof typeof addons]}
+                        />
+                    </View>
+                ))}
+            </ScrollView>
+
+            <View style={styles.footer}>
+                <View style={styles.totalContainer}>
+                    <Text style={styles.totalLabel}>Total</Text>
+                    <Text style={styles.totalPrice}>₹{calculateTotal()}</Text>
+                </View>
+                <TouchableOpacity style={styles.nextButton} onPress={() => router.push('/(tabs)/home/vehicle-details')}>
+                    <Text style={styles.nextButtonText}>Next</Text>
+                </TouchableOpacity>
+            </View>
+        </SafeAreaView>
+    );
+}
+
+const styles = StyleSheet.create({
+    safeArea: { flex: 1, backgroundColor: '#f9f9f9' },
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 20,
+        paddingVertical: 15,
+        backgroundColor: '#f9f9f9',
+    },
+    backButton: { padding: 5 },
+    headerTitle: { fontSize: 18, fontWeight: 'bold' },
+    container: { padding: 20, paddingBottom: 100 },
+
+    serviceCard: {
+        backgroundColor: '#fff',
+        borderRadius: 20,
+        padding: 15,
+        marginBottom: 15,
+        borderWidth: 2,
+        borderColor: '#fff',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 5,
+        elevation: 2,
+    },
+    cardHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    selectedServiceCard: {
+        borderColor: '#84c95c', // Green border
+    },
+    serviceImage: {
+        width: 60,
+        height: 60,
+        borderRadius: 15,
+        marginRight: 15,
+    },
+    serviceInfo: { flex: 1 },
+    bestsellerBadge: {
+        backgroundColor: '#e6f7e0',
+        alignSelf: 'flex-start',
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+        borderRadius: 4,
+        marginBottom: 4,
+    },
+    bestsellerText: {
+        color: '#6bb84c',
+        fontSize: 10,
+        fontWeight: 'bold',
+    },
+    serviceName: { fontSize: 16, fontWeight: 'bold', color: '#1a1a1a' },
+    serviceDesc: { fontSize: 12, color: '#888', marginTop: 2 },
+    priceContainer: {
+        alignItems: 'flex-end',
+        justifyContent: 'space-between',
+        height: 60,
+    },
+    servicePrice: { fontSize: 16, fontWeight: 'bold', color: '#84c95c' },
+    dropdownButton: {
+        padding: 5,
+    },
+    detailsContainer: {
+        marginTop: 10,
+    },
+    separator: {
+        height: 1,
+        backgroundColor: '#f0f0f0',
+        marginBottom: 10,
+    },
+    detailsText: {
+        fontSize: 12,
+        color: '#666',
+        lineHeight: 18,
+    },
+
+    sectionTitle: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        marginTop: 20,
+        marginBottom: 15,
+        color: '#1a1a1a',
+    },
+    addonRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        backgroundColor: '#fff',
+        padding: 15,
+        borderRadius: 20,
+        marginBottom: 10,
+    },
+    addonName: { fontSize: 14, fontWeight: '600', color: '#1a1a1a' },
+    addonPrice: { fontSize: 12, color: '#84c95c', marginTop: 2 },
+
+    footer: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        backgroundColor: '#fff',
+        padding: 20,
+        paddingBottom: 30,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        borderTopWidth: 1,
+        borderTopColor: '#f0f0f0',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: -4 },
+        shadowOpacity: 0.05,
+        shadowRadius: 10,
+        elevation: 10,
+    },
+    totalContainer: {
+        justifyContent: 'center',
+    },
+    totalLabel: { fontSize: 12, color: '#888', marginLeft: 6 },
+    totalPrice: { fontSize: 24, fontWeight: 'bold', color: '#84c95c', marginLeft: 6 },
+    nextButton: {
+        backgroundColor: '#ffeb69',
+        paddingVertical: 15,
+        paddingHorizontal: 0,
+        borderRadius: 30,
+        width: 150,
+        marginLeft: 30,
+        alignItems: 'center',
+    },
+    nextButtonText: { fontSize: 16, fontWeight: 'bold', color: '#1a1a1a' },
+});

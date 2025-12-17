@@ -1,9 +1,12 @@
 
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import React from 'react';
 import { Image, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function HomeScreen() {
+  const router = useRouter();
+
   return (
 
     <SafeAreaView style={styles.safeArea}>
@@ -29,7 +32,7 @@ export default function HomeScreen() {
               source={{ uri: 'https://images.unsplash.com/photo-1601362840469-51e4d8d58785?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80' }}
               style={styles.heroImage}
             />
-            
+
           </View>
 
           <View style={styles.heroContent}>
@@ -39,8 +42,8 @@ export default function HomeScreen() {
             </Text>
 
             <View style={styles.actionButtons}>
-              <TouchableOpacity style={styles.primaryButton}>
-                <Text style={styles.primaryButtonText}>VIEW SHOPS</Text>
+              <TouchableOpacity style={styles.primaryButton} onPress={() => router.push('/(tabs)/home/select-service')}>
+                <Text style={styles.primaryButtonText}>BOOK SERVICE</Text>
               </TouchableOpacity>
 
               <TouchableOpacity style={styles.secondaryButton}>

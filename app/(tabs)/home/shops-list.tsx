@@ -87,26 +87,9 @@ export default function ShopsListScreen() {
 
     useFocusEffect(
         useCallback(() => {
-            // Restore tab bar (Custom floating style) for this screen
+            // Hide tab bar for this screen
             navigation.getParent()?.setOptions({
-                tabBarStyle: {
-                    height: 80,
-                    position: 'absolute',
-                    bottom: 2,
-                    left: 20,
-                    right: 20,
-                    elevation: 5,
-                    backgroundColor: '#ffffff',
-                    borderRadius: 25,
-                    shadowColor: '#000',
-                    shadowOffset: { width: 0, height: 10 },
-                    shadowOpacity: 0.1,
-                    shadowRadius: 10,
-                    borderTopWidth: 0,
-                    paddingBottom: 20,
-                    paddingTop: 10,
-                    display: 'flex'
-                }
+                tabBarStyle: { display: 'none' }
             });
         }, [navigation])
     );
@@ -228,6 +211,9 @@ export default function ShopsListScreen() {
                     </View>
                 ) : (
                     <>
+                        <TouchableOpacity onPress={() => router.back()}>
+                            <Ionicons name="arrow-back" size={24} color="#1a1a1a" />
+                        </TouchableOpacity>
                         <Text style={styles.headerTitle}>Shops List</Text>
                         <TouchableOpacity onPress={() => setIsSearchVisible(true)}>
                             <Ionicons name="search" size={24} color="#1a1a1a" />
@@ -386,7 +372,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#f9f9f9',
         height: 70, // Fixed height to prevent jump
     },
-    headerTitle: { fontSize: 22, fontWeight: 'bold', color: '#1a1a1a' },
+    headerTitle: { fontSize: 18, fontWeight: 'bold', color: '#1a1a1a' },
     searchContainer: {
         flex: 1,
         flexDirection: 'row',

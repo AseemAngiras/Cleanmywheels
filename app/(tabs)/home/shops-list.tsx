@@ -1,12 +1,13 @@
 
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation, useRouter } from 'expo-router';
-import React, { useEffect, useRef, useState } from 'react';
+import { useFocusEffect, useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
+import React, { useCallback, useRef, useState } from 'react';
 import { ActivityIndicator, FlatList, Image, Keyboard, KeyboardAvoidingView, Modal, Platform, SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 
 export default function ShopsListScreen() {
     const router = useRouter();
     const navigation = useNavigation();
+    const params = useLocalSearchParams();
     const [searchQuery, setSearchQuery] = useState('');
     const [isSearchVisible, setIsSearchVisible] = useState(false);
     const [isLoginModalVisible, setIsLoginModalVisible] = useState(false);
@@ -15,6 +16,10 @@ export default function ShopsListScreen() {
     const [isLoading, setIsLoading] = useState(false);
     const [modalStep, setModalStep] = useState<'details' | 'otp'>('details');
     const [otp, setOtp] = useState(['', '', '', '']);
+    const [phoneNumber, setPhoneNumber] = useState('');
+    const [name, setName] = useState('');
+
+    const [selectedShop, setSelectedShop] = useState<any>(null);
 
     // Mock Data
     const allShops = [
@@ -27,7 +32,10 @@ export default function ShopsListScreen() {
             price: 25.00,
             image: 'https://images.unsplash.com/photo-1601362840469-51e4d8d58785?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80',
             slotsColor: '#e6f7e0',
-            slotsTextColor: '#6bb84c'
+            slotsTextColor: '#6bb84c',
+            address: '123 Main St, Downtown',
+            latitude: 37.7749,
+            longitude: -122.4194
         },
         {
             id: '2',
@@ -38,7 +46,10 @@ export default function ShopsListScreen() {
             price: 22.00,
             image: 'https://images.unsplash.com/photo-1552930294-6b595f4c2974?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80',
             slotsColor: '#e6f7e0',
-            slotsTextColor: '#6bb84c'
+            slotsTextColor: '#6bb84c',
+            address: '456 Central Ave, Westside',
+            latitude: 37.7849,
+            longitude: -122.4094
         },
         {
             id: '3',
@@ -49,7 +60,10 @@ export default function ShopsListScreen() {
             price: 18.00,
             image: 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80',
             slotsColor: '#ffe5d4', // Orange-ish for low slots
-            slotsTextColor: '#ff7f50'
+            slotsTextColor: '#ff7f50',
+            address: '789 Sunshine Blvd, Eastside',
+            latitude: 37.7649,
+            longitude: -122.4294
         },
         {
             id: '4',
@@ -60,7 +74,10 @@ export default function ShopsListScreen() {
             price: 30.00,
             image: 'https://images.unsplash.com/photo-1503376763036-066120622c74?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80',
             slotsColor: '#e6f7e0',
-            slotsTextColor: '#6bb84c'
+            slotsTextColor: '#6bb84c',
+            address: '101 Ocean Dr, Coastal',
+            latitude: 37.7549,
+            longitude: -122.4394
         },
     ];
 
@@ -68,33 +85,44 @@ export default function ShopsListScreen() {
         shop.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    useEffect(() => {
-        // Restore tab bar (Custom floating style) for this screen
-        navigation.getParent()?.setOptions({
-            tabBarStyle: {
-                height: 80,
-                position: 'absolute',
-                bottom: 2,
-                left: 20,
-                right: 20,
-                elevation: 5,
-                backgroundColor: '#ffffff',
-                borderRadius: 25,
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 10 },
-                shadowOpacity: 0.1,
-                shadowRadius: 10,
-                borderTopWidth: 0,
-                paddingBottom: 20,
-                paddingTop: 10,
-                display: 'flex'
-            }
-        });
-    }, [navigation]);
+    useFocusEffect(
+        useCallback(() => {
+            // Restore tab bar (Custom floating style) for this screen
+            navigation.getParent()?.setOptions({
+                tabBarStyle: {
+                    height: 80,
+                    position: 'absolute',
+                    bottom: 2,
+                    left: 20,
+                    right: 20,
+                    elevation: 5,
+                    backgroundColor: '#ffffff',
+                    borderRadius: 25,
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 10 },
+                    shadowOpacity: 0.1,
+                    shadowRadius: 10,
+                    borderTopWidth: 0,
+                    paddingBottom: 20,
+                    paddingTop: 10,
+                    display: 'flex'
+                }
+            });
+        }, [navigation])
+    );
 
     const inputRefs = useRef<Array<TextInput | null>>([]);
 
     const handleSendOtp = () => {
+        if (!name.trim()) {
+            alert('Please enter your name.');
+            return;
+        }
+        if (!phoneNumber.trim() || phoneNumber.length < 10) {
+            alert('Please enter a valid phone number.');
+            return;
+        }
+
         setIsLoading(true);
         // Simulate API call
         setTimeout(() => {
@@ -104,11 +132,32 @@ export default function ShopsListScreen() {
     };
 
     const handleVerifyOtp = () => {
+        const otpValue = otp.join('');
+        if (otpValue.length < 4) {
+            alert('Please enter the complete 4-digit OTP.');
+            return;
+        }
+
         // Validation logic here
         setIsLoginModalVisible(false);
-        setModalStep('details'); // Reset for next time
+        setModalStep('details');
         setOtp(['', '', '', '']);
-        // Navigate or show success
+
+        // Navigate to Select Slot with Shop Params
+        router.push({
+            pathname: '/(tabs)/home/select-slot',
+            params: {
+                ...params,
+                shopId: selectedShop?.id,
+                shopName: selectedShop?.name,
+                shopAddress: selectedShop?.address || '123 Smart St.', // Fallback
+                shopImage: selectedShop?.image,
+                shopLat: selectedShop?.latitude,
+                shopLong: selectedShop?.longitude,
+                userPhone: phoneNumber,
+                userName: name
+            }
+        });
     };
 
     const handleOtpChange = (text: string, index: number) => {
@@ -132,7 +181,13 @@ export default function ShopsListScreen() {
             <View style={styles.cardContent}>
                 <View style={styles.headerRow}>
                     <Text style={styles.shopName}>{item.name}</Text>
-                    <TouchableOpacity style={styles.selectButton} onPress={() => setIsLoginModalVisible(true)}>
+                    <TouchableOpacity
+                        style={styles.selectButton}
+                        onPress={() => {
+                            setSelectedShop(item);
+                            setIsLoginModalVisible(true);
+                        }}
+                    >
                         <Text style={styles.selectButtonText}>Select</Text>
                     </TouchableOpacity>
                 </View>
@@ -235,6 +290,8 @@ export default function ShopsListScreen() {
                                         style={styles.inputField}
                                         placeholder="Enter your name"
                                         placeholderTextColor="#999"
+                                        value={name}
+                                        onChangeText={setName}
                                     />
                                     <Ionicons name="person" size={20} color="#999" />
                                 </View>
@@ -250,6 +307,8 @@ export default function ShopsListScreen() {
                                         placeholder="Enter your phone number"
                                         placeholderTextColor="#999"
                                         keyboardType="phone-pad"
+                                        value={phoneNumber}
+                                        onChangeText={setPhoneNumber}
                                     />
                                 </View>
 
@@ -277,7 +336,7 @@ export default function ShopsListScreen() {
                                     </TouchableOpacity>
                                     <Text style={styles.modalTitle}>Verification</Text>
                                 </View>
-                                <Text style={styles.modalSubtitle}>Enter the 4-digit code sent to +91 98765 XXXXX</Text>
+                                <Text style={styles.modalSubtitle}>Enter the 4-digit code sent to +91 {phoneNumber}</Text>
 
                                 <View style={styles.otpContainer}>
                                     {otp.map((digit, index) => (

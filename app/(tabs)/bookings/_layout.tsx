@@ -51,10 +51,10 @@ const styles = StyleSheet.create({
   },
   toggle: {
     flexDirection: "row",
-    backgroundColor: "#EFEFEF",
+    backgroundColor: "#accd99ff",
     borderRadius: 25,
     marginHorizontal: 16,
-    padding: 4,
+    padding: 5,
     marginBottom: 8,
   },
   toggleBtn: {
@@ -64,12 +64,15 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   activeToggle: {
-    backgroundColor: "#fff",
+    backgroundColor: "#84c95c",
   },
   activeText: {
     fontWeight: "700",
+    fontSize: 15,
   },
   inactiveText: {
-    color: "#777",
+    color: "#000000ff",
+    fontSize: 15,
+    fontWeight: 500,
   },
 });

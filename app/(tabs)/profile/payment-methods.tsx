@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
@@ -11,8 +12,10 @@ type PaymentKey =
   | "paytm";
 
 export default function PaymentMethods() {
+  const navigation = useNavigation();
+
   const [defaultMethod, setDefaultMethod] =
-    useState<PaymentKey>("rupay");
+    useState<PaymentKey>("gpay");
 
   const [selectedMethod, setSelectedMethod] =
     useState<PaymentKey | null>(null);
@@ -30,12 +33,18 @@ export default function PaymentMethods() {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
+        <Pressable onPress={() => navigation.goBack()}>
+          <Ionicons name="chevron-back" size={26} color="#111827" />
+        </Pressable>
+
         <Text style={styles.title}>Payment Methods</Text>
 
-        {confirmVisible && (
+        {confirmVisible ? (
           <Pressable onPress={confirmDefault}>
             <Text style={styles.confirm}>Confirm</Text>
           </Pressable>
+        ) : (
+          <View style={{ width: 60 }} /> // Spacer to keep title centered
         )}
       </View>
 
@@ -76,14 +85,6 @@ export default function PaymentMethods() {
         isDefault={defaultMethod === "gpay"}
         isSelected={selectedMethod === "gpay"}
         onPress={() => setSelectedMethod("gpay")}
-      />
-
-      <PaymentItem
-        icon="phone-portrait-outline"
-        label="PhonePe (UPI)"
-        isDefault={defaultMethod === "phonepe"}
-        isSelected={selectedMethod === "phonepe"}
-        onPress={() => setSelectedMethod("phonepe")}
       />
 
       <PaymentItem
@@ -142,7 +143,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 16,
-    paddingTop: 50,
+    paddingTop: 80,
     backgroundColor: "#FFF",
   },
 
@@ -156,6 +157,8 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 22,
     fontWeight: "700",
+    textAlign: "center",
+    flex: 1,
   },
 
   confirm: {

@@ -80,7 +80,10 @@ export default function ProfileHome() {
           title="Notifications"
           onPress={() => router.push("/profile/notifications")}
         />
-        <MenuItem title="Privacy Settings" />
+        <MenuItem
+          title="Privacy Settings"
+          onPress={() => router.push("/profile/privacy-settings")}
+        />
         <MenuItem title="Help & Support" />
       </View>
 
@@ -101,7 +104,7 @@ const MenuItem = ({ title, onPress }: any) => (
 );
 
 const styles = StyleSheet.create({
-  container: { flex: 1, paddingHorizontal: 16, paddingTop: 50, backgroundColor: "#FFF" },
+  container: { flex: 1, paddingHorizontal: 16, paddingTop: 80, backgroundColor: "#FFF" },
   title: { fontSize: 24, fontWeight: "700", marginBottom: 16 },
   profileCard: {
     backgroundColor: "#FFF7E6",

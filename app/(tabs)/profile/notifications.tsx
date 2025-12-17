@@ -1,8 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
 import { useState } from "react";
 import { Pressable, StyleSheet, Switch, Text, View } from "react-native";
 
 export default function Notifications() {
+  const navigation = useNavigation();
+
   const [state, setState] = useState({
     booking: true,
     reminder: true,
@@ -41,7 +44,15 @@ export default function Notifications() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Notifications</Text>
+      {/* Header with back icon */}
+      <View style={styles.header}>
+        <Pressable onPress={() => navigation.goBack()}>
+          <Ionicons name="chevron-back" size={26} color="#111827" />
+        </Pressable>
+        <Text style={styles.title}>Notifications</Text>
+        {/* Spacer for alignment */}
+        <View style={{ width: 26 }} />
+      </View>
 
       <Item
         label="Booking Confirmations"
@@ -97,14 +108,20 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 16,
-    paddingTop: 50,
+    paddingTop: 80,
     backgroundColor: "#FFFFFF",
   },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 20,
+  },
   title: {
+    flex: 1,
     fontSize: 26,
     fontWeight: "700",
-    marginBottom: 20,
     color: "#111827",
+    textAlign: "center",
   },
   card: {
     flexDirection: "row",

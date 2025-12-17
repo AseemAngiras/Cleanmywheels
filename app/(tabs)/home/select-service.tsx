@@ -187,7 +187,16 @@ export default function SelectServiceScreen() {
                     <Text style={styles.totalLabel}>Total</Text>
                     <Text style={styles.totalPrice}>₹{calculateTotal()}</Text>
                 </View>
-                <TouchableOpacity style={styles.nextButton} onPress={() => router.push('/(tabs)/home/vehicle-details')}>
+                <TouchableOpacity style={styles.nextButton} onPress={() => {
+                    const params = {
+                        serviceId: selectedService,
+                        serviceName: services.find(s => s.id === selectedService)?.name,
+                        servicePrice: services.find(s => s.id === selectedService)?.price,
+                        addons: JSON.stringify(addons),
+                        totalPrice: calculateTotal()
+                    };
+                    router.push({ pathname: '/(tabs)/home/vehicle-details', params });
+                }}>
                     <Text style={styles.nextButtonText}>Next</Text>
                 </TouchableOpacity>
             </View>

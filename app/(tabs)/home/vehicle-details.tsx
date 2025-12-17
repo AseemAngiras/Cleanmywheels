@@ -1,11 +1,12 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { useNavigation, useRouter } from 'expo-router';
+import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Keyboard, KeyboardAvoidingView, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 
 export default function VehicleDetailsScreen() {
     const router = useRouter();
     const navigation = useNavigation();
+    const params = useLocalSearchParams();
     const [vehicleType, setVehicleType] = useState('sedan');
     const [vehicleNumber, setVehicleNumber] = useState('');
 
@@ -107,7 +108,16 @@ export default function VehicleDetailsScreen() {
                         </ScrollView>
 
                         <View style={styles.footer}>
-                            <TouchableOpacity style={styles.nextButton} onPress={() => router.push('/(tabs)/home/shops-list')}>
+                            <TouchableOpacity style={styles.nextButton} onPress={() => {
+                                router.push({
+                                    pathname: '/(tabs)/home/shops-list',
+                                    params: {
+                                        ...params,
+                                        vehicleType,
+                                        vehicleNumber: vehicleNumber.toUpperCase()
+                                    }
+                                });
+                            }}>
                                 <Text style={styles.nextButtonText}>Next</Text>
                                 <Ionicons name="arrow-forward" size={20} color="#1a1a1a" style={{ marginLeft: 8 }} />
                             </TouchableOpacity>

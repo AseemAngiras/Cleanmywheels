@@ -46,7 +46,7 @@ export default function HomeScreen() {
                 <Text style={styles.primaryButtonText}>BOOK SERVICE</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.secondaryButton}>
+              <TouchableOpacity style={styles.secondaryButton} onPress={() => router.push('/(tabs)/home/scanner')}>
                 <Ionicons name="scan-outline" size={20} color="#fff" style={{ marginRight: 8 }} />
                 <Text style={styles.secondaryButtonText}>QR Scan</Text>
               </TouchableOpacity>

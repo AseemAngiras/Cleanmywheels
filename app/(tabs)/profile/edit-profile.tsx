@@ -32,6 +32,7 @@ export default function EditProfile() {
   const [dob, setDob] = useState(new Date(1990, 4, 15));
   const [showDatePicker, setShowDatePicker] = useState(false);
 
+  // ---------- IMAGE PICKER ----------
   const openImageOptions = () => {
     if (Platform.OS === "ios") {
       ActionSheetIOS.showActionSheetWithOptions(
@@ -39,7 +40,7 @@ export default function EditProfile() {
           options: ["Cancel", "Take Photo", "Choose from Gallery"],
           cancelButtonIndex: 0,
         },
-        index => {
+        (index) => {
           if (index === 1) openCamera();
           if (index === 2) openGallery();
         }
@@ -66,14 +67,11 @@ export default function EditProfile() {
       quality: 0.8,
     });
 
-    if (!result.canceled) {
-      setProfileImage(result.assets[0].uri);
-    }
+    if (!result.canceled) setProfileImage(result.assets[0].uri);
   };
 
   const openGallery = async () => {
-    const permission =
-      await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
       Alert.alert("Permission required", "Photo access is needed");
       return;
@@ -86,11 +84,10 @@ export default function EditProfile() {
       quality: 0.8,
     });
 
-    if (!result.canceled) {
-      setProfileImage(result.assets[0].uri);
-    }
+    if (!result.canceled) setProfileImage(result.assets[0].uri);
   };
 
+  // ---------- MOBILE ----------
   const handleMobileAction = () => {
     if (isEditingMobile) {
       setMobile(tempMobile);
@@ -101,8 +98,9 @@ export default function EditProfile() {
     }
   };
 
-  const handleDateChange = (_: any, selectedDate?: Date) => {
-    setShowDatePicker(false);
+  // ---------- DATE PICKER ----------
+  const handleDateChange = (_event: any, selectedDate?: Date) => {
+    if (Platform.OS === "android") setShowDatePicker(false);
     if (selectedDate) setDob(selectedDate);
   };
 
@@ -160,10 +158,7 @@ export default function EditProfile() {
           onChangeText={setTempMobile}
           editable={isEditingMobile}
           keyboardType="phone-pad"
-          style={[
-            styles.input,
-            !isEditingMobile && styles.disabledInput,
-          ]}
+          style={[styles.input, !isEditingMobile && styles.disabledInput]}
         />
         <TouchableOpacity onPress={handleMobileAction}>
           <Text style={styles.change}>
@@ -186,13 +181,10 @@ export default function EditProfile() {
       {/* GENDER */}
       <Text style={styles.label}>Gender</Text>
       <View style={styles.genderRow}>
-        {["Male", "Female", "Other"].map(item => (
+        {["Male", "Female", "Other"].map((item) => (
           <TouchableOpacity
             key={item}
-            style={[
-              styles.genderBtn,
-              gender === item && styles.genderActive,
-            ]}
+            style={[styles.genderBtn, gender === item && styles.genderActive]}
             onPress={() => setGender(item as any)}
           >
             <Text
@@ -207,7 +199,7 @@ export default function EditProfile() {
         ))}
       </View>
 
-      {/* DOB */}
+      {/* DATE OF BIRTH */}
       <Text style={styles.label}>Date of Birth</Text>
       <TouchableOpacity
         style={styles.inputWrapper}
@@ -217,6 +209,7 @@ export default function EditProfile() {
         <Ionicons name="calendar-outline" size={18} color="#999" />
       </TouchableOpacity>
 
+      {/* DATE PICKER */}
       {showDatePicker && (
         <DateTimePicker
           value={dob}
@@ -224,6 +217,7 @@ export default function EditProfile() {
           display={Platform.OS === "ios" ? "spinner" : "default"}
           maximumDate={new Date()}
           onChange={handleDateChange}
+          style={Platform.OS === "ios" ? { width: "100%" } : undefined}
         />
       )}
     </ScrollView>
@@ -231,7 +225,7 @@ export default function EditProfile() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#FFF", paddingHorizontal: 20, paddingTop: 50 },
+  container: { flex: 1, backgroundColor: "#FFF", paddingHorizontal: 20, paddingTop: 80 },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",

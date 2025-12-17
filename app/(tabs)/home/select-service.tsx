@@ -21,14 +21,19 @@ export default function SelectServiceScreen() {
     const [expandedService, setExpandedService] = useState<string | null>(null);
 
     useEffect(() => {
-        // Hide the bottom tab bar when this screen is mounted
-        navigation.getParent()?.setOptions({
-            tabBarStyle: {
-                display: "none"
-            }
-        });
+        // Hide the bottom tab bar when this screen is mounted or focused
+        const hideTabs = () => {
+            navigation.getParent()?.setOptions({
+                tabBarStyle: { display: "none" }
+            });
+        };
+
+        const unsubscribe = navigation.addListener('focus', hideTabs);
+        hideTabs(); // Run immediately on mount
+
         return () => {
-            // Restore tab bar (Custom floating style)
+            unsubscribe();
+            // Restore tab bar (Custom floating style) on unmount
             navigation.getParent()?.setOptions({
                 tabBarStyle: {
                     height: 80,

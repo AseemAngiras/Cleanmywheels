@@ -10,10 +10,19 @@ export default function VehicleDetailsScreen() {
     const [vehicleNumber, setVehicleNumber] = useState('');
 
     useEffect(() => {
-        // Hide the bottom tab bar when this screen is mounted
+        // Hide the bottom tab bar when this screen is mounted or focused
+        const unsubscribe = navigation.addListener('focus', () => {
+            navigation.getParent()?.setOptions({
+                tabBarStyle: { display: "none" }
+            });
+        });
+
+        // Initial hide check in case focus doesn't trigger on mount
         navigation.getParent()?.setOptions({
             tabBarStyle: { display: "none" }
         });
+
+        return unsubscribe;
     }, [navigation]);
 
     const vehicleTypes = [
@@ -98,7 +107,7 @@ export default function VehicleDetailsScreen() {
                         </ScrollView>
 
                         <View style={styles.footer}>
-                            <TouchableOpacity style={styles.nextButton}>
+                            <TouchableOpacity style={styles.nextButton} onPress={() => router.push('/(tabs)/home/shops-list')}>
                                 <Text style={styles.nextButtonText}>Next</Text>
                                 <Ionicons name="arrow-forward" size={20} color="#1a1a1a" style={{ marginLeft: 8 }} />
                             </TouchableOpacity>
@@ -221,3 +230,4 @@ const styles = StyleSheet.create({
     },
     nextButtonText: { fontSize: 16, fontWeight: 'bold', color: '#1a1a1a' },
 });
+

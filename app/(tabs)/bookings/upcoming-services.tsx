@@ -1,26 +1,23 @@
 "use client"
 
 import { Ionicons } from "@expo/vector-icons"
+import { CameraView, useCameraPermissions } from "expo-camera"
 import { useState } from "react"
-import { Alert, FlatList, Image, Linking, StyleSheet, Text, TouchableOpacity, View } from "react-native"
+import {
+  Alert,
+  FlatList,
+  Image,
+  Linking,
+  Modal,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native"
 
 const initialBookings = [
   {
     id: "1",
-    carImage: "https://images.pexels.com/photos/170811/pexels-photo-170811.jpeg",
-    center: "Service Center A",
-    date: "2023-10-01",
-    car: "Toyota Camry",
-    service: "Oil Change",
-    time: "10:00 AM",
-    address: "123 Main St, Anytown",
-    plate: "ABC123",
-    price: "$50",
-    status: "PENDING",
-    phone: "+1 (555) 123-4567",
-  },
-  {
-    id: "2",
     carImage: "https://images.pexels.com/photos/4906936/pexels-photo-4906936.jpeg",
     center: "Auto Care Plus",
     date: "2023-10-05",
@@ -30,28 +27,21 @@ const initialBookings = [
     address: "456 Oak Avenue, Springfield",
     plate: "XYZ789",
     price: "$75",
-    status: "CONFIRMED",
     phone: "+1 (555) 987-6543",
-  },
-  {
-    id: "3",
-    carImage: "https://images.pexels.com/photos/244206/pexels-photo-244206.jpeg",
-    center: "Premium Motors Service",
-    date: "2023-10-08",
-    car: "BMW 3 Series",
-    service: "Full Service",
-    time: "9:00 AM",
-    address: "789 Elm Street, Downtown",
-    plate: "LMN456",
-    price: "$150",
-    status: "PENDING",
-    phone: "+1 (555) 456-7890",
   },
 ]
 
 export default function UpcomingServices() {
   const [bookings, setBookings] = useState(initialBookings)
   const [expandedId, setExpandedId] = useState<string | null>(null)
+
+  const [scannerVisible, setScannerVisible] = useState(false)
+  const [activeBookingId, setActiveBookingId] = useState<string | null>(null)
+  const [permission, requestPermission] = useCameraPermissions()
+
+  const toggleExpand = (id: string) => {
+    setExpandedId(expandedId === id ? null : id)
+  }
 
   const handleDelete = (id: string) => {
     Alert.alert(
@@ -62,33 +52,51 @@ export default function UpcomingServices() {
         {
           text: "Yes, Cancel",
           style: "destructive",
-          onPress: () => setBookings((prev) => prev.filter((b) => b.id !== id)),
+          onPress: () =>
+            setBookings((prev) => prev.filter((b) => b.id !== id)),
         },
       ],
     )
-  }
-
-  const toggleExpand = (id: string) => {
-    setExpandedId(expandedId === id ? null : id)
   }
 
   const handleCall = (phone: string) => {
     Linking.openURL(`tel:${phone}`)
   }
 
+  const handleOpenScanner = (bookingId: string) => {
+    setActiveBookingId(bookingId)
+    setScannerVisible(true)
+  }
+
+  const handleQrScanned = ({ data }: { data: string }) => {
+    setScannerVisible(false)
+
+    Alert.alert(
+      "Arrival Confirmed",
+      "You have successfully checked in at the service center.",
+    )
+
+    // 🔥 Backend call
+    // bookingId -> activeBookingId
+    // qr payload -> data
+  }
+
   const renderItem = ({ item }: { item: (typeof initialBookings)[0] }) => {
     const isExpanded = expandedId === item.id
 
     return (
-      <TouchableOpacity activeOpacity={0.8} onPress={() => toggleExpand(item.id)} style={styles.cardContainer}>
+      <TouchableOpacity
+        activeOpacity={0.8}
+        onPress={() => toggleExpand(item.id)}
+        style={styles.cardContainer}
+      >
         <View style={styles.card}>
           <View style={styles.headerRow}>
-            {/* Car Image on Left */}
             <Image source={{ uri: item.carImage }} style={styles.carImage} />
 
-            {/* Center Content */}
             <View style={styles.textContainer}>
               <Text style={styles.centerName}>{item.center}</Text>
+
               <View style={styles.metaRow}>
                 <Ionicons name="calendar-outline" size={14} color="#888" />
                 <Text style={styles.metaText}>{item.date}</Text>
@@ -96,82 +104,80 @@ export default function UpcomingServices() {
                 <Ionicons name="time-outline" size={14} color="#888" />
                 <Text style={styles.metaText}>{item.time}</Text>
               </View>
+
               <View style={styles.metaRow}>
                 <Ionicons name="car-outline" size={14} color="#888" />
                 <Text style={styles.metaText}>{item.car}</Text>
               </View>
+
+              {/* CONFIRMED TEXT */}
+              <Text style={styles.confirmedText}>Confirmed</Text>
             </View>
 
-            {/* Icon on Right */}
-            <Ionicons name={isExpanded ? "chevron-up" : "chevron-down"} size={20} style={{marginBottom: 50}} color="#888" />
+            <Ionicons
+              name={isExpanded ? "chevron-up" : "chevron-down"}
+              size={20}
+              color="#888"
+            />
           </View>
 
-          {/* Expanded details */}
           {isExpanded && (
             <View style={styles.expandedContent}>
               <View style={styles.divider} />
 
-              <View style={styles.statusBadge}>
-                <View style={[styles.statusDot, item.status === "PENDING" && styles.pendingDot]} />
-                <Text style={[styles.status, item.status === "PENDING" && styles.pendingStatus]}>{item.status}</Text>
-              </View>
+              {/* QR SCAN BUTTON */}
+              <TouchableOpacity
+                style={styles.qrButton}
+                onPress={() => handleOpenScanner(item.id)}
+              >
+                <Ionicons
+                  name="qr-code-outline"
+                  size={22}
+                  color="#1A1A1A"
+                />
+                <Text style={styles.qrText}>Scan QR to Check-In</Text>
+              </TouchableOpacity>
 
               <View style={styles.detailsContainer}>
                 <View style={styles.detailRow}>
-                  <View style={styles.detailLabel}>
-                    <Ionicons name="construct-outline" size={16} color="#888" />
-                    <Text style={styles.label}>Service</Text>
-                  </View>
+                  <Text style={styles.label}>Service</Text>
                   <Text style={styles.value}>{item.service}</Text>
                 </View>
 
                 <View style={styles.detailRow}>
-                  <View style={styles.detailLabel}>
-                    <Ionicons name="time-outline" size={16} color="#888" />
-                    <Text style={styles.label}>Time</Text>
-                  </View>
-                  <Text style={styles.value}>{item.time}</Text>
+                  <Text style={styles.label}>Address</Text>
+                  <Text style={styles.value}>{item.address}</Text>
                 </View>
 
                 <View style={styles.detailRow}>
-                  <View style={styles.detailLabel}>
-                    <Ionicons name="location-outline" size={16} color="#888" />
-                    <Text style={styles.label}>Address</Text>
-                  </View>
-                  <Text style={[styles.value, styles.addressValue]}>{item.address}</Text>
-                </View>
-
-                <View style={styles.detailRow}>
-                  <View style={styles.detailLabel}>
-                    <Ionicons name="card-outline" size={16} color="#888" />
-                    <Text style={styles.label}>Plate</Text>
-                  </View>
+                  <Text style={styles.label}>Plate</Text>
                   <Text style={styles.value}>{item.plate}</Text>
                 </View>
               </View>
 
               <View style={styles.contactSection}>
                 <Text style={styles.contactHeader}>Workshop Contact</Text>
-                <TouchableOpacity style={styles.contactBtn} onPress={() => handleCall(item.phone)}>
+                <TouchableOpacity
+                  style={styles.contactBtn}
+                  onPress={() => handleCall(item.phone)}
+                >
                   <Ionicons name="call-outline" size={18} color="#007AFF" />
                   <Text style={styles.contactBtnText}>{item.phone}</Text>
                 </TouchableOpacity>
               </View>
 
               <View style={styles.footer}>
-                <View style={styles.priceContainer}>
-                  <Text style={styles.priceLabel}>Total Amount</Text>
-                  <Text style={styles.price}>{item.price}</Text>
-                </View>
+                <Text style={styles.price}>{item.price}</Text>
 
                 <TouchableOpacity
                   style={styles.deleteBtn}
-                  onPress={(e) => {
-                    e.stopPropagation()
-                    handleDelete(item.id)
-                  }}
+                  onPress={() => handleDelete(item.id)}
                 >
-                  <Ionicons name="trash-outline" size={18} color="#FF3B30" />
+                  <Ionicons
+                    name="trash-outline"
+                    size={18}
+                    color="#FF3B30"
+                  />
                   <Text style={styles.deleteText}>Cancel</Text>
                 </TouchableOpacity>
               </View>
@@ -183,15 +189,45 @@ export default function UpcomingServices() {
   }
 
   return (
-    <FlatList
-      data={bookings}
-      keyExtractor={(item) => item.id}
-      contentContainerStyle={styles.listContainer}
-      showsVerticalScrollIndicator={false}
-      renderItem={renderItem}
-    />
+    <>
+      {/* QR SCANNER MODAL */}
+      <Modal visible={scannerVisible} animationType="slide">
+        <View style={{ flex: 1 }}>
+          {!permission?.granted ? (
+            <View style={styles.permissionView}>
+              <Text>Camera permission required</Text>
+              <TouchableOpacity onPress={requestPermission}>
+                <Text style={styles.allowText}>Allow Camera</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <CameraView
+              style={{ flex: 1 }}
+              barcodeScannerSettings={{ barcodeTypes: ["qr"] }}
+              onBarcodeScanned={handleQrScanned}
+            />
+          )}
+
+          <TouchableOpacity
+            style={styles.closeScanner}
+            onPress={() => setScannerVisible(false)}
+          >
+            <Ionicons name="close" size={28} color="#FFF" />
+          </TouchableOpacity>
+        </View>
+      </Modal>
+
+      <FlatList
+        data={bookings}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.listContainer}
+        renderItem={renderItem}
+      />
+    </>
   )
 }
+
+/* ================= STYLES ================= */
 
 const styles = StyleSheet.create({
   listContainer: {
@@ -202,118 +238,79 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   card: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#FFF",
     borderRadius: 16,
     padding: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
     elevation: 4,
-    borderWidth: 1,
-    borderColor: "#F5F5F5",
   },
   headerRow: {
     flexDirection: "row",
-    alignItems: "center",
     gap: 16,
   },
   carImage: {
     width: 90,
     height: 90,
     borderRadius: 12,
-    backgroundColor: "#f0f0f0",
   },
   textContainer: {
     flex: 1,
-    gap: 4,
   },
   centerName: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#1A1A1A",
-    marginBottom: 4,
   },
   metaRow: {
     flexDirection: "row",
+    gap: 6,
     alignItems: "center",
-    gap: 4,
   },
   metaText: {
-    fontSize: 14,
     color: "#666",
   },
   dot: {
-    width: 3,
-    height: 3,
-    borderRadius: 1.5,
+    width: 4,
+    height: 4,
+    borderRadius: 2,
     backgroundColor: "#CCC",
-    marginHorizontal: 4,
+  },
+  confirmedText: {
+    marginTop: 6,
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#34C759",
   },
   expandedContent: {
     marginTop: 16,
   },
   divider: {
     height: 1,
-    backgroundColor: "#F0F0F0",
-    marginBottom: 16,
+    backgroundColor: "#EEE",
+    marginBottom: 12,
   },
-  statusBadge: {
+  qrButton: {
     flexDirection: "row",
-    alignItems: "center",
-    alignSelf: "flex-start",
-    backgroundColor: "#E8F8ED",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    justifyContent: "center",
+    gap: 10,
+    padding: 14,
+    backgroundColor: "#FFF7CC",
     borderRadius: 12,
-    marginBottom: 16,
-    gap: 6,
+    marginBottom: 12,
   },
-  statusDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: "#34C759",
-  },
-  pendingDot: {
-    backgroundColor: "#FF9500",
-  },
-  status: {
-    fontSize: 12,
+  qrText: {
     fontWeight: "700",
-    color: "#34C759",
-  },
-  pendingStatus: {
-    color: "#FF9500",
   },
   detailsContainer: {
-    gap: 12,
+    gap: 10,
   },
   detailRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "flex-start",
-    gap: 12,
-  },
-  detailLabel: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    minWidth: 100,
   },
   label: {
-    fontSize: 14,
     color: "#888",
   },
   value: {
-    fontSize: 14,
-    color: "#1A1A1A",
     fontWeight: "500",
-    flex: 1,
-    textAlign: "right",
-  },
-  addressValue: {
-    maxWidth: "60%",
   },
   contactSection: {
     marginTop: 16,
@@ -322,56 +319,50 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   contactHeader: {
-    fontSize: 13,
     fontWeight: "600",
-    color: "#1A1A1A",
-    marginBottom: 10,
+    marginBottom: 8,
   },
   contactBtn: {
     flexDirection: "row",
+    gap: 8,
     alignItems: "center",
-    gap: 10,
-    paddingVertical: 8,
   },
   contactBtnText: {
-    fontSize: 14,
     color: "#007AFF",
-    fontWeight: "500",
   },
   footer: {
+    marginTop: 16,
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: 16,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: "#F0F0F0",
-  },
-  priceContainer: {
-    flex: 1,
-  },
-  priceLabel: {
-    fontSize: 12,
-    color: "#888",
-    marginBottom: 2,
   },
   price: {
     fontSize: 20,
     fontWeight: "700",
-    color: "#1A1A1A",
   },
   deleteBtn: {
     flexDirection: "row",
-    alignItems: "center",
     gap: 6,
-    backgroundColor: "#FFF5F5",
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 8,
+    alignItems: "center",
   },
   deleteText: {
     color: "#FF3B30",
-    fontSize: 14,
     fontWeight: "600",
+  },
+  permissionView: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  allowText: {
+    color: "#007AFF",
+    marginTop: 10,
+  },
+  closeScanner: {
+    position: "absolute",
+    top: 50,
+    right: 20,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    padding: 10,
+    borderRadius: 20,
   },
 })

@@ -101,7 +101,7 @@ const MenuItem = ({ title, onPress }: any) => (
 );
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, backgroundColor: "#FFF" },
+  container: { flex: 1, paddingHorizontal: 16, paddingTop: 50, backgroundColor: "#FFF" },
   title: { fontSize: 24, fontWeight: "700", marginBottom: 16 },
   profileCard: {
     backgroundColor: "#FFF7E6",

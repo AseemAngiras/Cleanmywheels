@@ -17,7 +17,7 @@ const initialBookings = [
     price: "$35.00",
     center: "Speedy Wash Station",
     address: "123 Main St, Downtown",
-    date: "Tomorrow, Oct 25",
+    date: "Oct 25",
     time: "10:00 AM",
     car: "Toyota Camry",
     plate: "KA-01-MJ-1234",

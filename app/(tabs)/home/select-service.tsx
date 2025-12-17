@@ -182,7 +182,7 @@ export default function SelectServiceScreen() {
                     <Text style={styles.totalLabel}>Total</Text>
                     <Text style={styles.totalPrice}>₹{calculateTotal()}</Text>
                 </View>
-                <TouchableOpacity style={styles.nextButton}>
+                <TouchableOpacity style={styles.nextButton} onPress={() => router.push('/(tabs)/home/vehicle-details')}>
                     <Text style={styles.nextButtonText}>Next</Text>
                 </TouchableOpacity>
             </View>

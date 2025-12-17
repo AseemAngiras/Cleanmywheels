@@ -7,6 +7,7 @@ export default function HomeLayout() {
   return (
     <Stack>
       <Stack.Screen name='index' options={{ headerShown: false }} />
+      <Stack.Screen name='select-service' options={{ headerShown: false }} />
     </Stack>
   )
 }

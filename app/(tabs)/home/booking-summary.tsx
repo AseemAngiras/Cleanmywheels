@@ -155,7 +155,13 @@ export default function BookingSummaryScreen() {
 
             {/* Footer */}
             <View style={styles.footer}>
-                <TouchableOpacity style={styles.payButton} onPress={() => router.push('/(tabs)/home')}>
+                <TouchableOpacity
+                    style={styles.payButton}
+                    onPress={() => router.push({
+                        pathname: '/(tabs)/home/payment',
+                        params: params // Pass all params forward
+                    })}
+                >
                     <View style={styles.payButtonContent}>
                         <Text style={styles.payButtonText}>Pay ₹{totalPrice || 0}</Text>
                         <Ionicons name="arrow-forward" size={20} color="#1a1a1a" />

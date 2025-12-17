@@ -13,6 +13,7 @@ export default function HomeLayout() {
       <Stack.Screen name='select-slot' options={{ headerShown: false }} />
       <Stack.Screen name='scanner' options={{ headerShown: false }} />
       <Stack.Screen name='booking-summary' options={{ headerShown: false }} />
+      <Stack.Screen name='payment' options={{ headerShown: false }} />
     </Stack>
   )
 }

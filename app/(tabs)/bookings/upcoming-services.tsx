@@ -234,7 +234,7 @@ const styles = StyleSheet.create({
   },
   headerRow: { flexDirection: "row", gap: 16 },
   carImage: { width: 100, height: 120, borderRadius: 12 },
-  centerName: { fontSize: 18, fontWeight: "700" },
+  centerName: { fontSize: 18, fontWeight: "500" },
   metaRow: { flexDirection: "row", gap: 4, alignItems: "center", marginTop: 4 },
   metaText: { color: "#666" },
   dot: { width: 3, height: 3, borderRadius: 3, backgroundColor: "#CCC" },

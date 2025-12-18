@@ -36,15 +36,7 @@ export default function ArrivalConfirmed() {
           onPress={() => router.replace("/bookings")}
           activeOpacity={0.85}
         >
-          <Text style={styles.primaryText}>View all bookings</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.secondaryButton}
-          onPress={() => router.replace("/bookings")}
-          activeOpacity={0.85}
-        >
-          <Text style={styles.secondaryText}>Back to bookings</Text>
+          <Text style={styles.primaryText}>Back to bookings</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -110,23 +102,11 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     borderRadius: 14,
     alignItems: "center",
-    marginBottom: 12,
+    marginBottom: 150,
   },
 
   primaryText: {
-    fontSize: 15,
-    fontWeight: "700",
-  },
-
-  secondaryButton: {
-    backgroundColor: "#F2F2F2",
-    paddingVertical: 14,
-    borderRadius: 14,
-    alignItems: "center",
-  },
-
-  secondaryText: {
-    fontSize: 15,
-    fontWeight: "600",
+    fontSize: 19,
+    fontWeight: "500",
   },
 })

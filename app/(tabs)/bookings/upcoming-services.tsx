@@ -3,6 +3,8 @@
 import { Ionicons } from "@expo/vector-icons"
 import { CameraView, useCameraPermissions } from "expo-camera"
 import { useEffect, useRef, useState } from "react"
+import { router } from "expo-router"
+
 import {
   Alert,
   Animated,
@@ -60,13 +62,11 @@ export default function UpcomingServices() {
   }
 
   const handleQrScanned = ({ data }: { data: string }) => {
-    setScannerVisible(false)
+  setScannerVisible(false)
 
-    Alert.alert(
-      "Arrival Confirmed",
-      "You have successfully checked in at the service center."
-    )
-  }
+  router.push("/bookings/arrival-confirmed")
+}
+
 
   const handleDelete = (id: string) => {
     Alert.alert("Cancel Booking", "Are you sure?", [

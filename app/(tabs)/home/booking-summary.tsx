@@ -18,6 +18,8 @@ export default function BookingSummaryScreen() {
         vehicleNumber,
         shopName,
         shopAddress,
+        shopImage,
+        shopRating,
         shopLat,
         shopLong,
         selectedDate,
@@ -224,7 +226,17 @@ export default function BookingSummaryScreen() {
             <View style={styles.footer}>
                 <TouchableOpacity
                     style={styles.payButton}
-                    onPress={() => router.push('/(tabs)/home')}
+                    onPress={() => router.push({
+                        pathname: '/(tabs)/home/order-confirmation',
+                        params: {
+                            shopName: shopName,
+                            shopAddress: shopAddress,
+                            shopImage: shopImage,
+                            shopRating: shopRating,
+                            date: selectedDate,
+                            time: selectedTime
+                        }
+                    })}
                 >
                     <View style={styles.payButtonContent}>
                         <Ionicons name="lock-closed" size={20} color="#1a1a1a" style={{ marginRight: 8 }} />

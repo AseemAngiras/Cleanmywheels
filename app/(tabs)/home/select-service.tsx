@@ -1,6 +1,6 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { useNavigation, useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import { useFocusEffect, useNavigation, useRouter } from 'expo-router';
+import React, { useCallback, useState } from 'react';
 import { Image, Keyboard, KeyboardAvoidingView, LayoutAnimation, Platform, SafeAreaView, ScrollView, StyleSheet, Switch, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, UIManager, View } from 'react-native';
 import BookingStepper from '../../../components/BookingStepper';
 
@@ -32,42 +32,13 @@ export default function SelectServiceScreen() {
         { id: 'others', name: 'Others', icon: 'truck-delivery' },
     ];
 
-    useEffect(() => {
-        // Hide the bottom tab bar when this screen is mounted or focused
-        const hideTabs = () => {
+    useFocusEffect(
+        useCallback(() => {
             navigation.getParent()?.setOptions({
                 tabBarStyle: { display: "none" }
             });
-        };
-
-        const unsubscribe = navigation.addListener('focus', hideTabs);
-        hideTabs(); // Run immediately on mount
-
-        return () => {
-            unsubscribe();
-            // Restore tab bar (Custom floating style) on unmount
-            navigation.getParent()?.setOptions({
-                tabBarStyle: {
-                    height: 80,
-                    position: 'absolute',
-                    bottom: 2,
-                    left: 20,
-                    right: 20,
-                    elevation: 5,
-                    backgroundColor: '#ffffff',
-                    borderRadius: 25,
-                    shadowColor: '#000',
-                    shadowOffset: { width: 0, height: 10 },
-                    shadowOpacity: 0.1,
-                    shadowRadius: 10,
-                    borderTopWidth: 0,
-                    paddingBottom: 20,
-                    paddingTop: 10,
-                    display: 'flex'
-                }
-            });
-        };
-    }, [navigation]);
+        }, [navigation])
+    );
 
     const services = [
         {
@@ -377,9 +348,9 @@ const styles = StyleSheet.create({
 
     // Vehicle Styles
     subSectionTitle: {
-        fontSize: 14,
+        fontSize: 16,
         fontWeight: 'bold',
-        marginTop: 15,
+        marginTop: 5,
         marginBottom: 10,
         color: '#1a1a1a',
     },
@@ -387,7 +358,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         flexWrap: 'wrap',
         justifyContent: 'space-between',
-        marginBottom: 10,
+        marginBottom: -40, // Negative margin to pull next section up
     },
     typeCard: {
         width: '48%',
@@ -396,7 +367,7 @@ const styles = StyleSheet.create({
         borderRadius: 15,
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: 15,
+        marginBottom: 10,
         borderWidth: 2,
         borderColor: '#f0f0f0',
         position: 'relative',
@@ -439,11 +410,11 @@ const styles = StyleSheet.create({
         borderRadius: 15,
         paddingHorizontal: 20,
         paddingVertical: 15,
-        fontSize: 16,
+        fontSize: 14, // Changed from 16 to 14
         color: '#1a1a1a',
         borderWidth: 1,
         borderColor: '#f0f0f0',
-        marginBottom: 20
+        marginBottom: 15
     },
 
     footer: {

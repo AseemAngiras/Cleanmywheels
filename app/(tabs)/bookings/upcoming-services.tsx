@@ -29,7 +29,34 @@ const initialBookings = [
     price: "$75",
     phone: "+1 (555) 987-6543",
   },
+  {
+    id: "2",
+    carImage: "https://images.pexels.com/photos/170811/pexels-photo-170811.jpeg",
+    center: "Prime Auto Service",
+    date: "2023-10-12",
+    car: "Toyota Camry",
+    service: "Full Car Wash",
+    time: "10:00 AM",
+    address: "789 Maple Street, Riverside",
+    plate: "CAM456",
+    price: "$40",
+    phone: "+1 (555) 321-7788",
+  },
+  {
+    id: "3",
+    carImage: "https://images.pexels.com/photos/1149831/pexels-photo-1149831.jpeg",
+    center: "Elite Motors",
+    date: "2023-10-20",
+    car: "BMW 3 Series",
+    service: "Brake Inspection",
+    time: "4:15 PM",
+    address: "123 Luxury Drive, Downtown",
+    plate: "BMW903",
+    price: "$120",
+    phone: "+1 (555) 654-9981",
+  },
 ]
+
 
 export default function UpcomingServices() {
   const [bookings, setBookings] = useState(initialBookings)
@@ -70,15 +97,10 @@ export default function UpcomingServices() {
 
   const handleQrScanned = ({ data }: { data: string }) => {
     setScannerVisible(false)
-
     Alert.alert(
       "Arrival Confirmed",
       "You have successfully checked in at the service center.",
     )
-
-    // 🔥 Backend call
-    // bookingId -> activeBookingId
-    // qr payload -> data
   }
 
   const renderItem = ({ item }: { item: (typeof initialBookings)[0] }) => {
@@ -86,7 +108,7 @@ export default function UpcomingServices() {
 
     return (
       <TouchableOpacity
-        activeOpacity={0.8}
+        activeOpacity={0.85}
         onPress={() => toggleExpand(item.id)}
         style={styles.cardContainer}
       >
@@ -98,25 +120,31 @@ export default function UpcomingServices() {
               <Text style={styles.centerName}>{item.center}</Text>
 
               <View style={styles.metaRow}>
-                <Ionicons name="calendar-outline" size={14} color="#888" />
+                <Ionicons name="calendar-outline" size={15} color="#888" />
                 <Text style={styles.metaText}>{item.date}</Text>
                 <View style={styles.dot} />
-                <Ionicons name="time-outline" size={14} color="#888" />
+                <Ionicons name="time-outline" size={15} color="#888" />
                 <Text style={styles.metaText}>{item.time}</Text>
               </View>
 
               <View style={styles.metaRow}>
-                <Ionicons name="car-outline" size={14} color="#888" />
+                <Ionicons name="car-outline" size={15} color="#888" />
                 <Text style={styles.metaText}>{item.car}</Text>
               </View>
 
-              {/* CONFIRMED TEXT */}
-              <Text style={styles.confirmedText}>Confirmed</Text>
+              <View style={styles.confirmedBadge}>
+                <Ionicons
+                  name="checkmark-circle"
+                  size={14}
+                  color="#1E8E3E"
+                />
+                <Text style={styles.confirmedText}>Confirmed</Text>
+              </View>
             </View>
 
             <Ionicons
               name={isExpanded ? "chevron-up" : "chevron-down"}
-              size={20}
+              size={22}
               color="#888"
             />
           </View>
@@ -125,7 +153,6 @@ export default function UpcomingServices() {
             <View style={styles.expandedContent}>
               <View style={styles.divider} />
 
-              {/* QR SCAN BUTTON */}
               <TouchableOpacity
                 style={styles.qrButton}
                 onPress={() => handleOpenScanner(item.id)}
@@ -190,7 +217,6 @@ export default function UpcomingServices() {
 
   return (
     <>
-      {/* QR SCANNER MODAL */}
       <Modal visible={scannerVisible} animationType="slide">
         <View style={{ flex: 1 }}>
           {!permission?.granted ? (
@@ -227,80 +253,96 @@ export default function UpcomingServices() {
   )
 }
 
-/* ================= STYLES ================= */
-
 const styles = StyleSheet.create({
   listContainer: {
     padding: 16,
     paddingBottom: 96,
   },
   cardContainer: {
-    marginBottom: 16,
+    marginBottom: 20,
   },
   card: {
     backgroundColor: "#FFF",
-    borderRadius: 16,
-    padding: 20,
-    elevation: 4,
+    borderRadius: 20,
+    padding: 24,
+    minHeight: 170,
+    elevation: 6,
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 6 },
   },
   headerRow: {
     flexDirection: "row",
-    gap: 16,
+    gap: 18,
   },
   carImage: {
-    width: 90,
-    height: 90,
-    borderRadius: 12,
+    width: 110,
+    height: 135,
+    borderRadius: 10,
   },
   textContainer: {
     flex: 1,
   },
   centerName: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: "700",
   },
   metaRow: {
     flexDirection: "row",
-    gap: 6,
+    gap: 2,
     alignItems: "center",
+    marginTop: 4,
   },
   metaText: {
     color: "#666",
+    fontSize: 14,
   },
   dot: {
-    width: 4,
-    height: 4,
+    width: 2,
+    height: 2,
     borderRadius: 2,
     backgroundColor: "#CCC",
   },
+  confirmedBadge: {
+    marginTop: 10,
+    alignSelf: "flex-start",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 14,
+    backgroundColor: "#E6F4EA",
+  },
   confirmedText: {
-    marginTop: 6,
-    fontSize: 13,
-    fontWeight: "700",
-    color: "#34C759",
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#1E8E3E",
   },
   expandedContent: {
-    marginTop: 16,
+    marginTop: 18,
   },
   divider: {
     height: 1,
     backgroundColor: "#EEE",
-    marginBottom: 12,
+    marginBottom: 14,
   },
   qrButton: {
     flexDirection: "row",
     justifyContent: "center",
     gap: 10,
-    padding: 14,
+    padding: 16,
     backgroundColor: "#FFF7CC",
-    borderRadius: 12,
-    marginBottom: 12,
+    borderRadius: 14,
+    marginBottom: 14,
   },
   qrText: {
     fontWeight: "700",
+    fontSize: 15,
   },
   detailsContainer: {
-    gap: 10,
+    gap: 12,
   },
   detailRow: {
     flexDirection: "row",
@@ -313,10 +355,10 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   contactSection: {
-    marginTop: 16,
-    padding: 12,
+    marginTop: 18,
+    padding: 14,
     backgroundColor: "#F8F9FA",
-    borderRadius: 10,
+    borderRadius: 12,
   },
   contactHeader: {
     fontWeight: "600",
@@ -331,12 +373,12 @@ const styles = StyleSheet.create({
     color: "#007AFF",
   },
   footer: {
-    marginTop: 16,
+    marginTop: 18,
     flexDirection: "row",
     justifyContent: "space-between",
   },
   price: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: "700",
   },
   deleteBtn: {

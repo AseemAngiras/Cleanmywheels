@@ -181,13 +181,13 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   primaryButton: {
-    backgroundColor: '#ffeb69', // Secondary color confirmed in recent turns
+    backgroundColor: '#C8F000', // Secondary color confirmed in recent turns
     paddingVertical: 16,
     paddingHorizontal: 30,
     borderRadius: 30,
     minWidth: 160,
     alignItems: 'center',
-    shadowColor: '#ffeb69',
+    shadowColor: '#C8F000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 10,

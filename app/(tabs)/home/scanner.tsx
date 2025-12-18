@@ -142,8 +142,8 @@ const styles = StyleSheet.create({
         overflow: 'hidden',
     },
     // Fancy Corners
-    cornerTL: { position: 'absolute', top: -2, left: -2, width: 30, height: 30, borderTopWidth: 4, borderLeftWidth: 4, borderColor: '#ffeb69', borderTopLeftRadius: 20 },
-    cornerTR: { position: 'absolute', top: -2, right: -2, width: 30, height: 30, borderTopWidth: 4, borderRightWidth: 4, borderColor: '#ffeb69', borderTopRightRadius: 20 },
-    cornerBL: { position: 'absolute', bottom: -2, left: -2, width: 30, height: 30, borderBottomWidth: 4, borderLeftWidth: 4, borderColor: '#ffeb69', borderBottomLeftRadius: 20 },
-    cornerBR: { position: 'absolute', bottom: -2, right: -2, width: 30, height: 30, borderBottomWidth: 4, borderRightWidth: 4, borderColor: '#ffeb69', borderBottomRightRadius: 20 },
+    cornerTL: { position: 'absolute', top: -2, left: -2, width: 30, height: 30, borderTopWidth: 4, borderLeftWidth: 4, borderColor: '#C8F000', borderTopLeftRadius: 20 },
+    cornerTR: { position: 'absolute', top: -2, right: -2, width: 30, height: 30, borderTopWidth: 4, borderRightWidth: 4, borderColor: '#C8F000', borderTopRightRadius: 20 },
+    cornerBL: { position: 'absolute', bottom: -2, left: -2, width: 30, height: 30, borderBottomWidth: 4, borderLeftWidth: 4, borderColor: '#C8F000', borderBottomLeftRadius: 20 },
+    cornerBR: { position: 'absolute', bottom: -2, right: -2, width: 30, height: 30, borderBottomWidth: 4, borderRightWidth: 4, borderColor: '#C8F000', borderBottomRightRadius: 20 },
 });

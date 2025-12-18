@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import BookingStepper from '../../../components/BookingStepper';
 
@@ -32,7 +32,7 @@ export default function BookingSummaryScreen() {
     const long = parseFloat(shopLong as string) || -122.4194;
 
     // Payment Logic
-    const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('upi');
+    const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string | null>(null);
     const itemTotal = parseFloat(totalPrice as string) || 0;
     const taxAmount = Math.round(itemTotal * 0.18);
     const grandTotal = itemTotal + taxAmount;
@@ -203,8 +203,8 @@ export default function BookingSummaryScreen() {
                                 </View>
                             </View>
 
-                            <View style={[styles.optionIconContainer, { backgroundColor: selectedPaymentMethod === option.id ? '#E8F5E9' : '#F5F5F5' }]}>
-                                <Ionicons name={option.icon as any} size={24} color={selectedPaymentMethod === option.id ? '#4CAF50' : '#666'} />
+                            <View style={[styles.optionIconContainer, { backgroundColor: selectedPaymentMethod === option.id ? '#f0f9eb' : '#F5F5F5' }]}>
+                                <Ionicons name={option.icon as any} size={24} color={selectedPaymentMethod === option.id ? '#1a1a1a' : '#666'} />
                             </View>
 
                             <View style={styles.optionContent}>
@@ -226,17 +226,23 @@ export default function BookingSummaryScreen() {
             <View style={styles.footer}>
                 <TouchableOpacity
                     style={styles.payButton}
-                    onPress={() => router.push({
-                        pathname: '/(tabs)/home/order-confirmation',
-                        params: {
-                            shopName: shopName,
-                            shopAddress: shopAddress,
-                            shopImage: shopImage,
-                            shopRating: shopRating,
-                            date: selectedDate,
-                            time: selectedTime
+                    onPress={() => {
+                        if (!selectedPaymentMethod) {
+                            Alert.alert('Payment Method Required', 'Please select a payment option to proceed.');
+                            return;
                         }
-                    })}
+                        router.push({
+                            pathname: '/(tabs)/home/order-confirmation',
+                            params: {
+                                shopName: shopName,
+                                shopAddress: shopAddress,
+                                shopImage: shopImage,
+                                shopRating: shopRating,
+                                date: selectedDate,
+                                time: selectedTime
+                            }
+                        });
+                    }}
                 >
                     <View style={styles.payButtonContent}>
                         <Ionicons name="lock-closed" size={20} color="#1a1a1a" style={{ marginRight: 8 }} />
@@ -377,7 +383,7 @@ const styles = StyleSheet.create({
         borderColor: '#e0e0e0'
     },
     totalTextLabel: { fontSize: 16, fontWeight: 'bold', color: '#1a1a1a' },
-    totalTextValue: { fontSize: 18, fontWeight: 'bold', color: '#84c95c' },
+    totalTextValue: { fontSize: 18, fontWeight: 'bold', color: '#1a1a1a' },
 
     // Footer
     footer: {
@@ -398,7 +404,7 @@ const styles = StyleSheet.create({
         elevation: 20,
     },
     payButton: {
-        backgroundColor: '#ffeb69',
+        backgroundColor: '#C8F000',
         borderRadius: 30,
         paddingVertical: 16,
         alignItems: 'center',
@@ -431,7 +437,7 @@ const styles = StyleSheet.create({
         overflow: 'hidden'
     },
     optionCardSelected: {
-        borderColor: '#4CAF50',
+        borderColor: '#84c95c',
         backgroundColor: '#fff',
     },
     recommendedBadge: {
@@ -451,8 +457,8 @@ const styles = StyleSheet.create({
         alignItems: 'center', justifyContent: 'center'
     },
     radioUnselected: { borderColor: '#ddd' },
-    radioSelected: { borderColor: '#4CAF50' },
-    radioDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#4CAF50' },
+    radioSelected: { borderColor: '#84c95c' },
+    radioDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#84c95c' },
     optionIconContainer: {
         width: 40, height: 40, borderRadius: 10,
         alignItems: 'center', justifyContent: 'center', marginRight: 15

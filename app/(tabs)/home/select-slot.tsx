@@ -160,7 +160,7 @@ export default function SelectSlotScreen() {
                         <Text style={styles.legendText}>Available</Text>
                     </View>
                     <View style={styles.legendItem}>
-                        <View style={[styles.legendDot, { backgroundColor: '#ffeb69' }]} />
+                        <View style={[styles.legendDot, { backgroundColor: '#C8F000' }]} />
                         <Text style={styles.legendText}>Selected</Text>
                     </View>
                     <View style={styles.legendItem}>
@@ -290,10 +290,10 @@ const styles = StyleSheet.create({
         borderColor: '#eee',
     },
     dateItemSelected: {
-        backgroundColor: '#ffeb69',
-        borderColor: '#ffeb69',
+        backgroundColor: '#C8F000',
+        borderColor: '#C8F000',
         // Shadow
-        shadowColor: '#ffeb69',
+        shadowColor: '#C8F000',
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.3,
         shadowRadius: 5,
@@ -354,8 +354,8 @@ const styles = StyleSheet.create({
         position: 'relative',
     },
     slotSelected: {
-        backgroundColor: '#ffeb69',
-        borderColor: '#ffeb69',
+        backgroundColor: '#C8F000',
+        borderColor: '#C8F000',
     },
     slotUnavailable: {
         backgroundColor: '#f5f5f5', // Very light grey
@@ -393,7 +393,7 @@ const styles = StyleSheet.create({
     footerLabel: { fontSize: 12, color: '#888', marginBottom: 4 },
     footerValue: { fontSize: 16, fontWeight: 'bold', color: '#1a1a1a', marginBottom: 20 },
     confirmButton: {
-        backgroundColor: '#ffeb69',
+        backgroundColor: '#C8F000',
         borderRadius: 30,
         paddingVertical: 16,
         flexDirection: 'row',

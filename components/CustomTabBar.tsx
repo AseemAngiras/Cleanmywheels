@@ -1,8 +1,15 @@
-import { View, Text, TouchableOpacity, StyleSheet, Animated } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useRef } from "react";
+import { Animated, StyleSheet, TouchableOpacity, View } from "react-native";
 
 export function CustomTabBar({ state, descriptors, navigation }: any) {
+  const currentRouteKey = state.routes[state.index].key;
+  const { options } = descriptors[currentRouteKey];
+
+  if (options.tabBarStyle?.display === "none") {
+    return null;
+  }
+
   return (
     <View style={styles.wrapper}>
       <View style={styles.container}>
@@ -35,19 +42,19 @@ export function CustomTabBar({ state, descriptors, navigation }: any) {
             route.name === "home"
               ? focused ? "home" : "home-outline"
               : route.name === "my-cars"
-              ? focused ? "car" : "car-outline"
-              : route.name === "bookings"
-              ? focused ? "receipt" : "receipt-outline"
-              : focused ? "person" : "person-outline";
+                ? focused ? "car" : "car-outline"
+                : route.name === "bookings"
+                  ? focused ? "receipt" : "receipt-outline"
+                  : focused ? "person" : "person-outline";
 
           const label =
             route.name === "home"
               ? "Home"
               : route.name === "my-cars"
-              ? "My Cars"
-              : route.name === "bookings"
-              ? "Bookings"
-              : "Profile";
+                ? "My Cars"
+                : route.name === "bookings"
+                  ? "Bookings"
+                  : "Profile";
 
           return (
             <TouchableOpacity

@@ -16,6 +16,18 @@ type TimeSlot = {
 export default function ShopsListScreen() {
     const router = useRouter();
     const navigation = useNavigation();
+
+    useFocusEffect(
+        useCallback(() => {
+            // Hide the bottom tab bar when this screen is mounted or focused
+            navigation.getParent()?.setOptions({
+                tabBarStyle: { display: "none" }
+            });
+            return () => {
+                // Do not restore here, let the next screen handle it or index.tsx restore it
+            };
+        }, [navigation])
+    );
     const params = useLocalSearchParams();
     const [searchQuery, setSearchQuery] = useState('');
     const [isSearchVisible, setIsSearchVisible] = useState(false);

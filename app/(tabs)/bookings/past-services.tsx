@@ -174,155 +174,92 @@ export default function PastServices() {
     />
   )
 }
-
 const styles = StyleSheet.create({
   listContainer: {
     padding: 16,
     paddingBottom: 96,
   },
   cardContainer: {
-    marginBottom: 16,
+    marginBottom: 20,
   },
   card: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 16,
-    padding: 20,
+    backgroundColor: "#FFF",
+    borderRadius: 20,
+    padding: 24,
+    minHeight: 170,
+    elevation: 6,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
-    borderWidth: 1,
-    borderColor: "#F5F5F5",
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 6 },
   },
   headerRow: {
     flexDirection: "row",
-    alignItems: "center",
-    gap: 16,
+    gap: 18,
   },
   carImage: {
-    width: 90,
-    height: 90,
-    borderRadius: 12,
-    backgroundColor: "#f0f0f0",
+    width: 110,
+    height: 135,
+    borderRadius: 10,
   },
   textContainer: {
     flex: 1,
-    gap: 4,
   },
   centerName: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: "700",
-    color: "#1A1A1A",
-    marginBottom: 4,
   },
   metaRow: {
     flexDirection: "row",
+    gap: 2,
     alignItems: "center",
-    gap: 4,
+    marginTop: 4,
   },
   metaText: {
-    fontSize: 14,
     color: "#666",
+    fontSize: 14,
   },
   dot: {
-    width: 3,
-    height: 3,
-    borderRadius: 1.5,
+    width: 2,
+    height: 2,
+    borderRadius: 2,
     backgroundColor: "#CCC",
-    marginHorizontal: 4,
   },
   expandedContent: {
-    marginTop: 16,
+    marginTop: 18,
   },
   divider: {
     height: 1,
-    backgroundColor: "#F0F0F0",
-    marginBottom: 16,
-  },
-  statusBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    alignSelf: "flex-start",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-    marginBottom: 16,
-    gap: 6,
-  },
-  completedBadge: {
-    backgroundColor: "#E8F8ED",
-  },
-  cancelledBadge: {
-    backgroundColor: "#FFE8E8",
-  },
-  statusDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-  },
-  completedDot: {
-    backgroundColor: "#34C759",
-  },
-  cancelledDot: {
-    backgroundColor: "#FF3B30",
-  },
-  status: {
-    fontSize: 12,
-    fontWeight: "700",
-  },
-  completedStatus: {
-    color: "#34C759",
-  },
-  cancelledStatus: {
-    color: "#FF3B30",
+    backgroundColor: "#EEE",
+    marginBottom: 14,
   },
   detailsContainer: {
-    gap: 12,
+    marginTop: 10,
+    gap: 5,
+  },
+  detailLabel: {
+  flexDirection: "row", 
+  alignItems: "center", 
+  gap: 6,               
+  minWidth: 100,
   },
   detailRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "flex-start",
-    gap: 12,
-  },
-  detailLabel: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    minWidth: 100,
   },
   label: {
-    fontSize: 14,
     color: "#888",
   },
   value: {
-    fontSize: 14,
-    color: "#1A1A1A",
     fontWeight: "500",
-    flex: 1,
-    textAlign: "right",
-  },
-  addressValue: {
-    maxWidth: "60%",
   },
   footer: {
-    marginTop: 16,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: "#F0F0F0",
-  },
-  priceContainer: {
-    flex: 1,
-  },
-  priceLabel: {
-    fontSize: 12,
-    color: "#888",
-    marginBottom: 2,
+    marginTop: 18,
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   price: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#1A1A1A",
+    fontSize: 22,
+    fontWeight: "400",
   },
-})
+});

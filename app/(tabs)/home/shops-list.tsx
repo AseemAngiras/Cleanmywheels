@@ -2,7 +2,16 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import React, { useCallback, useRef, useState } from 'react';
-import { ActivityIndicator, FlatList, Image, Keyboard, KeyboardAvoidingView, Modal, Platform, SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import { ActivityIndicator, FlatList, Image, Keyboard, KeyboardAvoidingView, Modal, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import BookingStepper from '../../../components/BookingStepper';
+
+// Types
+type TimeSlot = {
+    id: string;
+    time: string;
+    period: 'Morning' | 'Afternoon' | 'Evening';
+    available: boolean;
+};
 
 export default function ShopsListScreen() {
     const router = useRouter();
@@ -18,6 +27,11 @@ export default function ShopsListScreen() {
     const [otp, setOtp] = useState(['', '', '', '']);
     const [phoneNumber, setPhoneNumber] = useState('');
     const [name, setName] = useState('');
+
+    // Slot Picker State
+    const [showSlotPicker, setShowSlotPicker] = useState(false);
+    const [selectedDate, setSelectedDate] = useState<number>(0);
+    const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
 
     const [selectedShop, setSelectedShop] = useState<any>(null);
 
@@ -81,6 +95,42 @@ export default function ShopsListScreen() {
         },
     ];
 
+    // --- Mock Slot Data ---
+    const dates = Array.from({ length: 7 }).map((_, i) => {
+        const d = new Date();
+        d.setDate(d.getDate() + i);
+        return {
+            id: i,
+            day: d.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase(),
+            date: d.getDate(),
+            fullDate: d
+        };
+    });
+
+    const timeSlots: TimeSlot[] = [
+        { id: '1', time: '08:00 AM', period: 'Morning', available: true },
+        { id: '2', time: '08:30 AM', period: 'Morning', available: true },
+        { id: '3', time: '09:00 AM', period: 'Morning', available: false },
+        { id: '4', time: '09:30 AM', period: 'Morning', available: true },
+        { id: '5', time: '10:00 AM', period: 'Morning', available: true },
+        { id: '6', time: '10:30 AM', period: 'Morning', available: false },
+        { id: '7', time: '12:00 PM', period: 'Afternoon', available: true },
+        { id: '8', time: '12:30 PM', period: 'Afternoon', available: true },
+        { id: '9', time: '01:00 PM', period: 'Afternoon', available: true },
+        { id: '10', time: '01:30 PM', period: 'Afternoon', available: true },
+        { id: '11', time: '02:00 PM', period: 'Afternoon', available: true },
+        { id: '12', time: '02:30 PM', period: 'Afternoon', available: false },
+        { id: '13', time: '05:00 PM', period: 'Evening', available: true },
+        { id: '14', time: '05:30 PM', period: 'Evening', available: false },
+        { id: '15', time: '06:00 PM', period: 'Evening', available: true },
+    ];
+
+    const slotsByPeriod = {
+        Morning: timeSlots.filter(s => s.period === 'Morning'),
+        Afternoon: timeSlots.filter(s => s.period === 'Afternoon'),
+        Evening: timeSlots.filter(s => s.period === 'Evening'),
+    };
+
     const filteredShops = allShops.filter(shop =>
         shop.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
@@ -126,21 +176,11 @@ export default function ShopsListScreen() {
         setModalStep('details');
         setOtp(['', '', '', '']);
 
-        // Navigate to Select Slot with Shop Params
-        router.push({
-            pathname: '/(tabs)/home/select-slot',
-            params: {
-                ...params,
-                shopId: selectedShop?.id,
-                shopName: selectedShop?.name,
-                shopAddress: selectedShop?.address || '123 Smart St.', // Fallback
-                shopImage: selectedShop?.image,
-                shopLat: selectedShop?.latitude,
-                shopLong: selectedShop?.longitude,
-                userPhone: phoneNumber,
-                userName: name
-            }
-        });
+        // Show Slot Picker instead of navigating
+        setIsLoginModalVisible(false);
+        setModalStep('details');
+        setOtp(['', '', '', '']);
+        setShowSlotPicker(true);
     };
 
     const handleOtpChange = (text: string, index: number) => {
@@ -222,6 +262,8 @@ export default function ShopsListScreen() {
                 )}
             </View>
 
+            <BookingStepper currentStep={2} />
+
             <FlatList
                 data={filteredShops}
                 renderItem={renderShopCard}
@@ -234,6 +276,114 @@ export default function ShopsListScreen() {
                     </View>
                 }
             />
+
+            {/* Slot Picker Modal */}
+            <Modal
+                animationType="slide"
+                transparent={false} // Full screen
+                visible={showSlotPicker}
+                onRequestClose={() => setShowSlotPicker(false)}
+            >
+                <SafeAreaView style={{ flex: 1, backgroundColor: '#f9f9f9' }}>
+                    <View style={styles.header}>
+                        <TouchableOpacity onPress={() => setShowSlotPicker(false)}>
+                            <Ionicons name="close" size={24} color="#1a1a1a" />
+                        </TouchableOpacity>
+                        <Text style={styles.headerTitle}>Select Slot</Text>
+                        <View style={{ width: 24 }} />
+                    </View>
+
+                    <BookingStepper currentStep={2} />
+
+                    <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 150, paddingTop: 20 }}>
+                        {/* Shop Info Tiny Card */}
+                        <View style={styles.shopCardSmall}>
+                            {selectedShop?.image && (
+                                <Image source={{ uri: selectedShop.image }} style={styles.shopImageSmall} />
+                            )}
+                            <Text style={styles.shopNameSmall}>{selectedShop?.name}</Text>
+                        </View>
+
+                        {/* Date Selector */}
+                        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.dateList} contentContainerStyle={{ paddingHorizontal: 20 }}>
+                            {dates.map((item, index) => {
+                                const isSelected = selectedDate === index;
+                                return (
+                                    <TouchableOpacity
+                                        key={index}
+                                        style={[styles.dateItem, isSelected && styles.dateItemSelected]}
+                                        onPress={() => setSelectedDate(index)}
+                                    >
+                                        <Text style={[styles.dayText, isSelected && styles.textSelected]}>{item.day}</Text>
+                                        <Text style={[styles.dateText, isSelected && styles.textSelected]}>{item.date}</Text>
+                                    </TouchableOpacity>
+                                );
+                            })}
+                        </ScrollView>
+
+                        {/* Slots Grid */}
+                        {Object.entries(slotsByPeriod).map(([period, slots]) => (
+                            <View key={period} style={styles.section}>
+                                <Text style={styles.sectionTitle}>{period}</Text>
+                                <View style={styles.grid}>
+                                    {slots.map((slot) => {
+                                        const isSelected = selectedSlot === slot.id;
+                                        const isUnavailable = !slot.available;
+                                        return (
+                                            <TouchableOpacity
+                                                key={slot.id}
+                                                style={[
+                                                    styles.slotItem,
+                                                    isSelected && styles.slotSelected,
+                                                    isUnavailable && styles.slotUnavailable
+                                                ]}
+                                                disabled={isUnavailable}
+                                                onPress={() => setSelectedSlot(slot.id)}
+                                            >
+                                                <Text style={[
+                                                    styles.slotText,
+                                                    isSelected && styles.slotTextSelected,
+                                                    isUnavailable && styles.slotTextUnavailable
+                                                ]}>{slot.time}</Text>
+                                            </TouchableOpacity>
+                                        );
+                                    })}
+                                </View>
+                            </View>
+                        ))}
+                    </ScrollView>
+
+                    <View style={styles.footer}>
+                        <TouchableOpacity
+                            style={[styles.continueButton, !selectedSlot && { opacity: 0.6 }]}
+                            disabled={!selectedSlot}
+                            onPress={() => {
+                                setShowSlotPicker(false);
+                                router.push({
+                                    pathname: '/(tabs)/home/booking-summary',
+                                    params: {
+                                        ...params,
+                                        shopId: selectedShop?.id,
+                                        shopName: selectedShop?.name,
+                                        shopAddress: selectedShop?.address || '123 Smart St.',
+                                        shopImage: selectedShop?.image,
+                                        shopLat: selectedShop?.latitude,
+                                        shopLong: selectedShop?.longitude,
+                                        userPhone: phoneNumber,
+                                        userName: name,
+                                        selectedDate: dates[selectedDate].fullDate.toISOString(),
+                                        selectedTime: timeSlots.find(s => s.id === selectedSlot)?.time,
+                                        selectedTimeSlotId: selectedSlot
+                                    }
+                                });
+                            }}
+                        >
+                            <Text style={styles.continueButtonText}>Confirm Slot</Text>
+                            <Ionicons name="arrow-forward" size={20} color="#1a1a1a" style={{ marginLeft: 8 }} />
+                        </TouchableOpacity>
+                    </View>
+                </SafeAreaView>
+            </Modal>
 
             <Modal
                 animationType="slide"
@@ -592,5 +742,67 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: 'bold',
         color: '#1a1a1a',
+    },
+
+    // Slot Picker Styles
+    // Slot Picker Styles
+    shopCardSmall: {
+        marginHorizontal: 20,
+        marginTop: 10,
+        marginBottom: 20,
+        backgroundColor: '#fff',
+        borderRadius: 20,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 10,
+        elevation: 5,
+    },
+    shopImageSmall: {
+        width: '100%',
+        height: 200,
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+    },
+    shopNameSmall: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: '#1a1a1a',
+        textAlign: 'center',
+        marginVertical: 15,
+    },
+
+    dateList: { marginBottom: 20 },
+    dateItem: {
+        width: 60, height: 70, backgroundColor: '#fff', borderRadius: 20,
+        alignItems: 'center', justifyContent: 'center', marginRight: 10,
+        borderWidth: 1, borderColor: '#eee',
+    },
+    dateItemSelected: { backgroundColor: '#ffeb69', borderColor: '#ffeb69' },
+    dayText: { fontSize: 10, color: '#888', marginBottom: 4, fontWeight: '600' },
+    dateText: { fontSize: 18, color: '#1a1a1a', fontWeight: 'bold' },
+    textSelected: { color: '#1a1a1a' },
+
+    section: { paddingHorizontal: 20, marginBottom: 20 },
+    sectionTitle: { fontSize: 16, fontWeight: 'bold', marginBottom: 10, color: '#1a1a1a' },
+
+    grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
+    slotItem: {
+        width: '31%', paddingVertical: 12, borderRadius: 15, backgroundColor: '#fff',
+        borderWidth: 1, borderColor: '#eee', alignItems: 'center', marginBottom: 10
+    },
+    slotSelected: { backgroundColor: '#ffeb69', borderColor: '#ffeb69' },
+    slotUnavailable: { backgroundColor: '#f5f5f5', borderColor: '#f5f5f5' },
+
+    slotText: { fontSize: 12, fontWeight: '600', color: '#1a1a1a' },
+    slotTextSelected: { fontWeight: 'bold' },
+    slotTextUnavailable: { color: '#ccc', textDecorationLine: 'line-through' },
+
+    footer: {
+        position: 'absolute', bottom: 0, left: 0, right: 0,
+        backgroundColor: '#fff', padding: 20, paddingBottom: 30,
+        borderTopLeftRadius: 30, borderTopRightRadius: 30,
+        shadowColor: '#000', shadowOffset: { width: 0, height: -5 },
+        shadowOpacity: 0.1, shadowRadius: 10, elevation: 20,
     },
 });

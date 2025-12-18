@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
+import BookingStepper from '../../../components/BookingStepper';
 
 export default function BookingSummaryScreen() {
     const router = useRouter();
@@ -28,6 +29,19 @@ export default function BookingSummaryScreen() {
     const lat = parseFloat(shopLat as string) || 37.7749;
     const long = parseFloat(shopLong as string) || -122.4194;
 
+    // Payment Logic
+    const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('upi');
+    const itemTotal = parseFloat(totalPrice as string) || 0;
+    const taxAmount = Math.round(itemTotal * 0.18);
+    const grandTotal = itemTotal + taxAmount;
+
+    const paymentOptions = [
+        { id: 'upi', label: 'UPI', subLabel: 'Pay via Google Pay, PhonePe, Paytm', icon: 'wallet-outline', recommended: true },
+        { id: 'card', label: 'Credit / Debit Cards', subLabel: 'VISA, MasterCard', icon: 'card-outline' },
+        { id: 'netbanking', label: 'Netbanking', subLabel: 'All major banks supported', icon: 'business-outline' },
+        { id: 'cash', label: 'Pay on Delivery / Cash', subLabel: 'Pay after service completion', icon: 'cash-outline' },
+    ];
+
     const parsedAddons = addons ? JSON.parse(addons as string) : {};
     const addonNames = Object.keys(parsedAddons).filter(k => parsedAddons[k]);
 
@@ -47,6 +61,8 @@ export default function BookingSummaryScreen() {
                 <Text style={styles.headerTitle}>Booking Summary</Text>
                 <View style={{ width: 40 }} />
             </View>
+
+            <BookingStepper currentStep={3} />
 
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 150 }}>
 
@@ -146,9 +162,60 @@ export default function BookingSummaryScreen() {
                     <View style={styles.totalDivider} />
 
                     <View style={styles.paymentRow}>
-                        <Text style={styles.totalTextLabel}>Total Amount</Text>
-                        <Text style={styles.totalTextValue}>₹{totalPrice || 0}</Text>
+                        <Text style={styles.totalTextLabel}>Tax (18% GST)</Text>
+                        <Text style={styles.totalTextValue}>₹{taxAmount}</Text>
                     </View>
+                    <View style={styles.totalDivider} />
+                    <View style={styles.paymentRow}>
+                        <Text style={styles.totalTextLabel}>Grand Total</Text>
+                        <Text style={styles.totalTextValue}>₹{grandTotal}</Text>
+                    </View>
+                </View>
+
+                {/* Payment Options */}
+                {/* Payment Options */}
+                <Text style={styles.paymentTitle}>Payment Options</Text>
+
+                {paymentOptions.map((option) => (
+                    <TouchableOpacity
+                        key={option.id}
+                        style={[
+                            styles.optionCard,
+                            selectedPaymentMethod === option.id && styles.optionCardSelected
+                        ]}
+                        onPress={() => setSelectedPaymentMethod(option.id)}
+                    >
+                        {option.recommended && (
+                            <View style={styles.recommendedBadge}>
+                                <Text style={styles.recommendedText}>RECOMMENDED</Text>
+                            </View>
+                        )}
+
+                        <View style={styles.optionRow}>
+                            <View style={styles.radioContainer}>
+                                <View style={[
+                                    styles.radioInfo,
+                                    selectedPaymentMethod === option.id ? styles.radioSelected : styles.radioUnselected
+                                ]}>
+                                    {selectedPaymentMethod === option.id && <View style={styles.radioDot} />}
+                                </View>
+                            </View>
+
+                            <View style={[styles.optionIconContainer, { backgroundColor: selectedPaymentMethod === option.id ? '#E8F5E9' : '#F5F5F5' }]}>
+                                <Ionicons name={option.icon as any} size={24} color={selectedPaymentMethod === option.id ? '#4CAF50' : '#666'} />
+                            </View>
+
+                            <View style={styles.optionContent}>
+                                <Text style={styles.optionLabel}>{option.label}</Text>
+                                <Text style={styles.optionSubLabel}>{option.subLabel}</Text>
+                            </View>
+                        </View>
+                    </TouchableOpacity>
+                ))}
+
+                <View style={styles.securityNote}>
+                    <Ionicons name="shield-checkmark-outline" size={16} color="#999" />
+                    <Text style={styles.securityText}>100% Safe & Secure Payments</Text>
                 </View>
 
             </ScrollView>
@@ -157,14 +224,11 @@ export default function BookingSummaryScreen() {
             <View style={styles.footer}>
                 <TouchableOpacity
                     style={styles.payButton}
-                    onPress={() => router.push({
-                        pathname: '/(tabs)/home/payment',
-                        params: params // Pass all params forward
-                    })}
+                    onPress={() => router.push('/(tabs)/home')}
                 >
                     <View style={styles.payButtonContent}>
-                        <Text style={styles.payButtonText}>Pay ₹{totalPrice || 0}</Text>
-                        <Ionicons name="arrow-forward" size={20} color="#1a1a1a" />
+                        <Ionicons name="lock-closed" size={20} color="#1a1a1a" style={{ marginRight: 8 }} />
+                        <Text style={styles.payButtonText}>Pay ₹{grandTotal}</Text>
                     </View>
                 </TouchableOpacity>
             </View>
@@ -251,6 +315,13 @@ const styles = StyleSheet.create({
         color: '#1a1a1a',
         marginBottom: 15,
     },
+    paymentTitle: {
+        marginLeft: 20,
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#1a1a1a',
+        marginBottom: 15,
+    },
     row: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -328,6 +399,55 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: 'bold',
         color: '#1a1a1a',
-        marginRight: 8,
     },
+
+    // Payment Options Styles
+    optionCard: {
+        backgroundColor: '#fff',
+        borderRadius: 20,
+        marginHorizontal: 20,
+        marginBottom: 15,
+        padding: 20,
+        borderWidth: 1,
+        borderColor: '#fff',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.03,
+        shadowRadius: 3,
+        elevation: 1,
+        position: 'relative',
+        overflow: 'hidden'
+    },
+    optionCardSelected: {
+        borderColor: '#4CAF50',
+        backgroundColor: '#fff',
+    },
+    recommendedBadge: {
+        position: 'absolute',
+        top: 0,
+        right: 0,
+        backgroundColor: '#FFEB3B',
+        paddingHorizontal: 10,
+        paddingVertical: 5,
+        borderBottomLeftRadius: 10,
+    },
+    recommendedText: { fontSize: 10, fontWeight: 'bold', color: '#1a1a1a' },
+    optionRow: { flexDirection: 'row', alignItems: 'flex-start' },
+    radioContainer: { marginRight: 15, paddingTop: 2 },
+    radioInfo: {
+        width: 20, height: 20, borderRadius: 10, borderWidth: 2,
+        alignItems: 'center', justifyContent: 'center'
+    },
+    radioUnselected: { borderColor: '#ddd' },
+    radioSelected: { borderColor: '#4CAF50' },
+    radioDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#4CAF50' },
+    optionIconContainer: {
+        width: 40, height: 40, borderRadius: 10,
+        alignItems: 'center', justifyContent: 'center', marginRight: 15
+    },
+    optionContent: { flex: 1 },
+    optionLabel: { fontSize: 15, fontWeight: 'bold', color: '#1a1a1a', marginBottom: 2 },
+    optionSubLabel: { fontSize: 12, color: '#888', marginBottom: 5 },
+    securityNote: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 20 },
+    securityText: { fontSize: 12, color: '#999', marginLeft: 5 },
 });

@@ -1,7 +1,8 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { Image, LayoutAnimation, Platform, SafeAreaView, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, UIManager, View } from 'react-native';
+import { Image, Keyboard, KeyboardAvoidingView, LayoutAnimation, Platform, SafeAreaView, ScrollView, StyleSheet, Switch, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, UIManager, View } from 'react-native';
+import BookingStepper from '../../../components/BookingStepper';
 
 if (Platform.OS === 'android') {
     if (UIManager.setLayoutAnimationEnabledExperimental) {
@@ -19,6 +20,17 @@ export default function SelectServiceScreen() {
         matPolish: false,
     });
     const [expandedService, setExpandedService] = useState<string | null>(null);
+
+    // Vehicle State
+    const [vehicleType, setVehicleType] = useState('sedan');
+    const [vehicleNumber, setVehicleNumber] = useState('');
+
+    const vehicleTypes = [
+        { id: 'hatchback', name: 'Hatchback', icon: 'car-hatchback' },
+        { id: 'sedan', name: 'Sedan', icon: 'car' },
+        { id: 'suv', name: 'SUV', icon: 'car-estate' },
+        { id: 'others', name: 'Others', icon: 'truck-delivery' },
+    ];
 
     useEffect(() => {
         // Hide the bottom tab bar when this screen is mounted or focused
@@ -120,67 +132,126 @@ export default function SelectServiceScreen() {
                 <View style={{ width: 24 }} />
             </View>
 
-            <ScrollView contentContainerStyle={styles.container}>
-                {services.map((service) => (
-                    <TouchableOpacity
-                        key={service.id}
-                        style={[
-                            styles.serviceCard,
-                            selectedService === service.id && styles.selectedServiceCard,
-                        ]}
-                        onPress={() => setSelectedService(service.id)}
-                        activeOpacity={0.9}
-                    >
-                        <View style={styles.cardHeader}>
-                            <Image source={{ uri: service.image }} style={styles.serviceImage} />
-                            <View style={styles.serviceInfo}>
-                                {service.isBestseller && (
-                                    <View style={styles.bestsellerBadge}>
-                                        <Text style={styles.bestsellerText}>BESTSELLER</Text>
+            <BookingStepper currentStep={1} />
+
+            <KeyboardAvoidingView
+                behavior={Platform.OS === "ios" ? "padding" : "height"}
+                style={{ flex: 1 }}
+            >
+                <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                    <ScrollView contentContainerStyle={styles.container}>
+                        {services.map((service) => (
+                            <TouchableOpacity
+                                key={service.id}
+                                style={[
+                                    styles.serviceCard,
+                                    selectedService === service.id && styles.selectedServiceCard,
+                                ]}
+                                onPress={() => setSelectedService(service.id)}
+                                activeOpacity={0.9}
+                            >
+                                <View style={styles.cardHeader}>
+                                    <Image source={{ uri: service.image }} style={styles.serviceImage} />
+                                    <View style={styles.serviceInfo}>
+                                        {service.isBestseller && (
+                                            <View style={styles.bestsellerBadge}>
+                                                <Text style={styles.bestsellerText}>BESTSELLER</Text>
+                                            </View>
+                                        )}
+                                        <Text style={styles.serviceName}>{service.name}</Text>
+                                        <Text style={styles.serviceDesc}>{service.description}</Text>
+                                    </View>
+
+                                    <View style={styles.priceContainer}>
+                                        <Text style={styles.servicePrice}>₹{service.price}</Text>
+                                        <TouchableOpacity onPress={(e) => toggleDetails(service.id, e)} style={styles.dropdownButton}>
+                                            <Ionicons
+                                                name={expandedService === service.id ? "chevron-up" : "chevron-down"}
+                                                size={20}
+                                                color="#999"
+                                            />
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
+
+                                {expandedService === service.id && (
+                                    <View style={styles.detailsContainer}>
+                                        <View style={styles.separator} />
+                                        <Text style={styles.detailsText}>{service.details}</Text>
                                     </View>
                                 )}
-                                <Text style={styles.serviceName}>{service.name}</Text>
-                                <Text style={styles.serviceDesc}>{service.description}</Text>
-                            </View>
+                            </TouchableOpacity>
+                        ))}
 
-                            <View style={styles.priceContainer}>
-                                <Text style={styles.servicePrice}>₹{service.price}</Text>
-                                <TouchableOpacity onPress={(e) => toggleDetails(service.id, e)} style={styles.dropdownButton}>
-                                    <Ionicons
-                                        name={expandedService === service.id ? "chevron-up" : "chevron-down"}
-                                        size={20}
-                                        color="#999"
-                                    />
-                                </TouchableOpacity>
+                        <Text style={styles.sectionTitle}>Make it Shine (Add-ons)</Text>
+
+                        {addonList.map((addon) => (
+                            <View key={addon.id} style={styles.addonRow}>
+                                <View>
+                                    <Text style={styles.addonName}>{addon.name}</Text>
+                                    <Text style={styles.addonPrice}>+₹{addon.price}</Text>
+                                </View>
+                                <Switch
+                                    trackColor={{ false: '#e0e0e0', true: '#84c95c' }}
+                                    thumbColor={'#fff'}
+                                    onValueChange={() => toggleAddon(addon.id as keyof typeof addons)}
+                                    value={addons[addon.id as keyof typeof addons]}
+                                />
                             </View>
+                        ))}
+                        {/* Vehicle Selection Section */}
+                        <Text style={styles.sectionTitle}>Vehicle Details</Text>
+                        <View style={styles.gridContainer}>
+                            {vehicleTypes.map((type) => {
+                                const isSelected = vehicleType === type.id;
+                                return (
+                                    <TouchableOpacity
+                                        key={type.id}
+                                        style={[
+                                            styles.typeCard,
+                                            isSelected && styles.selectedTypeCard
+                                        ]}
+                                        onPress={() => setVehicleType(type.id)}
+                                    >
+                                        {isSelected && (
+                                            <View style={styles.checkmarkContainer}>
+                                                <Ionicons name="checkmark-circle" size={20} color="#84c95c" />
+                                            </View>
+                                        )}
+                                        <View style={[
+                                            styles.iconContainer,
+                                            isSelected ? styles.selectedIconContainer : styles.unselectedIconContainer
+                                        ]}>
+                                            <MaterialCommunityIcons
+                                                name={type.icon as any}
+                                                size={32}
+                                                color={isSelected ? "#1a1a1a" : "#999"}
+                                            />
+                                        </View>
+                                        <Text style={[
+                                            styles.typeText,
+                                            isSelected && styles.selectedTypeText
+                                        ]}>
+                                            {type.name}
+                                        </Text>
+                                    </TouchableOpacity>
+                                );
+                            })}
                         </View>
 
-                        {expandedService === service.id && (
-                            <View style={styles.detailsContainer}>
-                                <View style={styles.separator} />
-                                <Text style={styles.detailsText}>{service.details}</Text>
-                            </View>
-                        )}
-                    </TouchableOpacity>
-                ))}
-
-                <Text style={styles.sectionTitle}>Make it Shine (Add-ons)</Text>
-
-                {addonList.map((addon) => (
-                    <View key={addon.id} style={styles.addonRow}>
-                        <View>
-                            <Text style={styles.addonName}>{addon.name}</Text>
-                            <Text style={styles.addonPrice}>+₹{addon.price}</Text>
-                        </View>
-                        <Switch
-                            trackColor={{ false: '#e0e0e0', true: '#84c95c' }}
-                            thumbColor={'#fff'}
-                            onValueChange={() => toggleAddon(addon.id as keyof typeof addons)}
-                            value={addons[addon.id as keyof typeof addons]}
+                        <Text style={styles.subSectionTitle}>Vehicle Number</Text>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="E.G. IND-1234"
+                            placeholderTextColor="#ccc"
+                            value={vehicleNumber}
+                            onChangeText={setVehicleNumber}
+                            autoCapitalize="characters"
                         />
-                    </View>
-                ))}
-            </ScrollView>
+
+                    </ScrollView>
+                </TouchableWithoutFeedback>
+            </KeyboardAvoidingView>
 
             <View style={styles.footer}>
                 <View style={styles.totalContainer}>
@@ -193,9 +264,11 @@ export default function SelectServiceScreen() {
                         serviceName: services.find(s => s.id === selectedService)?.name,
                         servicePrice: services.find(s => s.id === selectedService)?.price,
                         addons: JSON.stringify(addons),
-                        totalPrice: calculateTotal()
+                        totalPrice: calculateTotal(),
+                        vehicleType,
+                        vehicleNumber: vehicleNumber.toUpperCase()
                     };
-                    router.push({ pathname: '/(tabs)/home/vehicle-details', params });
+                    router.push({ pathname: '/(tabs)/home/shops-list', params });
                 }}>
                     <Text style={styles.nextButtonText}>Next</Text>
                 </TouchableOpacity>
@@ -301,6 +374,77 @@ const styles = StyleSheet.create({
     },
     addonName: { fontSize: 14, fontWeight: '600', color: '#1a1a1a' },
     addonPrice: { fontSize: 12, color: '#84c95c', marginTop: 2 },
+
+    // Vehicle Styles
+    subSectionTitle: {
+        fontSize: 14,
+        fontWeight: 'bold',
+        marginTop: 15,
+        marginBottom: 10,
+        color: '#1a1a1a',
+    },
+    gridContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'space-between',
+        marginBottom: 10,
+    },
+    typeCard: {
+        width: '48%',
+        aspectRatio: 1.1,
+        backgroundColor: '#fff',
+        borderRadius: 15,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 15,
+        borderWidth: 2,
+        borderColor: '#f0f0f0',
+        position: 'relative',
+    },
+    selectedTypeCard: {
+        borderColor: '#84c95c',
+        backgroundColor: '#f0f9eb',
+    },
+    iconContainer: {
+        padding: 15,
+        borderRadius: 20,
+        marginBottom: 8,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    unselectedIconContainer: {
+        backgroundColor: '#f5f5f5',
+    },
+    selectedIconContainer: {
+        backgroundColor: '#84c95c',
+    },
+    checkmarkContainer: {
+        position: 'absolute',
+        top: 8,
+        right: 8,
+        zIndex: 1,
+    },
+    typeText: {
+        marginTop: 5,
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#666',
+    },
+    selectedTypeText: {
+        color: '#1a1a1a',
+        fontWeight: 'bold',
+    },
+    input: {
+        backgroundColor: '#fff',
+        borderRadius: 15,
+        paddingHorizontal: 20,
+        paddingVertical: 15,
+        fontSize: 16,
+        color: '#1a1a1a',
+        borderWidth: 1,
+        borderColor: '#f0f0f0',
+        marginBottom: 20
+    },
 
     footer: {
         position: 'absolute',

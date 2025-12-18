@@ -103,6 +103,7 @@ export default function ShopsListScreen() {
             id: i,
             day: d.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase(),
             date: d.getDate(),
+            month: d.toLocaleDateString('en-US', { month: 'short' }).toUpperCase(),
             fullDate: d
         };
     });
@@ -295,13 +296,26 @@ export default function ShopsListScreen() {
 
                     <BookingStepper currentStep={2} />
 
-                    <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 150, paddingTop: 20 }}>
-                        {/* Shop Info Tiny Card */}
-                        <View style={styles.shopCardSmall}>
+                    <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 180, paddingTop: 20 }}>
+                        <Text style={[styles.sectionTitle, { marginLeft: 20 }]}>Select the Date for your Service</Text>
+                        {/* Shop Hero Card */}
+                        <View style={styles.shopCardHero}>
                             {selectedShop?.image && (
-                                <Image source={{ uri: selectedShop.image }} style={styles.shopImageSmall} />
+                                <Image source={{ uri: selectedShop.image }} style={styles.shopImageHero} />
                             )}
-                            <Text style={styles.shopNameSmall}>{selectedShop?.name}</Text>
+                            <View style={styles.shopInfoOverlay}>
+                                <Text style={styles.shopNameHero}>{selectedShop?.name}</Text>
+                                <View style={styles.shopMetaRow}>
+                                    <View style={styles.ratingBadge}>
+                                        <Ionicons name="star" size={12} color="#fff" />
+                                        <Text style={styles.ratingLabel}>{selectedShop?.rating}</Text>
+                                    </View>
+                                    <View style={styles.metaDivider} />
+                                    <Text style={styles.metaText}>{selectedShop?.distance}</Text>
+                                    <View style={styles.metaDivider} />
+                                    <Text style={styles.metaText} numberOfLines={1}>{selectedShop?.address}</Text>
+                                </View>
+                            </View>
                         </View>
 
                         {/* Date Selector */}
@@ -314,46 +328,73 @@ export default function ShopsListScreen() {
                                         style={[styles.dateItem, isSelected && styles.dateItemSelected]}
                                         onPress={() => setSelectedDate(index)}
                                     >
+                                        <Text style={[styles.monthText, isSelected && styles.textSelected]}>{item.month}</Text>
+                                        <Text style={[styles.dateNumberText, isSelected && styles.textSelected]}>{item.date}</Text>
                                         <Text style={[styles.dayText, isSelected && styles.textSelected]}>{item.day}</Text>
-                                        <Text style={[styles.dateText, isSelected && styles.textSelected]}>{item.date}</Text>
                                     </TouchableOpacity>
                                 );
                             })}
                         </ScrollView>
 
-                        {/* Slots Grid */}
-                        {Object.entries(slotsByPeriod).map(([period, slots]) => (
-                            <View key={period} style={styles.section}>
-                                <Text style={styles.sectionTitle}>{period}</Text>
-                                <View style={styles.grid}>
-                                    {slots.map((slot) => {
-                                        const isSelected = selectedSlot === slot.id;
-                                        const isUnavailable = !slot.available;
-                                        return (
-                                            <TouchableOpacity
-                                                key={slot.id}
-                                                style={[
-                                                    styles.slotItem,
-                                                    isSelected && styles.slotSelected,
-                                                    isUnavailable && styles.slotUnavailable
-                                                ]}
-                                                disabled={isUnavailable}
-                                                onPress={() => setSelectedSlot(slot.id)}
-                                            >
-                                                <Text style={[
-                                                    styles.slotText,
-                                                    isSelected && styles.slotTextSelected,
-                                                    isUnavailable && styles.slotTextUnavailable
-                                                ]}>{slot.time}</Text>
-                                            </TouchableOpacity>
-                                        );
-                                    })}
-                                </View>
+                        {/* Time Picker (Grid View) */}
+                        <View style={styles.timePickerContainer}>
+                            <Text style={styles.sectionTitle}>Select the start time for your service</Text>
+                            <Text style={{ fontSize: 13, color: '#888', marginBottom: 15, paddingHorizontal: 5 }}>Your service will take approximately 58 minutes</Text>
+
+                            {/* Offers/Slots Grid */}
+                            <View style={styles.gridContainer}>
+                                {timeSlots.map((slot) => {
+                                    const isSelected = selectedSlot === slot.id;
+                                    const isUnavailable = !slot.available;
+                                    // Mock offer logic for demonstration
+                                    const offer = slot.id === '2' ? '5% OFF' : slot.id === '3' || slot.id === '4' ? '10% OFF' : null;
+
+                                    return (
+                                        <TouchableOpacity
+                                            key={slot.id}
+                                            style={[
+                                                styles.timeGridItem,
+                                                isSelected && styles.timeGridItemSelected
+                                            ]}
+                                            disabled={isUnavailable}
+                                            onPress={() => setSelectedSlot(slot.id)}
+                                        >
+                                            {offer && (
+                                                <View style={styles.offerBadge}>
+                                                    <Text style={styles.offerText}>{offer}</Text>
+                                                </View>
+                                            )}
+                                            <Text style={[
+                                                styles.timeGridText,
+                                                isSelected && styles.timeGridTextSelected,
+                                                isUnavailable && styles.timeGridTextUnavailable
+                                            ]}>
+                                                {slot.time}
+                                            </Text>
+                                        </TouchableOpacity>
+                                    );
+                                })}
                             </View>
-                        ))}
+                        </View>
                     </ScrollView>
 
                     <View style={styles.footer}>
+                        {selectedSlot && (
+                            <View style={styles.selectedSlotCard}>
+                                <View style={styles.slotCardLeft}>
+                                    <View style={styles.iconContainer}>
+                                        <Ionicons name="calendar-outline" size={24} color="#666" />
+                                    </View>
+                                    <View>
+                                        <Text style={styles.selectedLabel}>SELECTED SLOT</Text>
+                                        <Text style={styles.selectedDateTime}>
+                                            {dates[selectedDate].day} {dates[selectedDate].date} {dates[selectedDate].month} | {timeSlots.find(s => s.id === selectedSlot)?.time}
+                                        </Text>
+                                    </View>
+                                </View>
+                                <Ionicons name="checkmark-circle" size={24} color="#22c55e" />
+                            </View>
+                        )}
                         <TouchableOpacity
                             style={[styles.continueButton, !selectedSlot && { opacity: 0.6 }]}
                             disabled={!selectedSlot}
@@ -367,6 +408,7 @@ export default function ShopsListScreen() {
                                         shopName: selectedShop?.name,
                                         shopAddress: selectedShop?.address || '123 Smart St.',
                                         shopImage: selectedShop?.image,
+                                        shopRating: selectedShop?.rating,
                                         shopLat: selectedShop?.latitude,
                                         shopLong: selectedShop?.longitude,
                                         userPhone: phoneNumber,
@@ -507,7 +549,7 @@ export default function ShopsListScreen() {
                     </View>
                 </KeyboardAvoidingView>
             </Modal>
-        </SafeAreaView>
+        </SafeAreaView >
     );
 }
 
@@ -745,46 +787,87 @@ const styles = StyleSheet.create({
     },
 
     // Slot Picker Styles
-    // Slot Picker Styles
-    shopCardSmall: {
-        marginHorizontal: 20,
+    // Shop Hero Card Styles
+    shopCardHero: {
+        marginHorizontal: 20, // Added spacing
         marginTop: 10,
-        marginBottom: 20,
+        marginBottom: 25,
         backgroundColor: '#fff',
         borderRadius: 20,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 10,
-        elevation: 5,
+        // Rounded container
+        // Add shadow back since it's a card now
+        shadowColor: '#000', shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1, shadowRadius: 10, elevation: 5,
+        paddingBottom: 20
     },
-    shopImageSmall: {
+    shopImageHero: {
         width: '100%',
-        height: 200,
-        borderTopLeftRadius: 20,
-        borderTopRightRadius: 20,
+        height: 220,
+        borderRadius: 20, // Rounded image matches card
     },
-    shopNameSmall: {
-        fontSize: 20,
+    shopInfoOverlay: {
+        paddingHorizontal: 20,
+        marginTop: 15,
+    },
+    shopNameHero: {
+        fontSize: 22,
         fontWeight: 'bold',
         color: '#1a1a1a',
-        textAlign: 'center',
-        marginVertical: 15,
+        marginBottom: 8,
+    },
+    shopMetaRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    ratingBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#84c95c', // Primary
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+        borderRadius: 6,
+    },
+    ratingLabel: {
+        color: '#fff',
+        fontSize: 12,
+        fontWeight: 'bold',
+        marginLeft: 3,
+    },
+    metaDivider: {
+        width: 4, height: 4,
+        borderRadius: 2,
+        backgroundColor: '#ccc',
+        marginHorizontal: 8,
+    },
+    metaText: {
+        fontSize: 13,
+        color: '#666',
     },
 
-    dateList: { marginBottom: 20 },
+    dateList: { maxHeight: 100, marginBottom: 20 },
     dateItem: {
-        width: 60, height: 70, backgroundColor: '#fff', borderRadius: 20,
-        alignItems: 'center', justifyContent: 'center', marginRight: 10,
-        borderWidth: 1, borderColor: '#eee',
+        width: 60, height: 90,
+        backgroundColor: '#fff', borderRadius: 12,
+        justifyContent: 'center', alignItems: 'center',
+        marginRight: 10,
+        borderWidth: 1, borderColor: '#f0f0f0',
+        paddingVertical: 5
     },
-    dateItemSelected: { backgroundColor: '#ffeb69', borderColor: '#ffeb69' },
-    dayText: { fontSize: 10, color: '#888', marginBottom: 4, fontWeight: '600' },
-    dateText: { fontSize: 18, color: '#1a1a1a', fontWeight: 'bold' },
-    textSelected: { color: '#1a1a1a' },
+    dateItemSelected: {
+        backgroundColor: '#84c95c', // Primary Green
+        borderColor: '#84c95c',
+        transform: [{ scale: 1.05 }],
+        shadowColor: '#000', shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2, shadowRadius: 5, elevation: 5
+    },
+    monthText: { fontSize: 10, fontWeight: '600', color: '#888', marginBottom: 2 },
+    dateNumberText: { fontSize: 22, fontWeight: 'bold', color: '#1a1a1a', marginBottom: 2 },
+    dayText: { fontSize: 10, fontWeight: '600', color: '#888' },
+
+    textSelected: { color: '#fff' }, // White text for selected black card
 
     section: { paddingHorizontal: 20, marginBottom: 20 },
-    sectionTitle: { fontSize: 16, fontWeight: 'bold', marginBottom: 10, color: '#1a1a1a' },
+    sectionTitle: { fontSize: 16, fontWeight: 'bold', marginBottom: 15, color: '#1a1a1a' },
 
     grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
     slotItem: {
@@ -797,6 +880,106 @@ const styles = StyleSheet.create({
     slotText: { fontSize: 12, fontWeight: '600', color: '#1a1a1a' },
     slotTextSelected: { fontWeight: 'bold' },
     slotTextUnavailable: { color: '#ccc', textDecorationLine: 'line-through' },
+
+    // Grid Style Time Picker
+    timePickerContainer: {
+        marginTop: 0,
+        paddingHorizontal: 20,
+        marginBottom: 20,
+    },
+    gridContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'space-between',
+    },
+    timeGridItem: {
+        width: '31%', // 3 columns
+        paddingVertical: 15,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#fff',
+        borderRadius: 12,
+        marginBottom: 15,
+        borderWidth: 1,
+        borderColor: '#f0f0f0',
+        // Shadow
+        shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.05, shadowRadius: 2, elevation: 2,
+        position: 'relative', // For badge positioning
+    },
+    timeGridItemSelected: {
+        borderColor: '#84c95c', // Primary color border
+        backgroundColor: '#f0f9eb', // Light green bg
+        borderWidth: 1.5,
+    },
+    timeGridText: {
+        fontSize: 14,
+        color: '#1a1a1a',
+        fontWeight: '600',
+    },
+    timeGridTextSelected: {
+        fontWeight: 'bold',
+        color: '#84c95c', // Primary color text
+    },
+    timeGridTextUnavailable: {
+        color: '#ccc',
+        textDecorationLine: 'line-through',
+    },
+
+    // Offer Badge Styles
+    offerBadge: {
+        position: 'absolute',
+        top: -8,
+        right: -5,
+        backgroundColor: '#84c95c', // Primary Green
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+        borderRadius: 4,
+        zIndex: 10,
+    },
+    offerText: {
+        color: '#fff',
+        fontSize: 8,
+        fontWeight: 'bold',
+    },
+
+    // Footer Selected Card
+    selectedSlotCard: {
+        backgroundColor: '#fff',
+        borderRadius: 16,
+        padding: 15,
+        marginBottom: 20,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        // Shadow for floating effect
+        shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1, shadowRadius: 8, elevation: 5,
+        borderWidth: 1, borderColor: '#f0f0f0',
+    },
+    slotCardLeft: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    iconContainer: {
+        width: 40, height: 40,
+        borderRadius: 20,
+        backgroundColor: '#f5f5f5',
+        justifyContent: 'center', alignItems: 'center',
+        marginRight: 12,
+    },
+    selectedLabel: {
+        fontSize: 10,
+        color: '#888',
+        fontWeight: '600',
+        marginBottom: 2,
+        letterSpacing: 0.5,
+    },
+    selectedDateTime: {
+        fontSize: 14,
+        fontWeight: 'bold',
+        color: '#1a1a1a',
+    },
 
     footer: {
         position: 'absolute', bottom: 0, left: 0, right: 0,

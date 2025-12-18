@@ -377,9 +377,9 @@ const styles = StyleSheet.create({
 
     // Vehicle Styles
     subSectionTitle: {
-        fontSize: 14,
+        fontSize: 16,
         fontWeight: 'bold',
-        marginTop: 15,
+        marginTop: 5,
         marginBottom: 10,
         color: '#1a1a1a',
     },
@@ -387,7 +387,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         flexWrap: 'wrap',
         justifyContent: 'space-between',
-        marginBottom: 10,
+        marginBottom: -40, // Negative margin to pull next section up
     },
     typeCard: {
         width: '48%',
@@ -396,7 +396,7 @@ const styles = StyleSheet.create({
         borderRadius: 15,
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: 15,
+        marginBottom: 10,
         borderWidth: 2,
         borderColor: '#f0f0f0',
         position: 'relative',
@@ -439,11 +439,11 @@ const styles = StyleSheet.create({
         borderRadius: 15,
         paddingHorizontal: 20,
         paddingVertical: 15,
-        fontSize: 16,
+        fontSize: 14, // Changed from 16 to 14
         color: '#1a1a1a',
         borderWidth: 1,
         borderColor: '#f0f0f0',
-        marginBottom: 20
+        marginBottom: 15
     },
 
     footer: {

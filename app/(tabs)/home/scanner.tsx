@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { CameraView, useCameraPermissions } from 'expo-camera';
-import { useNavigation, useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import { useFocusEffect, useNavigation, useRouter } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { Alert, Button, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function ScannerScreen() {
@@ -10,29 +10,13 @@ export default function ScannerScreen() {
     const [permission, requestPermission] = useCameraPermissions();
     const [scanned, setScanned] = useState(false);
 
-    useEffect(() => {
-        // Hide tab bar for this screen
-        navigation.getParent()?.setOptions({
-            tabBarStyle: { display: 'none' }
-        });
-
-        // Restore on unmount
-        return () => {
+    useFocusEffect(
+        useCallback(() => {
             navigation.getParent()?.setOptions({
-                tabBarStyle: {
-                    height: 80,
-                    position: 'absolute',
-                    bottom: 2,
-                    left: 20,
-                    right: 20,
-                    elevation: 5,
-                    backgroundColor: '#ffffff',
-                    borderRadius: 25,
-                    display: 'flex'
-                }
+                tabBarStyle: { display: "none" }
             });
-        };
-    }, [navigation]);
+        }, [navigation])
+    );
 
     if (!permission) {
         // Camera permissions are still loading.

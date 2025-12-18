@@ -1,6 +1,6 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { useNavigation, useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import { useFocusEffect, useNavigation, useRouter } from 'expo-router';
+import React, { useCallback, useState } from 'react';
 import { Image, Keyboard, KeyboardAvoidingView, LayoutAnimation, Platform, SafeAreaView, ScrollView, StyleSheet, Switch, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, UIManager, View } from 'react-native';
 import BookingStepper from '../../../components/BookingStepper';
 
@@ -32,42 +32,13 @@ export default function SelectServiceScreen() {
         { id: 'others', name: 'Others', icon: 'truck-delivery' },
     ];
 
-    useEffect(() => {
-        // Hide the bottom tab bar when this screen is mounted or focused
-        const hideTabs = () => {
+    useFocusEffect(
+        useCallback(() => {
             navigation.getParent()?.setOptions({
                 tabBarStyle: { display: "none" }
             });
-        };
-
-        const unsubscribe = navigation.addListener('focus', hideTabs);
-        hideTabs(); // Run immediately on mount
-
-        return () => {
-            unsubscribe();
-            // Restore tab bar (Custom floating style) on unmount
-            navigation.getParent()?.setOptions({
-                tabBarStyle: {
-                    height: 80,
-                    position: 'absolute',
-                    bottom: 2,
-                    left: 20,
-                    right: 20,
-                    elevation: 5,
-                    backgroundColor: '#ffffff',
-                    borderRadius: 25,
-                    shadowColor: '#000',
-                    shadowOffset: { width: 0, height: 10 },
-                    shadowOpacity: 0.1,
-                    shadowRadius: 10,
-                    borderTopWidth: 0,
-                    paddingBottom: 20,
-                    paddingTop: 10,
-                    display: 'flex'
-                }
-            });
-        };
-    }, [navigation]);
+        }, [navigation])
+    );
 
     const services = [
         {

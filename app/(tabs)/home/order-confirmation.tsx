@@ -3,9 +3,20 @@ import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import React from 'react';
 import { Image, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
+import { useFocusEffect } from 'expo-router';
+import { useCallback } from 'react';
+
 export default function OrderConfirmationScreen() {
     const router = useRouter();
     const navigation = useNavigation();
+
+    useFocusEffect(
+        useCallback(() => {
+            navigation.getParent()?.setOptions({
+                tabBarStyle: { display: "none" }
+            });
+        }, [navigation])
+    );
     const params = useLocalSearchParams();
     const { shopName, shopImage, shopAddress, shopRating, date, time } = params;
 

@@ -223,7 +223,7 @@ const styles = StyleSheet.create({
     grandTotalLabel: { fontSize: 16, fontWeight: 'bold', color: '#1a1a1a' },
     grandTotalValue: { fontSize: 18, fontWeight: 'bold', color: '#4CAF50' },
 
-    sectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#1a1a1a', marginLeft: 20, marginBottom: 15 },
+    sectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#1a1a1a', marginLeft: 60, marginBottom: 15 },
 
     // payment Options
     optionCard: {

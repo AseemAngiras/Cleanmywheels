@@ -269,7 +269,7 @@ const styles = StyleSheet.create({
   addBtn: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#84c95c",
+    backgroundColor: "#C8F000",
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 20,
@@ -315,7 +315,7 @@ const styles = StyleSheet.create({
   editBtn: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#84c95c",
+    backgroundColor: "#C8F000",
     paddingHorizontal: 18,
     paddingVertical: 10,
     borderRadius: 20,
@@ -368,7 +368,7 @@ const styles = StyleSheet.create({
   },
   cancelBtn: { padding: 12 },
   saveBtn: {
-    backgroundColor: "#84c95c",
+    backgroundColor: "#C8F000",
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 20,

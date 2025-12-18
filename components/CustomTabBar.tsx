@@ -1,13 +1,35 @@
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, Animated } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useEffect, useRef } from "react";
 
 export function CustomTabBar({ state, descriptors, navigation }: any) {
   return (
     <View style={styles.wrapper}>
       <View style={styles.container}>
         {state.routes.map((route: any, index: number) => {
-          const { options } = descriptors[route.key];
           const focused = state.index === index;
+
+          const progress = useRef(new Animated.Value(focused ? 1 : 0)).current;
+
+          useEffect(() => {
+            Animated.spring(progress, {
+              toValue: focused ? 1 : 0,
+              useNativeDriver: false,
+              friction: 8,
+              tension: 80,
+            }).start();
+          }, [focused]);
+
+          const width = progress.interpolate({
+            inputRange: [0, 1],
+            outputRange: [48, 120],
+          });
+
+          const labelOpacity = progress;
+          const labelTranslate = progress.interpolate({
+            inputRange: [0, 1],
+            outputRange: [-8, 0],
+          });
 
           const icon =
             route.name === "home"
@@ -31,24 +53,33 @@ export function CustomTabBar({ state, descriptors, navigation }: any) {
             <TouchableOpacity
               key={route.key}
               onPress={() => navigation.navigate(route.name)}
-              activeOpacity={0.8}
+              activeOpacity={0.85}
             >
-              <View
+              <Animated.View
                 style={[
                   styles.tab,
                   focused ? styles.activeTab : styles.inactiveTab,
+                  { width },
                 ]}
               >
                 <Ionicons
                   name={icon}
                   size={22}
-                  color={focused ? "#000" : "#000"}
+                  color="#000"
                 />
 
-                {focused && (
-                  <Text style={styles.label}>{label}</Text>
-                )}
-              </View>
+                <Animated.Text
+                  style={[
+                    styles.label,
+                    {
+                      opacity: labelOpacity,
+                      transform: [{ translateX: labelTranslate }],
+                    },
+                  ]}
+                >
+                  {label}
+                </Animated.Text>
+              </Animated.View>
             </TouchableOpacity>
           );
         })}
@@ -75,24 +106,22 @@ const styles = StyleSheet.create({
   },
 
   tab: {
+    height: 48,
+    borderRadius: 24,
+    flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
+    overflow: "hidden",
   },
 
   inactiveTab: {
-    width: 48,
-    height: 48,
-    backgroundColor: "#fff",
-    borderRadius: 24,
+    backgroundColor: "#FFFFFF",
+    paddingLeft: 23,
   },
 
   activeTab: {
-    flexDirection: "row",
-    height: 48,
     backgroundColor: "#C8F000",
-    borderRadius: 24,
     paddingHorizontal: 18,
-    alignItems: "center",
   },
 
   label: {

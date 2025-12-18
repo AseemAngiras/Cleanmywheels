@@ -1,8 +1,17 @@
 "use client"
 
 import { Ionicons } from "@expo/vector-icons"
-import { useState } from "react"
-import { FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native"
+import { useEffect, useRef, useState } from "react"
+import {
+  Animated,
+  FlatList,
+  Image,
+  Modal,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native"
 
 const initialBookings = [
   {
@@ -16,250 +25,246 @@ const initialBookings = [
     address: "123 Main St, Anytown",
     plate: "ABC123",
     price: "$50",
-    status: "COMPLETED",
-    phone: "+1 (555) 123-4567",
-  },
-  {
-    id: "2",
-    carImage: "https://images.pexels.com/photos/244206/pexels-photo-244206.jpeg",
-    center: "Auto Care Plus",
-    date: "2023-07-22",
-    car: "Honda Accord",
-    service: "Tire Rotation",
-    time: "2:30 PM",
-    address: "456 Oak Avenue, Springfield",
-    plate: "XYZ789",
-    price: "$75",
-    status: "COMPLETED",
-    phone: "+1 (555) 987-6543",
-  },
-  {
-    id: "3",
-    carImage: "https://images.pexels.com/photos/170811/pexels-photo-170811.jpeg",
-    center: "Premium Motors Service",
-    date: "2023-09-10",
-    car: "BMW 3 Series",
-    service: "Full Service",
-    time: "9:00 AM",
-    address: "789 Elm Street, Downtown",
-    plate: "LMN456",
-    price: "$150",
-    status: "COMPLETED",
-    phone: "+1 (555) 456-7890",
   },
 ]
 
 export default function PastServices() {
   const [bookings] = useState(initialBookings)
-  const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [activeBooking, setActiveBooking] = useState<any | null>(null)
 
-  const toggleExpand = (id: string) => {
-    setExpandedId(expandedId === id ? null : id)
+  const slideAnim = useRef(new Animated.Value(600)).current
+
+  useEffect(() => {
+    if (activeBooking) {
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }).start()
+    }
+  }, [activeBooking])
+
+  const closeSheet = () => {
+    Animated.timing(slideAnim, {
+      toValue: 600,
+      duration: 250,
+      useNativeDriver: true,
+    }).start(() => setActiveBooking(null))
   }
 
-  const renderItem = ({ item }: { item: (typeof initialBookings)[0] }) => {
-    const isExpanded = expandedId === item.id
+  const renderItem = ({ item }: any) => (
+    <TouchableOpacity
+      activeOpacity={0.85}
+      style={styles.cardContainer}
+      onPress={() => setActiveBooking(item)}
+    >
+      <View style={styles.card}>
+        <View style={styles.headerRow}>
+          <Image source={{ uri: item.carImage }} style={styles.carImage} />
 
-    return (
-      <TouchableOpacity activeOpacity={0.8} onPress={() => toggleExpand(item.id)} style={styles.cardContainer}>
-        <View style={styles.card}>
-          <View style={styles.headerRow}>
-            {/* Car Image on Left */}
-            <Image source={{ uri: item.carImage }} style={styles.carImage} />
+          <View style={{ flex: 1 }}>
+            <Text style={styles.centerName}>{item.center}</Text>
 
-            {/* Center Content */}
-            <View style={styles.textContainer}>
-              <Text style={styles.centerName}>{item.center}</Text>
-              <View style={styles.metaRow}>
-                <Ionicons name="calendar-outline" size={14} color="#888" />
-                <Text style={styles.metaText}>{item.date}</Text>
-                <View style={styles.dot} />
-                <Ionicons name="time-outline" size={14} color="#888" />
-                <Text style={styles.metaText}>{item.time}</Text>
-              </View>
-              <View style={styles.metaRow}>
-                <Ionicons name="car-outline" size={14} color="#888" />
-                <Text style={styles.metaText}>{item.car}</Text>
-              </View>
+            <View style={styles.metaRow}>
+              <Ionicons name="calendar-outline" size={14} color="#888" />
+              <Text style={styles.metaText}>{item.date}</Text>
+              <View style={styles.dot} />
+              <Ionicons name="time-outline" size={14} color="#888" />
+              <Text style={styles.metaText}>{item.time}</Text>
             </View>
 
-            {/* Icon on Right */}
-            <Ionicons name={isExpanded ? "chevron-up" : "chevron-down"} size={20} style={{marginBottom: 50}} color="#888" />
+            <View style={styles.metaRow}>
+              <Ionicons name="car-outline" size={14} color="#888" />
+              <Text style={styles.metaText}>{item.car}</Text>
+            </View>
+
+            <View style={styles.completedBadge}>
+              <Ionicons name="checkmark-circle" size={14} color="#1E8E3E" />
+              <Text style={styles.completedText}>Completed</Text>
+            </View>
+          </View>
+        </View>
+      </View>
+    </TouchableOpacity>
+  )
+
+  return (
+    <>
+      <FlatList
+        data={bookings}
+        keyExtractor={(item) => item.id}
+        renderItem={renderItem}
+        contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
+        showsVerticalScrollIndicator={false}
+      />
+
+      {/* =============== BOTTOM SHEET =============== */}
+      <Modal visible={!!activeBooking} transparent animationType="none">
+        <TouchableOpacity style={styles.backdrop} onPress={closeSheet} />
+
+        <Animated.View
+          style={[
+            styles.bottomSheet,
+            { transform: [{ translateY: slideAnim }] },
+          ]}
+        >
+          <View style={styles.sheetHeader}>
+            <Text style={styles.sheetTitle}>Service Details</Text>
+            <TouchableOpacity onPress={closeSheet}>
+              <Ionicons name="close" size={26} />
+            </TouchableOpacity>
           </View>
 
-          {/* Expanded details */}
-          {isExpanded && (
-            <View style={styles.expandedContent}>
-              <View style={styles.divider} />
+          {activeBooking && (
+            <>
+              {/* SERVICE SUMMARY */}
+              <View style={styles.summaryCard}>
+                <Ionicons name="construct-outline" size={26} color="#1A1A1A" />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.serviceName}>
+                    {activeBooking.service}
+                  </Text>
+                  <Text style={styles.summaryMeta}>
+                    {activeBooking.date} • {activeBooking.time}
+                  </Text>
+                </View>
+                <View style={styles.completedPill}>
+                  <Text style={styles.completedPillText}>COMPLETED</Text>
+                </View>
+              </View>
 
-              <View
-                style={[
-                  styles.statusBadge,
-                  item.status === "COMPLETED" && styles.completedBadge,
-                  item.status === "CANCELLED" && styles.cancelledBadge,
-                ]}
-              >
-                <View
-                  style={[
-                    styles.statusDot,
-                    item.status === "COMPLETED" && styles.completedDot,
-                    item.status === "CANCELLED" && styles.cancelledDot,
-                  ]}
-                />
-                <Text
-                  style={[
-                    styles.status,
-                    item.status === "COMPLETED" && styles.completedStatus,
-                    item.status === "CANCELLED" && styles.cancelledStatus,
-                  ]}
-                >
-                  {item.status}
+              {/* CAR INFO */}
+              <View style={styles.infoCard}>
+                <Ionicons name="car-sport-outline" size={22} color="#555" />
+                <View>
+                  <Text style={styles.infoTitle}>{activeBooking.car}</Text>
+                  <Text style={styles.infoSub}>{activeBooking.plate}</Text>
+                </View>
+              </View>
+
+              {/* LOCATION */}
+              <View style={styles.infoCard}>
+                <Ionicons name="location-outline" size={22} color="#555" />
+                <Text style={styles.locationText}>
+                  {activeBooking.address}
                 </Text>
               </View>
 
-              <View style={styles.detailsContainer}>
-                <View style={styles.detailRow}>
-                  <View style={styles.detailLabel}>
-                    <Ionicons name="construct-outline" size={16} color="#888" />
-                    <Text style={styles.label}>Service</Text>
-                  </View>
-                  <Text style={styles.value}>{item.service}</Text>
-                </View>
-
-                <View style={styles.detailRow}>
-                  <View style={styles.detailLabel}>
-                    <Ionicons name="time-outline" size={16} color="#888" />
-                    <Text style={styles.label}>Time</Text>
-                  </View>
-                  <Text style={styles.value}>{item.time}</Text>
-                </View>
-
-                <View style={styles.detailRow}>
-                  <View style={styles.detailLabel}>
-                    <Ionicons name="location-outline" size={16} color="#888" />
-                    <Text style={styles.label}>Address</Text>
-                  </View>
-                  <Text style={[styles.value, styles.addressValue]}>{item.address}</Text>
-                </View>
-
-                <View style={styles.detailRow}>
-                  <View style={styles.detailLabel}>
-                    <Ionicons name="card-outline" size={16} color="#888" />
-                    <Text style={styles.label}>Plate</Text>
-                  </View>
-                  <Text style={styles.value}>{item.plate}</Text>
-                </View>
+              {/* PAYMENT */}
+              <View style={styles.paymentCard}>
+                <Text style={styles.paymentLabel}>Total Paid</Text>
+                <Text style={styles.paymentAmount}>
+                  {activeBooking.price}
+                </Text>
               </View>
-
-              <View style={styles.footer}>
-                <View style={styles.priceContainer}>
-                  <Text style={styles.priceLabel}>Total Amount</Text>
-                  <Text style={styles.price}>{item.price}</Text>
-                </View>
-              </View>
-            </View>
+            </>
           )}
-        </View>
-      </TouchableOpacity>
-    )
-  }
-
-  return (
-    <FlatList
-      data={bookings}
-      keyExtractor={(item) => item.id}
-      contentContainerStyle={styles.listContainer}
-      showsVerticalScrollIndicator={false}
-      renderItem={renderItem}
-    />
+        </Animated.View>
+      </Modal>
+    </>
   )
 }
+
+/* ===================== STYLES ===================== */
+
 const styles = StyleSheet.create({
-  listContainer: {
-    padding: 16,
-    paddingBottom: 96,
-  },
-  cardContainer: {
-    marginBottom: 20,
-  },
+  cardContainer: { marginBottom: 20 },
   card: {
     backgroundColor: "#FFF",
     borderRadius: 20,
-    padding: 24,
-    minHeight: 170,
-    elevation: 6,
-    shadowColor: "#000",
-    shadowOpacity: 0.08,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 6 },
+    padding: 20,
+    elevation: 4,
   },
-  headerRow: {
-    flexDirection: "row",
-    gap: 18,
-  },
-  carImage: {
-    width: 110,
-    height: 135,
-    borderRadius: 10,
-  },
-  textContainer: {
-    flex: 1,
-  },
-  centerName: {
-    fontSize: 20,
-    fontWeight: "700",
-  },
+  headerRow: { flexDirection: "row", gap: 16},
+  carImage: { width: 100, height: 120, borderRadius: 12 },
+  centerName: { fontSize: 18, fontWeight: "500" },
   metaRow: {
     flexDirection: "row",
-    gap: 2,
+    gap: 4,
     alignItems: "center",
     marginTop: 4,
   },
-  metaText: {
-    color: "#666",
-    fontSize: 14,
-  },
-  dot: {
-    width: 2,
-    height: 2,
-    borderRadius: 2,
-    backgroundColor: "#CCC",
-  },
-  expandedContent: {
-    marginTop: 18,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: "#EEE",
-    marginBottom: 14,
-  },
-  detailsContainer: {
+  metaText: { color: "#666", fontSize: 14 },
+  dot: { width: 3, height: 3, borderRadius: 3, backgroundColor: "#CCC" },
+
+  completedBadge: {
     marginTop: 10,
-    gap: 5,
+    flexDirection: "row",
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 14,
+    backgroundColor: "#E6F4EA",
+    alignSelf: "flex-start",
   },
-  detailLabel: {
-  flexDirection: "row", 
-  alignItems: "center", 
-  gap: 6,               
-  minWidth: 100,
+  completedText: { fontSize: 12, fontWeight: "600", color: "#1E8E3E" },
+
+  backdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.3)" },
+  bottomSheet: {
+    position: "absolute",
+    bottom: 0,
+    width: "100%",
+    backgroundColor: "#FFF",
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 20,
+    paddingBottom: 50,
   },
-  detailRow: {
+
+  sheetHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 16,
+  },
+  sheetTitle: { fontSize: 18, fontWeight: "700" },
+
+  summaryCard: {
+    flexDirection: "row",
+    gap: 14,
+    alignItems: "center",
+    backgroundColor: "#F8F9FA",
+    padding: 16,
+    borderRadius: 14,
+    marginBottom: 16,
+  },
+  serviceName: { fontSize: 16, fontWeight: "700" },
+  summaryMeta: { color: "#666", marginTop: 2 },
+
+  completedPill: {
+    backgroundColor: "#E6F4EA",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 10,
+  },
+  completedPillText: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: "#1E8E3E",
+  },
+
+  infoCard: {
+    flexDirection: "row",
+    gap: 12,
+    alignItems: "center",
+    padding: 14,
+    borderRadius: 14,
+    backgroundColor: "#FFF",
+    borderWidth: 1,
+    borderColor: "#EEE",
+    marginBottom: 12,
+  },
+  infoTitle: { fontWeight: "600" },
+  infoSub: { color: "#666", fontSize: 13 },
+  locationText: { flex: 1, color: "#444" },
+
+  paymentCard: {
+    marginTop: 20,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: "#EEE",
     flexDirection: "row",
     justifyContent: "space-between",
   },
-  label: {
-    color: "#888",
-  },
-  value: {
-    fontWeight: "500",
-  },
-  footer: {
-    marginTop: 18,
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  price: {
-    fontSize: 22,
-    fontWeight: "400",
-  },
-});
+  paymentLabel: { color: "#888" },
+  paymentAmount: { fontSize: 22, fontWeight: "700" },
+})

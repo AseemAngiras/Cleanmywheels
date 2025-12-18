@@ -1,11 +1,15 @@
 import { Ionicons } from '@expo/vector-icons';
+
 import { useFocusEffect, useNavigation, useRouter } from 'expo-router';
 import React, { useCallback } from 'react';
+import { useNavigation, useRouter } from 'expo-router';
+import React, { useEffect } from 'react';
 import { Image, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function HomeScreen() {
   const router = useRouter();
   const navigation = useNavigation();
+
 
   useFocusEffect(
     useCallback(() => {
@@ -14,6 +18,13 @@ export default function HomeScreen() {
       });
     }, [navigation])
   );
+
+  useEffect(() => {
+    navigation.getParent()?.setOptions({
+      tabBarStyle: { display: 'flex' }
+    });
+  }, [navigation]);
+    main
 
   return (
 

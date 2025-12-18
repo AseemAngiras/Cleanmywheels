@@ -630,10 +630,10 @@ const styles = StyleSheet.create({
         marginRight: 10,
     },
     selectButton: {
-        backgroundColor: '#ffeb69',
-        paddingVertical: 6,
-        paddingHorizontal: 20,
-        borderRadius: 20,
+        backgroundColor: '#C8F000',
+        paddingVertical: 10,
+        paddingHorizontal: 25,
+        borderRadius: 25,
     },
     selectButtonText: {
         fontSize: 12,
@@ -785,7 +785,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#f9f9f9',
     },
     continueButton: {
-        backgroundColor: '#ffeb69',
+        backgroundColor: '#C8F000',
         paddingVertical: 16,
         borderRadius: 30,
         flexDirection: 'row',
@@ -886,7 +886,7 @@ const styles = StyleSheet.create({
         width: '31%', paddingVertical: 12, borderRadius: 15, backgroundColor: '#fff',
         borderWidth: 1, borderColor: '#eee', alignItems: 'center', marginBottom: 10
     },
-    slotSelected: { backgroundColor: '#ffeb69', borderColor: '#ffeb69' },
+    slotSelected: { backgroundColor: '#C8F000', borderColor: '#C8F000' },
     slotUnavailable: { backgroundColor: '#f5f5f5', borderColor: '#f5f5f5' },
 
     slotText: { fontSize: 12, fontWeight: '600', color: '#1a1a1a' },

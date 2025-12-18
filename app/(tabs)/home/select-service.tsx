@@ -1,7 +1,7 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFocusEffect, useNavigation, useRouter } from 'expo-router';
 import React, { useCallback, useState } from 'react';
-import { Image, Keyboard, KeyboardAvoidingView, LayoutAnimation, Platform, SafeAreaView, ScrollView, StyleSheet, Switch, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, UIManager, View } from 'react-native';
+import { Alert, Image, Keyboard, KeyboardAvoidingView, LayoutAnimation, Platform, SafeAreaView, ScrollView, StyleSheet, Switch, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, UIManager, View } from 'react-native';
 import BookingStepper from '../../../components/BookingStepper';
 
 if (Platform.OS === 'android') {
@@ -230,6 +230,10 @@ export default function SelectServiceScreen() {
                     <Text style={styles.totalPrice}>₹{calculateTotal()}</Text>
                 </View>
                 <TouchableOpacity style={styles.nextButton} onPress={() => {
+                    if (!vehicleNumber.trim()) {
+                        Alert.alert("Missing Detail", "Please enter your vehicle number to proceed.");
+                        return;
+                    }
                     const params = {
                         serviceId: selectedService,
                         serviceName: services.find(s => s.id === selectedService)?.name,
@@ -442,7 +446,7 @@ const styles = StyleSheet.create({
     totalLabel: { fontSize: 12, color: '#888', marginLeft: 6 },
     totalPrice: { fontSize: 24, fontWeight: 'bold', color: '#84c95c', marginLeft: 6 },
     nextButton: {
-        backgroundColor: '#ffeb69',
+        backgroundColor: '#C8F000',
         paddingVertical: 15,
         paddingHorizontal: 0,
         borderRadius: 30,

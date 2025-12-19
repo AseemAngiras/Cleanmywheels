@@ -11,9 +11,15 @@ export default function HomeScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      navigation.getParent()?.setOptions({
-        tabBarStyle: { display: 'flex' }
-      });
+      // Ensure tab bar is visible when on Home root
+      const homeStack = navigation.getParent();
+      const tabs = homeStack?.getParent();
+
+      if (tabs) {
+        tabs.setOptions({
+          tabBarStyle: { display: 'flex' }
+        });
+      }
     }, [navigation])
   );
 
@@ -52,13 +58,13 @@ export default function HomeScreen() {
             </Text>
 
             <View style={styles.actionButtons}>
-              <TouchableOpacity style={styles.primaryButton} onPress={() => router.push('/(tabs)/home/select-service')}>
+              <TouchableOpacity style={styles.primaryButton} onPress={() => router.push('/(tabs)/home/book-service/select-service')}>
                 <Text style={styles.primaryButtonText}>BOOK SERVICE</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.secondaryButton} onPress={() => router.push('/(tabs)/home/scanner')}>
-                <Ionicons name="scan-outline" size={20} color="#fff" style={{ marginRight: 8 }} />
-                <Text style={styles.secondaryButtonText}>QR Scan</Text>
+              <TouchableOpacity style={styles.secondaryButton} onPress={() => router.push('/(tabs)/home/book-doorstep/enter-location')}>
+                <Ionicons name="home-outline" size={20} color="#fff" style={{ marginRight: 8 }} />
+                <Text style={styles.secondaryButtonText}>Book Doorstep</Text>
               </TouchableOpacity>
             </View>
           </View>

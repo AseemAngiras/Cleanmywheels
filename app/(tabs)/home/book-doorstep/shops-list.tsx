@@ -3,7 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import React, { useCallback, useRef, useState } from 'react';
 import { ActivityIndicator, FlatList, Image, Keyboard, KeyboardAvoidingView, Modal, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
-import BookingStepper from '../../../components/BookingStepper';
+import BookingStepper from '../../../../components/BookingStepper';
 
 // Types
 type TimeSlot = {
@@ -311,11 +311,12 @@ export default function ShopsListScreen() {
                     <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 180, paddingTop: 20 }}>
                         <Text style={[styles.sectionTitle, { marginLeft: 20 }]}>Select the Date for your Service</Text>
                         {/* Shop Hero Card */}
+                        {/* Shop Hero Card - Compact Horizontal */}
                         <View style={styles.shopCardHero}>
                             {selectedShop?.image && (
                                 <Image source={{ uri: selectedShop.image }} style={styles.shopImageHero} />
                             )}
-                            <View style={styles.shopInfoOverlay}>
+                            <View style={styles.shopInfoContainer}>
                                 <Text style={styles.shopNameHero}>{selectedShop?.name}</Text>
                                 <View style={styles.shopMetaRow}>
                                     <View style={styles.ratingBadge}>
@@ -324,9 +325,8 @@ export default function ShopsListScreen() {
                                     </View>
                                     <View style={styles.metaDivider} />
                                     <Text style={styles.metaText}>{selectedShop?.distance}</Text>
-                                    <View style={styles.metaDivider} />
-                                    <Text style={styles.metaText} numberOfLines={1}>{selectedShop?.address}</Text>
                                 </View>
+                                <Text style={styles.metaAddressText} numberOfLines={1}>{selectedShop?.address}</Text>
                             </View>
                         </View>
 
@@ -413,21 +413,28 @@ export default function ShopsListScreen() {
                             onPress={() => {
                                 setShowSlotPicker(false);
                                 router.push({
-                                    pathname: '/(tabs)/home/booking-summary',
+                                    pathname: '/(tabs)/home/book-doorstep/booking-summary',
                                     params: {
                                         ...params,
+                                        // Pass shop as provider
                                         shopId: selectedShop?.id,
                                         shopName: selectedShop?.name,
-                                        shopAddress: selectedShop?.address || '123 Smart St.',
                                         shopImage: selectedShop?.image,
                                         shopRating: selectedShop?.rating,
-                                        shopLat: selectedShop?.latitude,
-                                        shopLong: selectedShop?.longitude,
+
+                                        // User Info
                                         userPhone: phoneNumber,
                                         userName: name,
+
+                                        // Selected Slot
                                         selectedDate: dates[selectedDate].fullDate.toISOString(),
                                         selectedTime: timeSlots.find(s => s.id === selectedSlot)?.time,
-                                        selectedTimeSlotId: selectedSlot
+                                        selectedTimeSlotId: selectedSlot,
+
+                                        // Forward existing params (address, etc)
+                                        address: params.address,
+                                        latitude: params.latitude,
+                                        longitude: params.longitude
                                     }
                                 });
                             }}
@@ -797,207 +804,218 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: '#1a1a1a',
     },
-
-    // Slot Picker Styles
     // Shop Hero Card Styles
     shopCardHero: {
-        marginHorizontal: 20, // Added spacing
+        marginHorizontal: 20,
         marginTop: 10,
         marginBottom: 25,
         backgroundColor: '#fff',
-        borderRadius: 20,
-        // Rounded container
-        // Add shadow back since it's a card now
-        shadowColor: '#000', shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1, shadowRadius: 10, elevation: 5,
-        paddingBottom: 20
+        borderRadius: 16,
+        padding: 12,
+        flexDirection: 'row',
+        alignItems: 'center',
+        // Shadow
+        shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1, shadowRadius: 5, elevation: 3,
     },
     shopImageHero: {
-        width: '100%',
-        height: 220,
-        borderRadius: 20, // Rounded image matches card
+        width: 80,
+        height: 80,
+        borderRadius: 12,
+    },
+    shopInfoContainer: {
+        flex: 1,
+        marginLeft: 15,
+        justifyContent: 'center',
     },
     shopInfoOverlay: {
-        paddingHorizontal: 20,
-        marginTop: 15,
+        // Removed as no longer overlay
     },
     shopNameHero: {
-        fontSize: 22,
+        fontSize: 16,
         fontWeight: 'bold',
         color: '#1a1a1a',
-        marginBottom: 8,
+        marginBottom: 4,
     },
     shopMetaRow: {
         flexDirection: 'row',
         alignItems: 'center',
+        marginBottom: 4,
+    },
+    metaAddressText: {
+        fontSize: 12,
+        color: '#888',
     },
     ratingBadge: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#84c95c', // Primary
+        backgroundColor: '#4CAF50',
         paddingHorizontal: 6,
         paddingVertical: 2,
-        borderRadius: 6,
+        borderRadius: 4,
+        marginRight: 8,
     },
     ratingLabel: {
         color: '#fff',
-        fontSize: 12,
+        fontSize: 10,
         fontWeight: 'bold',
-        marginLeft: 3,
+        marginLeft: 2,
     },
     metaDivider: {
-        width: 4, height: 4,
-        borderRadius: 2,
-        backgroundColor: '#ccc',
+        width: 1,
+        height: 12,
+        backgroundColor: '#ddd',
         marginHorizontal: 8,
     },
     metaText: {
-        fontSize: 13,
-        color: '#666',
+        fontSize: 12,
+        color: '#555',
     },
-
-    dateList: { maxHeight: 100, marginBottom: 20 },
+    dateList: {
+        marginBottom: 20,
+    },
     dateItem: {
-        width: 60, height: 90,
-        backgroundColor: '#fff', borderRadius: 12,
-        justifyContent: 'center', alignItems: 'center',
+        width: 60,
+        height: 70,
+        borderRadius: 15,
+        borderWidth: 1,
+        borderColor: '#eee',
+        alignItems: 'center',
+        justifyContent: 'center',
         marginRight: 10,
-        borderWidth: 1, borderColor: '#f0f0f0',
-        paddingVertical: 5
+        backgroundColor: '#fff',
     },
     dateItemSelected: {
-        backgroundColor: '#84c95c', // Primary Green
-        borderColor: '#84c95c',
-        transform: [{ scale: 1.05 }],
-        shadowColor: '#000', shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.2, shadowRadius: 5, elevation: 5
+        backgroundColor: '#C8F000',
+        borderColor: '#C8F000',
     },
-    monthText: { fontSize: 10, fontWeight: '600', color: '#888', marginBottom: 2 },
-    dateNumberText: { fontSize: 22, fontWeight: 'bold', color: '#1a1a1a', marginBottom: 2 },
-    dayText: { fontSize: 10, fontWeight: '600', color: '#888' },
-
-    textSelected: { color: '#fff' }, // White text for selected black card
-
-    section: { paddingHorizontal: 20, marginBottom: 20 },
-    sectionTitle: { fontSize: 16, fontWeight: 'bold', marginBottom: 15, color: '#1a1a1a' },
-
-    grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
-    slotItem: {
-        width: '31%', paddingVertical: 12, borderRadius: 15, backgroundColor: '#fff',
-        borderWidth: 1, borderColor: '#eee', alignItems: 'center', marginBottom: 10
+    monthText: {
+        fontSize: 10,
+        color: '#888',
+        textTransform: 'uppercase',
     },
-    slotSelected: { backgroundColor: '#C8F000', borderColor: '#C8F000' },
-    slotUnavailable: { backgroundColor: '#f5f5f5', borderColor: '#f5f5f5' },
-
-    slotText: { fontSize: 12, fontWeight: '600', color: '#1a1a1a' },
-    slotTextSelected: { fontWeight: 'bold' },
-    slotTextUnavailable: { color: '#ccc', textDecorationLine: 'line-through' },
-
-    // Grid Style Time Picker
+    dateNumberText: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#1a1a1a',
+        marginVertical: 2,
+    },
+    dayText: {
+        fontSize: 10,
+        color: '#888',
+    },
+    textSelected: {
+        color: '#1a1a1a',
+        fontWeight: 'bold',
+    },
     timePickerContainer: {
-        marginTop: 0,
-        paddingHorizontal: 20,
-        marginBottom: 20,
+        marginTop: 10,
     },
     gridContainer: {
         flexDirection: 'row',
         flexWrap: 'wrap',
         justifyContent: 'space-between',
+        paddingHorizontal: 20,
+    },
+    sectionTitle: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#1a1a1a',
+        marginBottom: 10,
+        paddingHorizontal: 20,
     },
     timeGridItem: {
         width: '31%', // 3 columns
-        paddingVertical: 15,
+        paddingVertical: 12,
+        borderRadius: 12,
+        backgroundColor: '#fff',
+        borderWidth: 1,
+        borderColor: '#eee',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: '#fff',
-        borderRadius: 12,
-        marginBottom: 15,
-        borderWidth: 1,
-        borderColor: '#f0f0f0',
-        // Shadow
-        shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05, shadowRadius: 2, elevation: 2,
-        position: 'relative', // For badge positioning
+        marginBottom: 12,
+        position: 'relative',
     },
     timeGridItemSelected: {
-        borderColor: '#84c95c', // Primary color border
-        backgroundColor: '#f0f9eb', // Light green bg
-        borderWidth: 1.5,
+        backgroundColor: '#C8F000',
+        borderColor: '#C8F000',
     },
     timeGridText: {
-        fontSize: 14,
-        color: '#1a1a1a',
+        fontSize: 12,
         fontWeight: '600',
+        color: '#1a1a1a',
     },
     timeGridTextSelected: {
         fontWeight: 'bold',
-        color: '#84c95c', // Primary color text
     },
     timeGridTextUnavailable: {
         color: '#ccc',
         textDecorationLine: 'line-through',
     },
-
-    // Offer Badge Styles
     offerBadge: {
         position: 'absolute',
-        top: -8,
-        right: -5,
-        backgroundColor: '#84c95c', // Primary Green
-        paddingHorizontal: 6,
+        top: -6,
+        right: -6,
+        backgroundColor: '#FF5722',
+        paddingHorizontal: 4,
         paddingVertical: 2,
         borderRadius: 4,
-        zIndex: 10,
     },
     offerText: {
         color: '#fff',
         fontSize: 8,
         fontWeight: 'bold',
     },
-
-    // Footer Selected Card
-    selectedSlotCard: {
+    footer: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
         backgroundColor: '#fff',
-        borderRadius: 16,
-        padding: 15,
-        marginBottom: 20,
+        padding: 20,
+        paddingBottom: 30,
+        borderTopWidth: 1,
+        borderTopColor: '#f0f0f0',
+        // Shadow
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: -4 },
+        shadowOpacity: 0.05,
+        shadowRadius: 10,
+        elevation: 10,
+    },
+    selectedSlotCard: {
         flexDirection: 'row',
-        alignItems: 'center',
         justifyContent: 'space-between',
-        // Shadow for floating effect
-        shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1, shadowRadius: 8, elevation: 5,
-        borderWidth: 1, borderColor: '#f0f0f0',
+        alignItems: 'center',
+        backgroundColor: '#f0fdf4', // Light green bg
+        padding: 15,
+        borderRadius: 12,
+        marginBottom: 15,
+        borderWidth: 1,
+        borderColor: '#bbf7d0',
     },
     slotCardLeft: {
         flexDirection: 'row',
         alignItems: 'center',
     },
     iconContainer: {
-        width: 40, height: 40,
+        width: 40,
+        height: 40,
         borderRadius: 20,
-        backgroundColor: '#f5f5f5',
-        justifyContent: 'center', alignItems: 'center',
-        marginRight: 12,
+        backgroundColor: '#fff',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginRight: 10,
     },
     selectedLabel: {
         fontSize: 10,
-        color: '#888',
-        fontWeight: '600',
+        color: '#4CAF50',
+        fontWeight: 'bold',
         marginBottom: 2,
-        letterSpacing: 0.5,
     },
     selectedDateTime: {
         fontSize: 14,
         fontWeight: 'bold',
         color: '#1a1a1a',
-    },
-
-    footer: {
-        position: 'absolute', bottom: 0, left: 0, right: 0,
-        backgroundColor: '#fff', padding: 20, paddingBottom: 30,
-        borderTopLeftRadius: 30, borderTopRightRadius: 30,
-        shadowColor: '#000', shadowOffset: { width: 0, height: -5 },
-        shadowOpacity: 0.1, shadowRadius: 10, elevation: 20,
     },
 });

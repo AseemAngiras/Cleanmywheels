@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 // Types
@@ -17,12 +17,7 @@ export default function SelectSlotScreen() {
     const params = useLocalSearchParams();
     const { shopId, shopName, shopAddress, shopLat, shopLong } = params;
 
-    useEffect(() => {
-        // Hide tab bar for this screen
-        navigation.getParent()?.setOptions({
-            tabBarStyle: { display: 'none' }
-        });
-    }, [navigation]);
+    // Tab bar hidden via global layout
 
     // --- State ---
     const [selectedDate, setSelectedDate] = useState<number>(0); // Index of selected date
@@ -214,8 +209,9 @@ export default function SelectSlotScreen() {
                     style={[styles.confirmButton, !selectedSlot && { opacity: 0.6 }]}
                     disabled={!selectedSlot}
                     onPress={() => {
+                        console.log("Navigating to booking-summary with params:", selectedSlot);
                         router.push({
-                            pathname: '/(tabs)/home/booking-summary',
+                            pathname: '/(tabs)/home/book-service/booking-summary',
                             params: {
                                 ...params,
                                 selectedDate: dates[selectedDate].fullDate.toISOString(),

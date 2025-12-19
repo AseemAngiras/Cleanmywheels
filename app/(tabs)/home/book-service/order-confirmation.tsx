@@ -80,7 +80,7 @@ export default function OrderConfirmationScreen() {
             <View style={styles.footer}>
                 <TouchableOpacity
                     style={styles.homeButton}
-                    onPress={() => (navigation as any).popToTop()}
+                    onPress={() => router.push('/(tabs)/home')}
                 >
                     <Text style={styles.homeButtonText}>Back to Home</Text>
                 </TouchableOpacity>
@@ -254,7 +254,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#fdfdfd',
     },
     homeButton: {
-        backgroundColor: '#ffeb69', // Secondary Yellow
+        backgroundColor: '#C8F000', // Secondary Yellow
         paddingVertical: 18,
         borderRadius: 30,
         alignItems: 'center',

@@ -110,7 +110,7 @@ export default function VehicleDetailsScreen() {
                         <View style={styles.footer}>
                             <TouchableOpacity style={styles.nextButton} onPress={() => {
                                 router.push({
-                                    pathname: '/(tabs)/home/shops-list',
+                                    pathname: '/(tabs)/home/book-service/shops-list',
                                     params: {
                                         ...params,
                                         vehicleType,

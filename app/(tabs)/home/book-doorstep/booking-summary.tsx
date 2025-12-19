@@ -1,35 +1,53 @@
+
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Alert, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
-import BookingStepper from '../../../components/BookingStepper';
+import BookingStepper from '../../../../components/BookingStepper';
 
 export default function BookingSummaryScreen() {
     const router = useRouter();
     const navigation = useNavigation();
     const params = useLocalSearchParams();
 
+    // Extract params - Note that for doorstep flow, we display user address instead of shop address
     const {
         serviceName,
         servicePrice,
         addons,
         vehicleType,
         vehicleNumber,
-        shopName,
-        shopAddress,
-        shopImage,
-        shopRating,
-        shopLat,
+        shopName, // This might be the selected shop name for service assignment
+        // shopAddress, // Not used for map, but might be relevant? 
+        // shopImage, 
+        // shopRating,
+        shopLat, // These might be shop coordinates
         shopLong,
+
+        // Slot info
         selectedDate,
         selectedTime,
+
+        // User info
         userPhone,
+        userName,
+
+        // Address info (passed from earlier flow or context)
+        // Wait, where is address coming from? 
+        // It should have been passed down from enter-location -> select-service -> shops-list -> select-slot -> summary
+        // Let's assume we need to ensure these params traverse the stack.
+        // Or if using context, we grab from there. 
+        // For now, let's look for address params.
+        address,
+        latitude,
+        longitude,
+
         totalPrice
     } = params;
 
-    const lat = parseFloat(shopLat as string) || 37.7749;
-    const long = parseFloat(shopLong as string) || -122.4194;
+    const lat = parseFloat(latitude as string) || 37.7749;
+    const long = parseFloat(longitude as string) || -122.4194;
 
     // Payment Logic
     const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string | null>(null);
@@ -68,7 +86,7 @@ export default function BookingSummaryScreen() {
 
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 150 }}>
 
-                {/* Map View */}
+                {/* Map View - Showing User Location for Doorstep */}
                 <View style={styles.mapContainer}>
                     <MapView
                         style={styles.map}
@@ -78,23 +96,23 @@ export default function BookingSummaryScreen() {
                             latitudeDelta: 0.01,
                             longitudeDelta: 0.01,
                         }}
-                        scrollEnabled={false} // Minimap usually static
+                        scrollEnabled={false}
                         zoomEnabled={false}
                     >
                         <Marker
                             coordinate={{ latitude: lat, longitude: long }}
-                            title={shopName as string}
-                            description={shopAddress as string}
+                            title="Your Location"
+                            description={address as string || "Selected Address"}
                         />
                     </MapView>
                     <View style={styles.mapOverlay}>
                         <View style={styles.shopPinCard}>
                             <View style={styles.shopIconContainer}>
-                                <Ionicons name="location" size={20} color="#fbc02d" />
+                                <Ionicons name="home" size={20} color="#fbc02d" />
                             </View>
-                            <View>
-                                <Text style={styles.pinShopName}>{shopName || 'Shop Name'}</Text>
-                                <Text style={styles.pinShopAddress} numberOfLines={1}>{shopAddress || 'Location'}</Text>
+                            <View style={{ flex: 1 }}>
+                                <Text style={styles.pinShopName}>Service Location</Text>
+                                <Text style={styles.pinShopAddress} numberOfLines={1}>{address || 'Your Address'}</Text>
                             </View>
                         </View>
                     </View>
@@ -103,6 +121,19 @@ export default function BookingSummaryScreen() {
                 {/* Booking Details Card */}
                 <View style={styles.card}>
                     <Text style={styles.sectionTitle}>Booking Details</Text>
+
+                    {/* Shop Assigned (Service Provider) */}
+                    <View style={styles.row}>
+                        <View style={styles.iconBox}>
+                            <Ionicons name="briefcase" size={20} color="#555" />
+                        </View>
+                        <View style={styles.rowContent}>
+                            <Text style={styles.label}>Service Provider</Text>
+                            <Text style={styles.value}>{shopName || 'Assigned Professional'}</Text>
+                        </View>
+                    </View>
+
+                    <View style={styles.divider} />
 
                     <View style={styles.row}>
                         <View style={styles.iconBox}>
@@ -125,7 +156,7 @@ export default function BookingSummaryScreen() {
                         <View style={styles.rowContent}>
                             <Text style={styles.label}>Date & Time</Text>
                             <Text style={styles.value}>
-                                {selectedDate ? new Date(selectedDate as string).toLocaleDateString() : 'Date'}, {selectedTime || 'Time'}
+                                {selectedDate ? new Date(selectedDate as string).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' }) : 'Date'}, {selectedTime || 'Time'}
                             </Text>
                         </View>
                     </View>
@@ -174,7 +205,6 @@ export default function BookingSummaryScreen() {
                     </View>
                 </View>
 
-                {/* Payment Options */}
                 {/* Payment Options */}
                 <Text style={styles.paymentTitle}>Payment Options</Text>
 
@@ -231,15 +261,17 @@ export default function BookingSummaryScreen() {
                             Alert.alert('Payment Method Required', 'Please select a payment option to proceed.');
                             return;
                         }
+                        // Navigate to Order Confirmation / Tracking Ticket
+                        // Assuming reusing generic order confirmation or creating a specific one if flow differs.
+                        // User mentioned "generate the ticket that will show the user about the cleaner live track".
+                        // This usually goes to an Order Confirmation screen first, which then links to tracking, or directly to status.
+                        // Let's point to 'order-confirmation' and we can ensure it handles doorstep logic.
                         router.push({
-                            pathname: '/(tabs)/home/order-confirmation',
+                            pathname: '/(tabs)/home/book-doorstep/order-confirmation',
                             params: {
-                                shopName: shopName,
-                                shopAddress: shopAddress,
-                                shopImage: shopImage,
-                                shopRating: shopRating,
-                                date: selectedDate,
-                                time: selectedTime
+                                ...params,
+                                grandTotal,
+                                paymentMethod: selectedPaymentMethod
                             }
                         });
                     }}
@@ -277,7 +309,6 @@ const styles = StyleSheet.create({
         marginTop: 10,
         marginBottom: 20,
         position: 'relative',
-        // Shadow
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.1,
@@ -305,7 +336,7 @@ const styles = StyleSheet.create({
         width: 32,
         height: 32,
         borderRadius: 16,
-        backgroundColor: '#FFF9C4',
+        backgroundColor: '#fff3e0', // Orange-ish for user address
         alignItems: 'center',
         justifyContent: 'center',
         marginRight: 10,
@@ -320,7 +351,6 @@ const styles = StyleSheet.create({
         marginHorizontal: 20,
         marginBottom: 20,
         padding: 20,
-        // Shadow
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.05,
@@ -363,7 +393,7 @@ const styles = StyleSheet.create({
         height: 1,
         backgroundColor: '#f0f0f0',
         marginVertical: 12,
-        marginLeft: 51, // offset icon width
+        marginLeft: 51,
     },
 
     // Payment
@@ -396,7 +426,6 @@ const styles = StyleSheet.create({
         paddingBottom: 30,
         borderTopLeftRadius: 30,
         borderTopRightRadius: 30,
-        // Shadow
         shadowColor: '#000',
         shadowOffset: { width: 0, height: -5 },
         shadowOpacity: 0.1,

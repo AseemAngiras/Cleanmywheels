@@ -1,273 +1,243 @@
 import { Ionicons } from "@expo/vector-icons";
-import * as ImagePicker from "expo-image-picker";
-import { useRouter } from "expo-router";
-import { useState } from "react";
+import { router } from "expo-router"; // <-- corrected import
 import {
-  Alert,
   Image,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
-import Svg, { Circle } from "react-native-svg";
-
-const RADIUS = 46;
-const STROKE_WIDTH = 6;
-const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
 export default function ProfileHome() {
-  const router = useRouter();
-  const [profileImage, setProfileImage] = useState(
-    "https://i.pravatar.cc/150?img=3"
-  );
-
-  // 🔥 This will grow dynamically based on user data
-  const profileCompletion = 60; // %
-
-  const progressOffset =
-    CIRCUMFERENCE - (CIRCUMFERENCE * profileCompletion) / 100;
-
-  const handlePickImage = async () => {
-    const permission =
-      await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-    if (!permission.granted) {
-      Alert.alert("Permission required", "Please allow access to your photos");
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.8,
-    });
-
-    if (!result.canceled) {
-      setProfileImage(result.assets[0].uri);
-    }
-  };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>My Profile</Text>
-
-      {/* PROFILE CARD */}
-      {/* PROFILE CARD */}
-<View style={styles.profileCard}>
-  {/* LEFT: Avatar + Progress */}
-  <View style={styles.avatarContainer}>
-    <Svg width={96} height={96}>
-      <Circle
-        cx="48"
-        cy="48"
-        r="42"
-        stroke="#E6E6E6"
-        strokeWidth="6"
-        fill="none"
-      />
-      <Circle
-        cx="48"
-        cy="48"
-        r="42"
-        stroke="#6C47FF"
-        strokeWidth="6"
-        fill="none"
-        strokeDasharray={264}
-        strokeDashoffset={264 - (264 * 60) / 100}
-        strokeLinecap="round"
-      />
-    </Svg>
-
-    <Image source={{ uri: profileImage }} style={styles.avatar} />
-
-    {/* EDIT */}
-    <TouchableOpacity style={styles.editAvatar} onPress={handlePickImage}>
-      <Ionicons name="pencil" size={13} color="#000" />
-    </TouchableOpacity>
-
-    {/* % BADGE */}
-    <View style={styles.percentBadge}>
-      <Text style={styles.percentText}>60%</Text>
-    </View>
-  </View>
-
-  {/* RIGHT: INFO */}
-  <View style={styles.infoSection}>
-    <Text style={styles.name}>John, 37</Text>
-
-    {/* <View style={styles.chatBadge}>
-      <Ionicons name="chatbubble-outline" size={14} color="#111" />
-      <Text style={styles.chatText}>Open to chat</Text>
-    </View> */}
-  </View>
-</View>
-
-
-      {/* MENU */}
-      <View style={styles.menu}>
-        <MenuItem
-          icon="person-outline"
-          title="Edit Personal Details"
-          onPress={() => router.push("/profile/edit-profile")}
-        />
-        <MenuItem
-          icon="card-outline"
-          title="Payment Methods"
-          onPress={() => router.push("/profile/payment-methods")}
-        />
-        <MenuItem
-          icon="notifications-outline"
-          title="Notifications"
-          onPress={() => router.push("/profile/notifications")}
-        />
-        <MenuItem
-          icon="lock-closed-outline"
-          title="Privacy Settings"
-          onPress={() => router.push("/profile/privacy-settings")}
-        />
-        <MenuItem icon="help-circle-outline" title="Help & Support" />
+      {/* HEADER */}
+      <View style={styles.headerRow}>
+        <TouchableOpacity style={styles.moreButton} onPress={() => router.back()}>
+          <Ionicons name="chevron-back" size={20} color="#111" />
+        </TouchableOpacity>
+        <Text style={styles.header}>Your Profile</Text>
+        <View style={{ width: 36 }} /> 
       </View>
 
-      <TouchableOpacity style={styles.logout}>
-        <Text style={styles.logoutText}>Log Out</Text>
-      </TouchableOpacity>
+      {/* PROFILE CARD */}
+      <View style={styles.profileCard}>
+        <View style={styles.profileLeft}>
+          <Image
+            source={{ uri: "https://i.pravatar.cc/150?img=12" }}
+            style={styles.avatar}
+          />
+          <View>
+            <Text style={styles.profileName}>Mr. Abel Tesfaye</Text>
+            <Text style={styles.profileSubtitle}>Chandigarh</Text>
+          </View>
+        </View>
 
-      <Text style={styles.version}>Version 2.4.0</Text>
+        {/* <TouchableOpacity style={styles.editButton}>
+          <Ionicons name="pencil" size={16} color="#111" />
+        </TouchableOpacity> */}
+      </View>
+
+      {/* ACCOUNT CARD */}
+      <View style={styles.card}>
+        <Row
+          icon="person-outline"
+          title="Account Details"
+          subtitle="Manage your Account Details"
+          onPress={() => router.push("/profile/edit-profile")}
+        />
+        <Row
+          icon="wallet-outline"
+          title="Payment Methods"
+          subtitle="View your added payments methods"
+          onPress={() => router.push("/profile/payment-methods")}
+        />
+        <Row
+          icon="notifications-outline"
+          title="Manage Notifications"
+          onPress={() => router.push("/profile/notifications")}
+        />
+        <Row
+          icon="settings-outline"
+          title="Settings"
+          // onPress={() => router.push("/settings")}
+        />
+      </View>
+
+      {/* SUPPORT CARD */}
+      <View style={styles.card}>
+        <Row
+          icon="shield-checkmark-outline"
+          title="Privacy Policy"
+          onPress={() => router.push("/profile/privacy-settings")}
+        />
+        <Row
+          icon="call-outline"
+          title="Contact Us"
+          // onPress={() => router.push("/contact-us")}
+        />
+        <Row
+          icon="help-circle-outline"
+          title="Get Help"
+          // onPress={() => router.push("/get-help")}
+        />
+        <Row
+          icon="log-out-outline"
+          title="Log out"
+          danger
+          onPress={() => {
+            // router.push("/logout");
+          }}
+        />
+      </View>
     </View>
   );
 }
 
-const MenuItem = ({ title, icon, onPress }: any) => (
-  <TouchableOpacity style={styles.menuItem} onPress={onPress}>
-    <View style={styles.menuLeft}>
-      <Ionicons name={icon} size={20} color="#444" />
-      <Text style={styles.menuText}>{title}</Text>
+const Row = ({
+  icon,
+  title,
+  subtitle,
+  danger,
+  onPress,
+}: {
+  icon: keyof typeof Ionicons.glyphMap;
+  title: string;
+  subtitle?: string;
+  danger?: boolean;
+  onPress?: () => void;  // <-- added onPress prop
+}) => (
+  <TouchableOpacity style={styles.row} onPress={onPress} activeOpacity={0.7}>
+    <View style={styles.rowLeft}>
+      <Ionicons
+        name={icon}
+        size={20}
+        color={danger ? "#E53935" : "#111"}
+        style={styles.rowIcon}
+      />
+      <View>
+        <Text style={[styles.rowTitle, danger && { color: "#E53935" }]}>
+          {title}
+        </Text>
+        {subtitle && <Text style={styles.rowSubtitle}>{subtitle}</Text>}
+      </View>
     </View>
+
     <Ionicons name="chevron-forward" size={18} color="#999" />
   </TouchableOpacity>
 );
 
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "#F3F4F7",
     paddingHorizontal: 16,
-    paddingTop: 80,
-    backgroundColor: "#FFF",
-  },
-  title: { fontSize: 24, fontWeight: "700", marginBottom: 16 },
-profileCard: {
-  flexDirection: "row",
-  alignItems: "center",
-  backgroundColor: "#F7F6FF",
-  borderRadius: 18,
-  padding: 18,
-  marginBottom: 24,
-},
-
-avatarContainer: {
-  width: 96,
-  height: 96,
-  justifyContent: "center",
-  alignItems: "center",
-},
-
-avatar: {
-  position: "absolute",
-  width: 72,
-  height: 72,
-  borderRadius: 36,
-},
-
-editAvatar: {
-  position: "absolute",
-  bottom: 6,
-  right: 6,
-  backgroundColor: "#6C47FF",
-  padding: 6,
-  borderRadius: 12,
-},
-
-percentBadge: {
-  position: "absolute",
-  bottom: -6,
-  backgroundColor: "#6C47FF",
-  paddingHorizontal: 10,
-  paddingVertical: 4,
-  borderRadius: 14,
-},
-
-percentText: {
-  color: "#FFF",
-  fontSize: 12,
-  fontWeight: "600",
-},
-
-infoSection: {
-  marginLeft: 16,
-  flex: 1,
-},
-
-name: {
-  fontSize: 18,
-  fontWeight: "600",
-  color: "#111",
-  marginBottom: 6,
-},
-
-chatBadge: {
-  flexDirection: "row",
-  alignItems: "center",
-  backgroundColor: "#EDEDED",
-  paddingHorizontal: 12,
-  paddingVertical: 6,
-  borderRadius: 20,
-  alignSelf: "flex-start",
-},
-
-chatText: {
-  marginLeft: 6,
-  fontSize: 13,
-  color: "#111",
-},
-
-
-  menu: { marginTop: 10 },
-
-  menuItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: "#F8F8F8",
-    padding: 16,
-    borderRadius: 14,
-    marginBottom: 12,
-  },
-
-  menuLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-
-  menuText: {
-    fontSize: 16,
-    marginLeft: 12,
-  },
-
-  logout: {
-    borderWidth: 1,
-    borderColor: "#E0E0E0",
-    padding: 14,
-    borderRadius: 30,
-    alignItems: "center",
+    paddingTop: 60,
     marginTop: 30,
   },
 
-  logoutText: { color: "red", fontWeight: "600" },
+  /* HEADER */
+  headerRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 20,
+  },
 
-  version: {
-    textAlign: "center",
-    marginTop: 14,
-    color: "#999",
+  header: {
+    fontSize: 26,
+    fontWeight: "500",
+  },
+
+  moreButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "#FFF",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  /* PROFILE CARD */
+  profileCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "#FFF",
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+  },
+
+  profileLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  avatar: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    marginRight: 12,
+  },
+
+  profileName: {
+    fontSize: 16,
+    fontWeight: "600",
+  },
+
+  profileSubtitle: {
+    fontSize: 13,
+    color: "#777",
+    marginTop: 2,
+  },
+
+  editButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "#F1F1F1",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  /* CARDS */
+  card: {
+    backgroundColor: "#FFF",
+    borderRadius: 16,
+    marginBottom: 16,
+    paddingVertical: 4,
+  },
+
+  /* ROW */
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+  },
+
+  rowLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+
+  rowIcon: {
+    marginRight: 14,
+  },
+
+  rowTitle: {
+    fontSize: 15,
+    fontWeight: "500",
+  },
+
+  rowSubtitle: {
+    fontSize: 12,
+    color: "#777",
+    marginTop: 2,
   },
 });

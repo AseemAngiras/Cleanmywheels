@@ -2,7 +2,6 @@
 
 import { Ionicons } from "@expo/vector-icons"
 import { CameraView, useCameraPermissions } from "expo-camera"
-import { router } from "expo-router"
 import { useEffect, useRef, useState } from "react"
 import { Image } from "react-native"
 
@@ -120,7 +119,11 @@ export default function UpcomingServices() {
   const handleQrScanned = ({ data }: { data: string }) => {
     setScannerVisible(false)
     setTorchOn(false)
-    router.push("/bookings/arrival-confirmed")
+
+    setBookings((prev) => prev.filter((b) => b.id !== activeBooking?.id))
+    closeSheet()
+
+    // router.push("/bookings/arrival-confirmed")
   }
 
   const handleDelete = (id: string) => {
@@ -147,31 +150,24 @@ export default function UpcomingServices() {
       style={styles.cardContainer}
       onPress={() => setActiveBooking(item)}
     >
-      <View style={styles.card}>
-        <View style={styles.headerRow}>
-          <Image source={{ uri: item.carImage }} style={styles.carImage} />
-          <View style={styles.cardContent}>
-            <Text style={styles.centerName}>{item.center}</Text>
-
-            <View style={styles.metaRow}>
-              <Ionicons name="calendar-outline" size={14} color="#666" />
-              <Text style={styles.metaText}>{item.date}</Text>
-              <View style={styles.dot} />
-              <Ionicons name="time-outline" size={14} color="#666" />
-              <Text style={styles.metaText}>{item.time}</Text>
-            </View>
-
-            <View style={styles.metaRow}>
-              <Ionicons name="car-outline" size={14} color="#666" />
-              <Text style={styles.metaText}>{item.car}</Text>
-            </View>
-
-            <View style={styles.confirmedBadge}>
-              <Ionicons name="checkmark-circle" size={14} color="#22C55E" />
-              <Text style={styles.confirmedText}>Confirmed</Text>
-            </View>
-          </View>
+      <View style={styles.sessionCard}>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.sessionTitle}>{item.center}</Text>
+          <Text style={styles.sessionSubtitle}>{item.date}</Text>
+          <Text style={styles.sessionDuration}>{item.car}</Text>
         </View>
+
+        <Image
+          source={{ uri: item.carImage }}
+          style={{ width: 90, height: 90, borderRadius: 12, marginLeft: 16 }}
+          resizeMode="cover"
+        />
+
+        <View style={styles.sessionButton}>
+          <Text style={styles.sessionButtonText}>I am at Workshop</Text>
+          <Ionicons name="chevron-forward" size={18} color="#FFF" />
+        </View>
+
       </View>
     </TouchableOpacity>
   )
@@ -281,7 +277,6 @@ export default function UpcomingServices() {
                   <View style={styles.scanBoxContainer}>
                     <View style={styles.scanBox}>
 
-                      {/* Animated scan line */}
                       <Animated.View
                         style={[
                           styles.scanLine,
@@ -334,6 +329,7 @@ export default function UpcomingServices() {
   )
 }
 
+
 const styles = StyleSheet.create({
   listContent: {
     padding: 16,
@@ -343,68 +339,63 @@ const styles = StyleSheet.create({
   cardContainer: {
     marginBottom: 20,
   },
-  card: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 16,
-    padding: 16,
+
+  sessionCard: {
+    backgroundColor: "#F5F8FF",
+    borderRadius: 20,
+    paddingBottom: 90,
+    padding: 20,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 6,
-  },
-  headerRow: {
+    shadowOpacity: 0.08,
+    elevation: 5,
     flexDirection: "row",
     alignItems: "center",
-    gap: 16,
+    justifyContent: "space-between",
   },
-  carImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 12,
-  },
-  cardContent: {
-    flex: 1,
-  },
-  centerName: {
-    fontSize: 18,
-    fontWeight: "600",
+
+  sessionTitle: {
+    fontSize: 20,
+    fontWeight: "700",
     color: "#111",
   },
-  metaRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
+
+  sessionSubtitle: {
+    marginTop: 4,
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#334155",
+  },
+
+  sessionDuration: {
     marginTop: 6,
-  },
-  metaText: {
-    color: "#64748B",
     fontSize: 14,
+    color: "#64748B",
   },
-  dot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: "#CBD5E1",
-  },
-  confirmedBadge: {
-    marginTop: 10,
+
+  sessionButton: {
+    marginTop: 18,
+    backgroundColor: "#000",
+    borderRadius: 28,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    backgroundColor: "#DCFCE7",
-    alignSelf: "flex-start",
+    justifyContent: "center",
+    gap: 10,
+    position: "absolute",
+    bottom: 20,
+    left: 20,
+    right: 20,
   },
-  confirmedText: {
-    color: "#15803D",
-    fontSize: 13,
+
+  sessionButtonText: {
+    color: "#FFF",
+    fontSize: 16,
     fontWeight: "600",
   },
 
-  // Bottom Sheet
+
   backdrop: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: "rgba(0,0,0,0.5)",
@@ -414,6 +405,7 @@ const styles = StyleSheet.create({
   },
   bottomSheet: {
     position: "absolute",
+    paddingBottom: 50,
     left: 0,
     right: 0,
     bottom: 0,
@@ -445,7 +437,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 10,
-    backgroundColor: "#F0F9FF",
+    backgroundColor: "#C8F000",
     borderRadius: 16,
     padding: 16,
     marginBottom: 20,
@@ -455,7 +447,7 @@ const styles = StyleSheet.create({
   qrText: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#1E40AF",
+    color: "#000",
   },
 
   detailRow: {
@@ -575,7 +567,6 @@ const styles = StyleSheet.create({
   },
   overlaySide: {
     flex: 1,
-    // backgroundColor: "rgba(0,0,0,0.6)",
     height: "100%",
   },
   scanBoxContainer: {

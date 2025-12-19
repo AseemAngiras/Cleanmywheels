@@ -4,19 +4,19 @@ import { Ionicons } from "@expo/vector-icons"
 import { CameraView, useCameraPermissions } from "expo-camera"
 import { router } from "expo-router"
 import { useEffect, useRef, useState } from "react"
+import { Image } from "react-native"
 
 import {
   Alert,
   Animated,
   Easing,
   FlatList,
-  Image,
   Linking,
   Modal,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
+  View
 } from "react-native"
 
 const initialBookings = [
@@ -117,6 +117,7 @@ export default function UpcomingServices() {
     ]).start(() => setActiveBooking(null))
   }
 
+
   const handleQrScanned = ({ data }: { data: string }) => {
     setScannerVisible(false)
     setTorchOn(false)
@@ -172,6 +173,60 @@ export default function UpcomingServices() {
             </View>
           </View>
         </View>
+=======
+
+  const handleQrScanned = ({ data }: { data: string }) => {
+    setScannerVisible(false)
+    setTorchOn(false)
+
+    setBookings((prev) => prev.filter((b) => b.id !== activeBooking.id))
+    closeSheet()
+
+    router.push("/bookings/arrival-confirmed")
+  }
+
+  const handleDelete = (id: string) => {
+    Alert.alert("Cancel Booking", "Are you sure you want to cancel?", [
+      { text: "No", style: "cancel" },
+      {
+        text: "Yes",
+        style: "destructive",
+        onPress: () => {
+          setBookings((prev) => prev.filter((b) => b.id !== id))
+          closeSheet()
+        },
+      },
+    ])
+  }
+
+  const handleCall = (phone: string) => {
+    Linking.openURL(`tel:${phone}`)
+  }
+
+  const renderItem = ({ item }: any) => (
+    <TouchableOpacity
+      activeOpacity={0.9}
+      style={styles.cardContainer}
+      onPress={() => setActiveBooking(item)}
+    >
+      <View style={styles.sessionCard}>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.sessionTitle}>{item.center}</Text>
+          <Text style={styles.sessionSubtitle}>{item.date}</Text>
+          <Text style={styles.sessionDuration}>{item.car}</Text>
+        </View>
+
+        <Image
+          source={{ uri: item.carImage }}
+          style={{ width: 90, height: 90, borderRadius: 12, marginLeft: 16 }}
+          resizeMode="cover"
+        />
+
+        <View style={styles.sessionButton}>
+          <Text style={styles.sessionButtonText}>I am at Workshop</Text>
+          <Ionicons name="chevron-forward" size={18} color="#FFF" />
+        </View>
+
       </View>
     </TouchableOpacity>
   )
@@ -281,7 +336,6 @@ export default function UpcomingServices() {
                   <View style={styles.scanBoxContainer}>
                     <View style={styles.scanBox}>
 
-                      {/* Animated scan line */}
                       <Animated.View
                         style={[
                           styles.scanLine,
@@ -334,6 +388,7 @@ export default function UpcomingServices() {
   )
 }
 
+
 const styles = StyleSheet.create({
   listContent: {
     padding: 16,
@@ -343,6 +398,7 @@ const styles = StyleSheet.create({
   cardContainer: {
     marginBottom: 20,
   },
+
   card: {
     backgroundColor: "#FFFFFF",
     borderRadius: 16,
@@ -405,6 +461,64 @@ const styles = StyleSheet.create({
   },
 
   // Bottom Sheet
+=======
+
+  sessionCard: {
+    backgroundColor: "#F5F8FF",
+    borderRadius: 20,
+    paddingBottom: 90,
+    padding: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    elevation: 5,
+    flexDirection: "row",           
+    alignItems: "center",           
+    justifyContent: "space-between",
+  },
+
+  sessionTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#111",
+  },
+
+  sessionSubtitle: {
+    marginTop: 4,
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#334155",
+  },
+
+  sessionDuration: {
+    marginTop: 6,
+    fontSize: 14,
+    color: "#64748B",
+  },
+
+  sessionButton: {
+    marginTop: 18,
+    backgroundColor: "#000",
+    borderRadius: 28,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    position: "absolute",           
+    bottom: 20,
+    left: 20,
+    right: 20,
+  },
+
+  sessionButtonText: {
+    color: "#FFF",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+
+
   backdrop: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: "rgba(0,0,0,0.5)",
@@ -414,6 +528,8 @@ const styles = StyleSheet.create({
   },
   bottomSheet: {
     position: "absolute",
+    paddingBottom: 50,
+
     left: 0,
     right: 0,
     bottom: 0,
@@ -445,17 +561,28 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 10,
+
     backgroundColor: "#F0F9FF",
+
+    backgroundColor: "#C8F000",
+
     borderRadius: 16,
     padding: 16,
     marginBottom: 20,
     borderWidth: 1,
+
     borderColor: "#BFDBFE",
+
+
   },
   qrText: {
     fontSize: 16,
     fontWeight: "600",
+
     color: "#1E40AF",
+
+    color: "#000",
+
   },
 
   detailRow: {
@@ -575,7 +702,7 @@ const styles = StyleSheet.create({
   },
   overlaySide: {
     flex: 1,
-    // backgroundColor: "rgba(0,0,0,0.6)",
+
     height: "100%",
   },
   scanBoxContainer: {
@@ -588,10 +715,12 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     position: "relative",
   },
+
   topLeft: { top: 0, left: 0, borderTopLeftRadius: 8, },
   topRight: { top: 0, right: 0, borderTopRightRadius: 8 },
   bottomLeft: { bottom: 0, left: 0, borderBottomLeftRadius: 8 },
   bottomRight: { bottom: 0, right: 0, borderBottomRightRadius: 8 },
+
   scanLine: {
     position: "absolute",
     width: "100%",

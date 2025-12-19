@@ -11,18 +11,27 @@ if (Platform.OS === 'android') {
     }
 }
 
+// Define available add-ons per service
+const SERVICE_ADDONS: Record<string, { id: string; name: string; price: number }[]> = {
+    basic: [
+        { id: 'wheelWash', name: 'Wheel Wash', price: 5 },
+        { id: 'matPolish', name: 'Mat Polish', price: 5 },
+    ],
+    premium: [],
+    detailing: [
+        { id: 'ceramicCoating', name: 'Ceramic Coating', price: 50 },
+        { id: 'scratchRemoval', name: 'Scratch Removal', price: 30 },
+        { id: 'engineBay', name: 'Engine Bay Clean', price: 20 },
+    ],
+};
+
 export default function SelectServiceScreen() {
     const router = useRouter();
     const navigation = useNavigation();
-    const [selectedService, setSelectedService] = useState('premium');
-    const [addons, setAddons] = useState({
-        wheelWash: false,
-        acService: false,
-        matPolish: false,
-    });
-    const [expandedService, setExpandedService] = useState<string | null>(null);
+    const [selectedService, setSelectedService] = useState<string | null>('premium');
+    const [addons, setAddons] = useState<Record<string, boolean>>({});
 
-    const [hasUserSelected, setHasUserSelected] = useState(false);
+    // UI State
     const [detailsExpanded, setDetailsExpanded] = useState<Set<string>>(new Set());
 
     const toggleDetails = (id: string, e: any) => {
@@ -86,28 +95,28 @@ export default function SelectServiceScreen() {
         },
     ];
 
-    const addonList = [
-        { id: 'wheelWash', name: 'Wheel Wash', price: 5 },
-        { id: 'acService', name: 'AC Service', price: 10 },
-        { id: 'matPolish', name: 'Mat Polish', price: 5 },
-    ];
+    const currentAddons = selectedService ? SERVICE_ADDONS[selectedService] || [] : [];
 
-    const toggleAddon = (id: keyof typeof addons) => {
+    const toggleAddon = (id: string) => {
         setAddons((prev) => ({ ...prev, [id]: !prev[id] }));
     };
 
     const handleServiceSelect = (id: string) => {
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
         setSelectedService(id);
-        setHasUserSelected(true);
+        setAddons({}); // Reset add-ons when service changes
     }
 
     const calculateTotal = () => {
         const servicePrice = services.find((s) => s.id === selectedService)?.price || 0;
         let addonTotal = 0;
-        if (addons.wheelWash) addonTotal += 5;
-        if (addons.acService) addonTotal += 10;
-        if (addons.matPolish) addonTotal += 5;
+
+        currentAddons.forEach(addon => {
+            if (addons[addon.id]) {
+                addonTotal += addon.price;
+            }
+        });
+
         return servicePrice + addonTotal;
     };
 
@@ -138,22 +147,29 @@ export default function SelectServiceScreen() {
                         <View style={styles.servicesContainer}>
                             {services.map((service) => {
                                 const isSelected = selectedService === service.id;
-                                const isExpanded = !hasUserSelected || isSelected;
-                                const showDetails = detailsExpanded.has(service.id);
+                                const isExpanded = (selectedService === null) || isSelected;
+
+                                // Logic: 
+                                // - If nothing selected: All items show expanded (or maybe all collapsed? stick to existing expanded-like row but maybe without details to save space? 
+                                // Actually, let's keep it simple: If nothing selected, all are somewhat "selectable" cards. 
+                                // Let's use the 'isExpanded' flag for the layout style.
+                                // If I click one, others collapse.
+
+                                const isServiceExpanded = isSelected;
 
                                 return (
                                     <TouchableOpacity
                                         key={service.id}
                                         style={[
                                             styles.serviceCard,
-                                            isExpanded ? styles.serviceCardExpandedLayout : styles.serviceCardCollapsedLayout,
+                                            isServiceExpanded ? styles.serviceCardExpandedLayout : styles.serviceCardCollapsedLayout,
                                             isSelected ? styles.serviceCardSelectedBorder : styles.serviceCardUnselectedBorder
                                         ]}
                                         onPress={() => handleServiceSelect(service.id)}
                                         activeOpacity={0.9}
                                     >
-                                        {isExpanded ? (
-                                            // EXPANDED STATE
+                                        {isServiceExpanded ? (
+                                            // EXPANDED STATE (Specific Selected Item)
                                             <View>
                                                 <View style={styles.expandedHeader}>
                                                     <View style={styles.expandedImageContainer}>
@@ -184,7 +200,7 @@ export default function SelectServiceScreen() {
                                                                 style={{ padding: 5, marginTop: 15 }}
                                                             >
                                                                 <Ionicons
-                                                                    name={showDetails ? "chevron-up" : "chevron-down"}
+                                                                    name={detailsExpanded.has(service.id) ? "chevron-up" : "chevron-down"}
                                                                     size={24}
                                                                     color="#84c95c"
                                                                 />
@@ -194,17 +210,19 @@ export default function SelectServiceScreen() {
                                                 </View>
 
                                                 {/* Inline Details Dropdown */}
-                                                {showDetails && (
+                                                {detailsExpanded.has(service.id) && (
                                                     <View style={styles.detailsContainer}>
                                                         <Text style={styles.detailsText}>{service.details}</Text>
                                                     </View>
                                                 )}
                                             </View>
                                         ) : (
-                                            // COLLAPSED STATE (By definition not selected, otherwise it would be expanded)
+                                            // COLLAPSED STATE (Unselected Items OR All items if none selected?)
+                                            // If none selected, we want them to look actionable.
+                                            // The 'collapsedRow' is fine.
                                             <View style={styles.collapsedRow}>
                                                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                                    <Ionicons name="radio-button-off" size={20} color="#ccc" style={{ marginRight: 12 }} />
+                                                    <Ionicons name={isSelected ? "radio-button-on" : "radio-button-off"} size={20} color={isSelected ? "#84c95c" : "#ccc"} style={{ marginRight: 12 }} />
                                                     <Text style={styles.collapsedName}>{service.name}</Text>
                                                     {service.isBestseller && <View style={[styles.bestsellerBadge, { marginLeft: 8, position: 'relative', top: 0, left: 0 }]}><Text style={styles.bestsellerText}>BEST</Text></View>}
                                                 </View>
@@ -216,28 +234,31 @@ export default function SelectServiceScreen() {
                             })}
                         </View>
 
-                        <Text style={styles.sectionTitle}>Make it Shine (Add-ons)</Text>
-
-                        {/* Add-ons - Horizontal Chips */}
-                        <View style={styles.addonsContainer}>
-                            {addonList.map((addon) => {
-                                const isSelected = addons[addon.id as keyof typeof addons];
-                                return (
-                                    <TouchableOpacity
-                                        key={addon.id}
-                                        style={[
-                                            styles.addonChip,
-                                            isSelected && styles.addonChipSelected
-                                        ]}
-                                        onPress={() => toggleAddon(addon.id as keyof typeof addons)}
-                                    >
-                                        <Text style={[styles.addonName, isSelected && { color: '#fff' }]}>{addon.name}</Text>
-                                        <Text style={[styles.addonPrice, isSelected && { color: '#fff' }]}>+₹{addon.price}</Text>
-                                        {isSelected && <Ionicons name="checkmark-circle" size={16} color="#fff" style={{ marginLeft: 5 }} />}
-                                    </TouchableOpacity>
-                                );
-                            })}
-                        </View>
+                        {/* Dynamic Add-ons Section */}
+                        {selectedService && currentAddons.length > 0 && (
+                            <View>
+                                <Text style={styles.sectionTitle}>Make it Shine (Add-ons)</Text>
+                                <View style={styles.addonsContainer}>
+                                    {currentAddons.map((addon) => {
+                                        const isSelected = !!addons[addon.id];
+                                        return (
+                                            <TouchableOpacity
+                                                key={addon.id}
+                                                style={[
+                                                    styles.addonChip,
+                                                    isSelected && styles.addonChipSelected
+                                                ]}
+                                                onPress={() => toggleAddon(addon.id)}
+                                            >
+                                                <Text style={[styles.addonName, isSelected && { color: '#fff' }]}>{addon.name}</Text>
+                                                <Text style={[styles.addonPrice, isSelected && { color: '#fff' }]}>+₹{addon.price}</Text>
+                                                {isSelected && <Ionicons name="checkmark-circle" size={16} color="#fff" style={{ marginLeft: 5 }} />}
+                                            </TouchableOpacity>
+                                        );
+                                    })}
+                                </View>
+                            </View>
+                        )}
 
                         {/* Vehicle Selection Section */}
                         <Text style={styles.sectionTitle}>Vehicle Details</Text>
@@ -288,26 +309,34 @@ export default function SelectServiceScreen() {
                     <Text style={styles.totalLabel}>Total</Text>
                     <Text style={styles.totalPrice}>₹{calculateTotal()}</Text>
                 </View>
-                <TouchableOpacity style={styles.nextButton} onPress={() => {
-                    if (!vehicleNumber.trim()) {
-                        Alert.alert("Missing Detail", "Please enter your vehicle number to proceed.");
-                        return;
-                    }
-                    const params = {
-                        serviceId: selectedService,
-                        serviceName: services.find(s => s.id === selectedService)?.name,
-                        servicePrice: services.find(s => s.id === selectedService)?.price,
-                        addons: JSON.stringify(addons),
-                        totalPrice: calculateTotal(),
-                        vehicleType,
-                        vehicleNumber: vehicleNumber.toUpperCase(),
-                        // Forward address params
-                        address,
-                        latitude,
-                        longitude
-                    };
-                    router.push({ pathname: '/(tabs)/home/book-doorstep/shops-list', params });
-                }}>
+                <TouchableOpacity
+                    style={[styles.nextButton, !selectedService && { opacity: 0.5 }]}
+                    disabled={!selectedService}
+                    onPress={() => {
+                        if (!selectedService) {
+                            Alert.alert("Selection Required", "Please select a service to proceed.");
+                            return;
+                        }
+                        if (!vehicleNumber.trim()) {
+                            Alert.alert("Missing Detail", "Please enter your vehicle number to proceed.");
+                            return;
+                        }
+                        const params = {
+                            serviceId: selectedService,
+                            serviceName: services.find(s => s.id === selectedService)?.name,
+                            servicePrice: services.find(s => s.id === selectedService)?.price,
+                            addons: JSON.stringify(addons), // Note: this passes the ID map, next screen should handle it if needed
+                            totalPrice: calculateTotal(),
+                            vehicleType,
+                            vehicleNumber: vehicleNumber.toUpperCase(),
+                            // Forward address params
+                            address,
+                            latitude,
+                            longitude
+                        };
+                        router.push({ pathname: '/(tabs)/home/book-doorstep/shops-list', params });
+                    }}
+                >
                     <Text style={styles.nextButtonText}>Next</Text>
                 </TouchableOpacity>
             </View>
@@ -333,6 +362,7 @@ const styles = StyleSheet.create({
     servicesContainer: {
         paddingHorizontal: 20,
         marginBottom: 10,
+        marginTop: 12,
     },
     serviceCard: {
         backgroundColor: '#fff',

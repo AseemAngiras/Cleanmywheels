@@ -183,7 +183,7 @@ editAvatar: {
   position: "absolute",
   bottom: 6,
   right: 6,
-  backgroundColor: "#C8F000",
+  backgroundColor: "#6C47FF",
   padding: 6,
   borderRadius: 12,
 },

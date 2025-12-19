@@ -1,7 +1,8 @@
 "use client"
 
-import { Ionicons } from "@expo/vector-icons"
-import { useEffect, useRef, useState } from "react"
+import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
+import { useEffect, useRef, useState } from "react";
 import {
   Animated,
   Easing,
@@ -12,7 +13,7 @@ import {
   Text,
   TouchableOpacity,
   View,
-} from "react-native"
+} from "react-native";
 
 const initialBookings = [
   {
@@ -89,16 +90,16 @@ export default function PastServices() {
       style={styles.cardContainer}
       onPress={() => setActiveBooking(item)}
     >
-      <View style={styles.sessionCard}>
+      <LinearGradient
+        colors={["#FFFFFF", "#F5F8FF", "#F7FAE6"]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        style={styles.sessionCard}
+      >
         <View style={{ flex: 1 }}>
           <Text style={styles.sessionTitle}>{item.center}</Text>
           <Text style={styles.sessionSubtitle}>{item.date}</Text>
           <Text style={styles.sessionDuration}>{item.car}</Text>
-
-          <View style={styles.completedBadge}>
-            <Ionicons name="checkmark-circle" size={14} color="#15803D" />
-            <Text style={styles.completedText}>Completed</Text>
-          </View>
         </View>
 
         <Image
@@ -108,12 +109,12 @@ export default function PastServices() {
         />
 
         <View style={styles.sessionButton}>
-          <Text style={styles.sessionButtonText}>View Details</Text>
+          <Text style={styles.sessionButtonText}>I am at Workshop</Text>
           <Ionicons name="chevron-forward" size={18} color="#FFF" />
         </View>
-      </View>
+      </LinearGradient>
     </TouchableOpacity>
-  )
+  );
 
   return (
     <>

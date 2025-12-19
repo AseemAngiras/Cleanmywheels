@@ -1,9 +1,10 @@
-"use client"
+"use client";
 
-import { Ionicons } from "@expo/vector-icons"
-import { CameraView, useCameraPermissions } from "expo-camera"
-import { useEffect, useRef, useState } from "react"
-import { Image } from "react-native"
+import { Ionicons } from "@expo/vector-icons";
+import { CameraView, useCameraPermissions } from "expo-camera";
+import { LinearGradient } from "expo-linear-gradient";
+import { useEffect, useRef, useState } from "react";
+import { Image } from "react-native";
 
 import {
   Alert,
@@ -15,13 +16,14 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View
-} from "react-native"
+  View,
+} from "react-native";
 
 const initialBookings = [
   {
     id: "1",
-    carImage: "https://images.pexels.com/photos/4906936/pexels-photo-4906936.jpeg",
+    carImage:
+      "https://images.pexels.com/photos/4906936/pexels-photo-4906936.jpeg",
     center: "Auto Care Plus",
     date: "2023-10-05",
     car: "Honda Accord",
@@ -32,22 +34,22 @@ const initialBookings = [
     price: "$75",
     phone: "+1 (555) 987-6543",
   },
-]
+];
 
 export default function UpcomingServices() {
-  const [bookings, setBookings] = useState(initialBookings)
-  const [activeBooking, setActiveBooking] = useState<any | null>(null)
+  const [bookings, setBookings] = useState(initialBookings);
+  const [activeBooking, setActiveBooking] = useState<any | null>(null);
 
-  const [scannerVisible, setScannerVisible] = useState(false)
-  const [permission, requestPermission] = useCameraPermissions()
-  const [torchOn, setTorchOn] = useState(false)
+  const [scannerVisible, setScannerVisible] = useState(false);
+  const [permission, requestPermission] = useCameraPermissions();
+  const [torchOn, setTorchOn] = useState(false);
 
   // Animations
-  const slideAnim = useRef(new Animated.Value(300)).current
-  const scaleAnim = useRef(new Animated.Value(0.95)).current
-  const opacityAnim = useRef(new Animated.Value(0)).current
+  const slideAnim = useRef(new Animated.Value(300)).current;
+  const scaleAnim = useRef(new Animated.Value(0.95)).current;
+  const opacityAnim = useRef(new Animated.Value(0)).current;
 
-  const scanLineAnim = useRef(new Animated.Value(0)).current
+  const scanLineAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     if (activeBooking) {
@@ -69,9 +71,9 @@ export default function UpcomingServices() {
           duration: 450,
           useNativeDriver: true,
         }),
-      ]).start()
+      ]).start();
     }
-  }, [activeBooking])
+  }, [activeBooking]);
 
   useEffect(() => {
     if (scannerVisible) {
@@ -90,9 +92,9 @@ export default function UpcomingServices() {
             useNativeDriver: true,
           }),
         ])
-      ).start()
+      ).start();
     }
-  }, [scannerVisible])
+  }, [scannerVisible]);
 
   const closeSheet = () => {
     Animated.parallel([
@@ -113,18 +115,18 @@ export default function UpcomingServices() {
         duration: 350,
         useNativeDriver: true,
       }),
-    ]).start(() => setActiveBooking(null))
-  }
+    ]).start(() => setActiveBooking(null));
+  };
 
   const handleQrScanned = ({ data }: { data: string }) => {
-    setScannerVisible(false)
-    setTorchOn(false)
+    setScannerVisible(false);
+    setTorchOn(false);
 
-    setBookings((prev) => prev.filter((b) => b.id !== activeBooking?.id))
-    closeSheet()
+    setBookings((prev) => prev.filter((b) => b.id !== activeBooking?.id));
+    closeSheet();
 
     // router.push("/bookings/arrival-confirmed")
-  }
+  };
 
   const handleDelete = (id: string) => {
     Alert.alert("Cancel Booking", "Are you sure you want to cancel?", [
@@ -133,16 +135,16 @@ export default function UpcomingServices() {
         text: "Yes",
         style: "destructive",
         onPress: () => {
-          setBookings((prev) => prev.filter((b) => b.id !== id))
-          closeSheet()
+          setBookings((prev) => prev.filter((b) => b.id !== id));
+          closeSheet();
         },
       },
-    ])
-  }
+    ]);
+  };
 
   const handleCall = (phone: string) => {
-    Linking.openURL(`tel:${phone}`)
-  }
+    Linking.openURL(`tel:${phone}`);
+  };
 
   const renderItem = ({ item }: any) => (
     <TouchableOpacity
@@ -150,10 +152,15 @@ export default function UpcomingServices() {
       style={styles.cardContainer}
       onPress={() => setActiveBooking(item)}
     >
-      <View style={styles.sessionCard}>
+      <LinearGradient
+        colors={["#FFFFFF", "#F5F8FF", "#F7FAE6"]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        style={styles.sessionCard}
+      >
         <View style={{ flex: 1 }}>
           <Text style={styles.sessionTitle}>{item.center}</Text>
-          <Text style={styles.sessionSubtitle}>{item.date}</Text>
+          <Text style={styles.sessionSubtitle}>{item.date} - {item.time} </Text>
           <Text style={styles.sessionDuration}>{item.car}</Text>
         </View>
 
@@ -167,10 +174,9 @@ export default function UpcomingServices() {
           <Text style={styles.sessionButtonText}>I am at Workshop</Text>
           <Ionicons name="chevron-forward" size={18} color="#FFF" />
         </View>
-
-      </View>
+      </LinearGradient>
     </TouchableOpacity>
-  )
+  );
 
   return (
     <>
@@ -185,7 +191,10 @@ export default function UpcomingServices() {
       {/* Bottom Sheet Modal */}
       <Modal visible={!!activeBooking} transparent animationType="none">
         <Animated.View style={[styles.backdrop, { opacity: opacityAnim }]}>
-          <TouchableOpacity style={styles.backdropTouchable} onPress={closeSheet} />
+          <TouchableOpacity
+            style={styles.backdropTouchable}
+            onPress={closeSheet}
+          />
         </Animated.View>
 
         <Animated.View
@@ -256,8 +265,13 @@ export default function UpcomingServices() {
         <View style={styles.scannerContainer}>
           {!permission?.granted ? (
             <View style={styles.permissionView}>
-              <Text style={styles.permissionText}>Camera permission required</Text>
-              <TouchableOpacity style={styles.allowButton} onPress={requestPermission}>
+              <Text style={styles.permissionText}>
+                Camera permission required
+              </Text>
+              <TouchableOpacity
+                style={styles.allowButton}
+                onPress={requestPermission}
+              >
                 <Text style={styles.allowText}>Allow Camera</Text>
               </TouchableOpacity>
             </View>
@@ -276,7 +290,6 @@ export default function UpcomingServices() {
                   <View style={styles.overlaySide} />
                   <View style={styles.scanBoxContainer}>
                     <View style={styles.scanBox}>
-
                       <Animated.View
                         style={[
                           styles.scanLine,
@@ -326,9 +339,8 @@ export default function UpcomingServices() {
         </View>
       </Modal>
     </>
-  )
+  );
 }
-
 
 const styles = StyleSheet.create({
   listContent: {
@@ -339,15 +351,14 @@ const styles = StyleSheet.create({
   cardContainer: {
     marginBottom: 20,
   },
-
   sessionCard: {
-    backgroundColor: "#F5F8FF",
     borderRadius: 20,
     paddingBottom: 90,
     padding: 20,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
+    shadowRadius: 8,
     elevation: 5,
     flexDirection: "row",
     alignItems: "center",
@@ -394,7 +405,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
-
 
   backdrop: {
     ...StyleSheet.absoluteFillObject,
@@ -579,7 +589,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     position: "relative",
   },
-  topLeft: { top: 0, left: 0, borderTopLeftRadius: 8, },
+  topLeft: { top: 0, left: 0, borderTopLeftRadius: 8 },
   topRight: { top: 0, right: 0, borderTopRightRadius: 8 },
   bottomLeft: { bottom: 0, left: 0, borderBottomLeftRadius: 8 },
   bottomRight: { bottom: 0, right: 0, borderBottomRightRadius: 8 },
@@ -609,4 +619,4 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     borderWidth: 2,
   },
-})
+});

@@ -96,10 +96,10 @@ export default function ProfileHome() {
   <View style={styles.infoSection}>
     <Text style={styles.name}>John, 37</Text>
 
-    <View style={styles.chatBadge}>
+    {/* <View style={styles.chatBadge}>
       <Ionicons name="chatbubble-outline" size={14} color="#111" />
       <Text style={styles.chatText}>Open to chat</Text>
-    </View>
+    </View> */}
   </View>
 </View>
 

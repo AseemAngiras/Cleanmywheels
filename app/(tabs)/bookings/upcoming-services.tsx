@@ -2,8 +2,8 @@
 
 import { Ionicons } from "@expo/vector-icons"
 import { CameraView, useCameraPermissions } from "expo-camera"
-import { useEffect, useRef, useState } from "react"
 import { router } from "expo-router"
+import { useEffect, useRef, useState } from "react"
 
 import {
   Alert,
@@ -40,8 +40,12 @@ export default function UpcomingServices() {
 
   const [scannerVisible, setScannerVisible] = useState(false)
   const [permission, requestPermission] = useCameraPermissions()
+  const [torchOn, setTorchOn] = useState(false)
 
   const slideAnim = useRef(new Animated.Value(600)).current
+
+  // Animated line for QR scanner
+  const scanLineAnim = useRef(new Animated.Value(0)).current
 
   useEffect(() => {
     if (activeBooking) {
@@ -53,6 +57,25 @@ export default function UpcomingServices() {
     }
   }, [activeBooking])
 
+  useEffect(() => {
+    if (scannerVisible) {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(scanLineAnim, {
+            toValue: 1,
+            duration: 2000,
+            useNativeDriver: true,
+          }),
+          Animated.timing(scanLineAnim, {
+            toValue: 0,
+            duration: 2000,
+            useNativeDriver: true,
+          }),
+        ])
+      ).start()
+    }
+  }, [scannerVisible])
+
   const closeSheet = () => {
     Animated.timing(slideAnim, {
       toValue: 600,
@@ -62,11 +85,10 @@ export default function UpcomingServices() {
   }
 
   const handleQrScanned = ({ data }: { data: string }) => {
-  setScannerVisible(false)
-
-  router.push("/bookings/arrival-confirmed")
-}
-
+    setScannerVisible(false)
+    setTorchOn(false)
+    router.push("/bookings/arrival-confirmed")
+  }
 
   const handleDelete = (id: string) => {
     Alert.alert("Cancel Booking", "Are you sure?", [
@@ -131,6 +153,7 @@ export default function UpcomingServices() {
         contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
       />
 
+      {/* Bottom Sheet */}
       <Modal visible={!!activeBooking} transparent animationType="none">
         <TouchableOpacity style={styles.backdrop} onPress={closeSheet} />
 
@@ -195,8 +218,9 @@ export default function UpcomingServices() {
         </Animated.View>
       </Modal>
 
+      {/* SCANNER MODAL */}
       <Modal visible={scannerVisible} animationType="slide">
-        <View style={{ flex: 1 }}>
+        <View style={styles.scannerContainer}>
           {!permission?.granted ? (
             <View style={styles.permissionView}>
               <Text>Camera permission required</Text>
@@ -205,19 +229,76 @@ export default function UpcomingServices() {
               </TouchableOpacity>
             </View>
           ) : (
-            <CameraView
-              style={{ flex: 1 }}
-              barcodeScannerSettings={{ barcodeTypes: ["qr"] }}
-              onBarcodeScanned={handleQrScanned}
-            />
-          )}
+            <>
+              <CameraView
+                style={StyleSheet.absoluteFill}
+                barcodeScannerSettings={{ barcodeTypes: ["qr"] }}
+                onBarcodeScanned={handleQrScanned}
+                enableTorch={torchOn}
+              />
 
-          <TouchableOpacity
-            style={styles.closeScanner}
-            onPress={() => setScannerVisible(false)}
-          >
-            <Ionicons name="close" size={28} color="#FFF" />
-          </TouchableOpacity>
+              {/* Overlay */}
+              <View style={styles.overlay}>
+                <View style={styles.overlayCenter}>
+                  <View style={styles.overlaySide} />
+
+                  <View>
+                    <View style={styles.scanBox}>
+                      <View style={[styles.corner, styles.topLeft]} />
+                      <View style={[styles.corner, styles.topRight]} />
+                      <View style={[styles.corner, styles.bottomLeft]} />
+                      <View style={[styles.corner, styles.bottomRight]} />
+
+                      {/* Animated scan line */}
+                      <Animated.View
+                        style={[
+                          styles.scanLine,
+                          {
+                            transform: [
+                              {
+                                translateY: scanLineAnim.interpolate({
+                                  inputRange: [0, 1],
+                                  outputRange: [0, 250 - 4], // minus line height
+                                }),
+                              },
+                            ],
+                          },
+                        ]}
+                      />
+                    </View>
+
+                    <Text style={styles.scanHint}>
+                      The provider will be notified that you have arrived
+                    </Text>
+                  </View>
+
+                  <View style={styles.overlaySide} />
+                </View>
+
+              </View>
+
+              {/* Header */}
+              <View style={styles.scannerHeader}>
+                <TouchableOpacity onPress={() => setScannerVisible(false)}>
+                  <Ionicons name="close" size={28} color="#FFF" />
+                </TouchableOpacity>
+                <Text style={styles.scanTitle}>Scan QR code</Text>
+                <View style={{ width: 28 }} />
+              </View>
+
+              {/* Flashlight */}
+              <TouchableOpacity
+                style={styles.flashButton}
+                onPress={() => setTorchOn((prev) => !prev)}
+              >
+                <Ionicons
+                  name={torchOn ? "flashlight" : "flashlight-outline"}
+                  size={24}
+                  color="#FFF"
+                />
+              </TouchableOpacity>
+            </>
+          )}
         </View>
       </Modal>
     </>
@@ -277,7 +358,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     marginBottom: 16,
   },
-  qrText: { fontWeight: "500", fontSize: 18, },
+  qrText: { fontWeight: "500", fontSize: 18 },
 
   detailRow: {
     flexDirection: "row",
@@ -304,12 +385,106 @@ const styles = StyleSheet.create({
   },
   allowText: { color: "#007AFF", marginTop: 10 },
 
-  closeScanner: {
+  scannerContainer: {
+    flex: 1,
+    backgroundColor: "#000",
+  },
+
+  scannerHeader: {
     position: "absolute",
     top: 50,
+    left: 20,
     right: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+
+  scanTitle: {
+    color: "#FFF",
+    fontSize: 26,
+    fontWeight: "400",
+  },
+
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: "center",
+  },
+
+  overlayCenter: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  overlaySide: {
+    flex: 1,
     backgroundColor: "rgba(0,0,0,0.6)",
-    padding: 10,
-    borderRadius: 20,
+  },
+
+  scanBox: {
+    width: 250,
+    height: 250,
+    alignSelf: "center",
+  },
+
+  corner: {
+    position: "absolute",
+    width: 24,
+    height: 24,
+    borderColor: "#FFF",
+  },
+
+  topLeft: {
+    top: 0,
+    left: 0,
+    borderLeftWidth: 3,
+    borderTopWidth: 3,
+  },
+
+  topRight: {
+    top: 0,
+    right: 0,
+    borderRightWidth: 3,
+    borderTopWidth: 3,
+  },
+
+  bottomLeft: {
+    bottom: 0,
+    left: 0,
+    borderLeftWidth: 3,
+    borderBottomWidth: 3,
+  },
+
+  bottomRight: {
+    bottom: 0,
+    right: 0,
+    borderRightWidth: 3,
+    borderBottomWidth: 3,
+  },
+
+  scanHint: {
+    marginTop: 20,
+    textAlign: "center",
+    color: "#FFF",
+    fontSize: 14,
+    opacity: 0.9,
+    paddingHorizontal: 20,
+  },
+
+  scanLine: {
+    position: "absolute",
+    width: "100%",
+    height: 4,
+    backgroundColor: "#00FF00",
+    borderRadius: 2,
+  },
+
+  flashButton: {
+    position: "absolute",
+    bottom: 60,
+    alignSelf: "center",
+    backgroundColor: "rgba(0,0,0,0.6)",
+    padding: 14,
+    borderRadius: 30,
   },
 })

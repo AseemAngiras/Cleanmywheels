@@ -233,7 +233,7 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   title: { fontSize: 26, fontWeight: "700" },
-  save: { color: "#F5B700", fontSize: 16, fontWeight: "600" },
+  save: { color: "#000", fontSize: 16, fontWeight: "600" },
 
   avatarContainer: { alignItems: "center", marginBottom: 30 },
   avatar: { width: 100, height: 100, borderRadius: 50 },
@@ -241,7 +241,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 0,
     right: "35%",
-    backgroundColor: "#FFD400",
+    backgroundColor: "#C8F000",
     borderRadius: 14,
     padding: 6,
   },
@@ -266,7 +266,7 @@ const styles = StyleSheet.create({
   },
   verifiedRow: { flexDirection: "row", alignItems: "center" },
   verified: { fontSize: 12, color: "#4CAF50", marginLeft: 4 },
-  change: { color: "#F5B700", fontWeight: "600" },
+  change: { color: "#000", fontWeight: "600" },
 
   genderRow: { flexDirection: "row", marginBottom: 20 },
   genderBtn: {
@@ -278,8 +278,8 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   genderActive: {
-    backgroundColor: "#FFF7D6",
-    borderColor: "#FFD400",
+    backgroundColor: "#C8F000",
+    // borderColor: "#C8F000",
   },
   genderText: { color: "#666" },
   genderTextActive: { fontWeight: "600", color: "#000" },

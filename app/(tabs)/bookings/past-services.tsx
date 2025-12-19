@@ -4,6 +4,7 @@ import { Ionicons } from "@expo/vector-icons"
 import { useEffect, useRef, useState } from "react"
 import {
   Animated,
+  Easing,
   FlatList,
   Image,
   Modal,
@@ -32,24 +33,54 @@ export default function PastServices() {
   const [bookings] = useState(initialBookings)
   const [activeBooking, setActiveBooking] = useState<any | null>(null)
 
-  const slideAnim = useRef(new Animated.Value(600)).current
+  const slideAnim = useRef(new Animated.Value(300)).current
+  const scaleAnim = useRef(new Animated.Value(0.95)).current
+  const opacityAnim = useRef(new Animated.Value(0)).current
 
   useEffect(() => {
     if (activeBooking) {
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 300,
-        useNativeDriver: true,
-      }).start()
+      Animated.parallel([
+        Animated.timing(slideAnim, {
+          toValue: 0,
+          duration: 450,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.spring(scaleAnim, {
+          toValue: 1,
+          friction: 8,
+          tension: 100,
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacityAnim, {
+          toValue: 1,
+          duration: 450,
+          useNativeDriver: true,
+        }),
+      ]).start()
     }
   }, [activeBooking])
 
   const closeSheet = () => {
-    Animated.timing(slideAnim, {
-      toValue: 600,
-      duration: 250,
-      useNativeDriver: true,
-    }).start(() => setActiveBooking(null))
+    Animated.parallel([
+      Animated.timing(slideAnim, {
+        toValue: 300,
+        duration: 350,
+        easing: Easing.in(Easing.cubic),
+        useNativeDriver: true,
+      }),
+      Animated.spring(scaleAnim, {
+        toValue: 0.95,
+        friction: 8,
+        tension: 100,
+        useNativeDriver: true,
+      }),
+      Animated.timing(opacityAnim, {
+        toValue: 0,
+        duration: 350,
+        useNativeDriver: true,
+      }),
+    ]).start(() => setActiveBooking(null))
   }
 
   const renderItem = ({ item }: any) => (
@@ -98,20 +129,24 @@ export default function PastServices() {
         showsVerticalScrollIndicator={false}
       />
 
-      {/* =============== BOTTOM SHEET =============== */}
       <Modal visible={!!activeBooking} transparent animationType="none">
-        <TouchableOpacity style={styles.backdrop} onPress={closeSheet} />
+        {/* Backdrop with fade animation */}
+        <Animated.View style={[styles.backdrop, { opacity: opacityAnim }]}>
+          <TouchableOpacity style={StyleSheet.absoluteFill} onPress={closeSheet} />
+        </Animated.View>
 
         <Animated.View
           style={[
             styles.bottomSheet,
-            { transform: [{ translateY: slideAnim }] },
+            {
+              transform: [{ translateY: slideAnim }, { scale: scaleAnim }],
+            },
           ]}
         >
           <View style={styles.sheetHeader}>
             <Text style={styles.sheetTitle}>Service Details</Text>
             <TouchableOpacity onPress={closeSheet}>
-              <Ionicons name="close" size={26} />
+              <Ionicons name="close" size={28} color="#333" />
             </TouchableOpacity>
           </View>
 
@@ -165,106 +200,121 @@ export default function PastServices() {
   )
 }
 
-/* ===================== STYLES ===================== */
-
 const styles = StyleSheet.create({
   cardContainer: { marginBottom: 20 },
   card: {
     backgroundColor: "#FFF",
-    borderRadius: 20,
-    padding: 20,
-    elevation: 4,
+    borderRadius: 16,
+    padding: 16,
+    elevation: 6,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
   },
-  headerRow: { flexDirection: "row", gap: 16},
-  carImage: { width: 100, height: 120, borderRadius: 12 },
-  centerName: { fontSize: 18, fontWeight: "500" },
+  headerRow: { flexDirection: "row", gap: 16 },
+  carImage: { width: 100, height: 100, borderRadius: 12, marginTop: 6 },
+  centerName: { fontSize: 18, fontWeight: "600", color: "#111" },
   metaRow: {
     flexDirection: "row",
-    gap: 4,
+    gap: 6,
     alignItems: "center",
-    marginTop: 4,
+    marginTop: 6,
   },
-  metaText: { color: "#666", fontSize: 14 },
-  dot: { width: 3, height: 3, borderRadius: 3, backgroundColor: "#CCC" },
+  metaText: { color: "#64748B", fontSize: 14 },
+  dot: { width: 4, height: 4, borderRadius: 2, backgroundColor: "#CBD5E1" },
 
   completedBadge: {
-    marginTop: 10,
+    marginTop: 12,
     flexDirection: "row",
     gap: 6,
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 14,
-    backgroundColor: "#E6F4EA",
+    borderRadius: 20,
+    backgroundColor: "#DCFCE7",
     alignSelf: "flex-start",
   },
-  completedText: { fontSize: 12, fontWeight: "600", color: "#1E8E3E" },
+  completedText: { fontSize: 13, fontWeight: "600", color: "#15803D" },
 
-  backdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.3)" },
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.5)",
+  },
+
   bottomSheet: {
     position: "absolute",
+    left: 0,
+    right: 0,
     bottom: 0,
-    width: "100%",
-    backgroundColor: "#FFF",
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 20,
+    backgroundColor: "#FFFFFF",
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    padding: 24,
     paddingBottom: 50,
+    maxHeight: "90%",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 16,
+    elevation: 20,
   },
 
   sheetHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 16,
+    alignItems: "center",
+    marginBottom: 20,
   },
-  sheetTitle: { fontSize: 18, fontWeight: "700" },
+  sheetTitle: { fontSize: 20, fontWeight: "700", color: "#111" },
 
   summaryCard: {
     flexDirection: "row",
     gap: 14,
     alignItems: "center",
-    backgroundColor: "#F8F9FA",
-    padding: 16,
-    borderRadius: 14,
-    marginBottom: 16,
+    backgroundColor: "#F0FDF4",
+    padding: 18,
+    borderRadius: 16,
+    marginBottom: 20,
   },
-  serviceName: { fontSize: 16, fontWeight: "700" },
-  summaryMeta: { color: "#666", marginTop: 2 },
+  serviceName: { fontSize: 17, fontWeight: "700", color: "#111" },
+  summaryMeta: { color: "#64748B", marginTop: 4, fontSize: 14 },
 
   completedPill: {
-    backgroundColor: "#E6F4EA",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 10,
+    backgroundColor: "#BBF7D0",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
   },
   completedPillText: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: "700",
-    color: "#1E8E3E",
+    color: "#166534",
   },
 
   infoCard: {
     flexDirection: "row",
-    gap: 12,
+    gap: 14,
     alignItems: "center",
-    padding: 14,
-    borderRadius: 14,
-    backgroundColor: "#FFF",
+    padding: 16,
+    borderRadius: 16,
+    backgroundColor: "#FAFAFA",
     borderWidth: 1,
-    borderColor: "#EEE",
+    borderColor: "#E2E8F0",
     marginBottom: 12,
   },
-  infoTitle: { fontWeight: "600" },
-  infoSub: { color: "#666", fontSize: 13 },
-  locationText: { flex: 1, color: "#444" },
+  infoTitle: { fontWeight: "600", fontSize: 15, color: "#1E293B" },
+  infoSub: { color: "#64748B", fontSize: 14, marginTop: 2 },
+  locationText: { flex: 1, color: "#444", fontSize: 15 },
 
   paymentCard: {
-    marginTop: 20,
-    paddingTop: 16,
+    marginTop: 24,
+    paddingTop: 20,
     borderTopWidth: 1,
-    borderTopColor: "#EEE",
+    borderTopColor: "#E2E8F0",
     flexDirection: "row",
     justifyContent: "space-between",
+    alignItems: "center",
   },
-  paymentLabel: { color: "#888" },
-  paymentAmount: { fontSize: 22, fontWeight: "700" },
+  paymentLabel: { color: "#64748B", fontSize: 16 },
+  paymentAmount: { fontSize: 26, fontWeight: "700", color: "#111" },
 })

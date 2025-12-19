@@ -4,16 +4,16 @@ import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
-    ActionSheetIOS,
-    Alert,
-    Image,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActionSheetIOS,
+  Alert,
+  Image,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 export default function EditProfile() {
@@ -279,7 +279,6 @@ const styles = StyleSheet.create({
   },
   genderActive: {
     backgroundColor: "#C8F000",
-    // borderColor: "#C8F000",
   },
   genderText: { color: "#666" },
   genderTextActive: { fontWeight: "600", color: "#000" },

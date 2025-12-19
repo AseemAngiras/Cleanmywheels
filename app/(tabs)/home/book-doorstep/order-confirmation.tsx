@@ -3,7 +3,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Dimensions, Image, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import MapView, { Marker, Polyline } from 'react-native-maps';
 
 const { width } = Dimensions.get('window');
 
@@ -12,31 +11,19 @@ export default function OrderConfirmationScreen() {
     const params = useLocalSearchParams();
     const {
         shopName,
-        shopAddress, // User address in doorstep context usually, but checking params
+        shopAddress,
         shopImage,
         shopRating,
-        selectedDate, // Changed from date
-        selectedTime, // Changed from time
+        selectedDate,
+        selectedTime,
         paymentMethod,
         grandTotal,
-        // Doorstep specific params for map
-        latitude,
-        longitude
     } = params;
-
-    const userLat = parseFloat(latitude as string) || 37.7749;
-    const userLong = parseFloat(longitude as string) || -122.4194;
-
-    // Simulate Driver Location (starting slightly away)
-    const [driverLocation, setDriverLocation] = useState({
-        latitude: userLat + 0.005,
-        longitude: userLong + 0.005,
-    });
 
     const [status, setStatus] = useState('Confirmed');
     const [statusMessage, setStatusMessage] = useState('Your booking has been confirmed.');
 
-    // Simulate Driver Movement / Status Updates
+    // Simulate Status Updates
     useEffect(() => {
         const timer1 = setTimeout(() => {
             setStatus('Assigning Professional');
@@ -46,11 +33,6 @@ export default function OrderConfirmationScreen() {
         const timer2 = setTimeout(() => {
             setStatus('On the Way');
             setStatusMessage('Professional Vijay is on the way to your location.');
-            // Move driver closer
-            setDriverLocation({
-                latitude: userLat + 0.002,
-                longitude: userLong + 0.002,
-            });
         }, 8000);
 
         return () => {
@@ -72,73 +54,29 @@ export default function OrderConfirmationScreen() {
                     <Text style={styles.statusSubtitle}>Ticket #CMW-{Math.floor(Math.random() * 10000)}</Text>
                 </View>
 
-                {/* Map / Tracking Section */}
+                {/* Status Timeline / Updates */}
                 <View style={styles.trackingContainer}>
-                    <Text style={styles.sectionTitle}>Live Tracking</Text>
-                    <View style={styles.mapCard}>
-                        <MapView
-                            style={styles.map}
-                            initialRegion={{
-                                latitude: userLat,
-                                longitude: userLong,
-                                latitudeDelta: 0.015,
-                                longitudeDelta: 0.015,
-                            }}
-                            scrollEnabled={false}
-                            zoomEnabled={false}
-                        >
-                            {/* User Marker */}
-                            <Marker
-                                coordinate={{ latitude: userLat, longitude: userLong }}
-                                title="My Location"
-                            >
-                                <View style={styles.puckContainer}>
-                                    <View style={styles.userPuck} />
-                                    <View style={styles.userPuckPulse} />
-                                </View>
-                            </Marker>
+                    <Text style={styles.sectionTitle}>Live Status</Text>
 
-                            {/* Driver Marker */}
-                            <Marker
-                                coordinate={driverLocation}
-                                title="Vijay (Cleaner)"
-                            >
-                                <Image
-                                    source={{ uri: 'https://cdn-icons-png.flaticon.com/512/3063/3063823.png' }} // Simple van/bike icon
-                                    style={{ width: 40, height: 40, resizeMode: 'contain' }}
-                                />
-                            </Marker>
-
-                            {/* Line */}
-                            <Polyline
-                                coordinates={[driverLocation, { latitude: userLat, longitude: userLong }]}
-                                strokeColor="#C8F000"
-                                strokeWidth={4}
-                                lineDashPattern={[5, 5]}
-                            />
-                        </MapView>
-
-                        {/* Driver Info Overlay */}
-                        {status === 'On the Way' && (
-                            <View style={styles.driverInfoCard}>
-                                <Image source={{ uri: 'https://randomuser.me/api/portraits/men/32.jpg' }} style={styles.driverAvatar} />
-                                <View style={{ flex: 1 }}>
-                                    <Text style={styles.driverName}>Vijay Kumar</Text>
-                                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                        <Ionicons name="star" size={12} color="#FBC02D" />
-                                        <Text style={styles.driverRating}>4.8</Text>
-                                    </View>
-                                </View>
-                                <View style={styles.driverActions}>
-                                    <TouchableOpacity style={styles.callButton}>
-                                        <Ionicons name="call" size={20} color="#fff" />
-                                    </TouchableOpacity>
+                    {/* Driver Info Card - Standard view now */}
+                    {status === 'On the Way' && (
+                        <View style={styles.driverInfoCard}>
+                            <Image source={{ uri: 'https://randomuser.me/api/portraits/men/32.jpg' }} style={styles.driverAvatar} />
+                            <View style={{ flex: 1 }}>
+                                <Text style={styles.driverName}>Vijay Kumar</Text>
+                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                    <Ionicons name="star" size={12} color="#FBC02D" />
+                                    <Text style={styles.driverRating}>4.8</Text>
                                 </View>
                             </View>
-                        )}
-                    </View>
+                            <View style={styles.driverActions}>
+                                <TouchableOpacity style={styles.callButton}>
+                                    <Ionicons name="call" size={20} color="#fff" />
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    )}
 
-                    {/* Status Timeline / Updates */}
                     <View style={styles.timelineContainer}>
                         <View style={styles.timelineItem}>
                             <View style={[styles.timelineDot, styles.dotActive]} />
@@ -172,7 +110,6 @@ export default function OrderConfirmationScreen() {
                     </View>
                     <View style={styles.detailRow}>
                         <Text style={styles.detailLabel}>Date & Time</Text>
-                        {/* Formatting date if possible, otherwise raw */}
                         <Text style={styles.detailValue}>
                             {selectedDate ? new Date(selectedDate as string).toLocaleDateString() : 'Today'}, {selectedTime}
                         </Text>
@@ -223,27 +160,22 @@ const styles = StyleSheet.create({
 
     trackingContainer: { paddingHorizontal: 20, marginBottom: 20 },
     sectionTitle: { fontSize: 18, fontWeight: 'bold', color: '#1a1a1a', marginBottom: 15 },
-    mapCard: {
-        height: 250,
-        borderRadius: 20,
-        overflow: 'hidden',
-        position: 'relative',
-        backgroundColor: '#eee',
-        marginBottom: 20,
-    },
-    map: { width: '100%', height: '100%' },
 
-    // User Puck for Map
-    puckContainer: { alignItems: 'center', justifyContent: 'center' },
-    userPuck: { width: 16, height: 16, borderRadius: 8, backgroundColor: '#2196F3', borderWidth: 2, borderColor: '#fff', zIndex: 2 },
-    userPuckPulse: { position: 'absolute', width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(33, 150, 243, 0.2)' },
-
-    // Driver Card Overlay
+    // Driver Card - Updated for relative positioning
     driverInfoCard: {
-        position: 'absolute', bottom: 15, left: 15, right: 15,
-        backgroundColor: '#fff', borderRadius: 15, padding: 12,
-        flexDirection: 'row', alignItems: 'center',
-        shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 5, elevation: 5,
+        backgroundColor: '#fff',
+        borderRadius: 15,
+        padding: 12,
+        flexDirection: 'row',
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 5,
+        elevation: 5,
+        marginBottom: 20,
+        borderWidth: 1,
+        borderColor: '#f0f0f0'
     },
     driverAvatar: { width: 40, height: 40, borderRadius: 20, marginRight: 10 },
     driverName: { fontSize: 14, fontWeight: 'bold', color: '#1a1a1a' },

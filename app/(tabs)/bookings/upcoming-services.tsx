@@ -4,19 +4,19 @@ import { Ionicons } from "@expo/vector-icons"
 import { CameraView, useCameraPermissions } from "expo-camera"
 import { router } from "expo-router"
 import { useEffect, useRef, useState } from "react"
+import { Image } from "react-native"
 
 import {
   Alert,
   Animated,
   Easing,
   FlatList,
-  Image,
   Linking,
   Modal,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
+  View
 } from "react-native"
 
 const initialBookings = [

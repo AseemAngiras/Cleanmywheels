@@ -13,12 +13,15 @@ import {
   View,
 } from "react-native";
 
-import { useAppSelector } from "../../../store/hooks";
+import { useAppDispatch, useAppSelector } from "../../../store/hooks";
+import { logout } from "../../../store/slices/authSlice";
+import { resetProfile } from "../../../store/slices/profileSlice";
 
 const { height } = Dimensions.get("window");
 
 export default function ProfileHome() {
-  const profile = useAppSelector((state) => state.profile); 
+  const dispatch = useAppDispatch();
+  const profile = useAppSelector((state) => state.profile);
 
   const [showLogout, setShowLogout] = useState(false);
   const translateY = useRef(new Animated.Value(height)).current;
@@ -58,6 +61,13 @@ export default function ProfileHome() {
     ]).start(() => setShowLogout(false));
   };
 
+  const handleLogout = () => {
+    dispatch(logout());
+    dispatch(resetProfile());
+    closeSheet();
+    router.replace("/(tabs)/home");
+  };
+
   return (
     <View style={styles.container}>
       {/* HEADER */}
@@ -73,11 +83,13 @@ export default function ProfileHome() {
       <View style={styles.profileCard}>
         <View style={styles.profileLeft}>
           <Image
-            source={{ uri: "https://i.pravatar.cc/150?img=12" }} 
+            source={{ uri: "https://i.pravatar.cc/150?img=12" }}
             style={styles.avatar}
           />
           <View>
-            <Text style={styles.profileName}>{profile.name || "Your Name"}</Text>
+            <Text style={styles.profileName}>
+              {profile.name || "Your Name"}
+            </Text>
             <Text style={styles.profileSubtitle}>
               {profile.phone || "Phone number"}
             </Text>
@@ -91,7 +103,7 @@ export default function ProfileHome() {
           icon="person-outline"
           title="Account Details"
           subtitle="Manage your Account Details"
-          onPress={() => router.push("/profile/edit-profile")} 
+          onPress={() => router.push("/profile/edit-profile")}
         />
         <Row
           icon="wallet-outline"
@@ -129,10 +141,15 @@ export default function ProfileHome() {
         <Animated.View
           style={[styles.modalOverlay, { opacity: overlayOpacity }]}
         >
-          <TouchableOpacity style={StyleSheet.absoluteFill} onPress={closeSheet} />
+          <TouchableOpacity
+            style={StyleSheet.absoluteFill}
+            onPress={closeSheet}
+          />
         </Animated.View>
 
-        <Animated.View style={[styles.bottomSheet, { transform: [{ translateY }] }]}>
+        <Animated.View
+          style={[styles.bottomSheet, { transform: [{ translateY }] }]}
+        >
           <Text style={styles.logoutTitle}>Logout</Text>
           <Text style={styles.logoutSubtitle}>
             Are you sure you want to log out?
@@ -143,7 +160,7 @@ export default function ProfileHome() {
               <Text style={styles.cancelText}>Cancel</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.logoutBtn} onPress={closeSheet}>
+            <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
               <Text style={styles.logoutText}>Yes, Logout</Text>
             </TouchableOpacity>
           </View>
@@ -175,7 +192,9 @@ const Row = ({
         style={styles.rowIcon}
       />
       <View>
-        <Text style={[styles.rowTitle, danger && { color: "#E53935" }]}>{title}</Text>
+        <Text style={[styles.rowTitle, danger && { color: "#E53935" }]}>
+          {title}
+        </Text>
         {subtitle && <Text style={styles.rowSubtitle}>{subtitle}</Text>}
       </View>
     </View>
@@ -192,19 +211,16 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     marginTop: 30,
   },
-
   headerRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 20,
   },
-
   header: {
     fontSize: 26,
     fontWeight: "500",
   },
-
   moreButton: {
     width: 36,
     height: 36,
@@ -213,47 +229,37 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-
   profileCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
     backgroundColor: "#FFF",
     borderRadius: 16,
     padding: 16,
     marginBottom: 16,
   },
-
   profileLeft: {
     flexDirection: "row",
     alignItems: "center",
   },
-
   avatar: {
     width: 52,
     height: 52,
     borderRadius: 26,
     marginRight: 12,
   },
-
   profileName: {
     fontSize: 16,
     fontWeight: "600",
   },
-
   profileSubtitle: {
     fontSize: 13,
     color: "#777",
     marginTop: 2,
   },
-
   card: {
     backgroundColor: "#FFF",
     borderRadius: 16,
     marginBottom: 16,
     paddingVertical: 4,
   },
-
   row: {
     flexDirection: "row",
     alignItems: "center",
@@ -261,33 +267,27 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 16,
   },
-
   rowLeft: {
     flexDirection: "row",
     alignItems: "center",
     flex: 1,
   },
-
   rowIcon: {
     marginRight: 14,
   },
-
   rowTitle: {
     fontSize: 15,
     fontWeight: "500",
   },
-
   rowSubtitle: {
     fontSize: 12,
     color: "#777",
     marginTop: 2,
   },
-
   modalOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: "rgba(0,0,0,0.4)",
   },
-
   bottomSheet: {
     position: "absolute",
     bottom: 0,
@@ -298,26 +298,22 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
   },
-
   logoutTitle: {
     fontSize: 18,
     fontWeight: "600",
     textAlign: "center",
     marginBottom: 8,
   },
-
   logoutSubtitle: {
     fontSize: 14,
     color: "#666",
     textAlign: "center",
     marginBottom: 20,
   },
-
   logoutActions: {
     flexDirection: "row",
     gap: 12,
   },
-
   logoutBtn: {
     flex: 1,
     borderWidth: 1,
@@ -326,12 +322,6 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     alignItems: "center",
   },
-
-  cancelText: {
-    fontWeight: "500",
-    color: "#111",
-  },
-
   cancelBtn: {
     flex: 1,
     backgroundColor: "#C8F000",
@@ -339,7 +329,10 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     alignItems: "center",
   },
-
+  cancelText: {
+    fontWeight: "500",
+    color: "#111",
+  },
   logoutText: {
     fontWeight: "600",
     color: "#111",

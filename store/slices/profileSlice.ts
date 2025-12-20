@@ -18,15 +18,19 @@ const profileSlice = createSlice({
     name: "profile",
     initialState,
     reducers: {
-
         updateProfile<K extends keyof ProfileState> (
             state : any,
             action: PayloadAction<{ key : K; value : ProfileState[K]}>
         ) {
             state[action.payload.key] = action.payload.value;
+        },
+
+        resetProfile() {
+            return initialState;
         }
+        
     }
 })
 
-export const {updateProfile} = profileSlice.actions;
+export const {updateProfile, resetProfile} = profileSlice.actions;
 export default profileSlice.reducer;

@@ -4,51 +4,42 @@ import { Ionicons } from "@expo/vector-icons";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useRef, useState } from "react";
-import { Image } from "react-native";
-
 import {
   Alert,
   Animated,
   Easing,
-  FlatList,
-  Linking,
+  FlatList, Image, Linking,
   Modal,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 
-const initialBookings = [
-  {
-    id: "1",
-    carImage:
-      "https://images.pexels.com/photos/4906936/pexels-photo-4906936.jpeg",
-    center: "Auto Care Plus",
-    date: "2023-10-05",
-    car: "Honda Accord",
-    service: "Tire Rotation",
-    time: "2:30 PM",
-    address: "456 Oak Avenue, Springfield",
-    plate: "XYZ789",
-    price: "$75",
-    phone: "+1 (555) 987-6543",
-  },
-];
+import { useAppDispatch, useAppSelector } from "../../../store/hooks";
+import {
+  cancelBooking,
+  completeBooking,
+} from "../../../store/slices/bookingSlice";
 
 export default function UpcomingServices() {
-  const [bookings, setBookings] = useState(initialBookings);
+  const dispatch = useAppDispatch();
+
+  const bookings = useAppSelector((state) =>
+    state.bookings.bookings.filter(
+      (b) => b.status === "upcoming"
+    )
+  );
+
   const [activeBooking, setActiveBooking] = useState<any | null>(null);
 
   const [scannerVisible, setScannerVisible] = useState(false);
   const [permission, requestPermission] = useCameraPermissions();
   const [torchOn, setTorchOn] = useState(false);
 
-  // Animations
   const slideAnim = useRef(new Animated.Value(300)).current;
   const scaleAnim = useRef(new Animated.Value(0.95)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
-
   const scanLineAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -118,14 +109,14 @@ export default function UpcomingServices() {
     ]).start(() => setActiveBooking(null));
   };
 
-  const handleQrScanned = ({ data }: { data: string }) => {
+  const handleQrScanned = () => {
+    if (!activeBooking) return;
+
+    dispatch(completeBooking(activeBooking.id));
+
     setScannerVisible(false);
     setTorchOn(false);
-
-    setBookings((prev) => prev.filter((b) => b.id !== activeBooking?.id));
     closeSheet();
-
-    // router.push("/bookings/arrival-confirmed")
   };
 
   const handleDelete = (id: string) => {
@@ -135,7 +126,7 @@ export default function UpcomingServices() {
         text: "Yes",
         style: "destructive",
         onPress: () => {
-          setBookings((prev) => prev.filter((b) => b.id !== id));
+          dispatch(cancelBooking(id));
           closeSheet();
         },
       },
@@ -154,20 +145,19 @@ export default function UpcomingServices() {
     >
       <LinearGradient
         colors={["#FFFFFF", "#F5F8FF", "#F7FAE6"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}
         style={styles.sessionCard}
       >
         <View style={{ flex: 1 }}>
           <Text style={styles.sessionTitle}>{item.center}</Text>
-          <Text style={styles.sessionSubtitle}>{item.date} - {item.time} </Text>
+          <Text style={styles.sessionSubtitle}>
+            {item.date} - {item.timeSlot}
+          </Text>
           <Text style={styles.sessionDuration}>{item.car}</Text>
         </View>
 
         <Image
           source={{ uri: item.carImage }}
           style={{ width: 90, height: 90, borderRadius: 12, marginLeft: 16 }}
-          resizeMode="cover"
         />
 
         <View style={styles.sessionButton}>
@@ -188,7 +178,7 @@ export default function UpcomingServices() {
         showsVerticalScrollIndicator={false}
       />
 
-      {/* Bottom Sheet Modal */}
+      {/* Bottom Sheet */}
       <Modal visible={!!activeBooking} transparent animationType="none">
         <Animated.View style={[styles.backdrop, { opacity: opacityAnim }]}>
           <TouchableOpacity
@@ -208,7 +198,7 @@ export default function UpcomingServices() {
           <View style={styles.sheetHeader}>
             <Text style={styles.sheetTitle}>Booking Details</Text>
             <TouchableOpacity onPress={closeSheet}>
-              <Ionicons name="close" size={28} color="#333" />
+              <Ionicons name="close" size={28} />
             </TouchableOpacity>
           </View>
 
@@ -218,30 +208,20 @@ export default function UpcomingServices() {
                 style={styles.qrButton}
                 onPress={() => setScannerVisible(true)}
               >
-                <Ionicons name="qr-code-outline" size={22} color="#000" />
+                <Ionicons name="qr-code-outline" size={22} />
                 <Text style={styles.qrText}>Scan QR to Check-In</Text>
               </TouchableOpacity>
 
               <View style={styles.detailRow}>
                 <Text style={styles.label}>Service</Text>
-                <Text style={styles.value}>{activeBooking.service}</Text>
-              </View>
-
-              <View style={styles.detailRow}>
-                <Text style={styles.label}>Address</Text>
-                <Text style={styles.value}>{activeBooking.address}</Text>
-              </View>
-
-              <View style={styles.detailRow}>
-                <Text style={styles.label}>Plate</Text>
-                <Text style={styles.value}>{activeBooking.plate}</Text>
+                <Text style={styles.value}>{activeBooking.serviceName}</Text>
               </View>
 
               <TouchableOpacity
                 style={styles.callBtn}
                 onPress={() => handleCall(activeBooking.phone)}
               >
-                <Ionicons name="call-outline" size={18} color="#2563EB" />
+                <Ionicons name="call-outline" size={18} />
                 <Text style={styles.callText}>{activeBooking.phone}</Text>
               </TouchableOpacity>
 
@@ -251,7 +231,7 @@ export default function UpcomingServices() {
                   style={styles.cancelBtn}
                   onPress={() => handleDelete(activeBooking.id)}
                 >
-                  <Ionicons name="trash-outline" size={18} color="#EF4444" />
+                  <Ionicons name="trash-outline" size={18} />
                   <Text style={styles.cancelText}>Cancel</Text>
                 </TouchableOpacity>
               </View>
@@ -276,65 +256,12 @@ export default function UpcomingServices() {
               </TouchableOpacity>
             </View>
           ) : (
-            <>
-              <CameraView
-                style={StyleSheet.absoluteFill}
-                barcodeScannerSettings={{ barcodeTypes: ["qr"] }}
-                onBarcodeScanned={handleQrScanned}
-                enableTorch={torchOn}
-              />
-
-              {/* Overlay */}
-              <View style={styles.overlay}>
-                <View style={styles.overlayCenter}>
-                  <View style={styles.overlaySide} />
-                  <View style={styles.scanBoxContainer}>
-                    <View style={styles.scanBox}>
-                      <Animated.View
-                        style={[
-                          styles.scanLine,
-                          {
-                            transform: [
-                              {
-                                translateY: scanLineAnim.interpolate({
-                                  inputRange: [0, 1],
-                                  outputRange: [0, 250 - 4],
-                                }),
-                              },
-                            ],
-                          },
-                        ]}
-                      />
-                    </View>
-                    <Text style={styles.scanHint}>
-                      Position the device at the level of QR code
-                    </Text>
-                  </View>
-                  <View style={styles.overlaySide} />
-                </View>
-              </View>
-
-              {/* Header */}
-              <View style={styles.scannerHeader}>
-                <TouchableOpacity onPress={() => setScannerVisible(false)}>
-                  <Ionicons name="close" size={28} color="#FFF" />
-                </TouchableOpacity>
-                <Text style={styles.scanTitle}>Scan QR Code</Text>
-                <View style={{ width: 28 }} />
-              </View>
-
-              {/* Flashlight */}
-              <TouchableOpacity
-                style={styles.flashButton}
-                onPress={() => setTorchOn((prev) => !prev)}
-              >
-                <Ionicons
-                  name={torchOn ? "flashlight" : "flashlight-outline"}
-                  size={24}
-                  color="#FFF"
-                />
-              </TouchableOpacity>
-            </>
+            <CameraView
+              style={StyleSheet.absoluteFill}
+              barcodeScannerSettings={{ barcodeTypes: ["qr"] }}
+              onBarcodeScanned={handleQrScanned}
+              enableTorch={torchOn}
+            />
           )}
         </View>
       </Modal>

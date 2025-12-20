@@ -15,7 +15,6 @@ import {
 
 import { useAppDispatch, useAppSelector } from "../../../store/hooks";
 import { logout } from "../../../store/slices/authSlice";
-import { resetProfile } from "../../../store/slices/profileSlice";
 
 const { height } = Dimensions.get("window");
 
@@ -63,8 +62,6 @@ export default function ProfileHome() {
 
   const handleLogout = () => {
     dispatch(logout());
-    dispatch(resetProfile());
-    closeSheet();
     router.replace("/(tabs)/home");
   };
 

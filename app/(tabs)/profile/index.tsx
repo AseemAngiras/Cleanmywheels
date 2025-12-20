@@ -13,9 +13,13 @@ import {
   View,
 } from "react-native";
 
+import { useAppSelector } from "../../../store/hooks";
+
 const { height } = Dimensions.get("window");
 
 export default function ProfileHome() {
+  const profile = useAppSelector((state) => state.profile); 
+
   const [showLogout, setShowLogout] = useState(false);
   const translateY = useRef(new Animated.Value(height)).current;
   const overlayOpacity = useRef(new Animated.Value(0)).current;
@@ -69,12 +73,14 @@ export default function ProfileHome() {
       <View style={styles.profileCard}>
         <View style={styles.profileLeft}>
           <Image
-            source={{ uri: "https://i.pravatar.cc/150?img=12" }}
+            source={{ uri: "https://i.pravatar.cc/150?img=12" }} 
             style={styles.avatar}
           />
           <View>
-            <Text style={styles.profileName}>Mr. Abel Tesfaye</Text>
-            <Text style={styles.profileSubtitle}>Chandigarh</Text>
+            <Text style={styles.profileName}>{profile.name || "Your Name"}</Text>
+            <Text style={styles.profileSubtitle}>
+              {profile.phone || "Phone number"}
+            </Text>
           </View>
         </View>
       </View>
@@ -85,7 +91,7 @@ export default function ProfileHome() {
           icon="person-outline"
           title="Account Details"
           subtitle="Manage your Account Details"
-          onPress={() => router.push("/profile/edit-profile")}
+          onPress={() => router.push("/profile/edit-profile")} 
         />
         <Row
           icon="wallet-outline"
@@ -118,6 +124,7 @@ export default function ProfileHome() {
         />
       </View>
 
+      {/* LOGOUT MODAL */}
       <Modal transparent visible={showLogout} animationType="none">
         <Animated.View
           style={[styles.modalOverlay, { opacity: overlayOpacity }]}
@@ -125,12 +132,7 @@ export default function ProfileHome() {
           <TouchableOpacity style={StyleSheet.absoluteFill} onPress={closeSheet} />
         </Animated.View>
 
-        <Animated.View
-          style={[
-            styles.bottomSheet,
-            { transform: [{ translateY }] },
-          ]}
-        >
+        <Animated.View style={[styles.bottomSheet, { transform: [{ translateY }] }]}>
           <Text style={styles.logoutTitle}>Logout</Text>
           <Text style={styles.logoutSubtitle}>
             Are you sure you want to log out?
@@ -141,10 +143,7 @@ export default function ProfileHome() {
               <Text style={styles.cancelText}>Cancel</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.logoutBtn}
-              onPress={closeSheet}
-            >
+            <TouchableOpacity style={styles.logoutBtn} onPress={closeSheet}>
               <Text style={styles.logoutText}>Yes, Logout</Text>
             </TouchableOpacity>
           </View>
@@ -176,9 +175,7 @@ const Row = ({
         style={styles.rowIcon}
       />
       <View>
-        <Text style={[styles.rowTitle, danger && { color: "#E53935" }]}>
-          {title}
-        </Text>
+        <Text style={[styles.rowTitle, danger && { color: "#E53935" }]}>{title}</Text>
         {subtitle && <Text style={styles.rowSubtitle}>{subtitle}</Text>}
       </View>
     </View>

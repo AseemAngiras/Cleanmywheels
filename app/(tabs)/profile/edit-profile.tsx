@@ -1,7 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useRef } from "react";
 import {
+  Animated,
   ScrollView,
   StyleSheet,
   Text,
@@ -17,12 +18,32 @@ export default function EditProfile() {
   const dispatch = useAppDispatch();
   const profile = useAppSelector((state) => state.profile);
 
-  const [fullName, setFullName] = useState(profile.name);
-  const [mobile, setMobile] = useState(profile.phone);
-  const [tempMobile, setTempMobile] = useState(profile.phone);
-  const [email, setEmail] = useState(profile.email ?? "");
+  const [fullName, setFullName] = React.useState(profile.name);
+  const [mobile, setMobile] = React.useState(profile.phone);
+  const [tempMobile, setTempMobile] = React.useState(profile.phone);
+  const [email, setEmail] = React.useState(profile.email ?? "");
 
-  const [focusedInput, setFocusedInput] = useState<string | null>(null);
+  const [focusedInput, setFocusedInput] = React.useState<string | null>(null);
+  const [hasChanges, setHasChanges] = React.useState(false);
+
+  // Animation value for save button (translateX + opacity)
+  const saveAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const changes =
+      fullName !== profile.name ||
+      tempMobile !== profile.phone ||
+      email !== (profile.email ?? "");
+
+    setHasChanges(changes);
+
+    //  save button in/out animations
+    Animated.timing(saveAnim, {
+      toValue: changes ? 1 : 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  }, [fullName, tempMobile, email, profile, saveAnim]);
 
   const handleSave = () => {
     dispatch(updateProfile({ key: "name", value: fullName }));
@@ -31,7 +52,6 @@ export default function EditProfile() {
 
     setMobile(tempMobile);
     setFocusedInput(null);
-
     router.back();
   };
 
@@ -40,88 +60,191 @@ export default function EditProfile() {
     focusedInput === inputName && styles.inputFocused,
   ];
 
+  const saveButtonTranslateX = saveAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [100, 0], // slides in from right
+  });
+
+  const saveButtonOpacity = saveAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 1],
+  });
+
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {/* HEADER */}
+    <View style={styles.container}>
+      {/* Fixed Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="chevron-back" size={26} color="#000" />
+        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+          <Ionicons name="chevron-back" size={24} color="#111" />
         </TouchableOpacity>
 
-        <Text style={styles.title}>Edit Profile</Text>
+        <Text style={styles.headerTitle}>Edit Profile</Text>
 
-        <TouchableOpacity onPress={handleSave}>
-          <Text style={styles.save}>Save</Text>
-        </TouchableOpacity>
+        {/* Animated Save Button */}
+        <Animated.View
+          style={[
+            styles.saveButtonContainer,
+            {
+              opacity: saveButtonOpacity,
+              transform: [{ translateX: saveButtonTranslateX }],
+            },
+          ]}
+        >
+          <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+            <Ionicons name="checkmark" size={20} color="#000" />
+            <Text style={styles.saveText}>Save</Text>
+          </TouchableOpacity>
+        </Animated.View>
       </View>
 
-      {/* FULL NAME */}
-      <Text style={styles.label}>Full Name</Text>
-      <View style={styles.inputWrapper}>
-        <TextInput
-          value={fullName}
-          onChangeText={setFullName}
-          style={getInputStyle("fullName")}
-          onFocus={() => setFocusedInput("fullName")}
-          onBlur={() => setFocusedInput(null)}
-        />
-      </View>
+      <ScrollView
+        style={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 40 }}
+      >
+        {/* PROFILE FIELDS */}
+        <View style={styles.card}>
+          <Text style={styles.label}>Full Name</Text>
+          <TextInput
+            value={fullName}
+            onChangeText={setFullName}
+            style={getInputStyle("fullName")}
+            onFocus={() => setFocusedInput("fullName")}
+            onBlur={() => setFocusedInput(null)}
+          />
+        </View>
 
-      {/* MOBILE */}
-      <Text style={styles.label}>Mobile Number</Text>
-      <View style={styles.inputWrapper}>
-        <TextInput
-          value={tempMobile}
-          onChangeText={setTempMobile}
-          keyboardType="phone-pad"
-          style={getInputStyle("mobile")}
-          onFocus={() => setFocusedInput("mobile")}
-          onBlur={() => setFocusedInput(null)}
-        />
-      </View>
+        <View style={styles.card}>
+          <Text style={styles.label}>Mobile Number</Text>
+          <TextInput
+            value={tempMobile}
+            onChangeText={setTempMobile}
+            keyboardType="phone-pad"
+            style={getInputStyle("mobile")}
+            onFocus={() => setFocusedInput("mobile")}
+            onBlur={() => setFocusedInput(null)}
+          />
+        </View>
 
-      {/* EMAIL */}
-      <Text style={styles.label}>Email</Text>
-      <View style={styles.inputWrapper}>
-        <TextInput
-          value={email}
-          onChangeText={setEmail}
-          style={getInputStyle("email")}
-          keyboardType="email-address"
-          onFocus={() => setFocusedInput("email")}
-          onBlur={() => setFocusedInput(null)}
-        />
-      </View>
-    </ScrollView>
+        <View style={styles.card}>
+          <Text style={styles.label}>Email</Text>
+          <TextInput
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            style={getInputStyle("email")}
+            onFocus={() => setFocusedInput("email")}
+            onBlur={() => setFocusedInput(null)}
+          />
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FFF",
-    paddingHorizontal: 20,
-    paddingTop: 80,
+    backgroundColor: "#F3F4F7",
   },
+
   header: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 30,
+    paddingHorizontal: 20,
+    paddingTop: 90,
+    paddingBottom: 20,
+    backgroundColor: "#F3F4F7",
+    position: "relative",
   },
-  title: { fontSize: 26, fontWeight: "700" },
-  save: { color: "#000", fontSize: 16, fontWeight: "600" },
 
-  label: { fontSize: 14, fontWeight: "500", marginBottom: 6 },
-  inputWrapper: {
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#FFF",
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+
+  headerTitle: {
+    fontSize: 30,
+    fontWeight: "400",
+    color: "#111",
+    position: "absolute",
+    left: 70,
+    paddingTop: 70,
+    textAlign: "center",
+  },
+
+  saveButtonContainer: {
+    position: "absolute",
+    right: 20,
+    top: 90,
+  },
+
+  saveButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F8F8F8",
-    borderRadius: 16,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    marginBottom: 20,
+    paddingVertical: 10,
+    paddingHorizontal: 18,
+    backgroundColor: "#C8F000",
+    borderRadius: 30,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 5,
   },
-  input: { flex: 1, fontSize: 15, borderWidth: 1, borderColor: "transparent", borderRadius: 12, padding: 8 },
-  inputFocused: { borderColor: "#4CAF50" }, 
+
+  saveText: {
+    color: "#000",
+    fontSize: 16,
+    fontWeight: "600",
+    marginLeft: 8,
+  },
+
+  scrollContent: {
+    paddingHorizontal: 20,
+  },
+
+  card: {
+    backgroundColor: "#FFF",
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    marginBottom: 16,
+    shadowColor: "#000",
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
+  },
+
+  label: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#777",
+    marginBottom: 8,
+  },
+
+  input: {
+    fontSize: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    backgroundColor: "#F8F8F8",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "transparent",
+  },
+
+  inputFocused: {
+    borderColor: "#C8F000",
+    backgroundColor: "#fff",
+  },
 });

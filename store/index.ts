@@ -1,13 +1,25 @@
-import { configureStore } from "@reduxjs/toolkit";
-import authReducer from "./slices/authSlice";
+import { combineReducers, configureStore } from "@reduxjs/toolkit";
+import authReducer, { logout } from "./slices/authSlice";
+import bookingReducer from "./slices/bookingSlice";
 import profileReducer from "./slices/profileSlice";
 
+const appReducer = combineReducers({
+  auth: authReducer,
+  profile: profileReducer,
+  bookings: bookingReducer,
+});
+
+const rootReducer = (state: any, action: any) => {
+  if (action.type === logout.type) {
+    state = undefined; // resets ALL slices
+  }
+
+  return appReducer(state, action);
+};
+
 export const store = configureStore({
-    reducer: {
-        auth: authReducer,
-        profile: profileReducer,
-    }
-})
+  reducer: rootReducer,
+});
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;

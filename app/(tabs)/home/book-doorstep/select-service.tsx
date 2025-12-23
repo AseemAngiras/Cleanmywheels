@@ -134,7 +134,14 @@ export default function SelectServiceScreen() {
                 <View style={{ width: 24 }} />
             </View>
 
-            <BookingStepper currentStep={2} />
+            <BookingStepper
+                currentStep={1}
+                steps={[
+                    { id: 1, label: 'Service' },
+                    { id: 2, label: 'Slot' },
+                    { id: 3, label: 'Payment' },
+                ]}
+            />
 
             <KeyboardAvoidingView
                 behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -334,7 +341,7 @@ export default function SelectServiceScreen() {
                             latitude,
                             longitude
                         };
-                        router.push({ pathname: '/(tabs)/home/book-doorstep/shops-list', params });
+                        router.push({ pathname: '/(tabs)/home/book-doorstep/select-slot', params });
                     }}
                 >
                     <Text style={styles.nextButtonText}>Next</Text>

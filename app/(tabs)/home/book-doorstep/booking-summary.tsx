@@ -82,7 +82,14 @@ export default function BookingSummaryScreen() {
                 <View style={{ width: 40 }} />
             </View>
 
-            <BookingStepper currentStep={3} />
+            <BookingStepper
+                currentStep={3}
+                steps={[
+                    { id: 1, label: 'Service' },
+                    { id: 2, label: 'Slot' },
+                    { id: 3, label: 'Payment' },
+                ]}
+            />
 
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 150 }}>
 

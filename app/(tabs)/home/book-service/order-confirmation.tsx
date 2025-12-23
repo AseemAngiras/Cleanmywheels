@@ -1,11 +1,21 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
+
 import React from 'react';
 import { Image, Linking, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useEffect } from 'react';
+import { Image, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function OrderConfirmationScreen() {
     const router = useRouter();
     const navigation = useNavigation();
+
+    useEffect(() => {
+        navigation.getParent()?.setOptions({
+        tabBarStyle: { display: 'flex' },
+     });
+    }, []);
+
     const params = useLocalSearchParams();
     const { shopName, shopImage, shopAddress, shopRating, date, time, shopLat, shopLong } = params;
 
@@ -105,7 +115,7 @@ export default function OrderConfirmationScreen() {
             <View style={styles.footer}>
                 <TouchableOpacity
                     style={styles.homeButton}
-                    onPress={() => router.push('/(tabs)/home')}
+                    onPress={() => router.replace('/(tabs)/home')}
                 >
                     <Text style={styles.homeButtonText}>Back to Home</Text>
                 </TouchableOpacity>

@@ -1,8 +1,11 @@
 
+import { RootState } from '@/store';
+import { setUser } from '@/store/slices/userSlice';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import React, { useCallback, useRef, useState } from 'react';
 import { ActivityIndicator, FlatList, Image, Keyboard, KeyboardAvoidingView, Modal, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
 import BookingStepper from '../../../../components/BookingStepper';
 
 // Types
@@ -17,6 +20,9 @@ export default function ShopsListScreen() {
     const router = useRouter();
     const navigation = useNavigation();
 
+    const user = useSelector((state: RootState) => state.user);
+    const dispatch = useDispatch();
+
     useFocusEffect(
         useCallback(() => {
             // Hide the bottom tab bar when this screen is mounted or focused
@@ -29,6 +35,10 @@ export default function ShopsListScreen() {
         }, [navigation])
     );
     const params = useLocalSearchParams();
+    const bookingDraft = params.bookingDraft
+        ? JSON.parse(params.bookingDraft as string)
+        : null;
+
     const [searchQuery, setSearchQuery] = useState('');
     const [isSearchVisible, setIsSearchVisible] = useState(false);
     const [isLoginModalVisible, setIsLoginModalVisible] = useState(false);
@@ -184,15 +194,20 @@ export default function ShopsListScreen() {
             return;
         }
 
+        dispatch(setUser({
+            name: name.trim(),
+            phone: phoneNumber.trim(),
+        }))
+
         // Validation logic here
         setIsLoginModalVisible(false);
         setModalStep('details');
         setOtp(['', '', '', '']);
 
         // Show Slot Picker instead of navigating
-        setIsLoginModalVisible(false);
-        setModalStep('details');
-        setOtp(['', '', '', '']);
+        // setIsLoginModalVisible(false);
+        // setModalStep('details');
+        // setOtp(['', '', '', '']);
         setShowSlotPicker(true);
     };
 
@@ -221,7 +236,11 @@ export default function ShopsListScreen() {
                         style={styles.selectButton}
                         onPress={() => {
                             setSelectedShop(item);
-                            setIsLoginModalVisible(true);
+                            if (user?.name && user?.phone) {
+                              setShowSlotPicker(true);
+                            } else {
+                              setIsLoginModalVisible(true);
+                            }
                         }}
                     >
                         <Text style={styles.selectButtonText}>Select</Text>
@@ -411,26 +430,40 @@ export default function ShopsListScreen() {
                             style={[styles.continueButton, !selectedSlot && { opacity: 0.6 }]}
                             disabled={!selectedSlot}
                             onPress={() => {
+                                if (!bookingDraft) return;
+
+                            const updatedBookingDraft = {
+                              ...bookingDraft,
+
+                             shop: {
+                               id: selectedShop.id,
+                               name: selectedShop.name,
+                               address: selectedShop.address,
+                               image: selectedShop.image,
+                               rating: selectedShop.rating,
+                               location: {
+                                 lat: selectedShop.latitude,
+                                 long: selectedShop.longitude,
+                               },
+                             },
+
+                             slot: {
+                               date: dates[selectedDate].fullDate.toISOString(),
+                               time: timeSlots.find(s => s.id === selectedSlot)?.time,
+                               slotId: selectedSlot,
+                             },
+                            };
+
                                 setShowSlotPicker(false);
-                                router.push({
-                                    pathname: '/(tabs)/home/book-service/booking-summary',
-                                    params: {
-                                        ...params,
-                                        shopId: selectedShop?.id,
-                                        shopName: selectedShop?.name,
-                                        shopAddress: selectedShop?.address || '123 Smart St.',
-                                        shopImage: selectedShop?.image,
-                                        shopRating: selectedShop?.rating,
-                                        shopLat: selectedShop?.latitude,
-                                        shopLong: selectedShop?.longitude,
-                                        userPhone: phoneNumber,
-                                        userName: name,
-                                        selectedDate: dates[selectedDate].fullDate.toISOString(),
-                                        selectedTime: timeSlots.find(s => s.id === selectedSlot)?.time,
-                                        selectedTimeSlotId: selectedSlot
-                                    }
-                                });
+
+                            router.push({
+                              pathname: "/(tabs)/home/book-service/booking-summary",
+                              params: {
+                                bookingDraft: JSON.stringify(updatedBookingDraft),
+                              },
+                            });
                             }}
+
                         >
                             <Text style={styles.continueButtonText}>Confirm Slot</Text>
                             <Ionicons name="arrow-forward" size={20} color="#1a1a1a" style={{ marginLeft: 8 }} />

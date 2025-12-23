@@ -18,8 +18,10 @@ import {
   View,
 } from "react-native";
 
+import { RootState } from "../../../store";
 import { useAppDispatch, useAppSelector } from "../../../store/hooks";
 import {
+  Booking,
   cancelBooking,
   completeBooking,
 } from "../../../store/slices/bookingSlice";
@@ -27,11 +29,11 @@ import {
 export default function UpcomingServices() {
   const dispatch = useAppDispatch();
 
-  const bookings = useAppSelector((state) =>
-    state.bookings.bookings.filter((b) => b.status === "upcoming")
+  const bookings = useAppSelector((state: RootState) =>
+    state.bookings.bookings.filter((b: Booking) => b.status === "upcoming")
   );
 
-  const [activeBooking, setActiveBooking] = useState<any | null>(null);
+  const [activeBooking, setActiveBooking] = useState<Booking | null>(null);
 
   const [scannerVisible, setScannerVisible] = useState(false);
   const [permission, requestPermission] = useCameraPermissions();
@@ -137,7 +139,7 @@ export default function UpcomingServices() {
     Linking.openURL(`tel:${phone}`);
   };
 
-  const renderItem = ({ item }: any) => (
+  const renderItem = ({ item }: { item: Booking }) => (
     <TouchableOpacity
       activeOpacity={0.9}
       style={styles.cardContainer}

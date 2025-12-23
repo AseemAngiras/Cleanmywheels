@@ -2,16 +2,21 @@ import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-interface BookingStepperProps {
-    currentStep: number; // 1, 2, or 3
+interface Step {
+    id: number;
+    label: string;
 }
 
-export default function BookingStepper({ currentStep }: BookingStepperProps) {
-    const steps = [
-        { id: 1, label: 'Service' },
-        { id: 2, label: 'Shop' },
-        { id: 3, label: 'Payment' },
-    ];
+interface BookingStepperProps {
+    currentStep: number;
+    steps?: Step[];
+}
+
+export default function BookingStepper({ currentStep, steps = [
+    { id: 1, label: 'Service' },
+    { id: 2, label: 'Shop' },
+    { id: 3, label: 'Payment' },
+] }: BookingStepperProps) {
 
     return (
         <View style={styles.container}>

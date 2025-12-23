@@ -11,16 +11,18 @@ import {
   View,
 } from "react-native";
 
+import { setUser } from "@/store/slices/userSlice";
 import { useAppDispatch, useAppSelector } from "../../../store/hooks";
 import { updateProfile } from "../../../store/slices/profileSlice";
+
 
 export default function EditProfile() {
   const dispatch = useAppDispatch();
   const profile = useAppSelector((state) => state.profile);
+  const user = useAppSelector((state) => state.user);
 
-  const [fullName, setFullName] = React.useState(profile.name);
-  const [mobile, setMobile] = React.useState(profile.phone);
-  const [tempMobile, setTempMobile] = React.useState(profile.phone);
+  const [fullName, setFullName] = React.useState(user.name ?? "");
+  const [mobile, setMobile] = React.useState(user.phone?? "");
   const [email, setEmail] = React.useState(profile.email ?? "");
 
   const [focusedInput, setFocusedInput] = React.useState<string | null>(null);
@@ -30,9 +32,14 @@ export default function EditProfile() {
   const saveAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
+    setFullName(user.name?? "");
+    setMobile(user.phone?? "");
+  }, [user.name, user.phone]);
+
+  useEffect(() => {
     const changes =
       fullName !== profile.name ||
-      tempMobile !== profile.phone ||
+      mobile !== profile.phone ||
       email !== (profile.email ?? "");
 
     setHasChanges(changes);
@@ -43,17 +50,23 @@ export default function EditProfile() {
       duration: 300,
       useNativeDriver: true,
     }).start();
-  }, [fullName, tempMobile, email, profile, saveAnim]);
+  }, [fullName, email, profile, saveAnim]);
 
-  const handleSave = () => {
-    dispatch(updateProfile({ key: "name", value: fullName }));
-    dispatch(updateProfile({ key: "phone", value: tempMobile }));
-    dispatch(updateProfile({ key: "email", value: email }));
+ const handleSave = () => {
+  dispatch(setUser({
+    name: fullName,
+    phone: mobile,
+  }));
 
-    setMobile(tempMobile);
-    setFocusedInput(null);
-    router.back();
-  };
+  dispatch(updateProfile({ key: "name", value: fullName }));
+  dispatch(updateProfile({ key: "phone", value: mobile }));
+  dispatch(updateProfile({ key: "email", value: email }));
+
+  setFocusedInput(null);
+  router.back();
+};
+
+
 
   const getInputStyle = (inputName: string) => [
     styles.input,
@@ -117,8 +130,8 @@ export default function EditProfile() {
         <View style={styles.card}>
           <Text style={styles.label}>Mobile Number</Text>
           <TextInput
-            value={tempMobile}
-            onChangeText={setTempMobile}
+            value={mobile}
+            onChangeText={setMobile}
             keyboardType="phone-pad"
             style={getInputStyle("mobile")}
             onFocus={() => setFocusedInput("mobile")}

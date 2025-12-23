@@ -13,6 +13,8 @@ import {
   View,
 } from "react-native";
 
+import { RootState } from "@/store";
+import { useSelector } from "react-redux";
 import { useAppDispatch, useAppSelector } from "../../../store/hooks";
 import { logout } from "../../../store/slices/authSlice";
 
@@ -25,6 +27,8 @@ export default function ProfileHome() {
   const [showLogout, setShowLogout] = useState(false);
   const translateY = useRef(new Animated.Value(height)).current;
   const overlayOpacity = useRef(new Animated.Value(0)).current;
+
+  const user = useSelector((state: RootState) => state.user);
 
   useEffect(() => {
     if (showLogout) {
@@ -85,10 +89,10 @@ export default function ProfileHome() {
           />
           <View>
             <Text style={styles.profileName}>
-              {profile.name || "Your Name"}
+              {user.name || "Your Name"}
             </Text>
             <Text style={styles.profileSubtitle}>
-              {profile.phone || "Phone number"}
+              {user.phone || "Phone number"}
             </Text>
           </View>
         </View>

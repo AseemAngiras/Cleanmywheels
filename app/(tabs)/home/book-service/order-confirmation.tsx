@@ -1,16 +1,41 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import React from 'react';
-import { Image, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, Linking, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function OrderConfirmationScreen() {
     const router = useRouter();
     const navigation = useNavigation();
     const params = useLocalSearchParams();
-    const { shopName, shopImage, shopAddress, shopRating, date, time } = params;
+    const { shopName, shopImage, shopAddress, shopRating, date, time, shopLat, shopLong } = params;
 
     // Generate a random token number for demo
     const tokenNumber = Math.floor(100 + Math.random() * 900);
+
+    const handleNavigate = () => {
+        const lat = shopLat;
+        const lng = shopLong;
+        const label = (shopName as string) || 'Service Station';
+
+        const scheme = Platform.select({ ios: 'maps:0,0?q=', android: 'geo:0,0?q=' });
+        const latLng = `${lat},${lng}`;
+
+        let url: string = '';
+        if (lat && lng) {
+            url = Platform.select({
+                ios: `${scheme}${label}@${latLng}`,
+                android: `${scheme}${latLng}(${label})`
+            }) as string;
+        } else {
+            const query = shopAddress || shopName;
+            url = Platform.select({
+                ios: `maps:0,0?q=${query}`,
+                android: `geo:0,0?q=${query}`
+            }) as string;
+        }
+
+        Linking.openURL(url);
+    };
 
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: '#fdfdfd' }}>
@@ -54,7 +79,7 @@ export default function OrderConfirmationScreen() {
                     <View style={styles.stationInfo}>
                         <Text style={styles.stationName}>{shopName || 'Speedy Wash Station'}</Text>
                         <Text style={styles.stationAddress} numberOfLines={2}>
-                            {shopAddress || '123 Main St, Downtown'}
+                            {shopAddress as string || '123 Main St, Downtown'}
                         </Text>
                     </View>
                 </View>
@@ -68,7 +93,7 @@ export default function OrderConfirmationScreen() {
 
                     <View style={{ width: 15 }} />
 
-                    <TouchableOpacity style={styles.actionButtonOutline}>
+                    <TouchableOpacity style={styles.actionButtonOutline} onPress={handleNavigate}>
                         <Ionicons name="navigate" size={18} color="#1a472a" />
                         <Text style={styles.actionButtonText}>Navigate</Text>
                     </TouchableOpacity>

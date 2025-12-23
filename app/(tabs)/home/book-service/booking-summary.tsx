@@ -223,7 +223,7 @@ export default function BookingSummaryScreen() {
               })
             );
 
-            router.replace('/(tabs)/bookings');
+            router.replace('/(tabs)/home/book-doorstep/order-confirmation');
           }}
         >
           <Text style={styles.payButtonText}>Pay ₹{grandTotal}</Text>

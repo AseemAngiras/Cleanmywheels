@@ -1,4 +1,4 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createSlice, nanoid, PayloadAction } from "@reduxjs/toolkit";
 
 export type BookingStatus = "upcoming" | "completed" | "cancelled";
 
@@ -19,6 +19,7 @@ export interface Booking {
 
 interface BookingState {
   bookings: Booking[];
+  currentBooking: Partial<Booking>;
 }
 
 const initialState: BookingState = {
@@ -54,18 +55,32 @@ const initialState: BookingState = {
       status: "upcoming",
     },
   ],
+  currentBooking : {},
 };
 
 const bookingSlice = createSlice({
   name: "bookings",
   initialState,
   reducers: {
+    updateCurrentBooking(state, action: PayloadAction<{key: keyof Booking; value: any }>){
+      state.currentBooking[action.payload.key] = action.payload.value;
+    },
+
+    confirmBooking(state) {
+     state.bookings.push({
+      ...(state.currentBooking as Booking),
+      id: nanoid(),
+      status: "upcoming",
+     });
+     state.currentBooking = {};
+    },
+
     completeBooking(state, action: PayloadAction<string>) {
       const booking = state.bookings.find(
         (b) => b.id === action.payload
       );
       if (booking) {
-        booking.status = "completed";
+        booking.status = "completed"
       }
     },
 
@@ -77,8 +92,13 @@ const bookingSlice = createSlice({
         booking.status = "cancelled";
       }
     },
+
+    resetBookings(state) {
+      state.bookings = [];
+      state.currentBooking = {};
+    }
   },
 });
 
-export const { completeBooking, cancelBooking } = bookingSlice.actions;
+export const { completeBooking, cancelBooking, updateCurrentBooking, confirmBooking, resetBookings } = bookingSlice.actions;
 export default bookingSlice.reducer;

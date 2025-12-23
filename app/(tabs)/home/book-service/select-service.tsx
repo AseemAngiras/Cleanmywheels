@@ -306,16 +306,34 @@ export default function SelectServiceScreen() {
                             Alert.alert("Missing Detail", "Please enter your vehicle number to proceed.");
                             return;
                         }
-                        const params = {
-                            serviceId: selectedService,
-                            serviceName: services.find(s => s.id === selectedService)?.name,
-                            servicePrice: services.find(s => s.id === selectedService)?.price,
-                            addons: JSON.stringify(addons),
+                        const service = services.find(s => s.id === selectedService);
+
+                        if(!service) return;
+
+                        const selectedAddons = currentAddons.filter(
+                            addon => addons[addon.id]
+                        )
+
+                        const bookingDraft = {
+                            service: {
+                            id: service.id,
+                            name: service.name,
+                            basePrice: service.price,
+                            addons: selectedAddons,
                             totalPrice: calculateTotal(),
-                            vehicleType,
-                            vehicleNumber: vehicleNumber.toUpperCase()
+                            },
+                            vehicle: {
+                            type: vehicleType,
+                            number: vehicleNumber.toUpperCase(),
+                            },
                         };
-                        router.push({ pathname: '/(tabs)/home/book-service/shops-list', params });
+
+                        router.push({ 
+                            pathname: '/(tabs)/home/book-service/shops-list',
+                            params: {
+                                bookingDraft: JSON.stringify(bookingDraft)
+                            }
+                          });
                     }}
                 >
                     <Text style={styles.nextButtonText}>Next</Text>

@@ -29,6 +29,10 @@ export default function ShopsListScreen() {
         }, [navigation])
     );
     const params = useLocalSearchParams();
+    const bookingDraft = params.bookingDraft
+        ? JSON.parse(params.bookingDraft as string)
+        : null;
+
     const [searchQuery, setSearchQuery] = useState('');
     const [isSearchVisible, setIsSearchVisible] = useState(false);
     const [isLoginModalVisible, setIsLoginModalVisible] = useState(false);
@@ -411,26 +415,45 @@ export default function ShopsListScreen() {
                             style={[styles.continueButton, !selectedSlot && { opacity: 0.6 }]}
                             disabled={!selectedSlot}
                             onPress={() => {
+                                if (!bookingDraft) return;
+
+                            const updatedBookingDraft = {
+                              ...bookingDraft,
+
+                             shop: {
+                               id: selectedShop.id,
+                               name: selectedShop.name,
+                               address: selectedShop.address,
+                               image: selectedShop.image,
+                               rating: selectedShop.rating,
+                               location: {
+                                 lat: selectedShop.latitude,
+                                 long: selectedShop.longitude,
+                               },
+                             },
+
+                             slot: {
+                               date: dates[selectedDate].fullDate.toISOString(),
+                               time: timeSlots.find(s => s.id === selectedSlot)?.time,
+                               slotId: selectedSlot,
+                             },
+
+                             user: {
+                               name,
+                               phone: phoneNumber,
+                             },
+                            };
+
                                 setShowSlotPicker(false);
-                                router.push({
-                                    pathname: '/(tabs)/home/book-service/booking-summary',
-                                    params: {
-                                        ...params,
-                                        shopId: selectedShop?.id,
-                                        shopName: selectedShop?.name,
-                                        shopAddress: selectedShop?.address || '123 Smart St.',
-                                        shopImage: selectedShop?.image,
-                                        shopRating: selectedShop?.rating,
-                                        shopLat: selectedShop?.latitude,
-                                        shopLong: selectedShop?.longitude,
-                                        userPhone: phoneNumber,
-                                        userName: name,
-                                        selectedDate: dates[selectedDate].fullDate.toISOString(),
-                                        selectedTime: timeSlots.find(s => s.id === selectedSlot)?.time,
-                                        selectedTimeSlotId: selectedSlot
-                                    }
-                                });
+
+                            router.push({
+                              pathname: "/(tabs)/home/book-service/booking-summary",
+                              params: {
+                                bookingDraft: JSON.stringify(updatedBookingDraft),
+                              },
+                            });
                             }}
+
                         >
                             <Text style={styles.continueButtonText}>Confirm Slot</Text>
                             <Ionicons name="arrow-forward" size={20} color="#1a1a1a" style={{ marginLeft: 8 }} />

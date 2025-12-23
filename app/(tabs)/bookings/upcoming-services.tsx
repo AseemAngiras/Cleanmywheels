@@ -137,7 +137,10 @@ export default function UpcomingServices() {
     Linking.openURL(`tel:${phone}`);
   };
 
-  const renderItem = ({ item }: any) => (
+const renderItem = ({ item }: any) => {
+  console.log("BOOKING ITEM 👉", item);
+
+  return (
     <TouchableOpacity
       activeOpacity={0.9}
       style={styles.cardContainer}
@@ -184,6 +187,8 @@ export default function UpcomingServices() {
       </LinearGradient>
     </TouchableOpacity>
   );
+};
+
 
   return (
     <>
@@ -191,8 +196,17 @@ export default function UpcomingServices() {
         data={bookings}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
+        ListEmptyComponent={() => (
+          <View style={{ alignItems: "center", marginTop: 80 }}>
+            <Ionicons name="calendar-outline" size={60} color="#CBD5E1" />
+            <Text style={{ fontSize: 18, fontWeight: "600", marginTop: 16 }}>
+              No upcoming bookings
+            </Text>
+            <Text style={{ color: "#64748B", marginTop: 6 }}>
+              Book a service to see it here
+            </Text>
+          </View>
+        )}
       />
 
       {/* Bottom Sheet */}

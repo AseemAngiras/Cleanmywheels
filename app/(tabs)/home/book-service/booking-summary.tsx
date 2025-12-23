@@ -1,3 +1,4 @@
+import { RootState } from '@/store';
 import { addBooking } from '@/store/slices/bookingSlice';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
@@ -12,7 +13,7 @@ import {
     View,
 } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import BookingStepper from '../../../../components/BookingStepper';
 
 export default function BookingSummaryScreen() {
@@ -21,13 +22,12 @@ export default function BookingSummaryScreen() {
   const navigation = useNavigation();
   const { bookingDraft } = useLocalSearchParams();
 
-  console.log('PARAMS RECEIVED 👉', bookingDraft);
-
   const parsedBooking = bookingDraft
     ? JSON.parse(bookingDraft as string)
     : null;
 
-  const { service, vehicle, shop, slot, user } = parsedBooking || {};
+    const user = useSelector((state: RootState) => state.user);
+  const { service, vehicle, shop, slot } = parsedBooking || {};
 
   const lat = shop?.location?.lat || 37.7749;
   const long = shop?.location?.long || -122.4194;

@@ -1,8 +1,11 @@
 
+import { RootState } from '@/store';
+import { setUser } from '@/store/slices/userSlice';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import React, { useCallback, useRef, useState } from 'react';
 import { ActivityIndicator, FlatList, Image, Keyboard, KeyboardAvoidingView, Modal, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
 import BookingStepper from '../../../../components/BookingStepper';
 
 // Types
@@ -16,6 +19,9 @@ type TimeSlot = {
 export default function ShopsListScreen() {
     const router = useRouter();
     const navigation = useNavigation();
+
+    const user = useSelector((state: RootState) => state.user);
+    const dispatch = useDispatch();
 
     useFocusEffect(
         useCallback(() => {
@@ -188,15 +194,20 @@ export default function ShopsListScreen() {
             return;
         }
 
+        dispatch(setUser({
+            name: name.trim(),
+            phone: phoneNumber.trim(),
+        }))
+
         // Validation logic here
         setIsLoginModalVisible(false);
         setModalStep('details');
         setOtp(['', '', '', '']);
 
         // Show Slot Picker instead of navigating
-        setIsLoginModalVisible(false);
-        setModalStep('details');
-        setOtp(['', '', '', '']);
+        // setIsLoginModalVisible(false);
+        // setModalStep('details');
+        // setOtp(['', '', '', '']);
         setShowSlotPicker(true);
     };
 
@@ -225,7 +236,11 @@ export default function ShopsListScreen() {
                         style={styles.selectButton}
                         onPress={() => {
                             setSelectedShop(item);
-                            setIsLoginModalVisible(true);
+                            if (user?.name && user?.phone) {
+                              setShowSlotPicker(true);
+                            } else {
+                              setIsLoginModalVisible(true);
+                            }
                         }}
                     >
                         <Text style={styles.selectButtonText}>Select</Text>
@@ -436,11 +451,6 @@ export default function ShopsListScreen() {
                                date: dates[selectedDate].fullDate.toISOString(),
                                time: timeSlots.find(s => s.id === selectedSlot)?.time,
                                slotId: selectedSlot,
-                             },
-
-                             user: {
-                               name,
-                               phone: phoneNumber,
                              },
                             };
 

@@ -129,7 +129,7 @@ export default function OrderConfirmationScreen() {
             <View style={styles.footer}>
                 <TouchableOpacity
                     style={styles.homeButton}
-                    onPress={() => router.navigate('/(tabs)/home')} // Go back to root home
+                    onPress={() => router.replace('/(tabs)/bookings/upcoming-services')} 
                 >
                     <Text style={styles.homeButtonText}>Back to Home</Text>
                 </TouchableOpacity>

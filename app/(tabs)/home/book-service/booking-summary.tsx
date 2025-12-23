@@ -1,258 +1,236 @@
+import { addBooking } from '@/store/slices/bookingSlice';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { Alert, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+    Alert,
+    SafeAreaView,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
+import { useDispatch } from 'react-redux';
 import BookingStepper from '../../../../components/BookingStepper';
 
 export default function BookingSummaryScreen() {
-    const router = useRouter();
-    const navigation = useNavigation();
-    const params = useLocalSearchParams();
+  const dispatch = useDispatch();
+  const router = useRouter();
+  const navigation = useNavigation();
+  const { bookingDraft } = useLocalSearchParams();
 
-    const {
-        serviceName,
-        servicePrice,
-        addons,
-        vehicleType,
-        vehicleNumber,
-        shopName,
-        shopAddress,
-        shopImage,
-        shopRating,
-        shopLat,
-        shopLong,
-        selectedDate,
-        selectedTime,
-        userPhone,
-        totalPrice
-    } = params;
+  console.log('PARAMS RECEIVED 👉', bookingDraft);
 
-    const lat = parseFloat(shopLat as string) || 37.7749;
-    const long = parseFloat(shopLong as string) || -122.4194;
+  const parsedBooking = bookingDraft
+    ? JSON.parse(bookingDraft as string)
+    : null;
 
-    // Payment Logic
-    const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string | null>(null);
-    const itemTotal = parseFloat(totalPrice as string) || 0;
-    const taxAmount = Math.round(itemTotal * 0.18);
-    const grandTotal = itemTotal + taxAmount;
+  const { service, vehicle, shop, slot, user } = parsedBooking || {};
 
-    const paymentOptions = [
-        { id: 'upi', label: 'UPI', subLabel: 'Pay via Google Pay, PhonePe, Paytm', icon: 'wallet-outline', recommended: true },
-        { id: 'card', label: 'Credit / Debit Cards', subLabel: 'VISA, MasterCard', icon: 'card-outline' },
-        { id: 'netbanking', label: 'Netbanking', subLabel: 'All major banks supported', icon: 'business-outline' },
-        { id: 'cash', label: 'Pay on Delivery / Cash', subLabel: 'Pay after service completion', icon: 'cash-outline' },
-    ];
+  const lat = shop?.location?.lat || 37.7749;
+  const long = shop?.location?.long || -122.4194;
 
-    const parsedAddons = addons ? JSON.parse(addons as string) : {};
-    const addonNames = Object.keys(parsedAddons).filter(k => parsedAddons[k]);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string | null>(null);
 
-    useEffect(() => {
-        navigation.getParent()?.setOptions({
-            tabBarStyle: { display: 'none' }
-        });
-    }, [navigation]);
+  const itemTotal = service?.totalPrice || 0;
+  const taxAmount = Math.round(itemTotal * 0.18);
+  const grandTotal = itemTotal + taxAmount;
 
-    return (
-        <SafeAreaView style={styles.container}>
-            {/* Header */}
-            <View style={styles.header}>
-                <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                    <Ionicons name="arrow-back" size={24} color="#1a1a1a" />
-                </TouchableOpacity>
-                <Text style={styles.headerTitle}>Booking Summary</Text>
-                <View style={{ width: 40 }} />
+  const paymentOptions = [
+    { id: 'upi', label: 'UPI', subLabel: 'Google Pay, PhonePe, Paytm', icon: 'wallet-outline', recommended: true },
+    { id: 'card', label: 'Credit / Debit Cards', subLabel: 'VISA, MasterCard', icon: 'card-outline' },
+    { id: 'netbanking', label: 'Netbanking', subLabel: 'All major banks supported', icon: 'business-outline' },
+    { id: 'cash', label: 'Pay on Delivery / Cash', subLabel: 'Pay after service completion', icon: 'cash-outline' },
+  ];
+
+  useEffect(() => {
+    navigation.getParent()?.setOptions({
+      tabBarStyle: { display: 'none' },
+    });
+  }, [navigation]);
+
+  return (
+    <SafeAreaView style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color="#1a1a1a" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Booking Summary</Text>
+        <View style={{ width: 40 }} />
+      </View>
+
+      <BookingStepper currentStep={3} />
+
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 150 }}>
+        {/* Map */}
+        <View style={styles.mapContainer}>
+          <MapView
+            style={styles.map}
+            initialRegion={{
+              latitude: lat,
+              longitude: long,
+              latitudeDelta: 0.01,
+              longitudeDelta: 0.01,
+            }}
+            scrollEnabled={false}
+            zoomEnabled={false}
+          >
+            <Marker coordinate={{ latitude: lat, longitude: long }} />
+          </MapView>
+
+          <View style={styles.mapOverlay}>
+            <View style={styles.shopPinCard}>
+              <View style={styles.shopIconContainer}>
+                <Ionicons name="location" size={20} color="#fbc02d" />
+              </View>
+              <View>
+                <Text style={styles.pinShopName}>{shop?.name}</Text>
+                <Text style={styles.pinShopAddress} numberOfLines={1}>
+                  {shop?.address}
+                </Text>
+              </View>
             </View>
+          </View>
+        </View>
 
-            <BookingStepper currentStep={3} />
+        {/* Booking Details */}
+        <View style={styles.card}>
+          <Text style={styles.sectionTitle}>Booking Details</Text>
 
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 150 }}>
+          <View style={styles.row}>
+            <View style={styles.iconBox}>
+              <Ionicons name="car-sport" size={20} color="#555" />
+            </View>
+            <View style={styles.rowContent}>
+              <Text style={styles.label}>Vehicle</Text>
+              <Text style={styles.value}>
+                {vehicle?.type?.toUpperCase()} - {vehicle?.number}
+              </Text>
+            </View>
+          </View>
 
-                {/* Map View */}
-                <View style={styles.mapContainer}>
-                    <MapView
-                        style={styles.map}
-                        initialRegion={{
-                            latitude: lat,
-                            longitude: long,
-                            latitudeDelta: 0.01,
-                            longitudeDelta: 0.01,
-                        }}
-                        scrollEnabled={false} // Minimap usually static
-                        zoomEnabled={false}
-                    >
-                        <Marker
-                            coordinate={{ latitude: lat, longitude: long }}
-                            title={shopName as string}
-                            description={shopAddress as string}
-                        />
-                    </MapView>
-                    <View style={styles.mapOverlay}>
-                        <View style={styles.shopPinCard}>
-                            <View style={styles.shopIconContainer}>
-                                <Ionicons name="location" size={20} color="#fbc02d" />
-                            </View>
-                            <View>
-                                <Text style={styles.pinShopName}>{shopName || 'Shop Name'}</Text>
-                                <Text style={styles.pinShopAddress} numberOfLines={1}>{shopAddress || 'Location'}</Text>
-                            </View>
-                        </View>
-                    </View>
-                </View>
+          <View style={styles.divider} />
 
-                {/* Booking Details Card */}
-                <View style={styles.card}>
-                    <Text style={styles.sectionTitle}>Booking Details</Text>
+          <View style={styles.row}>
+            <View style={styles.iconBox}>
+              <Ionicons name="calendar" size={20} color="#555" />
+            </View>
+            <View style={styles.rowContent}>
+              <Text style={styles.label}>Date & Time</Text>
+              <Text style={styles.value}>
+                {new Date(slot?.date).toLocaleDateString()} • {slot?.time}
+              </Text>
+            </View>
+          </View>
 
-                    <View style={styles.row}>
-                        <View style={styles.iconBox}>
-                            <Ionicons name="car-sport" size={20} color="#555" />
-                        </View>
-                        <View style={styles.rowContent}>
-                            <Text style={styles.label}>Vehicle</Text>
-                            <Text style={styles.value}>
-                                {vehicleType ? (vehicleType as string).charAt(0).toUpperCase() + (vehicleType as string).slice(1) : 'Sedan'} - {vehicleNumber || 'N/A'}
-                            </Text>
-                        </View>
-                    </View>
+          <View style={styles.divider} />
 
-                    <View style={styles.divider} />
+          <View style={styles.row}>
+            <View style={styles.iconBox}>
+              <Ionicons name="call" size={20} color="#555" />
+            </View>
+            <View style={styles.rowContent}>
+              <Text style={styles.label}>Contact Number</Text>
+              <Text style={styles.value}>+91 {user?.phone}</Text>
+            </View>
+          </View>
+        </View>
 
-                    <View style={styles.row}>
-                        <View style={styles.iconBox}>
-                            <Ionicons name="calendar" size={20} color="#555" />
-                        </View>
-                        <View style={styles.rowContent}>
-                            <Text style={styles.label}>Date & Time</Text>
-                            <Text style={styles.value}>
-                                {selectedDate ? new Date(selectedDate as string).toLocaleDateString() : 'Date'}, {selectedTime || 'Time'}
-                            </Text>
-                        </View>
-                    </View>
+        {/* Payment Summary */}
+        <View style={styles.card}>
+          <Text style={styles.sectionTitle}>Payment Summary</Text>
 
-                    <View style={styles.divider} />
+          <View style={styles.paymentRow}>
+            <Text style={styles.paymentLabel}>{service?.name}</Text>
+            <Text style={styles.paymentValue}>₹{service?.totalPrice}</Text>
+          </View>
 
-                    <View style={styles.row}>
-                        <View style={styles.iconBox}>
-                            <Ionicons name="call" size={20} color="#555" />
-                        </View>
-                        <View style={styles.rowContent}>
-                            <Text style={styles.label}>Contact Number</Text>
-                            <Text style={styles.value}>+91 {userPhone || 'N/A'}</Text>
-                        </View>
-                    </View>
-                </View>
+          <View style={styles.totalDivider} />
 
-                {/* Payment Summary */}
-                <View style={styles.card}>
-                    <Text style={styles.sectionTitle}>Payment Summary</Text>
+          <View style={styles.paymentRow}>
+            <Text style={styles.totalTextLabel}>Tax (18% GST)</Text>
+            <Text style={styles.totalTextValue}>₹{taxAmount}</Text>
+          </View>
 
-                    <View style={styles.paymentRow}>
-                        <Text style={styles.paymentLabel}>{serviceName || 'Service'}</Text>
-                        <Text style={styles.paymentValue}>₹{servicePrice || 0}</Text>
-                    </View>
+          <View style={styles.totalDivider} />
 
-                    {addonNames.map((addon) => (
-                        <View key={addon} style={styles.paymentRow}>
-                            <Text style={styles.paymentLabel}>{addon.replace(/([A-Z])/g, ' $1').trim()}</Text>
-                            <Text style={styles.paymentValue}>
-                                {addon === 'acService' ? '+₹10' : '+₹5'}
-                            </Text>
-                        </View>
-                    ))}
+          <View style={styles.paymentRow}>
+            <Text style={styles.totalTextLabel}>Grand Total</Text>
+            <Text style={styles.totalTextValue}>₹{grandTotal}</Text>
+          </View>
+        </View>
 
-                    <View style={styles.totalDivider} />
+        {/* Payment Options */}
+        <Text style={styles.paymentTitle}>Payment Options</Text>
 
-                    <View style={styles.paymentRow}>
-                        <Text style={styles.totalTextLabel}>Tax (18% GST)</Text>
-                        <Text style={styles.totalTextValue}>₹{taxAmount}</Text>
-                    </View>
-                    <View style={styles.totalDivider} />
-                    <View style={styles.paymentRow}>
-                        <Text style={styles.totalTextLabel}>Grand Total</Text>
-                        <Text style={styles.totalTextValue}>₹{grandTotal}</Text>
-                    </View>
-                </View>
-
-                {/* Payment Options */}
-                {/* Payment Options */}
-                <Text style={styles.paymentTitle}>Payment Options</Text>
-
-                {paymentOptions.map((option) => (
-                    <TouchableOpacity
-                        key={option.id}
-                        style={[
-                            styles.optionCard,
-                            selectedPaymentMethod === option.id && styles.optionCardSelected
-                        ]}
-                        onPress={() => setSelectedPaymentMethod(option.id)}
-                    >
-                        {option.recommended && (
-                            <View style={styles.recommendedBadge}>
-                                <Text style={styles.recommendedText}>RECOMMENDED</Text>
-                            </View>
-                        )}
-
-                        <View style={styles.optionRow}>
-                            <View style={styles.radioContainer}>
-                                <View style={[
-                                    styles.radioInfo,
-                                    selectedPaymentMethod === option.id ? styles.radioSelected : styles.radioUnselected
-                                ]}>
-                                    {selectedPaymentMethod === option.id && <View style={styles.radioDot} />}
-                                </View>
-                            </View>
-
-                            <View style={[styles.optionIconContainer, { backgroundColor: selectedPaymentMethod === option.id ? '#f0f9eb' : '#F5F5F5' }]}>
-                                <Ionicons name={option.icon as any} size={24} color={selectedPaymentMethod === option.id ? '#1a1a1a' : '#666'} />
-                            </View>
-
-                            <View style={styles.optionContent}>
-                                <Text style={styles.optionLabel}>{option.label}</Text>
-                                <Text style={styles.optionSubLabel}>{option.subLabel}</Text>
-                            </View>
-                        </View>
-                    </TouchableOpacity>
-                ))}
-
-                <View style={styles.securityNote}>
-                    <Ionicons name="shield-checkmark-outline" size={16} color="#999" />
-                    <Text style={styles.securityText}>100% Safe & Secure Payments</Text>
-                </View>
-
-            </ScrollView>
-
-            {/* Footer */}
-            <View style={styles.footer}>
-                <TouchableOpacity
-                    style={styles.payButton}
-                    onPress={() => {
-                        if (!selectedPaymentMethod) {
-                            Alert.alert('Payment Method Required', 'Please select a payment option to proceed.');
-                            return;
-                        }
-                        router.push({
-                            pathname: '/(tabs)/home/book-service/order-confirmation',
-                            params: {
-                                shopName: shopName,
-                                shopAddress: shopAddress,
-                                shopImage: shopImage,
-                                shopRating: shopRating,
-                                date: selectedDate,
-                                time: selectedTime
-                            }
-                        });
-                    }}
+        {paymentOptions.map(option => (
+          <TouchableOpacity
+            key={option.id}
+            style={[
+              styles.optionCard,
+              selectedPaymentMethod === option.id && styles.optionCardSelected,
+            ]}
+            onPress={() => setSelectedPaymentMethod(option.id)}
+          >
+            <View style={styles.optionRow}>
+              <View style={styles.radioContainer}>
+                <View
+                  style={[
+                    styles.radioInfo,
+                    selectedPaymentMethod === option.id
+                      ? styles.radioSelected
+                      : styles.radioUnselected,
+                  ]}
                 >
-                    <View style={styles.payButtonContent}>
-                        <Ionicons name="lock-closed" size={20} color="#1a1a1a" style={{ marginRight: 8 }} />
-                        <Text style={styles.payButtonText}>Pay ₹{grandTotal}</Text>
-                    </View>
-                </TouchableOpacity>
-            </View>
+                  {selectedPaymentMethod === option.id && <View style={styles.radioDot} />}
+                </View>
+              </View>
 
-        </SafeAreaView>
-    );
+              <View style={styles.optionContent}>
+                <Text style={styles.optionLabel}>{option.label}</Text>
+                <Text style={styles.optionSubLabel}>{option.subLabel}</Text>
+              </View>
+            </View>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+
+      {/* Footer */}
+      <View style={styles.footer}>
+        <TouchableOpacity
+          style={styles.payButton}
+          onPress={() => {
+            if (!selectedPaymentMethod) {
+              Alert.alert('Payment Required', 'Please select a payment option');
+              return;
+            }
+
+            dispatch(
+              addBooking({
+                center: shop.name,
+                address: shop.address,
+                phone: user.phone,
+                serviceName: service.name,
+                price: `₹${grandTotal}`,
+                date: new Date(slot.date).toDateString(),
+                timeSlot: slot.time,
+                car: `${vehicle.type} - ${vehicle.number}`,
+                plate: vehicle.number,
+                carImage: shop.image,
+              })
+            );
+
+            router.replace('/(tabs)/bookings');
+          }}
+        >
+          <Text style={styles.payButtonText}>Pay ₹{grandTotal}</Text>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
+  );
 }
 
 const styles = StyleSheet.create({

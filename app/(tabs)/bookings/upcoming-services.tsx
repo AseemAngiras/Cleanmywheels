@@ -4,13 +4,12 @@ import { Ionicons } from "@expo/vector-icons";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useRef, useState } from "react";
-import { Image } from "react-native";
-
 import {
   Alert,
   Animated,
   Easing,
   FlatList,
+  Image,
   Linking,
   Modal,
   StyleSheet,
@@ -19,36 +18,30 @@ import {
   View,
 } from "react-native";
 
-const initialBookings = [
-  {
-    id: "1",
-    carImage:
-      "https://images.pexels.com/photos/4906936/pexels-photo-4906936.jpeg",
-    center: "Auto Care Plus",
-    date: "2023-10-05",
-    car: "Honda Accord",
-    service: "Tire Rotation",
-    time: "2:30 PM",
-    address: "456 Oak Avenue, Springfield",
-    plate: "XYZ789",
-    price: "$75",
-    phone: "+1 (555) 987-6543",
-  },
-];
+import { RootState } from "../../../store";
+import { useAppDispatch, useAppSelector } from "../../../store/hooks";
+import {
+  Booking,
+  cancelBooking,
+  completeBooking,
+} from "../../../store/slices/bookingSlice";
 
 export default function UpcomingServices() {
-  const [bookings, setBookings] = useState(initialBookings);
-  const [activeBooking, setActiveBooking] = useState<any | null>(null);
+  const dispatch = useAppDispatch();
+
+  const bookings = useAppSelector((state: RootState) =>
+    state.bookings.bookings.filter((b: Booking) => b.status === "upcoming")
+  );
+
+  const [activeBooking, setActiveBooking] = useState<Booking | null>(null);
 
   const [scannerVisible, setScannerVisible] = useState(false);
   const [permission, requestPermission] = useCameraPermissions();
   const [torchOn, setTorchOn] = useState(false);
 
-  // Animations
   const slideAnim = useRef(new Animated.Value(300)).current;
   const scaleAnim = useRef(new Animated.Value(0.95)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
-
   const scanLineAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -118,14 +111,14 @@ export default function UpcomingServices() {
     ]).start(() => setActiveBooking(null));
   };
 
-  const handleQrScanned = ({ data }: { data: string }) => {
+  const handleQrScanned = () => {
+    if (!activeBooking) return;
+
+    dispatch(completeBooking(activeBooking.id));
+
     setScannerVisible(false);
     setTorchOn(false);
-
-    setBookings((prev) => prev.filter((b) => b.id !== activeBooking?.id));
     closeSheet();
-
-    // router.push("/bookings/arrival-confirmed")
   };
 
   const handleDelete = (id: string) => {
@@ -135,7 +128,7 @@ export default function UpcomingServices() {
         text: "Yes",
         style: "destructive",
         onPress: () => {
-          setBookings((prev) => prev.filter((b) => b.id !== id));
+          dispatch(cancelBooking(id));
           closeSheet();
         },
       },
@@ -146,7 +139,7 @@ export default function UpcomingServices() {
     Linking.openURL(`tel:${phone}`);
   };
 
-  const renderItem = ({ item }: any) => (
+  const renderItem = ({ item }: { item: Booking }) => (
     <TouchableOpacity
       activeOpacity={0.9}
       style={styles.cardContainer}
@@ -154,25 +147,41 @@ export default function UpcomingServices() {
     >
       <LinearGradient
         colors={["#FFFFFF", "#F5F8FF", "#F7FAE6"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}
         style={styles.sessionCard}
       >
         <View style={{ flex: 1 }}>
           <Text style={styles.sessionTitle}>{item.center}</Text>
-          <Text style={styles.sessionSubtitle}>{item.date} - {item.time} </Text>
+          <Text style={styles.sessionSubtitle}>
+            {item.date} - {item.timeSlot}
+          </Text>
           <Text style={styles.sessionDuration}>{item.car}</Text>
         </View>
 
         <Image
           source={{ uri: item.carImage }}
           style={{ width: 90, height: 90, borderRadius: 12, marginLeft: 16 }}
-          resizeMode="cover"
         />
 
-        <View style={styles.sessionButton}>
-          <Text style={styles.sessionButtonText}>I am at Workshop</Text>
-          <Ionicons name="chevron-forward" size={18} color="#FFF" />
+        {/* ACTION ROW */}
+        <View style={styles.sessionActionRow}>
+          <TouchableOpacity
+            style={styles.sessionButton}
+            onPress={() => setActiveBooking(item)}
+          >
+            <Text style={styles.sessionButtonText}>I am at Workshop</Text>
+            <Ionicons name="chevron-forward" size={18} color="#FFF" />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.qrIconButton}
+            onPress={() => {
+              setScannerVisible(true);
+              setActiveBooking(item);
+            }}
+            hitSlop={10}
+          >
+            <Ionicons name="qr-code-outline" size={22} color="#000" />
+          </TouchableOpacity>
         </View>
       </LinearGradient>
     </TouchableOpacity>
@@ -188,7 +197,7 @@ export default function UpcomingServices() {
         showsVerticalScrollIndicator={false}
       />
 
-      {/* Bottom Sheet Modal */}
+      {/* Bottom Sheet */}
       <Modal visible={!!activeBooking} transparent animationType="none">
         <Animated.View style={[styles.backdrop, { opacity: opacityAnim }]}>
           <TouchableOpacity
@@ -208,7 +217,7 @@ export default function UpcomingServices() {
           <View style={styles.sheetHeader}>
             <Text style={styles.sheetTitle}>Booking Details</Text>
             <TouchableOpacity onPress={closeSheet}>
-              <Ionicons name="close" size={28} color="#333" />
+              <Ionicons name="close" size={28} />
             </TouchableOpacity>
           </View>
 
@@ -218,30 +227,20 @@ export default function UpcomingServices() {
                 style={styles.qrButton}
                 onPress={() => setScannerVisible(true)}
               >
-                <Ionicons name="qr-code-outline" size={22} color="#000" />
+                <Ionicons name="qr-code-outline" size={22} />
                 <Text style={styles.qrText}>Scan QR to Check-In</Text>
               </TouchableOpacity>
 
               <View style={styles.detailRow}>
                 <Text style={styles.label}>Service</Text>
-                <Text style={styles.value}>{activeBooking.service}</Text>
-              </View>
-
-              <View style={styles.detailRow}>
-                <Text style={styles.label}>Address</Text>
-                <Text style={styles.value}>{activeBooking.address}</Text>
-              </View>
-
-              <View style={styles.detailRow}>
-                <Text style={styles.label}>Plate</Text>
-                <Text style={styles.value}>{activeBooking.plate}</Text>
+                <Text style={styles.value}>{activeBooking.serviceName}</Text>
               </View>
 
               <TouchableOpacity
                 style={styles.callBtn}
                 onPress={() => handleCall(activeBooking.phone)}
               >
-                <Ionicons name="call-outline" size={18} color="#2563EB" />
+                <Ionicons name="call-outline" size={18} />
                 <Text style={styles.callText}>{activeBooking.phone}</Text>
               </TouchableOpacity>
 
@@ -251,7 +250,7 @@ export default function UpcomingServices() {
                   style={styles.cancelBtn}
                   onPress={() => handleDelete(activeBooking.id)}
                 >
-                  <Ionicons name="trash-outline" size={18} color="#EF4444" />
+                  <Ionicons name="trash-outline" size={18} />
                   <Text style={styles.cancelText}>Cancel</Text>
                 </TouchableOpacity>
               </View>
@@ -260,8 +259,15 @@ export default function UpcomingServices() {
         </Animated.View>
       </Modal>
 
-      {/* Scanner Modal */}
+      {/* QR Scanner Modal */}
       <Modal visible={scannerVisible} animationType="slide">
+        <TouchableOpacity
+          style={styles.scannerCloseButton}
+          onPress={() => setScannerVisible(false)}
+        >
+          <Ionicons name="close" size={28} color="#FFF" />
+        </TouchableOpacity>
+
         <View style={styles.scannerContainer}>
           {!permission?.granted ? (
             <View style={styles.permissionView}>
@@ -284,56 +290,39 @@ export default function UpcomingServices() {
                 enableTorch={torchOn}
               />
 
-              {/* Overlay */}
+              {/* Overlay with scan box and scan line */}
               <View style={styles.overlay}>
-                <View style={styles.overlayCenter}>
-                  <View style={styles.overlaySide} />
-                  <View style={styles.scanBoxContainer}>
-                    <View style={styles.scanBox}>
-                      <Animated.View
-                        style={[
-                          styles.scanLine,
-                          {
-                            transform: [
-                              {
-                                translateY: scanLineAnim.interpolate({
-                                  inputRange: [0, 1],
-                                  outputRange: [0, 250 - 4],
-                                }),
-                              },
-                            ],
-                          },
-                        ]}
-                      />
-                    </View>
-                    <Text style={styles.scanHint}>
-                      Position the device at the level of QR code
-                    </Text>
+                <View style={styles.scanBoxContainer}>
+                  <View style={styles.scanBox}>
+                    <Animated.View
+                      style={[
+                        styles.scanLine,
+                        {
+                          transform: [
+                            {
+                              translateY: scanLineAnim.interpolate({
+                                inputRange: [0, 1],
+                                outputRange: [0, 260],
+                              }),
+                            },
+                          ],
+                        },
+                      ]}
+                    />
                   </View>
-                  <View style={styles.overlaySide} />
                 </View>
-              </View>
 
-              {/* Header */}
-              <View style={styles.scannerHeader}>
-                <TouchableOpacity onPress={() => setScannerVisible(false)}>
-                  <Ionicons name="close" size={28} color="#FFF" />
+                <Text style={styles.scanHint}>
+                  Align QR code inside the frame
+                </Text>
+
+                <TouchableOpacity
+                  style={styles.flashButton}
+                  onPress={() => setTorchOn(!torchOn)}
+                >
+                  <Ionicons name="flashlight-outline" size={24} color="#FFF" />
                 </TouchableOpacity>
-                <Text style={styles.scanTitle}>Scan QR Code</Text>
-                <View style={{ width: 28 }} />
               </View>
-
-              {/* Flashlight */}
-              <TouchableOpacity
-                style={styles.flashButton}
-                onPress={() => setTorchOn((prev) => !prev)}
-              >
-                <Ionicons
-                  name={torchOn ? "flashlight" : "flashlight-outline"}
-                  size={24}
-                  color="#FFF"
-                />
-              </TouchableOpacity>
             </>
           )}
         </View>
@@ -384,8 +373,18 @@ const styles = StyleSheet.create({
     color: "#64748B",
   },
 
+  sessionActionRow: {
+    position: "absolute",
+    bottom: 20,
+    left: 20,
+    right: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+
   sessionButton: {
-    marginTop: 18,
+    flex: 1,
     backgroundColor: "#000",
     borderRadius: 28,
     paddingVertical: 14,
@@ -394,10 +393,20 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 10,
-    position: "absolute",
-    bottom: 20,
-    left: 20,
-    right: 20,
+  },
+
+  qrIconButton: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: "#C8F000",
+    alignItems: "center",
+    justifyContent: "center",
+    elevation: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
   },
 
   sessionButtonText: {
@@ -410,9 +419,8 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     backgroundColor: "rgba(0,0,0,0.5)",
   },
-  backdropTouchable: {
-    flex: 1,
-  },
+  backdropTouchable: { flex: 1 },
+
   bottomSheet: {
     position: "absolute",
     paddingBottom: 50,
@@ -522,7 +530,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 
-  // Scanner
   scannerContainer: {
     flex: 1,
     backgroundColor: "#000",
@@ -551,56 +558,29 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 
-  scannerHeader: {
-    position: "absolute",
-    top: 60,
-    left: 20,
-    right: 20,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    zIndex: 10,
-  },
-  scanTitle: {
-    color: "#FFF",
-    fontSize: 20,
-    fontWeight: "600",
-  },
-
   overlay: {
     ...StyleSheet.absoluteFillObject,
     justifyContent: "center",
-  },
-  overlayCenter: {
-    flexDirection: "row",
     alignItems: "center",
-  },
-  overlaySide: {
-    flex: 1,
-    height: "100%",
   },
   scanBoxContainer: {
     alignItems: "center",
+    justifyContent: "center",
   },
   scanBox: {
     width: 260,
     height: 260,
+    borderWidth: 2,
+    borderColor: "#22C55E",
     borderRadius: 16,
     overflow: "hidden",
     position: "relative",
   },
-  topLeft: { top: 0, left: 0, borderTopLeftRadius: 8 },
-  topRight: { top: 0, right: 0, borderTopRightRadius: 8 },
-  bottomLeft: { bottom: 0, left: 0, borderBottomLeftRadius: 8 },
-  bottomRight: { bottom: 0, right: 0, borderBottomRightRadius: 8 },
   scanLine: {
     position: "absolute",
     width: "100%",
     height: 4,
     backgroundColor: "#22C55E",
-    shadowColor: "#22C55E",
-    shadowOpacity: 0.8,
-    shadowRadius: 8,
   },
   scanHint: {
     marginTop: 20,
@@ -608,6 +588,15 @@ const styles = StyleSheet.create({
     fontSize: 15,
     textAlign: "center",
     opacity: 0.9,
+  },
+  scannerCloseButton: {
+    position: "absolute",
+    top: 50,
+    right: 20,
+    zIndex: 10,
+    backgroundColor: "rgba(0, 0, 0, 0.31)",
+    borderRadius: 10,
+    padding: 8,
   },
 
   flashButton: {

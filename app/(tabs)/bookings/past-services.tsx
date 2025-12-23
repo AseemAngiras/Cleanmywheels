@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -15,28 +15,20 @@ import {
   View,
 } from "react-native";
 
-const initialBookings = [
-  {
-    id: "1",
-    carImage: "https://images.pexels.com/photos/4906936/pexels-photo-4906936.jpeg",
-    center: "Service Center A",
-    date: "2023-08-15",
-    car: "Toyota Camry",
-    service: "Oil Change",
-    time: "10:00 AM",
-    address: "123 Main St, Anytown",
-    plate: "ABC123",
-    price: "$50",
-  },
-]
+import { useAppSelector } from "../../../store/hooks";
 
 export default function PastServices() {
-  const [bookings] = useState(initialBookings)
-  const [activeBooking, setActiveBooking] = useState<any | null>(null)
+  const bookings = useAppSelector((state) =>
+    state.bookings.bookings.filter(
+      (b) => b.status === "completed" || b.status === "cancelled"
+    )
+  );
 
-  const slideAnim = useRef(new Animated.Value(300)).current
-  const scaleAnim = useRef(new Animated.Value(0.95)).current
-  const opacityAnim = useRef(new Animated.Value(0)).current
+  const [activeBooking, setActiveBooking] = useState<any | null>(null);
+
+  const slideAnim = useRef(new Animated.Value(300)).current;
+  const scaleAnim = useRef(new Animated.Value(0.95)).current;
+  const opacityAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     if (activeBooking) {
@@ -58,9 +50,9 @@ export default function PastServices() {
           duration: 450,
           useNativeDriver: true,
         }),
-      ]).start()
+      ]).start();
     }
-  }, [activeBooking])
+  }, [activeBooking]);
 
   const closeSheet = () => {
     Animated.parallel([
@@ -81,40 +73,68 @@ export default function PastServices() {
         duration: 350,
         useNativeDriver: true,
       }),
-    ]).start(() => setActiveBooking(null))
-  }
+    ]).start(() => setActiveBooking(null));
+  };
 
-  const renderItem = ({ item }: any) => (
-    <TouchableOpacity
-      activeOpacity={0.9}
-      style={styles.cardContainer}
-      onPress={() => setActiveBooking(item)}
-    >
-      <LinearGradient
-        colors={["#FFFFFF", "#F5F8FF", "#F7FAE6"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}
-        style={styles.sessionCard}
+  const renderItem = ({ item }: any) => {
+    const isCompleted = item.status === "completed";
+    const isCancelled = item.status === "cancelled";
+
+    return (
+      <TouchableOpacity
+        activeOpacity={0.9}
+        style={styles.cardContainer}
+        onPress={() => setActiveBooking(item)}
       >
-        <View style={{ flex: 1 }}>
-          <Text style={styles.sessionTitle}>{item.center}</Text>
-          <Text style={styles.sessionSubtitle}>{item.date}</Text>
-          <Text style={styles.sessionDuration}>{item.car}</Text>
-        </View>
+        <LinearGradient
+          colors={["#FFFFFF", "#F5F8FF", "#F7FAE6"]}
+          style={styles.sessionCard}
+        >
+          <View style={{ flex: 1 }}>
+            <Text style={styles.sessionTitle}>{item.center}</Text>
 
-        <Image
-          source={{ uri: item.carImage }}
-          style={{ width: 90, height: 90, borderRadius: 12, marginLeft: 16 }}
-          resizeMode="cover"
-        />
+            <Text style={styles.sessionSubtitle}>
+              {item.date} • {item.timeSlot}
+            </Text>
 
-        <View style={styles.sessionButton}>
-          <Text style={styles.sessionButtonText}>I am at Workshop</Text>
-          <Ionicons name="chevron-forward" size={18} color="#FFF" />
-        </View>
-      </LinearGradient>
-    </TouchableOpacity>
-  );
+            <Text style={styles.sessionDuration}>{item.car}</Text>
+
+            <View
+              style={[
+                styles.statusBadge,
+                isCompleted && styles.completedBadge,
+                isCancelled && styles.cancelledBadge,
+              ]}
+            >
+              <Ionicons
+                name={
+                  isCompleted
+                    ? "checkmark-circle-outline"
+                    : "close-circle-outline"
+                }
+                size={14}
+                color={isCompleted ? "#15803D" : "#B91C1C"}
+              />
+              <Text
+                style={[
+                  styles.statusText,
+                  isCompleted && styles.completedText,
+                  isCancelled && styles.cancelledText,
+                ]}
+              >
+                {isCompleted ? "Completed" : "Cancelled"}
+              </Text>
+            </View>
+          </View>
+
+          <Image
+            source={{ uri: item.carImage }}
+            style={{ width: 90, height: 90, borderRadius: 12, marginLeft: 16 }}
+          />
+        </LinearGradient>
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <>
@@ -124,11 +144,23 @@ export default function PastServices() {
         renderItem={renderItem}
         contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
         showsVerticalScrollIndicator={false}
+        ListEmptyComponent={
+          <View style={{ marginTop: 80, alignItems: "center" }}>
+            <Ionicons name="time-outline" size={48} color="#CBD5E1" />
+            <Text style={{ marginTop: 12, color: "#64748B", fontSize: 16 }}>
+              No past services yet
+            </Text>
+          </View>
+        }
       />
 
+      {/* Bottom Sheet */}
       <Modal visible={!!activeBooking} transparent animationType="none">
         <Animated.View style={[styles.backdrop, { opacity: opacityAnim }]}>
-          <TouchableOpacity style={StyleSheet.absoluteFill} onPress={closeSheet} />
+          <TouchableOpacity
+            style={StyleSheet.absoluteFill}
+            onPress={closeSheet}
+          />
         </Animated.View>
 
         <Animated.View
@@ -142,29 +174,30 @@ export default function PastServices() {
           <View style={styles.sheetHeader}>
             <Text style={styles.sheetTitle}>Service Details</Text>
             <TouchableOpacity onPress={closeSheet}>
-              <Ionicons name="close" size={28} color="#333" />
+              <Ionicons name="close" size={28} />
             </TouchableOpacity>
           </View>
 
           {activeBooking && (
             <>
               <View style={styles.summaryCard}>
-                <Ionicons name="construct-outline" size={26} color="#1A1A1A" />
+                <Ionicons name="construct-outline" size={26} />
                 <View style={{ flex: 1 }}>
                   <Text style={styles.serviceName}>
-                    {activeBooking.service}
+                    {activeBooking.serviceName}
                   </Text>
                   <Text style={styles.summaryMeta}>
-                    {activeBooking.date} • {activeBooking.time}
+                    {activeBooking.date} • {activeBooking.timeSlot}
                   </Text>
                 </View>
+
                 <View style={styles.completedPill}>
                   <Text style={styles.completedPillText}>COMPLETED</Text>
                 </View>
               </View>
 
               <View style={styles.infoCard}>
-                <Ionicons name="car-sport-outline" size={22} color="#555" />
+                <Ionicons name="car-sport-outline" size={22} />
                 <View>
                   <Text style={styles.infoTitle}>{activeBooking.car}</Text>
                   <Text style={styles.infoSub}>{activeBooking.plate}</Text>
@@ -172,24 +205,20 @@ export default function PastServices() {
               </View>
 
               <View style={styles.infoCard}>
-                <Ionicons name="location-outline" size={22} color="#555" />
-                <Text style={styles.locationText}>
-                  {activeBooking.address}
-                </Text>
+                <Ionicons name="location-outline" size={22} />
+                <Text style={styles.locationText}>{activeBooking.address}</Text>
               </View>
 
               <View style={styles.paymentCard}>
                 <Text style={styles.paymentLabel}>Total Paid</Text>
-                <Text style={styles.paymentAmount}>
-                  {activeBooking.price}
-                </Text>
+                <Text style={styles.paymentAmount}>{activeBooking.price}</Text>
               </View>
             </>
           )}
         </Animated.View>
       </Modal>
     </>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -382,4 +411,27 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#111",
   },
-})
+  statusBadge: {
+    marginTop: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    alignSelf: "flex-start",
+  },
+
+  cancelledBadge: {
+    backgroundColor: "#FEE2E2",
+  },
+
+  statusText: {
+    fontSize: 13,
+    fontWeight: "600",
+  },
+
+  cancelledText: {
+    color: "#B91C1C",
+  },
+});

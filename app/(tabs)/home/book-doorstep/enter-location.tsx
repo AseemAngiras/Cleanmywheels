@@ -1,10 +1,13 @@
 
 import { Ionicons } from '@expo/vector-icons';
+import * as Location from 'expo-location';
 import { useNavigation, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
+    ActivityIndicator,
     Dimensions,
     KeyboardAvoidingView,
+    Modal,
     Platform,
     SafeAreaView,
     ScrollView,
@@ -14,8 +17,9 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
+import MapView, { Marker, Region } from 'react-native-maps';
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 export default function EnterLocationScreen() {
     const router = useRouter();
@@ -36,6 +40,77 @@ export default function EnterLocationScreen() {
     const [addressType, setAddressType] = useState<'Home' | 'Work'>('Home');
 
     const [errorMsg, setErrorMsg] = useState('');
+
+    // Map & Location State
+    const [mapVisible, setMapVisible] = useState(false);
+    const [isLocating, setIsLocating] = useState(false);
+    const [region, setRegion] = useState<Region>({
+        latitude: 37.78825,
+        longitude: -122.4324,
+        latitudeDelta: 0.0922,
+        longitudeDelta: 0.0421,
+    });
+    const [selectedCoord, setSelectedCoord] = useState<{ lat: number, long: number } | null>(null);
+
+    const getCurrentLocation = async () => {
+        setIsLocating(true);
+        setErrorMsg('');
+        try {
+            let { status } = await Location.requestForegroundPermissionsAsync();
+            if (status !== 'granted') {
+                setErrorMsg('Permission to access location was denied');
+                setIsLocating(false);
+                return;
+            }
+
+            let location = await Location.getCurrentPositionAsync({});
+            const { latitude, longitude } = location.coords;
+
+            setRegion({
+                latitude,
+                longitude,
+                latitudeDelta: 0.005,
+                longitudeDelta: 0.005,
+            });
+            setSelectedCoord({ lat: latitude, long: longitude });
+            setMapVisible(true);
+        } catch (error) {
+            console.log(error);
+            setErrorMsg('Could not fetch location');
+        } finally {
+            setIsLocating(false);
+        }
+    };
+
+    const confirmMapLocation = async () => {
+        if (!selectedCoord) return;
+        setMapVisible(false);
+        setIsLocating(true); // Re-use for geocoding waiter
+
+        try {
+            // Reverse Geocode
+            let addressResponse = await Location.reverseGeocodeAsync({
+                latitude: selectedCoord.lat,
+                longitude: selectedCoord.long
+            });
+
+            if (addressResponse && addressResponse.length > 0) {
+                const addr = addressResponse[0];
+                setFlatNumber(addr.name || ''); // Often name is house number or building
+                setBuildingName(addr.street || '');
+                setLocality(addr.district || addr.subregion || '');
+                setCity(addr.city || addr.region || '');
+                setPincode(addr.postalCode || '');
+                // setLandmark() // Creating landmark from others is tricky, leave empty
+            }
+        } catch (e) {
+            console.log("Geocoding error", e);
+            // Fallback: just fill coordinates? or alert?
+            // For now, silently fail deeply, user can edit manually
+        } finally {
+            setIsLocating(false);
+        }
+    };
 
     const handleConfirm = () => {
         setErrorMsg(''); // Clear previous errors
@@ -98,12 +173,12 @@ export default function EnterLocationScreen() {
                 <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
 
                     {/* Use Current Location */}
-                    <TouchableOpacity style={styles.currentLocationRow}>
+                    <TouchableOpacity style={styles.currentLocationRow} onPress={getCurrentLocation} disabled={isLocating}>
                         <View style={styles.locationIconBg}>
-                            <Ionicons name="navigate" size={18} color="#1a1a1a" />
+                            {isLocating ? <ActivityIndicator size="small" color="#1a1a1a" /> : <Ionicons name="navigate" size={18} color="#1a1a1a" />}
                         </View>
                         <View style={{ flex: 1 }}>
-                            <Text style={styles.clTitle}>Use current location</Text>
+                            <Text style={styles.clTitle}>{isLocating ? "Fetching location..." : "Use current location"}</Text>
                             <Text style={styles.clSubtitle}>Enable location services</Text>
                         </View>
                         <Ionicons name="chevron-forward" size={20} color="#ccc" />
@@ -194,6 +269,30 @@ export default function EnterLocationScreen() {
                 </TouchableOpacity>
             </View>
 
+            {/* Map Modal */}
+            <Modal visible={mapVisible} animationType="slide" onRequestClose={() => setMapVisible(false)}>
+                <View style={{ flex: 1 }}>
+                    <MapView
+                        style={{ flex: 1 }}
+                        region={region}
+                        onRegionChangeComplete={setRegion}
+                        onPress={(e) => setSelectedCoord({ lat: e.nativeEvent.coordinate.latitude, long: e.nativeEvent.coordinate.longitude })}
+                    >
+                        {selectedCoord && (
+                            <Marker coordinate={{ latitude: selectedCoord.lat, longitude: selectedCoord.long }} />
+                        )}
+                    </MapView>
+
+                    <View style={styles.mapFooter}>
+                        <TouchableOpacity style={styles.closeMapButton} onPress={() => setMapVisible(false)}>
+                            <Text style={styles.closeMapText}>Cancel</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.confirmMapButton} onPress={confirmMapLocation}>
+                            <Text style={styles.confirmMapText}>Confirm Location</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
         </SafeAreaView>
     );
 }
@@ -329,5 +428,46 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: '#d32f2f',
         backgroundColor: '#ffebee',
+    },
+
+    // Map Styles
+    mapFooter: {
+        position: 'absolute',
+        bottom: 30,
+        left: 20,
+        right: 20,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        backgroundColor: 'transparent',
+    },
+    closeMapButton: {
+        backgroundColor: '#fff',
+        paddingVertical: 15,
+        paddingHorizontal: 25,
+        borderRadius: 30,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
+    },
+    closeMapText: {
+        color: '#1a1a1a',
+        fontWeight: 'bold',
+    },
+    confirmMapButton: {
+        backgroundColor: '#C8F000',
+        paddingVertical: 15,
+        paddingHorizontal: 25,
+        borderRadius: 30,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
+    },
+    confirmMapText: {
+        color: '#1a1a1a',
+        fontWeight: 'bold',
     },
 });

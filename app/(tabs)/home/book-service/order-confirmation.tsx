@@ -1,10 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 
-import React from 'react';
-import { Image, Linking, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import React, { useEffect } from 'react';
-import { Image, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, Linking, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function OrderConfirmationScreen() {
     const router = useRouter();
@@ -12,8 +10,8 @@ export default function OrderConfirmationScreen() {
 
     useEffect(() => {
         navigation.getParent()?.setOptions({
-        tabBarStyle: { display: 'flex' },
-     });
+            tabBarStyle: { display: 'flex' },
+        });
     }, []);
 
     const params = useLocalSearchParams();

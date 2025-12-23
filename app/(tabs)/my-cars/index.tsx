@@ -2,59 +2,38 @@ import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import React, { useState } from "react";
 import {
-    Alert,
-    FlatList,
-    Image,
-    Modal,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  FlatList,
+  Image,
+  Modal,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
-type Car = {
-  id: string;
-  name: string;
-  type: string;
-  number: string;
-  image: string; 
-};
-
-const initialCars: Car[] = [
-  {
-    id: "1",
-    name: "Toyota Camry",
-    type: "Sedan",
-    number: "KA-01-MJ-1234",
-    image: "https://images.pexels.com/photos/170811/pexels-photo-170811.jpeg",
-  },
-  {
-    id: "2",
-    name: "Tesla X",
-    type: "SUV",
-    number: "DL-3C-5678",
-    image: "https://images.pexels.com/photos/116675/pexels-photo-116675.jpeg",
-  },
-  {
-    id: "3",
-    name: "Hyundai i20",
-    type: "Hatchback",
-    number: "MH-12-AB-9012",
-    image: "https://images.pexels.com/photos/244206/pexels-photo-244206.jpeg",
-  },
-];
+import { useAppDispatch, useAppSelector } from "../../../store/hooks";
+import {
+  addCar,
+  Car,
+  removeCar,
+  updateCar,
+} from "../../../store/slices/userSlice";
 
 export default function MyCarsScreen() {
-  const [cars, setCars] = useState<Car[]>(initialCars);
+  const dispatch = useAppDispatch();
+  const cars = useAppSelector((state) => state.user.cars);
+
   const [modalVisible, setModalVisible] = useState(false);
   const [editingCarId, setEditingCarId] = useState<string | null>(null);
 
   const [name, setName] = useState("");
   const [type, setType] = useState("");
   const [number, setNumber] = useState("");
-  const [image, setImage] = useState<string | null>(null);
+  const [image, setImage] = useState<string | undefined>(undefined);
 
+  /* ---------- Image Picker ---------- */
   const pickImage = async () => {
     const permission =
       await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -74,12 +53,13 @@ export default function MyCarsScreen() {
     }
   };
 
+  /* ---------- Modal Helpers ---------- */
   const openAddModal = () => {
     setEditingCarId(null);
     setName("");
     setType("");
     setNumber("");
-    setImage(null);
+    setImage(undefined);
     setModalVisible(true);
   };
 
@@ -92,48 +72,43 @@ export default function MyCarsScreen() {
     setModalVisible(true);
   };
 
+  /* ---------- Save Car ---------- */
   const handleSaveCar = () => {
-    if (!name || !type || !number || !image) {
-      Alert.alert("Error", "Please fill all fields");
+    if (!type || !number) {
+      Alert.alert("Error", "Vehicle type and number are required");
       return;
     }
 
+    const carPayload: Car = {
+      id: editingCarId ?? Date.now().toString(),
+      name: name.trim() || type.toUpperCase(),
+      type,
+      number,
+      image: image || "",
+    };
+
     if (editingCarId) {
-      setCars((prev) =>
-        prev.map((car) =>
-          car.id === editingCarId
-            ? { ...car, name, type, number, image }
-            : car
-        )
-      );
+      dispatch(updateCar(carPayload));
     } else {
-      setCars((prev) => [
-        ...prev,
-        {
-          id: Date.now().toString(),
-          name,
-          type,
-          number,
-          image,
-        },
-      ]);
+      dispatch(addCar(carPayload));
     }
 
     setModalVisible(false);
   };
 
+  /* ---------- Remove ---------- */
   const handleRemoveCar = (id: string) => {
     Alert.alert("Remove Car", "Are you sure?", [
       { text: "Cancel", style: "cancel" },
       {
         text: "Remove",
         style: "destructive",
-        onPress: () =>
-          setCars((prev) => prev.filter((car) => car.id !== id)),
+        onPress: () => dispatch(removeCar(id)),
       },
     ]);
   };
 
+  /* ---------- Render ---------- */
   const renderCar = ({ item }: { item: Car }) => (
     <View style={styles.card}>
       <View style={styles.cardTop}>
@@ -147,7 +122,9 @@ export default function MyCarsScreen() {
           </View>
         </View>
 
-        <Image source={{ uri: item.image }} style={styles.carImage} />
+        {item.image && (
+          <Image source={{ uri: item.image }} style={styles.carImage} />
+        )}
       </View>
 
       <View style={styles.actions}>
@@ -172,10 +149,10 @@ export default function MyCarsScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
-        <Text style={{fontSize: 22}}>
-            My cars : <Text style={{fontWeight: "bold"}}> {cars.length} </Text>
+        <Text style={{ fontSize: 22 }}>
+          My cars :
+          <Text style={{ fontWeight: "bold" }}> {cars.length} </Text>
         </Text>
 
         <TouchableOpacity style={styles.addBtn} onPress={openAddModal}>
@@ -200,7 +177,7 @@ export default function MyCarsScreen() {
             </Text>
 
             <TextInput
-              placeholder="Car Name"
+              placeholder="Car Name (optional)"
               value={name}
               onChangeText={setName}
               style={styles.input}
@@ -218,13 +195,10 @@ export default function MyCarsScreen() {
               value={number}
               onChangeText={setNumber}
               style={styles.input}
+              autoCapitalize="characters"
             />
 
-            {/* IMAGE PICKER */}
-            <TouchableOpacity
-              style={styles.imagePicker}
-              onPress={pickImage}
-            >
+            <TouchableOpacity style={styles.imagePicker} onPress={pickImage}>
               {image ? (
                 <Image source={{ uri: image }} style={styles.preview} />
               ) : (
@@ -240,10 +214,7 @@ export default function MyCarsScreen() {
                 <Text>Cancel</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity
-                style={styles.saveBtn}
-                onPress={handleSaveCar}
-              >
+              <TouchableOpacity style={styles.saveBtn} onPress={handleSaveCar}>
                 <Text>Save</Text>
               </TouchableOpacity>
             </View>
@@ -254,123 +225,34 @@ export default function MyCarsScreen() {
   );
 }
 
+
+/* ---------- Styles ---------- */
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F9F9F9",
-    paddingHorizontal: 16,
-    paddingTop: 50,
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginVertical: 16,
-  },
-  addBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#C8F000",
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-  },
-  addText: {
-    marginLeft: 6,
-    fontWeight: "600",
-  },
-  card: {
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 14,
-    marginBottom: 14,
-    elevation: 3,
-  },
-  cardTop: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
+  container: { flex: 1, backgroundColor: "#F9F9F9", paddingHorizontal: 16, paddingTop: 50 },
+  header: { flexDirection: "row", justifyContent: "space-between", marginVertical: 16 },
+  addBtn: { flexDirection: "row", alignItems: "center", backgroundColor: "#C8F000", paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20 },
+  addText: { marginLeft: 6, fontWeight: "600" },
+  card: { backgroundColor: "#fff", borderRadius: 16, padding: 14, marginBottom: 14, elevation: 3 },
+  cardTop: { flexDirection: "row", alignItems: "center" },
   carName: { fontSize: 16, fontWeight: "700" },
   carType: { color: "#888" },
-  plate: {
-    flexDirection: "row",
-    backgroundColor: "#F2F2F2",
-    borderRadius: 12,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    marginTop: 8,
-  },
+  plate: { flexDirection: "row", backgroundColor: "#F2F2F2", borderRadius: 12, paddingHorizontal: 8, paddingVertical: 4, marginTop: 8 },
   plateText: { fontSize: 11, fontWeight: "700", marginRight: 6 },
   plateNumber: { fontSize: 11 },
-  carImage: {
-    width: 90,
-    height: 60,
-    borderRadius: 12,
-    marginLeft: 10,
-  },
-  actions: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 14,
-  },
-  editBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#C8F000",
-    paddingHorizontal: 18,
-    paddingVertical: 10,
-    borderRadius: 20,
-  },
+  carImage: { width: 90, height: 60, borderRadius: 12, marginLeft: 10, justifyContent: "center", alignItems: "center" },
+  imagePlaceholder: { backgroundColor: "#EEE" },
+  actions: { flexDirection: "row", justifyContent: "space-between", marginTop: 14 },
+  editBtn: { flexDirection: "row", alignItems: "center", backgroundColor: "#C8F000", paddingHorizontal: 18, paddingVertical: 10, borderRadius: 20 },
   editText: { marginLeft: 6, fontWeight: "600" },
   removeBtn: { flexDirection: "row", paddingHorizontal: 18, paddingVertical: 10 },
   removeText: { marginLeft: 6, color: "#777" },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.4)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modal: {
-    backgroundColor: "#fff",
-    width: "90%",
-    borderRadius: 16,
-    padding: 16,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    marginBottom: 12,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#DDD",
-    borderRadius: 10,
-    padding: 10,
-    marginBottom: 10,
-  },
-  imagePicker: {
-    height: 120,
-    borderWidth: 1,
-    borderColor: "#DDD",
-    borderRadius: 12,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 10,
-  },
-  preview: {
-    width: "100%",
-    height: "100%",
-    borderRadius: 12,
-  },
-  modalActions: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 10,
-  },
+  modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.4)", justifyContent: "center", alignItems: "center" },
+  modal: { backgroundColor: "#fff", width: "90%", borderRadius: 16, padding: 16 },
+  modalTitle: { fontSize: 18, fontWeight: "700", marginBottom: 12 },
+  input: { borderWidth: 1, borderColor: "#DDD", borderRadius: 10, padding: 10, marginBottom: 10 },
+  imagePicker: { height: 120, borderWidth: 1, borderColor: "#DDD", borderRadius: 12, justifyContent: "center", alignItems: "center", marginBottom: 10 },
+  preview: { width: "100%", height: "100%", borderRadius: 12 },
+  modalActions: { flexDirection: "row", justifyContent: "space-between", marginTop: 10 },
   cancelBtn: { padding: 12 },
-  saveBtn: {
-    backgroundColor: "#C8F000",
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 20,
-  },
+  saveBtn: { backgroundColor: "#C8F000", paddingHorizontal: 20, paddingVertical: 12, borderRadius: 20 },
 });

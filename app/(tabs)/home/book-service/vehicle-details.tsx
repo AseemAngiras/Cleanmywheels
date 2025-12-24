@@ -45,6 +45,12 @@ export default function VehicleDetailsScreen() {
     return unsubscribe;
   }, [navigation]);
 
+//   useEffect(() => {
+//   console.log('CURRENT SCREEN:', 'vehicle-details or my-cars');
+//   console.log('Store instance in this component:', store);
+//   console.log('Cars from selector:', cars);
+// }, []);
+
   const vehicleTypes = [
     { id: "hatchback", name: "Hatchback", icon: "car-hatchback" },
     { id: "sedan", name: "Sedan", icon: "car" },
@@ -202,11 +208,13 @@ export default function VehicleDetailsScreen() {
               <TouchableOpacity
                 style={styles.nextButton}
                 onPress={() => {
+                    console.log("NEXT BUTTON PRESSED — this should always appear first");
                   let finalCar;
 
                   // Existing car selected
                   if (selectedCarId) {
                     finalCar = cars.find((c) => c.id === selectedCarId);
+                    console.log("selected existing car:", finalCar);
                   }
 
                   // Adding new car
@@ -224,20 +232,16 @@ export default function VehicleDetailsScreen() {
                       image: "",
                     };
 
+                    console.log("creating new car -> will dispatch:", finalCar)
                     dispatch(addCar(finalCar));
+                    console.log("Dispatch called! (but state might not update yet)");
+
                   }
 
-                  if (!finalCar) return;
+                  if (!finalCar)
+                    console.log("No final car -> exiting")
+                     return;
 
-                  router.push({
-                    pathname: "/(tabs)/home/book-service/shops-list",
-                    params: {
-                      ...params,
-                      vehicleId: finalCar.id,
-                      vehicleType: finalCar.type,
-                      vehicleNumber: finalCar.number,
-                    },
-                  });
                 }}
               >
                 <Text style={styles.nextButtonText}>Next</Text>

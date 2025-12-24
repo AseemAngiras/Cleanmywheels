@@ -4,15 +4,16 @@ import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-    Alert,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Alert,
+  Modal,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
 } from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
 import { useDispatch, useSelector } from 'react-redux';
 import BookingStepper from '../../../../components/BookingStepper';
 
@@ -32,7 +33,14 @@ export default function BookingSummaryScreen() {
   const lat = shop?.location?.lat || 37.7749;
   const long = shop?.location?.long || -122.4194;
 
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string | null>(null);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string | null>('upi');
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+
+  // Set default payment method if available (optional)
+  useEffect(() => {
+    // Example: Default to first option
+    // setSelectedPaymentMethod('upi'); 
+  }, []);
 
   const itemTotal = service?.totalPrice || 0;
   const taxAmount = Math.round(itemTotal * 0.18);
@@ -42,8 +50,10 @@ export default function BookingSummaryScreen() {
     { id: 'upi', label: 'UPI', subLabel: 'Google Pay, PhonePe, Paytm', icon: 'wallet-outline', recommended: true },
     { id: 'card', label: 'Credit / Debit Cards', subLabel: 'VISA, MasterCard', icon: 'card-outline' },
     { id: 'netbanking', label: 'Netbanking', subLabel: 'All major banks supported', icon: 'business-outline' },
-    { id: 'cash', label: 'Pay on Delivery / Cash', subLabel: 'Pay after service completion', icon: 'cash-outline' },
+    { id: 'cash', label: 'Pay with Cash', subLabel: 'Pay after service completion', icon: 'cash-outline' },
   ];
+
+  const selectedPaymentOption = paymentOptions.find(opt => opt.id === selectedPaymentMethod);
 
   useEffect(() => {
     navigation.getParent()?.setOptions({
@@ -64,34 +74,19 @@ export default function BookingSummaryScreen() {
 
       <BookingStepper currentStep={3} />
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 150 }}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 110 }}>
         {/* Map */}
-        <View style={styles.mapContainer}>
-          <MapView
-            style={styles.map}
-            initialRegion={{
-              latitude: lat,
-              longitude: long,
-              latitudeDelta: 0.01,
-              longitudeDelta: 0.01,
-            }}
-            scrollEnabled={false}
-            zoomEnabled={false}
-          >
-            <Marker coordinate={{ latitude: lat, longitude: long }} />
-          </MapView>
-
-          <View style={styles.mapOverlay}>
-            <View style={styles.shopPinCard}>
-              <View style={styles.shopIconContainer}>
-                <Ionicons name="location" size={20} color="#fbc02d" />
-              </View>
-              <View>
-                <Text style={styles.pinShopName}>{shop?.name}</Text>
-                <Text style={styles.pinShopAddress} numberOfLines={1}>
-                  {shop?.address}
-                </Text>
-              </View>
+        {/* Shop Details (No Map) */}
+        <View style={[styles.card, { marginTop: 10 }]}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <View style={styles.shopIconContainer}>
+              <Ionicons name="location" size={20} color="#fbc02d" />
+            </View>
+            <View>
+              <Text style={styles.pinShopName}>{shop?.name}</Text>
+              <Text style={styles.pinShopAddress} numberOfLines={1}>
+                {shop?.address}
+              </Text>
             </View>
           </View>
         </View>
@@ -162,46 +157,34 @@ export default function BookingSummaryScreen() {
             <Text style={styles.totalTextValue}>₹{grandTotal}</Text>
           </View>
         </View>
-
-        {/* Payment Options */}
-        <Text style={styles.paymentTitle}>Payment Options</Text>
-
-        {paymentOptions.map(option => (
-          <TouchableOpacity
-            key={option.id}
-            style={[
-              styles.optionCard,
-              selectedPaymentMethod === option.id && styles.optionCardSelected,
-            ]}
-            onPress={() => setSelectedPaymentMethod(option.id)}
-          >
-            <View style={styles.optionRow}>
-              <View style={styles.radioContainer}>
-                <View
-                  style={[
-                    styles.radioInfo,
-                    selectedPaymentMethod === option.id
-                      ? styles.radioSelected
-                      : styles.radioUnselected,
-                  ]}
-                >
-                  {selectedPaymentMethod === option.id && <View style={styles.radioDot} />}
-                </View>
-              </View>
-
-              <View style={styles.optionContent}>
-                <Text style={styles.optionLabel}>{option.label}</Text>
-                <Text style={styles.optionSubLabel}>{option.subLabel}</Text>
-              </View>
-            </View>
-          </TouchableOpacity>
-        ))}
       </ScrollView>
 
       {/* Footer */}
       <View style={styles.footer}>
         <TouchableOpacity
-          style={styles.payButton}
+          style={styles.paymentMethodSelector}
+          onPress={() => setShowPaymentModal(true)}
+        >
+          <View style={styles.payUsingRow}>
+            {selectedPaymentOption && (
+              <Ionicons
+                name={selectedPaymentOption.icon as any}
+                size={14}
+                color="#666"
+                style={{ marginRight: 4 }}
+              />
+            )}
+            <Text style={styles.payUsingText}>PAY USING</Text>
+            <Ionicons name="caret-up" size={10} color="#666" style={{ marginLeft: 4 }} />
+          </View>
+          <Text style={styles.selectedMethodText} numberOfLines={1}>
+            {selectedPaymentOption ? selectedPaymentOption.label : 'Select Payment Mode'}
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.payButton, !selectedPaymentMethod && styles.payButtonDisabled]}
+          disabled={!selectedPaymentMethod}
           onPress={() => {
             if (!selectedPaymentMethod) {
               Alert.alert('Payment Required', 'Please select a payment option');
@@ -226,9 +209,76 @@ export default function BookingSummaryScreen() {
             router.replace('/(tabs)/home/book-service/order-confirmation');
           }}
         >
-          <Text style={styles.payButtonText}>Pay ₹{grandTotal}</Text>
+          <View style={styles.payButtonContent}>
+            <View style={styles.payButtonPriceContainer}>
+              <Text style={styles.payButtonPriceText}>₹{grandTotal}</Text>
+              <Text style={styles.payButtonTotalLabel}>TOTAL</Text>
+            </View>
+            <View style={styles.payButtonActionContainer}>
+              <Text style={styles.payButtonActionText}>Pay Now</Text>
+              <Ionicons name="caret-forward" size={16} color="#1a1a1a" style={{ marginLeft: 4 }} />
+            </View>
+          </View>
         </TouchableOpacity>
       </View>
+
+      {/* Payment Options Modal */}
+      <Modal
+        visible={showPaymentModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowPaymentModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <TouchableWithoutFeedback onPress={() => setShowPaymentModal(false)}>
+            <View style={styles.modalBackdrop} />
+          </TouchableWithoutFeedback>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Payment Options</Text>
+              <TouchableOpacity onPress={() => setShowPaymentModal(false)}>
+                <Ionicons name="close" size={24} color="#1a1a1a" />
+              </TouchableOpacity>
+            </View>
+            <ScrollView contentContainerStyle={styles.modalScroll}>
+              {paymentOptions.map(option => (
+                <TouchableOpacity
+                  key={option.id}
+                  style={[
+                    styles.optionCard,
+                    selectedPaymentMethod === option.id && styles.optionCardSelected,
+                  ]}
+                  onPress={() => {
+                    setSelectedPaymentMethod(option.id);
+                    setShowPaymentModal(false);
+                  }}
+                >
+                  <View style={styles.optionRow}>
+                    <View style={styles.radioContainer}>
+                      <View
+                        style={[
+                          styles.radioInfo,
+                          selectedPaymentMethod === option.id
+                            ? styles.radioSelected
+                            : styles.radioUnselected,
+                        ]}
+                      >
+                        {selectedPaymentMethod === option.id && <View style={styles.radioDot} />}
+                      </View>
+                    </View>
+
+                    <View style={styles.optionContent}>
+                      <Text style={styles.optionLabel}>{option.label}</Text>
+                      <Text style={styles.optionSubLabel}>{option.subLabel}</Text>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
     </SafeAreaView>
   );
 }
@@ -311,13 +361,6 @@ const styles = StyleSheet.create({
     color: '#1a1a1a',
     marginBottom: 15,
   },
-  paymentTitle: {
-    marginLeft: 20,
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#1a1a1a',
-    marginBottom: 15,
-  },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -363,71 +406,139 @@ const styles = StyleSheet.create({
   totalTextLabel: { fontSize: 16, fontWeight: 'bold', color: '#1a1a1a' },
   totalTextValue: { fontSize: 18, fontWeight: 'bold', color: '#1a1a1a' },
 
-  // Footer
+  // Footer & Payment Selector
   footer: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
     backgroundColor: '#fff',
-    padding: 20,
-    paddingBottom: 30,
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    paddingBottom: 24,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
     // Shadow
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -5 },
     shadowOpacity: 0.1,
     shadowRadius: 10,
     elevation: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  paymentMethodSelector: {
+    flex: 1,
+    marginRight: 15,
+    justifyContent: 'center',
+  },
+  payUsingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 2,
+  },
+  payUsingText: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#888',
+    textTransform: 'uppercase',
+  },
+  selectedMethodText: {
+    fontSize: 15,
+    fontWeight: 'bold',
+    color: '#1a1a1a',
   },
   payButton: {
     backgroundColor: '#C8F000',
-    borderRadius: 30,
-    paddingVertical: 16,
-    alignItems: 'center',
+    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    flex: 1.2, // Give button more space
+    height: 50,
+    justifyContent: 'center',
+  },
+  payButtonDisabled: {
+    backgroundColor: '#f0f0f0',
+    opacity: 0.7,
   },
   payButtonContent: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
   },
-  payButtonText: {
+  payButtonPriceContainer: {
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+  },
+  payButtonPriceText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#1a1a1a',
+  },
+  payButtonTotalLabel: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#1a1a1a',
+    opacity: 0.6,
+  },
+  payButtonActionContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  payButtonActionText: {
     fontSize: 16,
     fontWeight: 'bold',
     color: '#1a1a1a',
   },
 
-  // Payment Options Styles
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  modalBackdrop: {
+    flex: 1,
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 25,
+    borderTopRightRadius: 25,
+    paddingTop: 20,
+    paddingBottom: 40,
+    maxHeight: '70%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    marginBottom: 20,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1a1a1a',
+  },
+  modalScroll: {
+    paddingBottom: 20,
+  },
+  // Reusing Option Card Styles
   optionCard: {
     backgroundColor: '#fff',
-    borderRadius: 20,
+    borderRadius: 15,
     marginHorizontal: 20,
     marginBottom: 15,
-    padding: 20,
+    padding: 16,
     borderWidth: 1,
-    borderColor: '#fff',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 3,
-    elevation: 1,
-    position: 'relative',
-    overflow: 'hidden'
+    borderColor: '#eee',
+    // Minimal shadow for list items
   },
   optionCardSelected: {
     borderColor: '#84c95c',
-    backgroundColor: '#fff',
+    backgroundColor: '#f8fff5',
   },
-  recommendedBadge: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    backgroundColor: '#FFEB3B',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderBottomLeftRadius: 10,
-  },
-  recommendedText: { fontSize: 10, fontWeight: 'bold', color: '#1a1a1a' },
   optionRow: { flexDirection: 'row', alignItems: 'flex-start' },
   radioContainer: { marginRight: 15, paddingTop: 2 },
   radioInfo: {
@@ -437,13 +548,7 @@ const styles = StyleSheet.create({
   radioUnselected: { borderColor: '#ddd' },
   radioSelected: { borderColor: '#84c95c' },
   radioDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#84c95c' },
-  optionIconContainer: {
-    width: 40, height: 40, borderRadius: 10,
-    alignItems: 'center', justifyContent: 'center', marginRight: 15
-  },
   optionContent: { flex: 1 },
   optionLabel: { fontSize: 15, fontWeight: 'bold', color: '#1a1a1a', marginBottom: 2 },
-  optionSubLabel: { fontSize: 12, color: '#888', marginBottom: 5 },
-  securityNote: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 20 },
-  securityText: { fontSize: 12, color: '#999', marginLeft: 5 },
+  optionSubLabel: { fontSize: 12, color: '#666' },
 });

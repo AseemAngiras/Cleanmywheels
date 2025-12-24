@@ -2,7 +2,17 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { Alert, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+    Alert,
+    Modal,
+    SafeAreaView,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    TouchableWithoutFeedback,
+    View,
+} from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import BookingStepper from '../../../../components/BookingStepper';
 
@@ -50,7 +60,9 @@ export default function BookingSummaryScreen() {
     const long = parseFloat(longitude as string) || -122.4194;
 
     // Payment Logic
-    const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string | null>(null);
+    const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string | null>('upi');
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
+
     const itemTotal = parseFloat(totalPrice as string) || 0;
     const taxAmount = Math.round(itemTotal * 0.18);
     const grandTotal = itemTotal + taxAmount;
@@ -59,8 +71,10 @@ export default function BookingSummaryScreen() {
         { id: 'upi', label: 'UPI', subLabel: 'Pay via Google Pay, PhonePe, Paytm', icon: 'wallet-outline', recommended: true },
         { id: 'card', label: 'Credit / Debit Cards', subLabel: 'VISA, MasterCard', icon: 'card-outline' },
         { id: 'netbanking', label: 'Netbanking', subLabel: 'All major banks supported', icon: 'business-outline' },
-        { id: 'cash', label: 'Pay on Delivery / Cash', subLabel: 'Pay after service completion', icon: 'cash-outline' },
+        { id: 'cash', label: 'Pay with Cash', subLabel: 'Pay after service completion', icon: 'cash-outline' },
     ];
+
+    const selectedPaymentOption = paymentOptions.find(opt => opt.id === selectedPaymentMethod);
 
     const parsedAddons = addons ? JSON.parse(addons as string) : {};
     const addonNames = Object.keys(parsedAddons).filter(k => parsedAddons[k]);
@@ -212,67 +226,40 @@ export default function BookingSummaryScreen() {
                     </View>
                 </View>
 
-                {/* Payment Options */}
-                <Text style={styles.paymentTitle}>Payment Options</Text>
-
-                {paymentOptions.map((option) => (
-                    <TouchableOpacity
-                        key={option.id}
-                        style={[
-                            styles.optionCard,
-                            selectedPaymentMethod === option.id && styles.optionCardSelected
-                        ]}
-                        onPress={() => setSelectedPaymentMethod(option.id)}
-                    >
-                        {option.recommended && (
-                            <View style={styles.recommendedBadge}>
-                                <Text style={styles.recommendedText}>RECOMMENDED</Text>
-                            </View>
-                        )}
-
-                        <View style={styles.optionRow}>
-                            <View style={styles.radioContainer}>
-                                <View style={[
-                                    styles.radioInfo,
-                                    selectedPaymentMethod === option.id ? styles.radioSelected : styles.radioUnselected
-                                ]}>
-                                    {selectedPaymentMethod === option.id && <View style={styles.radioDot} />}
-                                </View>
-                            </View>
-
-                            <View style={[styles.optionIconContainer, { backgroundColor: selectedPaymentMethod === option.id ? '#f0f9eb' : '#F5F5F5' }]}>
-                                <Ionicons name={option.icon as any} size={24} color={selectedPaymentMethod === option.id ? '#1a1a1a' : '#666'} />
-                            </View>
-
-                            <View style={styles.optionContent}>
-                                <Text style={styles.optionLabel}>{option.label}</Text>
-                                <Text style={styles.optionSubLabel}>{option.subLabel}</Text>
-                            </View>
-                        </View>
-                    </TouchableOpacity>
-                ))}
-
-                <View style={styles.securityNote}>
-                    <Ionicons name="shield-checkmark-outline" size={16} color="#999" />
-                    <Text style={styles.securityText}>100% Safe & Secure Payments</Text>
-                </View>
-
             </ScrollView>
 
             {/* Footer */}
             <View style={styles.footer}>
                 <TouchableOpacity
-                    style={styles.payButton}
+                    style={styles.paymentMethodSelector}
+                    onPress={() => setShowPaymentModal(true)}
+                >
+                    <View style={styles.payUsingRow}>
+                        {selectedPaymentOption && (
+                            <Ionicons
+                                name={selectedPaymentOption.icon as any}
+                                size={14}
+                                color="#666"
+                                style={{ marginRight: 4 }}
+                            />
+                        )}
+                        <Text style={styles.payUsingText}>PAY USING</Text>
+                        <Ionicons name="caret-up" size={10} color="#666" style={{ marginLeft: 4 }} />
+                    </View>
+                    <Text style={styles.selectedMethodText} numberOfLines={1}>
+                        {selectedPaymentOption ? selectedPaymentOption.label : 'Select Payment Mode'}
+                    </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                    style={[styles.payButton, !selectedPaymentMethod && styles.payButtonDisabled]}
+                    disabled={!selectedPaymentMethod}
                     onPress={() => {
                         if (!selectedPaymentMethod) {
                             Alert.alert('Payment Method Required', 'Please select a payment option to proceed.');
                             return;
                         }
                         // Navigate to Order Confirmation / Tracking Ticket
-                        // Assuming reusing generic order confirmation or creating a specific one if flow differs.
-                        // User mentioned "generate the ticket that will show the user about the cleaner live track".
-                        // This usually goes to an Order Confirmation screen first, which then links to tracking, or directly to status.
-                        // Let's point to 'order-confirmation' and we can ensure it handles doorstep logic.
                         router.push({
                             pathname: '/(tabs)/home/book-doorstep/order-confirmation',
                             params: {
@@ -284,11 +271,78 @@ export default function BookingSummaryScreen() {
                     }}
                 >
                     <View style={styles.payButtonContent}>
-                        <Ionicons name="lock-closed" size={20} color="#1a1a1a" style={{ marginRight: 8 }} />
-                        <Text style={styles.payButtonText}>Pay ₹{grandTotal}</Text>
+                        <View style={styles.payButtonPriceContainer}>
+                            <Text style={styles.payButtonPriceText}>₹{grandTotal}</Text>
+                            <Text style={styles.payButtonTotalLabel}>TOTAL</Text>
+                        </View>
+                        <View style={styles.payButtonActionContainer}>
+                            <Text style={styles.payButtonActionText}>Pay Now</Text>
+                            <Ionicons name="caret-forward" size={16} color="#1a1a1a" style={{ marginLeft: 4 }} />
+                        </View>
                     </View>
                 </TouchableOpacity>
             </View>
+
+            {/* Payment Options Modal */}
+            <Modal
+                visible={showPaymentModal}
+                transparent
+                animationType="slide"
+                onRequestClose={() => setShowPaymentModal(false)}
+            >
+                <View style={styles.modalOverlay}>
+                    <TouchableWithoutFeedback onPress={() => setShowPaymentModal(false)}>
+                        <View style={styles.modalBackdrop} />
+                    </TouchableWithoutFeedback>
+                    <View style={styles.modalContent}>
+                        <View style={styles.modalHeader}>
+                            <Text style={styles.modalTitle}>Payment Options</Text>
+                            <TouchableOpacity onPress={() => setShowPaymentModal(false)}>
+                                <Ionicons name="close" size={24} color="#1a1a1a" />
+                            </TouchableOpacity>
+                        </View>
+                        <ScrollView contentContainerStyle={styles.modalScroll}>
+                            {paymentOptions.map(option => (
+                                <TouchableOpacity
+                                    key={option.id}
+                                    style={[
+                                        styles.optionCard,
+                                        selectedPaymentMethod === option.id && styles.optionCardSelected,
+                                    ]}
+                                    onPress={() => {
+                                        setSelectedPaymentMethod(option.id);
+                                        setShowPaymentModal(false);
+                                    }}
+                                >
+                                    <View style={styles.optionRow}>
+                                        <View style={styles.radioContainer}>
+                                            <View
+                                                style={[
+                                                    styles.radioInfo,
+                                                    selectedPaymentMethod === option.id
+                                                        ? styles.radioSelected
+                                                        : styles.radioUnselected,
+                                                ]}
+                                            >
+                                                {selectedPaymentMethod === option.id && <View style={styles.radioDot} />}
+                                            </View>
+                                        </View>
+
+                                        <View style={[styles.optionIconContainer, { backgroundColor: selectedPaymentMethod === option.id ? '#f0f9eb' : '#F5F5F5' }]}>
+                                            <Ionicons name={option.icon as any} size={24} color={selectedPaymentMethod === option.id ? '#1a1a1a' : '#666'} />
+                                        </View>
+
+                                        <View style={styles.optionContent}>
+                                            <Text style={styles.optionLabel}>{option.label}</Text>
+                                            <Text style={styles.optionSubLabel}>{option.subLabel}</Text>
+                                        </View>
+                                    </View>
+                                </TouchableOpacity>
+                            ))}
+                        </ScrollView>
+                    </View>
+                </View>
+            </Modal>
 
         </SafeAreaView>
     );
@@ -429,30 +483,116 @@ const styles = StyleSheet.create({
         left: 0,
         right: 0,
         backgroundColor: '#fff',
-        padding: 20,
-        paddingBottom: 30,
-        borderTopLeftRadius: 30,
-        borderTopRightRadius: 30,
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        paddingBottom: 24,
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+        // Shadow
         shadowColor: '#000',
         shadowOffset: { width: 0, height: -5 },
         shadowOpacity: 0.1,
         shadowRadius: 10,
         elevation: 20,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+    },
+    paymentMethodSelector: {
+        flex: 1,
+        marginRight: 15,
+        justifyContent: 'center',
+    },
+    payUsingRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 2,
+    },
+    payUsingText: {
+        fontSize: 10,
+        fontWeight: 'bold',
+        color: '#888',
+        textTransform: 'uppercase',
+    },
+    selectedMethodText: {
+        fontSize: 15,
+        fontWeight: 'bold',
+        color: '#1a1a1a',
     },
     payButton: {
         backgroundColor: '#C8F000',
-        borderRadius: 30,
-        paddingVertical: 16,
-        alignItems: 'center',
+        borderRadius: 12,
+        paddingVertical: 10,
+        paddingHorizontal: 16,
+        flex: 1.2, // Give button more space
+        height: 50,
+        justifyContent: 'center',
+    },
+    payButtonDisabled: {
+        backgroundColor: '#f0f0f0',
+        opacity: 0.7,
     },
     payButtonContent: {
         flexDirection: 'row',
         alignItems: 'center',
+        justifyContent: 'space-between',
     },
-    payButtonText: {
+    payButtonPriceContainer: {
+        flexDirection: 'column',
+        alignItems: 'flex-start',
+    },
+    payButtonPriceText: {
         fontSize: 16,
         fontWeight: 'bold',
         color: '#1a1a1a',
+    },
+    payButtonTotalLabel: {
+        fontSize: 10,
+        fontWeight: 'bold',
+        color: '#1a1a1a',
+        opacity: 0.6,
+    },
+    payButtonActionContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    payButtonActionText: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#1a1a1a',
+    },
+
+    // Modal Styles
+    modalOverlay: {
+        flex: 1,
+        justifyContent: 'flex-end',
+        backgroundColor: 'rgba(0,0,0,0.5)',
+    },
+    modalBackdrop: {
+        flex: 1,
+    },
+    modalContent: {
+        backgroundColor: '#fff',
+        borderTopLeftRadius: 25,
+        borderTopRightRadius: 25,
+        paddingTop: 20,
+        paddingBottom: 40,
+        maxHeight: '70%',
+    },
+    modalHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 20,
+        marginBottom: 20,
+    },
+    modalTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#1a1a1a',
+    },
+    modalScroll: {
+        paddingBottom: 20,
     },
 
     // Payment Options Styles
@@ -463,7 +603,7 @@ const styles = StyleSheet.create({
         marginBottom: 15,
         padding: 20,
         borderWidth: 1,
-        borderColor: '#fff',
+        borderColor: '#eee', // Changed to match other file
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.03,
@@ -474,7 +614,7 @@ const styles = StyleSheet.create({
     },
     optionCardSelected: {
         borderColor: '#84c95c',
-        backgroundColor: '#fff',
+        backgroundColor: '#f8fff5', // Changed to match other file
     },
     recommendedBadge: {
         position: 'absolute',

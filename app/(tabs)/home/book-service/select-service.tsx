@@ -56,6 +56,7 @@ export default function SelectServiceScreen() {
     // Vehicle State
     const [vehicleType, setVehicleType] = useState('sedan');
     const [vehicleNumber, setVehicleNumber] = useState('');
+    const [selectedCarId, setSelectedCarId] = useState<string | null>(null);
 
     const vehicleTypes = [
         { id: 'hatchback', name: 'Hatchback', icon: 'car-hatchback' },
@@ -124,6 +125,12 @@ export default function SelectServiceScreen() {
 
         return servicePrice + addonTotal;
     };
+
+    const handleSelectExistingCar = (car: any) => {
+        setSelectedCarId(car.id);
+        setVehicleType(car.type);
+        setVehicleNumber(car.number);
+    }
 
     return (
         <SafeAreaView style={styles.safeArea}>
@@ -251,6 +258,56 @@ export default function SelectServiceScreen() {
                             </View>
                         )}
 
+                        {cars.length > 0 && (
+                          <View style={{ marginBottom: 10 }}>
+                            <Text style={styles.sectionTitle}>Saved Cars</Text>
+                                                
+                            <ScrollView
+                              horizontal
+                              showsHorizontalScrollIndicator={false}
+                              contentContainerStyle={{ paddingHorizontal: 20 }}
+                            >
+                              {cars.map((car) => {
+                                const isSelected = selectedCarId === car.id;
+                            
+                                return (
+                                  <TouchableOpacity
+                                    key={car.id}
+                                    style={[
+                                      styles.savedCarCard,
+                                      isSelected && styles.savedCarCardSelected,
+                                    ]}
+                                    onPress={() => handleSelectExistingCar(car)}
+                                  >
+                                    <MaterialCommunityIcons
+                                      name="car"
+                                      size={24}
+                                      color={isSelected ? '#fff' : '#1a1a1a'}
+                                    />
+                                    <Text
+                                      style={[
+                                        styles.savedCarNumber,
+                                        isSelected && { color: '#fff' },
+                                      ]}
+                                    >
+                                      {car.number}
+                                    </Text>
+                                    <Text
+                                      style={[
+                                        styles.savedCarType,
+                                        isSelected && { color: '#fff' },
+                                      ]}
+                                    >
+                                      {car.type.toUpperCase()}
+                                    </Text>
+                                  </TouchableOpacity>
+                                );
+                              })}
+                            </ScrollView>
+                          </View>
+                        )}
+
+
                         {/* Vehicle Selection Section */}
                         <Text style={styles.sectionTitle}>Vehicle Details</Text>
                         <View style={styles.vehicleRow}>
@@ -263,7 +320,11 @@ export default function SelectServiceScreen() {
                                             styles.vehicleIconBtn,
                                             isSelected && styles.vehicleIconBtnSelected
                                         ]}
-                                        onPress={() => setVehicleType(type.id)}
+                                        onPress={() => {
+                                            setSelectedCarId(null);
+                                            setVehicleNumber("");
+                                            setVehicleType(type.id);
+                                        }}
                                     >
                                         <MaterialCommunityIcons
                                             name={type.icon as any}
@@ -585,4 +646,34 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     nextButtonText: { fontSize: 16, fontWeight: 'bold', color: '#1a1a1a' },
+    savedCarCard: {
+    width: 120,
+    height: 100,
+    borderRadius: 14,
+    backgroundColor: '#fff',
+    marginRight: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#eee',
+    },
+
+    savedCarCardSelected: {
+    backgroundColor: '#1a1a1a',
+    borderColor: '#1a1a1a',
+    },
+
+    savedCarNumber: {
+    marginTop: 6,
+    fontSize: 13,
+    fontWeight: 'bold',
+    color: '#1a1a1a',
+    },
+
+    savedCarType: {
+    fontSize: 11,
+    color: '#666',
+    marginTop: 2,
+    },
+
 });

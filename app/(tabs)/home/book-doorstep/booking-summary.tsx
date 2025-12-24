@@ -13,7 +13,6 @@ import {
     TouchableWithoutFeedback,
     View,
 } from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
 import BookingStepper from '../../../../components/BookingStepper';
 
 export default function BookingSummaryScreen() {
@@ -107,34 +106,15 @@ export default function BookingSummaryScreen() {
 
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 150 }}>
 
-                {/* Map View - Showing User Location for Doorstep */}
-                <View style={styles.mapContainer}>
-                    <MapView
-                        style={styles.map}
-                        initialRegion={{
-                            latitude: lat,
-                            longitude: long,
-                            latitudeDelta: 0.01,
-                            longitudeDelta: 0.01,
-                        }}
-                        scrollEnabled={false}
-                        zoomEnabled={false}
-                    >
-                        <Marker
-                            coordinate={{ latitude: lat, longitude: long }}
-                            title="Your Location"
-                            description={address as string || "Selected Address"}
-                        />
-                    </MapView>
-                    <View style={styles.mapOverlay}>
-                        <View style={styles.shopPinCard}>
-                            <View style={styles.shopIconContainer}>
-                                <Ionicons name="home" size={20} color="#fbc02d" />
-                            </View>
-                            <View style={{ flex: 1 }}>
-                                <Text style={styles.pinShopName}>Service Location</Text>
-                                <Text style={styles.pinShopAddress} numberOfLines={1}>{address || 'Your Address'}</Text>
-                            </View>
+                {/* Service Location (No Map) */}
+                <View style={[styles.card, { marginTop: 10 }]}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <View style={styles.shopIconContainer}>
+                            <Ionicons name="home" size={20} color="#fbc02d" />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                            <Text style={styles.pinShopName}>Service Location</Text>
+                            <Text style={styles.pinShopAddress} numberOfLines={1}>{address || 'Your Address'}</Text>
                         </View>
                     </View>
                 </View>

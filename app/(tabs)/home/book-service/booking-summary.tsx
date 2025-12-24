@@ -197,7 +197,7 @@ export default function BookingSummaryScreen() {
                 address: shop.address,
                 phone: user.phone,
                 serviceName: service.name,
-                price: `₹${grandTotal}`,
+                price: grandTotal,
                 date: new Date(slot.date).toDateString(),
                 timeSlot: slot.time,
                 car: `${vehicle.type} - ${vehicle.number}`,

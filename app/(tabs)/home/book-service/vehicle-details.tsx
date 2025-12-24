@@ -2,7 +2,7 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { addCar } from "@/store/slices/userSlice";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
     Keyboard,
     KeyboardAvoidingView,
@@ -217,7 +217,7 @@ export default function VehicleDetailsScreen() {
                     console.log("selected existing car:", finalCar);
                   }
 
-                  // Adding r
+                  // Adding new car
                   if (addingNew) {
                     if (!vehicleNumber.trim()) {
                       alert("Please enter vehicle number");

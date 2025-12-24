@@ -1,9 +1,9 @@
-"use client";
+"use client"
 
-import { Ionicons } from "@expo/vector-icons";
-import { CameraView, useCameraPermissions } from "expo-camera";
-import { LinearGradient } from "expo-linear-gradient";
-import { useEffect, useRef, useState } from "react";
+import { Ionicons } from "@expo/vector-icons"
+import { CameraView, useCameraPermissions } from "expo-camera"
+import { LinearGradient } from "expo-linear-gradient"
+import { useEffect, useRef, useState } from "react"
 import {
   Alert,
   Animated,
@@ -16,33 +16,29 @@ import {
   Text,
   TouchableOpacity,
   View,
-} from "react-native";
+} from "react-native"
 
-import { RootState } from "../../../store";
-import { useAppDispatch, useAppSelector } from "../../../store/hooks";
-import {
-  Booking,
-  cancelBooking,
-  completeBooking,
-} from "../../../store/slices/bookingSlice";
+import type { RootState } from "../../../store"
+import { useAppDispatch, useAppSelector } from "../../../store/hooks"
+import { type Booking, cancelBooking, completeBooking } from "../../../store/slices/bookingSlice"
 
 export default function UpcomingServices() {
-  const dispatch = useAppDispatch();
+  const dispatch = useAppDispatch()
 
   const bookings = useAppSelector((state: RootState) =>
-    state.bookings.bookings.filter((b: Booking) => b.status === "upcoming")
-  );
+    state.bookings.bookings.filter((b: Booking) => b.status === "upcoming"),
+  )
 
-  const [activeBooking, setActiveBooking] = useState<Booking | null>(null);
+  const [activeBooking, setActiveBooking] = useState<Booking | null>(null)
 
-  const [scannerVisible, setScannerVisible] = useState(false);
-  const [permission, requestPermission] = useCameraPermissions();
-  const [torchOn, setTorchOn] = useState(false);
+  const [scannerVisible, setScannerVisible] = useState(false)
+  const [permission, requestPermission] = useCameraPermissions()
+  const [torchOn, setTorchOn] = useState(false)
 
-  const slideAnim = useRef(new Animated.Value(300)).current;
-  const scaleAnim = useRef(new Animated.Value(0.95)).current;
-  const opacityAnim = useRef(new Animated.Value(0)).current;
-  const scanLineAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(300)).current
+  const scaleAnim = useRef(new Animated.Value(0.95)).current
+  const opacityAnim = useRef(new Animated.Value(0)).current
+  const scanLineAnim = useRef(new Animated.Value(0)).current
 
   useEffect(() => {
     if (activeBooking) {
@@ -64,9 +60,9 @@ export default function UpcomingServices() {
           duration: 450,
           useNativeDriver: true,
         }),
-      ]).start();
+      ]).start()
     }
-  }, [activeBooking]);
+  }, [activeBooking])
 
   useEffect(() => {
     if (scannerVisible) {
@@ -84,10 +80,10 @@ export default function UpcomingServices() {
             easing: Easing.linear,
             useNativeDriver: true,
           }),
-        ])
-      ).start();
+        ]),
+      ).start()
     }
-  }, [scannerVisible]);
+  }, [scannerVisible])
 
   const closeSheet = () => {
     Animated.parallel([
@@ -108,18 +104,18 @@ export default function UpcomingServices() {
         duration: 350,
         useNativeDriver: true,
       }),
-    ]).start(() => setActiveBooking(null));
-  };
+    ]).start(() => setActiveBooking(null))
+  }
 
   const handleQrScanned = () => {
-    if (!activeBooking) return;
+    if (!activeBooking) return
 
-    dispatch(completeBooking(activeBooking.id));
+    dispatch(completeBooking(activeBooking.id))
 
-    setScannerVisible(false);
-    setTorchOn(false);
-    closeSheet();
-  };
+    setScannerVisible(false)
+    setTorchOn(false)
+    closeSheet()
+  }
 
   const handleDelete = (id: string) => {
     Alert.alert("Cancel Booking", "Are you sure you want to cancel?", [
@@ -128,68 +124,53 @@ export default function UpcomingServices() {
         text: "Yes",
         style: "destructive",
         onPress: () => {
-          dispatch(cancelBooking(id));
-          closeSheet();
+          dispatch(cancelBooking(id))
+          closeSheet()
         },
       },
-    ]);
-  };
+    ])
+  }
 
   const handleCall = (phone: string) => {
-    Linking.openURL(`tel:${phone}`);
-  };
+    Linking.openURL(`tel:${phone}`)
+  }
 
-const renderItem = ({ item }: any) => {
+  const renderItem = ({ item }: any) => {
+    return (
+      <TouchableOpacity activeOpacity={0.9} style={styles.cardContainer} onPress={() => setActiveBooking(item)}>
+        <LinearGradient colors={["#FFFFFF", "#F5F8FF", "#F7FAE6"]} style={styles.sessionCard}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.sessionTitle}>{item.center}</Text>
+            <Text style={styles.sessionSubtitle}>
+              {item.date} - {item.timeSlot}
+            </Text>
+            <Text style={styles.sessionDuration}>{item.car}</Text>
+          </View>
 
-  return (
-    <TouchableOpacity
-      activeOpacity={0.9}
-      style={styles.cardContainer}
-      onPress={() => setActiveBooking(item)}
-    >
-      <LinearGradient
-        colors={["#FFFFFF", "#F5F8FF", "#F7FAE6"]}
-        style={styles.sessionCard}
-      >
-        <View style={{ flex: 1 }}>
-          <Text style={styles.sessionTitle}>{item.center}</Text>
-          <Text style={styles.sessionSubtitle}>
-            {item.date} - {item.timeSlot}
-          </Text>
-          <Text style={styles.sessionDuration}>{item.car}</Text>
-        </View>
+          <Image source={{ uri: item.carImage }} style={{ width: 90, height: 90, borderRadius: 12, marginLeft: 16 }} />
 
-        <Image
-          source={{ uri: item.carImage }}
-          style={{ width: 90, height: 90, borderRadius: 12, marginLeft: 16 }}
-        />
+          {/* ACTION ROW */}
+          <View style={styles.sessionActionRow}>
+            <TouchableOpacity style={styles.sessionButton} onPress={() => setActiveBooking(item)}>
+              <Text style={styles.sessionButtonText}>I am at Workshop</Text>
+              <Ionicons name="chevron-forward" size={18} color="#FFF" />
+            </TouchableOpacity>
 
-        {/* ACTION ROW */}
-        <View style={styles.sessionActionRow}>
-          <TouchableOpacity
-            style={styles.sessionButton}
-            onPress={() => setActiveBooking(item)}
-          >
-            <Text style={styles.sessionButtonText}>I am at Workshop</Text>
-            <Ionicons name="chevron-forward" size={18} color="#FFF" />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.qrIconButton}
-            onPress={() => {
-              setScannerVisible(true);
-              setActiveBooking(item);
-            }}
-            hitSlop={10}
-          >
-            <Ionicons name="qr-code-outline" size={22} color="#000" />
-          </TouchableOpacity>
-        </View>
-      </LinearGradient>
-    </TouchableOpacity>
-  );
-};
-
+            <TouchableOpacity
+              style={styles.qrIconButton}
+              onPress={() => {
+                setScannerVisible(true)
+                setActiveBooking(item)
+              }}
+              hitSlop={10}
+            >
+              <Ionicons name="qr-code-outline" size={22} color="#000" />
+            </TouchableOpacity>
+          </View>
+        </LinearGradient>
+      </TouchableOpacity>
+    )
+  }
 
   return (
     <>
@@ -200,12 +181,8 @@ const renderItem = ({ item }: any) => {
         ListEmptyComponent={() => (
           <View style={{ alignItems: "center", marginTop: 80 }}>
             <Ionicons name="calendar-outline" size={60} color="#CBD5E1" />
-            <Text style={{ fontSize: 18, fontWeight: "600", marginTop: 16 }}>
-              No upcoming bookings
-            </Text>
-            <Text style={{ color: "#64748B", marginTop: 6 }}>
-              Book a service to see it here
-            </Text>
+            <Text style={{ fontSize: 18, fontWeight: "600", marginTop: 16 }}>No upcoming bookings</Text>
+            <Text style={{ color: "#64748B", marginTop: 6 }}>Book a service to see it here</Text>
           </View>
         )}
       />
@@ -213,10 +190,7 @@ const renderItem = ({ item }: any) => {
       {/* Bottom Sheet */}
       <Modal visible={!!activeBooking} transparent animationType="none">
         <Animated.View style={[styles.backdrop, { opacity: opacityAnim }]}>
-          <TouchableOpacity
-            style={styles.backdropTouchable}
-            onPress={closeSheet}
-          />
+          <TouchableOpacity style={styles.backdropTouchable} onPress={closeSheet} />
         </Animated.View>
 
         <Animated.View
@@ -236,10 +210,7 @@ const renderItem = ({ item }: any) => {
 
           {activeBooking && (
             <>
-              <TouchableOpacity
-                style={styles.qrButton}
-                onPress={() => setScannerVisible(true)}
-              >
+              <TouchableOpacity style={styles.qrButton} onPress={() => setScannerVisible(true)}>
                 <Ionicons name="qr-code-outline" size={22} />
                 <Text style={styles.qrText}>Scan QR to Check-In</Text>
               </TouchableOpacity>
@@ -249,20 +220,46 @@ const renderItem = ({ item }: any) => {
                 <Text style={styles.value}>{activeBooking.serviceName}</Text>
               </View>
 
-              <TouchableOpacity
-                style={styles.callBtn}
-                onPress={() => handleCall(activeBooking.phone)}
-              >
+              <View style={styles.detailRow}>
+                <Text style={styles.label}>Center</Text>
+                <Text style={styles.value}>{activeBooking.center}</Text>
+              </View>
+
+              <View style={styles.detailRow}>
+                <Text style={styles.label}>Address</Text>
+                <Text style={styles.value}>{activeBooking.address}</Text>
+              </View>
+
+              <View style={styles.detailRow}>
+                <Text style={styles.label}>Date</Text>
+                <Text style={styles.value}>{activeBooking.date}</Text>
+              </View>
+
+              <View style={styles.detailRow}>
+                <Text style={styles.label}>Time</Text>
+                <Text style={styles.value}>{activeBooking.timeSlot}</Text>
+              </View>
+
+              {/* Car */}
+              <View style={styles.detailRow}>
+                <Text style={styles.label}>Car</Text>
+                <Text style={styles.value}>{activeBooking.car}</Text>
+              </View>
+
+              {/* Plate */}
+              <View style={styles.detailRow}>
+                <Text style={styles.label}>Plate No.</Text>
+                <Text style={styles.value}>{activeBooking.plate}</Text>
+              </View>
+
+              <TouchableOpacity style={styles.callBtn} onPress={() => handleCall(activeBooking.phone)}>
                 <Ionicons name="call-outline" size={18} />
                 <Text style={styles.callText}>{activeBooking.phone}</Text>
               </TouchableOpacity>
 
               <View style={styles.sheetFooter}>
                 <Text style={styles.price}>{activeBooking.price}</Text>
-                <TouchableOpacity
-                  style={styles.cancelBtn}
-                  onPress={() => handleDelete(activeBooking.id)}
-                >
+                <TouchableOpacity style={styles.cancelBtn} onPress={() => handleDelete(activeBooking.id)}>
                   <Ionicons name="trash-outline" size={18} />
                   <Text style={styles.cancelText}>Cancel</Text>
                 </TouchableOpacity>
@@ -274,23 +271,15 @@ const renderItem = ({ item }: any) => {
 
       {/* QR Scanner Modal */}
       <Modal visible={scannerVisible} animationType="slide">
-        <TouchableOpacity
-          style={styles.scannerCloseButton}
-          onPress={() => setScannerVisible(false)}
-        >
+        <TouchableOpacity style={styles.scannerCloseButton} onPress={() => setScannerVisible(false)}>
           <Ionicons name="close" size={28} color="#FFF" />
         </TouchableOpacity>
 
         <View style={styles.scannerContainer}>
           {!permission?.granted ? (
             <View style={styles.permissionView}>
-              <Text style={styles.permissionText}>
-                Camera permission required
-              </Text>
-              <TouchableOpacity
-                style={styles.allowButton}
-                onPress={requestPermission}
-              >
+              <Text style={styles.permissionText}>Camera permission required</Text>
+              <TouchableOpacity style={styles.allowButton} onPress={requestPermission}>
                 <Text style={styles.allowText}>Allow Camera</Text>
               </TouchableOpacity>
             </View>
@@ -325,14 +314,9 @@ const renderItem = ({ item }: any) => {
                   </View>
                 </View>
 
-                <Text style={styles.scanHint}>
-                  Align QR code inside the frame
-                </Text>
+                <Text style={styles.scanHint}>Align QR code inside the frame</Text>
 
-                <TouchableOpacity
-                  style={styles.flashButton}
-                  onPress={() => setTorchOn(!torchOn)}
-                >
+                <TouchableOpacity style={styles.flashButton} onPress={() => setTorchOn(!torchOn)}>
                   <Ionicons name="flashlight-outline" size={24} color="#FFF" />
                 </TouchableOpacity>
               </View>
@@ -341,7 +325,7 @@ const renderItem = ({ item }: any) => {
         </View>
       </Modal>
     </>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
@@ -436,29 +420,29 @@ const styles = StyleSheet.create({
 
   bottomSheet: {
     position: "absolute",
-    paddingBottom: 50,
+    paddingBottom: 30,
     left: 0,
     right: 0,
     bottom: 0,
     backgroundColor: "#FFFFFF",
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
-    padding: 24,
-    maxHeight: "85%",
+    padding: 16,
+    maxHeight: "80%",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 16,
-    elevation: 20,
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 15,
   },
   sheetHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: 12,
   },
   sheetTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: "700",
     color: "#111",
   },
@@ -470,13 +454,13 @@ const styles = StyleSheet.create({
     gap: 10,
     backgroundColor: "#C8F000",
     borderRadius: 16,
-    padding: 16,
-    marginBottom: 20,
+    padding: 12,
+    marginBottom: 12,
     borderWidth: 1,
     borderColor: "#BFDBFE",
   },
   qrText: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: "600",
     color: "#000",
   },
@@ -485,18 +469,18 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingVertical: 12,
+    paddingVertical: 8,
     borderBottomWidth: 1,
     borderBottomColor: "#F1F5F9",
   },
   label: {
     color: "#64748B",
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: "500",
   },
   value: {
     color: "#1E293B",
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: "500",
     textAlign: "right",
     flex: 1,
@@ -508,12 +492,12 @@ const styles = StyleSheet.create({
     gap: 10,
     backgroundColor: "#EFF6FF",
     borderRadius: 16,
-    padding: 16,
-    marginVertical: 16,
+    padding: 12,
+    marginVertical: 10,
   },
   callText: {
     color: "#2563EB",
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: "600",
   },
 
@@ -521,10 +505,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: 12,
+    marginTop: 8,
   },
   price: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: "700",
     color: "#111",
   },
@@ -533,13 +517,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 8,
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 10,
     backgroundColor: "#FEE2E2",
     borderRadius: 12,
   },
   cancelText: {
     color: "#B91C1C",
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: "600",
   },
 
@@ -621,4 +605,4 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     borderWidth: 2,
   },
-});
+})

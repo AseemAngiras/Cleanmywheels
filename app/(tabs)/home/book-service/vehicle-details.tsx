@@ -1,4 +1,3 @@
-import { store } from "@/store";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { addCar } from "@/store/slices/userSlice";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
@@ -46,11 +45,11 @@ export default function VehicleDetailsScreen() {
     return unsubscribe;
   }, [navigation]);
 
-  useEffect(() => {
-  console.log('CURRENT SCREEN:', 'vehicle-details or my-cars');
-  console.log('Store instance in this component:', store);
-  console.log('Cars from selector:', cars);
-}, []);
+//   useEffect(() => {
+//   console.log('CURRENT SCREEN:', 'vehicle-details or my-cars');
+//   console.log('Store instance in this component:', store);
+//   console.log('Cars from selector:', cars);
+// }, []);
 
   const vehicleTypes = [
     { id: "hatchback", name: "Hatchback", icon: "car-hatchback" },

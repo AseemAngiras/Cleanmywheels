@@ -33,7 +33,6 @@ export default function MyCarsScreen() {
   const [number, setNumber] = useState("");
   const [image, setImage] = useState<string | undefined>(undefined);
 
-  /* ---------- Image Picker ---------- */
   const pickImage = async () => {
     const permission =
       await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -53,7 +52,6 @@ export default function MyCarsScreen() {
     }
   };
 
-  /* ---------- Modal Helpers ---------- */
   const openAddModal = () => {
     setEditingCarId(null);
     setName("");
@@ -72,7 +70,6 @@ export default function MyCarsScreen() {
     setModalVisible(true);
   };
 
-  /* ---------- Save Car ---------- */
   const handleSaveCar = () => {
     if (!type || !number) {
       Alert.alert("Error", "Vehicle type and number are required");
@@ -96,7 +93,6 @@ export default function MyCarsScreen() {
     setModalVisible(false);
   };
 
-  /* ---------- Remove ---------- */
   const handleRemoveCar = (id: string) => {
     Alert.alert("Remove Car", "Are you sure?", [
       { text: "Cancel", style: "cancel" },
@@ -226,7 +222,6 @@ export default function MyCarsScreen() {
 }
 
 
-/* ---------- Styles ---------- */
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#F9F9F9", paddingHorizontal: 16, paddingTop: 50 },
   header: { flexDirection: "row", justifyContent: "space-between", marginVertical: 16 },

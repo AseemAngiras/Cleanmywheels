@@ -10,7 +10,7 @@ export interface Booking {
   car: string;
   carImage: string;
   phone: string;
-  price: string;
+  price: number;
   address: string;  
   plate: string;
   serviceName: string;
@@ -59,7 +59,7 @@ const bookingSlice = createSlice({
       state.currentBooking.address = action.payload.addressId;
     },
 
-    setBookingService(state, action: PayloadAction<{serviceName: string, price: string}>) {
+    setBookingService(state, action: PayloadAction<{serviceName: string, price: number}>) {
       state.currentBooking.serviceName = action.payload.serviceName;
       state.currentBooking.price = action.payload.price;
     },

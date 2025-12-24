@@ -1,6 +1,6 @@
 import { RootState } from "@/store";
 import { setBookingAddress } from "@/store/slices/bookingSlice";
-import { addAddress } from "@/store/slices/profileSlice";
+import { addAddress, Address } from "@/store/slices/profileSlice";
 import { Ionicons } from "@expo/vector-icons";
 import { nanoid } from "@reduxjs/toolkit";
 import * as Location from "expo-location";
@@ -67,7 +67,7 @@ export default function EnterLocationScreen() {
     long: number;
   } | null>(null);
 
-  const fillAddressInputs = (addr: any) => {
+  const fillAddressInputs = (addr: Address) => {
     setFlatNumber(addr.flatNumber);
     setBuildingName(addr.buildingName);
     setLocality(addr.locality);
@@ -127,6 +127,10 @@ export default function EnterLocationScreen() {
     setMapVisible(false);
     setIsLocating(true);
 
+    if (selectedSavedAddressId) {
+      setSelectedSavedAddressId(null);
+    }
+
     try {
       let addressResponse = await Location.reverseGeocodeAsync({
         latitude: selectedCoord.lat,
@@ -171,6 +175,17 @@ export default function EnterLocationScreen() {
       return;
     }
 
+    if (selectedSavedAddressId) {
+      dispatch(
+        setBookingAddress({
+          addressId: selectedSavedAddressId,
+        })
+      );
+
+      router.push("/(tabs)/home/book-doorstep/select-service");
+      return;
+    }
+
     const fullAddress = `${flatNumber}, ${buildingName}, ${locality}, ${city}, ${pincode}`;
 
     const addressObject = {
@@ -189,11 +204,7 @@ export default function EnterLocationScreen() {
 
     dispatch(addAddress(addressObject));
 
-    dispatch(
-      setBookingAddress({
-        addressId: addressObject.id,
-      })
-    );
+    dispatch(setBookingAddress({ addressId: addressObject.id }));
 
     router.push("/(tabs)/home/book-doorstep/select-service");
   };
@@ -355,7 +366,7 @@ export default function EnterLocationScreen() {
               placeholder="City"
               placeholderTextColor="#ccc"
               value={city}
-              onChangeText={handleInputChange(setErrorMsg)}
+              onChangeText={handleInputChange(setCity)}
             />
             <TextInput
               style={[

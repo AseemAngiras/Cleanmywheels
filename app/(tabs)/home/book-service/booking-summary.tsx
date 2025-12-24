@@ -4,13 +4,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-    Alert,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Alert,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { useDispatch, useSelector } from 'react-redux';
@@ -26,7 +26,7 @@ export default function BookingSummaryScreen() {
     ? JSON.parse(bookingDraft as string)
     : null;
 
-    const user = useSelector((state: RootState) => state.user);
+  const user = useSelector((state: RootState) => state.user);
   const { service, vehicle, shop, slot } = parsedBooking || {};
 
   const lat = shop?.location?.lat || 37.7749;
@@ -223,7 +223,7 @@ export default function BookingSummaryScreen() {
               })
             );
 
-            router.replace('/(tabs)/home/book-doorstep/order-confirmation');
+            router.replace('/(tabs)/home/book-service/order-confirmation');
           }}
         >
           <Text style={styles.payButtonText}>Pay ₹{grandTotal}</Text>
@@ -234,216 +234,216 @@ export default function BookingSummaryScreen() {
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#f9f9f9' },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: 20,
-        paddingVertical: 15,
-        backgroundColor: '#f9f9f9',
-    },
-    backButton: { padding: 5 },
-    headerTitle: { fontSize: 18, fontWeight: 'bold', color: '#1a1a1a' },
+  container: { flex: 1, backgroundColor: '#f9f9f9' },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    backgroundColor: '#f9f9f9',
+  },
+  backButton: { padding: 5 },
+  headerTitle: { fontSize: 18, fontWeight: 'bold', color: '#1a1a1a' },
 
-    // Map
-    mapContainer: {
-        height: 200,
-        marginHorizontal: 20,
-        borderRadius: 20,
-        overflow: 'hidden',
-        marginTop: 10,
-        marginBottom: 20,
-        position: 'relative',
-        // Shadow
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 10,
-        elevation: 5,
-    },
-    map: {
-        width: '100%',
-        height: '100%',
-    },
-    mapOverlay: {
-        position: 'absolute',
-        bottom: 15,
-        left: 15,
-        right: 15,
-    },
-    shopPinCard: {
-        backgroundColor: 'rgba(255, 255, 255, 0.95)',
-        borderRadius: 15,
-        padding: 12,
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    shopIconContainer: {
-        width: 32,
-        height: 32,
-        borderRadius: 16,
-        backgroundColor: '#FFF9C4',
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginRight: 10,
-    },
-    pinShopName: { fontSize: 14, fontWeight: 'bold', color: '#1a1a1a' },
-    pinShopAddress: { fontSize: 10, color: '#666', marginTop: 2 },
+  // Map
+  mapContainer: {
+    height: 200,
+    marginHorizontal: 20,
+    borderRadius: 20,
+    overflow: 'hidden',
+    marginTop: 10,
+    marginBottom: 20,
+    position: 'relative',
+    // Shadow
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 5,
+  },
+  map: {
+    width: '100%',
+    height: '100%',
+  },
+  mapOverlay: {
+    position: 'absolute',
+    bottom: 15,
+    left: 15,
+    right: 15,
+  },
+  shopPinCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderRadius: 15,
+    padding: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  shopIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#FFF9C4',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+  },
+  pinShopName: { fontSize: 14, fontWeight: 'bold', color: '#1a1a1a' },
+  pinShopAddress: { fontSize: 10, color: '#666', marginTop: 2 },
 
-    // Card
-    card: {
-        backgroundColor: '#fff',
-        borderRadius: 20,
-        marginHorizontal: 20,
-        marginBottom: 20,
-        padding: 20,
-        // Shadow
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 5,
-        elevation: 2,
-    },
-    sectionTitle: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#1a1a1a',
-        marginBottom: 15,
-    },
-    paymentTitle: {
-        marginLeft: 20,
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#1a1a1a',
-        marginBottom: 15,
-    },
-    row: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 5,
-    },
-    iconBox: {
-        width: 36,
-        height: 36,
-        borderRadius: 10,
-        backgroundColor: '#f5f5f5',
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginRight: 15,
-    },
-    rowContent: {
-        flex: 1,
-    },
-    label: { fontSize: 12, color: '#888', marginBottom: 2 },
-    value: { fontSize: 14, fontWeight: '600', color: '#1a1a1a' },
-    divider: {
-        height: 1,
-        backgroundColor: '#f0f0f0',
-        marginVertical: 12,
-        marginLeft: 51, // offset icon width
-    },
+  // Card
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    marginHorizontal: 20,
+    marginBottom: 20,
+    padding: 20,
+    // Shadow
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 5,
+    elevation: 2,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#1a1a1a',
+    marginBottom: 15,
+  },
+  paymentTitle: {
+    marginLeft: 20,
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#1a1a1a',
+    marginBottom: 15,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 5,
+  },
+  iconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: '#f5f5f5',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 15,
+  },
+  rowContent: {
+    flex: 1,
+  },
+  label: { fontSize: 12, color: '#888', marginBottom: 2 },
+  value: { fontSize: 14, fontWeight: '600', color: '#1a1a1a' },
+  divider: {
+    height: 1,
+    backgroundColor: '#f0f0f0',
+    marginVertical: 12,
+    marginLeft: 51, // offset icon width
+  },
 
-    // Payment
-    paymentRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginBottom: 10,
-    },
-    paymentLabel: { fontSize: 14, color: '#666' },
-    paymentValue: { fontSize: 14, fontWeight: '600', color: '#1a1a1a' },
-    totalDivider: {
-        height: 1,
-        backgroundColor: '#e0e0e0',
-        marginVertical: 12,
-        borderStyle: 'dashed',
-        borderWidth: 1,
-        borderColor: '#e0e0e0'
-    },
-    totalTextLabel: { fontSize: 16, fontWeight: 'bold', color: '#1a1a1a' },
-    totalTextValue: { fontSize: 18, fontWeight: 'bold', color: '#1a1a1a' },
+  // Payment
+  paymentRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  paymentLabel: { fontSize: 14, color: '#666' },
+  paymentValue: { fontSize: 14, fontWeight: '600', color: '#1a1a1a' },
+  totalDivider: {
+    height: 1,
+    backgroundColor: '#e0e0e0',
+    marginVertical: 12,
+    borderStyle: 'dashed',
+    borderWidth: 1,
+    borderColor: '#e0e0e0'
+  },
+  totalTextLabel: { fontSize: 16, fontWeight: 'bold', color: '#1a1a1a' },
+  totalTextValue: { fontSize: 18, fontWeight: 'bold', color: '#1a1a1a' },
 
-    // Footer
-    footer: {
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        backgroundColor: '#fff',
-        padding: 20,
-        paddingBottom: 30,
-        borderTopLeftRadius: 30,
-        borderTopRightRadius: 30,
-        // Shadow
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: -5 },
-        shadowOpacity: 0.1,
-        shadowRadius: 10,
-        elevation: 20,
-    },
-    payButton: {
-        backgroundColor: '#C8F000',
-        borderRadius: 30,
-        paddingVertical: 16,
-        alignItems: 'center',
-    },
-    payButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    payButtonText: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#1a1a1a',
-    },
+  // Footer
+  footer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#fff',
+    padding: 20,
+    paddingBottom: 30,
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    // Shadow
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -5 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 20,
+  },
+  payButton: {
+    backgroundColor: '#C8F000',
+    borderRadius: 30,
+    paddingVertical: 16,
+    alignItems: 'center',
+  },
+  payButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  payButtonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#1a1a1a',
+  },
 
-    // Payment Options Styles
-    optionCard: {
-        backgroundColor: '#fff',
-        borderRadius: 20,
-        marginHorizontal: 20,
-        marginBottom: 15,
-        padding: 20,
-        borderWidth: 1,
-        borderColor: '#fff',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.03,
-        shadowRadius: 3,
-        elevation: 1,
-        position: 'relative',
-        overflow: 'hidden'
-    },
-    optionCardSelected: {
-        borderColor: '#84c95c',
-        backgroundColor: '#fff',
-    },
-    recommendedBadge: {
-        position: 'absolute',
-        top: 0,
-        right: 0,
-        backgroundColor: '#FFEB3B',
-        paddingHorizontal: 10,
-        paddingVertical: 5,
-        borderBottomLeftRadius: 10,
-    },
-    recommendedText: { fontSize: 10, fontWeight: 'bold', color: '#1a1a1a' },
-    optionRow: { flexDirection: 'row', alignItems: 'flex-start' },
-    radioContainer: { marginRight: 15, paddingTop: 2 },
-    radioInfo: {
-        width: 20, height: 20, borderRadius: 10, borderWidth: 2,
-        alignItems: 'center', justifyContent: 'center'
-    },
-    radioUnselected: { borderColor: '#ddd' },
-    radioSelected: { borderColor: '#84c95c' },
-    radioDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#84c95c' },
-    optionIconContainer: {
-        width: 40, height: 40, borderRadius: 10,
-        alignItems: 'center', justifyContent: 'center', marginRight: 15
-    },
-    optionContent: { flex: 1 },
-    optionLabel: { fontSize: 15, fontWeight: 'bold', color: '#1a1a1a', marginBottom: 2 },
-    optionSubLabel: { fontSize: 12, color: '#888', marginBottom: 5 },
-    securityNote: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 20 },
-    securityText: { fontSize: 12, color: '#999', marginLeft: 5 },
+  // Payment Options Styles
+  optionCard: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    marginHorizontal: 20,
+    marginBottom: 15,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 3,
+    elevation: 1,
+    position: 'relative',
+    overflow: 'hidden'
+  },
+  optionCardSelected: {
+    borderColor: '#84c95c',
+    backgroundColor: '#fff',
+  },
+  recommendedBadge: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    backgroundColor: '#FFEB3B',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderBottomLeftRadius: 10,
+  },
+  recommendedText: { fontSize: 10, fontWeight: 'bold', color: '#1a1a1a' },
+  optionRow: { flexDirection: 'row', alignItems: 'flex-start' },
+  radioContainer: { marginRight: 15, paddingTop: 2 },
+  radioInfo: {
+    width: 20, height: 20, borderRadius: 10, borderWidth: 2,
+    alignItems: 'center', justifyContent: 'center'
+  },
+  radioUnselected: { borderColor: '#ddd' },
+  radioSelected: { borderColor: '#84c95c' },
+  radioDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#84c95c' },
+  optionIconContainer: {
+    width: 40, height: 40, borderRadius: 10,
+    alignItems: 'center', justifyContent: 'center', marginRight: 15
+  },
+  optionContent: { flex: 1 },
+  optionLabel: { fontSize: 15, fontWeight: 'bold', color: '#1a1a1a', marginBottom: 2 },
+  optionSubLabel: { fontSize: 12, color: '#888', marginBottom: 5 },
+  securityNote: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 20 },
+  securityText: { fontSize: 12, color: '#999', marginLeft: 5 },
 });

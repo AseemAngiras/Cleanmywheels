@@ -11,7 +11,7 @@ export interface Booking {
   carImage: string;
   phone: string;
   price: string;
-  address: string;
+  address: string;  
   plate: string;
   serviceName: string;
   status: BookingStatus;

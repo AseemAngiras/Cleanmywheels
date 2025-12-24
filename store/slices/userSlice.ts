@@ -30,9 +30,12 @@ const userSlice = createSlice({
         },
 
         addCar(state, action: PayloadAction<Car>){
-            console.log("ADD CAR PAYLOAD:", action.payload);
-            state.cars.push(action.payload);
-        },
+    console.log("★★★★★ ADD_CAR REDUCER CALLED ★★★★★");
+    console.log("New car payload:", action.payload);
+    console.log("Cars before:", [...state.cars]);
+    state.cars.push(action.payload);
+    console.log("Cars after:", [...state.cars]);
+},
 
         updateCar(state, action: PayloadAction<Car>) {
             const index = state.cars.findIndex(
@@ -43,7 +46,7 @@ const userSlice = createSlice({
             }
         },
 
-        removeCar(state, action: PayloadAction<String>) {
+        removeCar(state, action: PayloadAction<string>) {
             state.cars = state.cars.filter((car) => car.id !== action.payload);
         },
 

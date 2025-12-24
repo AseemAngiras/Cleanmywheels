@@ -1,9 +1,12 @@
-
+import { useAppSelector } from '@/store/hooks';
+import { addCar } from '@/store/slices/userSlice';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFocusEffect, useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Alert, Image, Keyboard, KeyboardAvoidingView, LayoutAnimation, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, UIManager, View } from 'react-native';
+import { useDispatch } from 'react-redux';
 import BookingStepper from '../../../../components/BookingStepper';
+
 
 if (Platform.OS === 'android') {
     if (UIManager.setLayoutAnimationEnabledExperimental) {
@@ -26,8 +29,17 @@ const SERVICE_ADDONS: Record<string, { id: string; name: string; price: number }
 };
 
 export default function SelectServiceScreen() {
+    const dispatch = useDispatch();
+
+    const cars = useAppSelector((state) => {
+    return state.user.cars;
+    });
+
+
     const router = useRouter();
     const navigation = useNavigation();
+    const { address, latitude, longitude } = useLocalSearchParams();
+
     const [selectedService, setSelectedService] = useState<string | null>('premium');
     const [addons, setAddons] = useState<Record<string, boolean>>({});
 
@@ -51,6 +63,7 @@ export default function SelectServiceScreen() {
     // Vehicle State
     const [vehicleType, setVehicleType] = useState('sedan');
     const [vehicleNumber, setVehicleNumber] = useState('');
+    const [selectedCarId, setSelectedCarId] = useState<string | null>(null);
 
     const vehicleTypes = [
         { id: 'hatchback', name: 'Hatchback', icon: 'car-hatchback' },
@@ -104,8 +117,8 @@ export default function SelectServiceScreen() {
     const handleServiceSelect = (id: string) => {
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
         setSelectedService(id);
-        setAddons({}); // Reset add-ons when service changes
-    }
+        setAddons({});
+    };
 
     const calculateTotal = () => {
         const servicePrice = services.find((s) => s.id === selectedService)?.price || 0;
@@ -120,9 +133,11 @@ export default function SelectServiceScreen() {
         return servicePrice + addonTotal;
     };
 
-
-    // Use params from previous screen
-    const { address, latitude, longitude } = useLocalSearchParams(); // Extract address params
+    const handleSelectExistingCar = (car: any) => {
+        setSelectedCarId(car.id);
+        setVehicleType(car.type);
+        setVehicleNumber(car.number);
+    };
 
     return (
         <SafeAreaView style={styles.safeArea}>
@@ -134,14 +149,7 @@ export default function SelectServiceScreen() {
                 <View style={{ width: 24 }} />
             </View>
 
-            <BookingStepper
-                currentStep={1}
-                steps={[
-                    { id: 1, label: 'Service' },
-                    { id: 2, label: 'Slot' },
-                    { id: 3, label: 'Payment' },
-                ]}
-            />
+            <BookingStepper currentStep={1} />
 
             <KeyboardAvoidingView
                 behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -154,14 +162,6 @@ export default function SelectServiceScreen() {
                         <View style={styles.servicesContainer}>
                             {services.map((service) => {
                                 const isSelected = selectedService === service.id;
-                                const isExpanded = (selectedService === null) || isSelected;
-
-                                // Logic: 
-                                // - If nothing selected: All items show expanded (or maybe all collapsed? stick to existing expanded-like row but maybe without details to save space? 
-                                // Actually, let's keep it simple: If nothing selected, all are somewhat "selectable" cards. 
-                                // Let's use the 'isExpanded' flag for the layout style.
-                                // If I click one, others collapse.
-
                                 const isServiceExpanded = isSelected;
 
                                 return (
@@ -176,7 +176,6 @@ export default function SelectServiceScreen() {
                                         activeOpacity={0.9}
                                     >
                                         {isServiceExpanded ? (
-                                            // EXPANDED STATE (Specific Selected Item)
                                             <View>
                                                 <View style={styles.expandedHeader}>
                                                     <View style={styles.expandedImageContainer}>
@@ -188,14 +187,12 @@ export default function SelectServiceScreen() {
                                                         )}
                                                     </View>
                                                     <View style={styles.expandedContent}>
-                                                        {/* Text Section (Left) */}
                                                         <View style={{ flex: 1, marginRight: 10 }}>
                                                             <Text style={styles.expandedName}>{service.name}</Text>
                                                             <Text style={styles.expandedPrice}>₹{service.price}</Text>
                                                             <Text style={styles.expandedDesc}>{service.description}</Text>
                                                         </View>
 
-                                                        {/* Icons Section (Right) */}
                                                         <View style={{ alignItems: 'flex-end', justifyContent: 'space-between' }}>
                                                             {isSelected ? (
                                                                 <Ionicons name="radio-button-on" size={24} color="#84c95c" />
@@ -216,7 +213,6 @@ export default function SelectServiceScreen() {
                                                     </View>
                                                 </View>
 
-                                                {/* Inline Details Dropdown */}
                                                 {detailsExpanded.has(service.id) && (
                                                     <View style={styles.detailsContainer}>
                                                         <Text style={styles.detailsText}>{service.details}</Text>
@@ -224,9 +220,6 @@ export default function SelectServiceScreen() {
                                                 )}
                                             </View>
                                         ) : (
-                                            // COLLAPSED STATE (Unselected Items OR All items if none selected?)
-                                            // If none selected, we want them to look actionable.
-                                            // The 'collapsedRow' is fine.
                                             <View style={styles.collapsedRow}>
                                                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                                                     <Ionicons name={isSelected ? "radio-button-on" : "radio-button-off"} size={20} color={isSelected ? "#84c95c" : "#ccc"} style={{ marginRight: 12 }} />
@@ -267,6 +260,54 @@ export default function SelectServiceScreen() {
                             </View>
                         )}
 
+                        {/* Saved Cars Section */}
+                        {cars.length > 0 && (
+                            <View style={{ marginBottom: 10 }}>
+                                <Text style={styles.sectionTitle}>Saved Cars</Text>
+                                <ScrollView
+                                    horizontal
+                                    showsHorizontalScrollIndicator={false}
+                                    contentContainerStyle={{ paddingHorizontal: 20 }}
+                                >
+                                    {cars.map((car) => {
+                                        const isSelected = selectedCarId === car.id;
+                                        return (
+                                            <TouchableOpacity
+                                                key={car.id}
+                                                style={[
+                                                    styles.savedCarCard,
+                                                    isSelected && styles.savedCarCardSelected,
+                                                ]}
+                                                onPress={() => handleSelectExistingCar(car)}
+                                            >
+                                                <MaterialCommunityIcons
+                                                    name="car"
+                                                    size={24}
+                                                    color={isSelected ? '#fff' : '#1a1a1a'}
+                                                />
+                                                <Text
+                                                    style={[
+                                                        styles.savedCarNumber,
+                                                        isSelected && { color: '#fff' },
+                                                    ]}
+                                                >
+                                                    {car.number}
+                                                </Text>
+                                                <Text
+                                                    style={[
+                                                        styles.savedCarType,
+                                                        isSelected && { color: '#fff' },
+                                                    ]}
+                                                >
+                                                    {car.type.toUpperCase()}
+                                                </Text>
+                                            </TouchableOpacity>
+                                        );
+                                    })}
+                                </ScrollView>
+                            </View>
+                        )}
+
                         {/* Vehicle Selection Section */}
                         <Text style={styles.sectionTitle}>Vehicle Details</Text>
                         <View style={styles.vehicleRow}>
@@ -279,7 +320,10 @@ export default function SelectServiceScreen() {
                                             styles.vehicleIconBtn,
                                             isSelected && styles.vehicleIconBtnSelected
                                         ]}
-                                        onPress={() => setVehicleType(type.id)}
+                                        onPress={() => {
+                                            setSelectedCarId(null); // Clear saved car selection when manually changing type
+                                            setVehicleType(type.id);
+                                        }}
                                     >
                                         <MaterialCommunityIcons
                                             name={type.icon as any}
@@ -328,19 +372,42 @@ export default function SelectServiceScreen() {
                             Alert.alert("Missing Detail", "Please enter your vehicle number to proceed.");
                             return;
                         }
+
+                        const service = services.find(s => s.id === selectedService);
+                        if (!service) return;
+
+                        const selectedAddons = currentAddons.filter(addon => addons[addon.id]);
+
+                        const normalizedNumber = vehicleNumber.trim().toUpperCase();
+
+                        // Check if car already exists (case-insensitive, trimmed)
+                        let existingCar = cars.find(car => car.number === normalizedNumber);
+
+                        if (!existingCar) {
+                            const newCar = {
+                                id: Date.now().toString(),
+                                name: vehicleType.toUpperCase(),
+                                type: vehicleType,
+                                number: normalizedNumber,
+                                image: '',
+                            };
+                            dispatch(addCar(newCar));
+                            existingCar = newCar;
+                        }
+
                         const params = {
-                            serviceId: selectedService,
-                            serviceName: services.find(s => s.id === selectedService)?.name,
-                            servicePrice: services.find(s => s.id === selectedService)?.price,
-                            addons: JSON.stringify(addons), // Note: this passes the ID map, next screen should handle it if needed
+                            serviceId: service.id,
+                            serviceName: service.name,
+                            basePrice: service.price,
+                            addons: JSON.stringify(selectedAddons),
                             totalPrice: calculateTotal(),
                             vehicleType,
-                            vehicleNumber: vehicleNumber.toUpperCase(),
-                            // Forward address params
+                            vehicleNumber: normalizedNumber,
                             address,
                             latitude,
-                            longitude
+                            longitude,
                         };
+
                         router.push({ pathname: '/(tabs)/home/book-doorstep/select-slot', params });
                     }}
                 >
@@ -365,7 +432,6 @@ const styles = StyleSheet.create({
     headerTitle: { fontSize: 18, fontWeight: 'bold' },
     container: { paddingBottom: 100 },
 
-    // Services Accordion
     servicesContainer: {
         paddingHorizontal: 20,
         marginBottom: 10,
@@ -376,162 +442,48 @@ const styles = StyleSheet.create({
         borderRadius: 16,
         marginBottom: 12,
         overflow: 'hidden',
-        // Shadow
         shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.05, shadowRadius: 4, elevation: 2,
     },
-    serviceCardExpandedLayout: {
-        padding: 15,
-    },
-    serviceCardCollapsedLayout: {
-        paddingVertical: 15,
-        paddingHorizontal: 15,
-    },
-    serviceCardSelectedBorder: {
-        borderColor: '#84c95c',
-        backgroundColor: '#fbfdfa',
-        borderWidth: 2,
-    },
-    serviceCardUnselectedBorder: {
-        borderColor: '#eee',
-        backgroundColor: '#fff',
-        borderWidth: 1,
-    },
+    serviceCardExpandedLayout: { padding: 15 },
+    serviceCardCollapsedLayout: { paddingVertical: 15, paddingHorizontal: 15 },
+    serviceCardSelectedBorder: { borderColor: '#84c95c', backgroundColor: '#fbfdfa', borderWidth: 2 },
+    serviceCardUnselectedBorder: { borderColor: '#eee', backgroundColor: '#fff', borderWidth: 1 },
 
-    // Expanded Styles
-    expandedHeader: {
-        flexDirection: 'row',
-    },
-    expandedImageContainer: {
-        marginRight: 15,
-        position: 'relative',
-    },
-    expandedImage: {
-        width: 60, height: 60, borderRadius: 10, backgroundColor: '#eee',
-    },
-    expandedContent: {
-        flex: 1,
-        flexDirection: 'row',
-    },
+    expandedHeader: { flexDirection: 'row' },
+    expandedImageContainer: { marginRight: 15, position: 'relative' },
+    expandedImage: { width: 60, height: 60, borderRadius: 10, backgroundColor: '#eee' },
+    expandedContent: { flex: 1, flexDirection: 'row' },
     expandedName: { fontSize: 16, fontWeight: 'bold', color: '#1a1a1a' },
     expandedPrice: { fontSize: 18, fontWeight: 'bold', color: '#84c95c', marginVertical: 4 },
     expandedDesc: { fontSize: 12, color: '#666', lineHeight: 16 },
 
-    // Inline Details
-    detailsContainer: {
-        marginTop: 15,
-        paddingTop: 10,
-        borderTopWidth: 1,
-        borderTopColor: '#f0f0f0',
-    },
+    detailsContainer: { marginTop: 15, paddingTop: 10, borderTopWidth: 1, borderTopColor: '#f0f0f0' },
     detailsText: { fontSize: 13, color: '#555', lineHeight: 20, fontStyle: 'italic' },
 
-    // Collapsed Styles
-    collapsedRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-    },
+    collapsedRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
     collapsedName: { fontSize: 15, fontWeight: '500', color: '#333' },
     collapsedPrice: { fontSize: 15, fontWeight: '600', color: '#1a1a1a' },
 
-    bestsellerBadge: {
-        position: 'absolute',
-        top: -6,
-        left: -4,
-        backgroundColor: '#C8F000',
-        paddingHorizontal: 6,
-        paddingVertical: 2,
-        borderRadius: 4,
-        zIndex: 1,
-    },
-    bestsellerText: {
-        color: '#1a1a1a',
-        fontSize: 7,
-        fontWeight: 'bold',
-    },
+    bestsellerBadge: { position: 'absolute', top: -6, left: -4, backgroundColor: '#C8F000', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, zIndex: 1 },
+    bestsellerText: { color: '#1a1a1a', fontSize: 7, fontWeight: 'bold' },
 
-    sectionTitle: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        marginTop: 15,
-        marginBottom: 10,
-        color: '#1a1a1a',
-        paddingHorizontal: 20,
-    },
+    sectionTitle: { fontSize: 16, fontWeight: 'bold', marginTop: 15, marginBottom: 10, color: '#1a1a1a', paddingHorizontal: 20 },
 
-    // Addons Chips
-    addonsContainer: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        paddingHorizontal: 20,
-    },
-    addonChip: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingVertical: 8,
-        paddingHorizontal: 16,
-        backgroundColor: '#fff',
-        borderRadius: 20,
-        marginRight: 10,
-        marginBottom: 10,
-        borderWidth: 1,
-        borderColor: '#eee',
-    },
-    addonChipSelected: {
-        backgroundColor: '#84c95c',
-        borderColor: '#84c95c',
-    },
+    addonsContainer: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 20 },
+    addonChip: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, paddingHorizontal: 16, backgroundColor: '#fff', borderRadius: 20, marginRight: 10, marginBottom: 10, borderWidth: 1, borderColor: '#eee' },
+    addonChipSelected: { backgroundColor: '#84c95c', borderColor: '#84c95c' },
     addonName: { fontSize: 13, fontWeight: '600', color: '#555', marginRight: 5 },
     addonPrice: { fontSize: 13, fontWeight: '700', color: '#84c95c' },
 
-    // Vehicle Styles Compact
-    subSectionTitle: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        marginTop: 5,
-        marginBottom: 10,
-        color: '#1a1a1a',
-        paddingHorizontal: 20,
-    },
-    vehicleRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        paddingHorizontal: 20,
-        marginBottom: 15,
-    },
-    vehicleIconBtn: {
-        alignItems: 'center',
-        justifyContent: 'center',
-        width: '23%',
-        paddingVertical: 12,
-        backgroundColor: '#fff',
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: '#eee',
-    },
-    vehicleIconBtnSelected: {
-        backgroundColor: '#1a1a1a',
-        borderColor: '#1a1a1a',
-    },
-    vehicleTypeName: {
-        fontSize: 10,
-        fontWeight: '500',
-        color: '#999',
-        marginTop: 4,
-    },
-    input: {
-        backgroundColor: '#fff',
-        borderRadius: 15,
-        paddingHorizontal: 20,
-        paddingVertical: 15,
-        fontSize: 14,
-        color: '#1a1a1a',
-        borderWidth: 1,
-        borderColor: '#f0f0f0',
-        marginBottom: 20,
-        marginHorizontal: 20,
-    },
+    subSectionTitle: { fontSize: 16, fontWeight: 'bold', marginTop: 5, marginBottom: 10, color: '#1a1a1a', paddingHorizontal: 20 },
+
+    vehicleRow: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 20, marginBottom: 15 },
+    vehicleIconBtn: { alignItems: 'center', justifyContent: 'center', width: '23%', paddingVertical: 12, backgroundColor: '#fff', borderRadius: 12, borderWidth: 1, borderColor: '#eee' },
+    vehicleIconBtnSelected: { backgroundColor: '#1a1a1a', borderColor: '#1a1a1a' },
+    vehicleTypeName: { fontSize: 10, fontWeight: '500', color: '#999', marginTop: 4 },
+
+    input: { backgroundColor: '#fff', borderRadius: 15, paddingHorizontal: 20, paddingVertical: 15, fontSize: 14, color: '#1a1a1a', borderWidth: 1, borderColor: '#f0f0f0', marginBottom: 20, marginHorizontal: 20 },
 
     footer: {
         position: 'absolute',
@@ -552,19 +504,24 @@ const styles = StyleSheet.create({
         shadowRadius: 10,
         elevation: 10,
     },
-    totalContainer: {
-        justifyContent: 'center',
-    },
+    totalContainer: { justifyContent: 'center' },
     totalLabel: { fontSize: 12, color: '#888', marginLeft: 6 },
     totalPrice: { fontSize: 24, fontWeight: 'bold', color: '#84c95c', marginLeft: 6 },
-    nextButton: {
-        backgroundColor: '#C8F000',
-        paddingVertical: 15,
-        paddingHorizontal: 0,
-        borderRadius: 30,
-        width: 150,
-        marginLeft: 30,
-        alignItems: 'center',
-    },
+    nextButton: { backgroundColor: '#C8F000', paddingVertical: 15, paddingHorizontal: 0, borderRadius: 30, width: 150, marginLeft: 30, alignItems: 'center' },
     nextButtonText: { fontSize: 16, fontWeight: 'bold', color: '#1a1a1a' },
+
+    savedCarCard: {
+        width: 120,
+        height: 100,
+        borderRadius: 14,
+        backgroundColor: '#fff',
+        marginRight: 12,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 1,
+        borderColor: '#eee',
+    },
+    savedCarCardSelected: { backgroundColor: '#1a1a1a', borderColor: '#1a1a1a' },
+    savedCarNumber: { marginTop: 6, fontSize: 13, fontWeight: 'bold', color: '#1a1a1a' },
+    savedCarType: { fontSize: 11, color: '#666', marginTop: 2 },
 });

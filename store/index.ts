@@ -22,7 +22,6 @@ const rootReducer = (state: any, action: any) => {
 export const store = configureStore({
   reducer: rootReducer,
 });
-console.log('=== ROOT STORE INSTANCE CREATED ===', store);
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;

@@ -23,23 +23,7 @@ interface BookingState {
 }
 
 const initialState: BookingState = {
-  bookings: [
-    {
-      id: "1",
-      center: "Auto Care Plus",
-      date: "2024-02-20",
-      timeSlot: "2:30 PM",
-      car: "Honda Accord",
-      carImage:
-        "https://images.pexels.com/photos/4906936/pexels-photo-4906936.jpeg",
-      phone: "+1 (555) 987-6543",
-      price: "$75",
-      address: "456 Oak Avenue, Springfield",
-      plate: "XYZ789",
-      serviceName: "Tire Rotation",
-      status: "upcoming",
-    },
-  ],
+  bookings: [],
   currentBooking: {},
 };
 
@@ -69,6 +53,31 @@ const bookingSlice = createSlice({
       state.bookings = [];
       state.currentBooking = {};
     },
+
+
+    setBookingAddress(state, action: PayloadAction<{addressId: string}>) {
+      state.currentBooking.address = action.payload.addressId;
+    },
+
+    setBookingService(state, action: PayloadAction<{serviceName: string, price: string}>) {
+      state.currentBooking.serviceName = action.payload.serviceName;
+      state.currentBooking.price = action.payload.price;
+    },
+
+    setBookingCar(state, action: PayloadAction<{car: string, plate: string, carImage: string}>) {
+      state.currentBooking.car = action.payload.car;
+      state.currentBooking.plate = action.payload.plate;
+      state.currentBooking.carImage = action.payload.carImage;
+    },
+
+    setBookingSlot(state, action:PayloadAction<{date: string, timeSlot: string}>) {
+      state.currentBooking.date = action.payload.date;
+      state.currentBooking.timeSlot = action.payload.timeSlot;
+    },
+
+    clearCurrentBooking(state) {
+      state.currentBooking = {};
+    }
   },
 });
 
@@ -77,5 +86,9 @@ export const {
   cancelBooking,
   addBooking,
   resetBookings,
+  setBookingAddress,
+  setBookingCar,
+  setBookingService,
+  setBookingSlot,
 } = bookingSlice.actions;
 export default bookingSlice.reducer;

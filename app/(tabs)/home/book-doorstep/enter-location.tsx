@@ -1,5 +1,8 @@
 
+import { setBookingAddress } from '@/store/slices/bookingSlice';
+import { addAddress } from '@/store/slices/profileSlice';
 import { Ionicons } from '@expo/vector-icons';
+import { nanoid } from '@reduxjs/toolkit';
 import * as Location from 'expo-location';
 import { useNavigation, useRouter } from 'expo-router';
 import React, { useState } from 'react';
@@ -18,10 +21,13 @@ import {
     View
 } from 'react-native';
 import MapView, { Marker, Region } from 'react-native-maps';
+import { useDispatch } from 'react-redux';
 
 const { width, height } = Dimensions.get('window');
 
 export default function EnterLocationScreen() {
+
+    const dispatch = useDispatch();
     const router = useRouter();
     const navigation = useNavigation();
 
@@ -41,7 +47,6 @@ export default function EnterLocationScreen() {
 
     const [errorMsg, setErrorMsg] = useState('');
 
-    // Map & Location State
     const [mapVisible, setMapVisible] = useState(false);
     const [isLocating, setIsLocating] = useState(false);
     const [region, setRegion] = useState<Region>({
@@ -85,10 +90,9 @@ export default function EnterLocationScreen() {
     const confirmMapLocation = async () => {
         if (!selectedCoord) return;
         setMapVisible(false);
-        setIsLocating(true); // Re-use for geocoding waiter
+        setIsLocating(true);
 
         try {
-            // Reverse Geocode
             let addressResponse = await Location.reverseGeocodeAsync({
                 latitude: selectedCoord.lat,
                 longitude: selectedCoord.long
@@ -96,24 +100,21 @@ export default function EnterLocationScreen() {
 
             if (addressResponse && addressResponse.length > 0) {
                 const addr = addressResponse[0];
-                setFlatNumber(addr.name || ''); // Often name is house number or building
+                setFlatNumber(addr.name || ''); 
                 setBuildingName(addr.street || '');
                 setLocality(addr.district || addr.subregion || '');
                 setCity(addr.city || addr.region || '');
                 setPincode(addr.postalCode || '');
-                // setLandmark() // Creating landmark from others is tricky, leave empty
             }
         } catch (e) {
             console.log("Geocoding error", e);
-            // Fallback: just fill coordinates? or alert?
-            // For now, silently fail deeply, user can edit manually
         } finally {
             setIsLocating(false);
         }
     };
 
     const handleConfirm = () => {
-        setErrorMsg(''); // Clear previous errors
+        setErrorMsg(''); 
         if (!flatNumber.trim()) {
             setErrorMsg('Please enter House / Flat Number');
             return;
@@ -137,21 +138,27 @@ export default function EnterLocationScreen() {
 
         const fullAddress = `${flatNumber}, ${buildingName}, ${locality}, ${city}, ${pincode}`;
 
-        router.push({
-            pathname: '/(tabs)/home/book-doorstep/select-service',
-            params: {
-                address: fullAddress,
-                latitude: "37.7749",
-                longitude: "-122.4194",
-                flatNumber,
-                buildingName,
-                locality,
-                landmark,
-                city,
-                pincode,
-                addressType
-            }
-        });
+        const addressObject = {            
+            id: nanoid(),
+            flatNumber,
+            buildingName,
+            locality,
+            landmark,
+            city,
+            pincode,
+            addressType, 
+            fullAddress,
+            latitude: selectedCoord?.lat,
+            longitude: selectedCoord?.long,
+            };
+
+        dispatch(addAddress(addressObject));
+
+        dispatch(setBookingAddress({
+            addressId: addressObject.id,
+        }));
+
+        router.push("/(tabs)/home/book-doorstep/select-service")
     };
 
     return (

@@ -7,18 +7,18 @@ import * as Location from "expo-location";
 import { useNavigation, useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
-    ActivityIndicator,
-    Dimensions,
-    KeyboardAvoidingView,
-    Modal,
-    Platform,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Dimensions,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import MapView, { Marker, Region } from "react-native-maps";
 import { useDispatch, useSelector } from "react-redux";
@@ -33,87 +33,6 @@ export default function EnterLocationScreen() {
   const savedAddresses = useSelector(
     (state: RootState) => state.profile.addresses
   );
-
-
-    const confirmMapLocation = async () => {
-        if (!selectedCoord) return;
-        setMapVisible(false);
-        setIsLocating(true);
-
-        try {
-            let addressResponse = await Location.reverseGeocodeAsync({
-                latitude: selectedCoord.lat,
-                longitude: selectedCoord.long
-            });
-
-            if (addressResponse && addressResponse.length > 0) {
-                const addr = addressResponse[0];
-                setFlatNumber(addr.name || '');
-                setBuildingName(addr.street || '');
-                setLocality(addr.district || addr.subregion || '');
-                setCity(addr.city || addr.region || '');
-                setPincode(addr.postalCode || '');
-            }
-        } catch (e) {
-            console.log("Geocoding error", e);
-        } finally {
-            setIsLocating(false);
-        }
-    };
-
-    const handleConfirm = () => {
-        setErrorMsg('');
-        if (!flatNumber.trim()) {
-            setErrorMsg('Please enter House / Flat Number');
-            return;
-        }
-        if (!buildingName.trim()) {
-            setErrorMsg('Please enter Building / Street Name');
-            return;
-        }
-        if (!locality.trim()) {
-            setErrorMsg('Please enter Locality / Area');
-            return;
-        }
-        if (!city.trim()) {
-            setErrorMsg('Please enter City');
-            return;
-        }
-        if (!pincode.trim() || pincode.length < 6) {
-            setErrorMsg('Please enter a valid 6-digit Pincode');
-            return;
-        }
-
-        const fullAddress = `${flatNumber}, ${buildingName}, ${locality}, ${city}, ${pincode}`;
-
-        const addressObject = {
-            id: nanoid(),
-            flatNumber,
-            buildingName,
-            locality,
-            landmark,
-            city,
-            pincode,
-            addressType,
-            fullAddress,
-            latitude: selectedCoord?.lat,
-            longitude: selectedCoord?.long,
-        };
-
-        dispatch(addAddress(addressObject));
-
-        dispatch(setBookingAddress({
-            addressId: addressObject.id,
-        }));
-
-        router.push({
-            pathname: "/(tabs)/home/book-doorstep/select-service",
-            params: {
-                address: fullAddress,
-                latitude: selectedCoord?.lat,
-                longitude: selectedCoord?.long,
-            }
-        });
 
   React.useLayoutEffect(() => {
     navigation.getParent()?.setOptions({
@@ -257,13 +176,21 @@ export default function EnterLocationScreen() {
     }
 
     if (selectedSavedAddressId) {
+      const savedAddr = savedAddresses.find(a => a.id === selectedSavedAddressId);
       dispatch(
         setBookingAddress({
           addressId: selectedSavedAddressId,
         })
       );
 
-      router.push("/(tabs)/home/book-doorstep/select-service");
+      router.push({
+        pathname: "/(tabs)/home/book-doorstep/select-service",
+        params: {
+          address: savedAddr?.fullAddress,
+          latitude: savedAddr?.latitude,
+          longitude: savedAddr?.longitude
+        }
+      });
       return;
     }
 
@@ -288,7 +215,14 @@ export default function EnterLocationScreen() {
 
     dispatch(setBookingAddress({ addressId: addressObject.id }));
 
-    router.push("/(tabs)/home/book-doorstep/select-service");
+    router.push({
+      pathname: "/(tabs)/home/book-doorstep/select-service",
+      params: {
+        address: fullAddress,
+        latitude: selectedCoord?.lat,
+        longitude: selectedCoord?.long,
+      }
+    });
   };
 
   return (
@@ -399,8 +333,8 @@ export default function EnterLocationScreen() {
             style={[
               styles.input,
               !flatNumber.trim() &&
-                errorMsg.includes("House") &&
-                styles.inputError,
+              errorMsg.includes("House") &&
+              styles.inputError,
             ]}
             placeholder="House / Flat Number"
             placeholderTextColor="#ccc"
@@ -411,8 +345,8 @@ export default function EnterLocationScreen() {
             style={[
               styles.input,
               !buildingName.trim() &&
-                errorMsg.includes("Building") &&
-                styles.inputError,
+              errorMsg.includes("Building") &&
+              styles.inputError,
             ]}
             placeholder="Building / Street Name"
             placeholderTextColor="#ccc"
@@ -423,8 +357,8 @@ export default function EnterLocationScreen() {
             style={[
               styles.input,
               !locality.trim() &&
-                errorMsg.includes("Locality") &&
-                styles.inputError,
+              errorMsg.includes("Locality") &&
+              styles.inputError,
             ]}
             placeholder="Locality / Area"
             placeholderTextColor="#ccc"
@@ -455,8 +389,8 @@ export default function EnterLocationScreen() {
                 styles.input,
                 { flex: 1 },
                 (!pincode.trim() || pincode.length < 6) &&
-                  errorMsg.includes("Pincode") &&
-                  styles.inputError,
+                errorMsg.includes("Pincode") &&
+                styles.inputError,
               ]}
               placeholder="Pincode"
               placeholderTextColor="#ccc"

@@ -38,11 +38,18 @@ export default function SelectSlotScreen() {
     });
 
     // Mock Slots (12:00 format)
+    // Use robust date comparison
+    const now = new Date();
+    const selectedDateObj = dates[selectedDate].fullDate;
+    const isToday = selectedDateObj.getDate() === now.getDate() &&
+        selectedDateObj.getMonth() === now.getMonth() &&
+        selectedDateObj.getFullYear() === now.getFullYear();
+
     const timeSlots: TimeSlot[] = [
         // Morning
         { id: '1', time: '08:00 AM', period: 'Morning', available: true },
         { id: '2', time: '08:30 AM', period: 'Morning', available: true },
-        { id: '3', time: '09:00 AM', period: 'Morning', available: false }, // Unavailable example
+        { id: '3', time: '09:00 AM', period: 'Morning', available: false },
         { id: '4', time: '09:30 AM', period: 'Morning', available: true },
         { id: '5', time: '10:00 AM', period: 'Morning', available: true },
         { id: '6', time: '10:30 AM', period: 'Morning', available: false },
@@ -59,7 +66,26 @@ export default function SelectSlotScreen() {
         { id: '13', time: '05:00 PM', period: 'Evening', available: true },
         { id: '14', time: '05:30 PM', period: 'Evening', available: false },
         { id: '15', time: '06:00 PM', period: 'Evening', available: true },
-    ];
+    ].map((slot) => {
+        const typedSlot = slot as TimeSlot;
+        if (!isToday) return typedSlot;
+
+        // Parse time
+        const [timeStr, modifier] = typedSlot.time.trim().split(/\s+/);
+        let [hours, minutes] = timeStr.split(':').map(Number);
+        if (modifier === 'PM' && hours < 12) hours += 12;
+        if (modifier === 'AM' && hours === 12) hours = 0;
+
+        const slotDate = new Date();
+        slotDate.setHours(hours, minutes, 0, 0);
+
+        const bufferTime = new Date(now.getTime() + 30 * 60000); // 30 mins ahead
+
+        if (slotDate < bufferTime) {
+            return { ...typedSlot, available: false };
+        }
+        return typedSlot;
+    });
 
     const slotsByPeriod = {
         Morning: timeSlots.filter(s => s.period === 'Morning'),

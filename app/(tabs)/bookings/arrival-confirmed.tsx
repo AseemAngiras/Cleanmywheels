@@ -33,7 +33,7 @@ export default function ArrivalConfirmed() {
       <View style={styles.footer}>
         <TouchableOpacity
           style={styles.primaryButton}
-          onPress={() => router.replace("/bookings")}
+          onPress={() => router.replace("/bookings/past-services")}
           activeOpacity={0.85}
         >
           <Text style={styles.primaryText}>Back to bookings</Text>

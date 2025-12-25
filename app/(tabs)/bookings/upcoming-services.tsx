@@ -18,11 +18,13 @@ import {
   View,
 } from "react-native"
 
+import { useRouter } from "expo-router"
 import type { RootState } from "../../../store"
 import { useAppDispatch, useAppSelector } from "../../../store/hooks"
 import { type Booking, cancelBooking, completeBooking } from "../../../store/slices/bookingSlice"
 
 export default function UpcomingServices() {
+  const router = useRouter();
   const dispatch = useAppDispatch()
 
   const bookings = useAppSelector((state: RootState) =>
@@ -117,6 +119,7 @@ export default function UpcomingServices() {
     setScannerVisible(false)
     setTorchOn(false)
     closeSheet()
+    router.push("/(tabs)/bookings/arrival-confirmed");
   }
 
   const handleDelete = (id: string) => {

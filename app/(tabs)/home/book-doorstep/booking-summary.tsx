@@ -1,4 +1,5 @@
 import { RootState } from "@/store";
+import { loginSuccess } from "@/store/slices/authSlice";
 import { addBooking } from "@/store/slices/bookingSlice";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
@@ -317,6 +318,9 @@ export default function BookingSummaryScreen() {
                 serviceName: serviceName as string,
               })
             );
+
+            // Ensure user is logged in after booking
+            dispatch(loginSuccess('dummy-token'));
 
             router.push({
               pathname: "/(tabs)/home/book-doorstep/order-confirmation",

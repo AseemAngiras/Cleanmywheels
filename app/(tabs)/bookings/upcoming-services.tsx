@@ -64,6 +64,8 @@ export default function UpcomingServices() {
     }
   }, [activeBooking])
 
+  console.log("active bookings :", activeBooking);
+
   useEffect(() => {
     if (scannerVisible) {
       Animated.loop(
@@ -258,7 +260,7 @@ export default function UpcomingServices() {
               </TouchableOpacity>
 
               <View style={styles.sheetFooter}>
-                <Text style={styles.price}>{activeBooking.price}</Text>
+                <Text style={styles.price}>₹ {activeBooking.price}</Text>
                 <TouchableOpacity style={styles.cancelBtn} onPress={() => handleDelete(activeBooking.id)}>
                   <Ionicons name="trash-outline" size={18} />
                   <Text style={styles.cancelText}>Cancel</Text>
@@ -509,7 +511,7 @@ const styles = StyleSheet.create({
   },
   price: {
     fontSize: 20,
-    fontWeight: "700",
+    fontWeight: "500",
     color: "#111",
   },
   cancelBtn: {

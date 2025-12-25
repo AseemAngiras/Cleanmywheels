@@ -170,14 +170,12 @@ export default function SelectSlotScreen() {
       pathname: '/(tabs)/home/book-doorstep/booking-summary',
       params: {
         ...params,
-        shopName: 'Assigned Professional',
+        shopName: 'Your Location',
         userName: userName || name,
         userPhone: userPhone || phoneNumber,
         selectedDate: dateOnly,
         selectedTime: timeSlots.find((s) => s.id === selectedSlot)?.time,
         selectedTimeSlotId: selectedSlot,
-        // map basePrice from params to servicePrice for summary (or just pass everything)
-        // If params has basePrice, we should probably ensure booking-summary uses it or we rename it here.
         servicePrice: params.basePrice,
       },
     });

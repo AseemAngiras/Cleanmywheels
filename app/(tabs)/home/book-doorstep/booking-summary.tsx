@@ -64,6 +64,9 @@ export default function BookingSummaryScreen() {
   const lat = parseFloat(latitude as string) || 37.7749;
   const long = parseFloat(longitude as string) || -122.4194;
 
+  const isDoorstep = shopName === "Your Location";
+
+
   // Payment Logic
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<
     string | null
@@ -161,7 +164,7 @@ export default function BookingSummaryScreen() {
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>Booking Details</Text>
 
-          {/* Shop Assigned (Service Provider) */}
+          {/* User Location (Service Provider) */}
           <View style={styles.row}>
             <View style={styles.iconBox}>
               <Ionicons name="briefcase" size={20} color="#555" />
@@ -169,10 +172,11 @@ export default function BookingSummaryScreen() {
             <View style={styles.rowContent}>
               <Text style={styles.label}>Service Provider</Text>
               <Text style={styles.value}>
-                {shopName || "Assigned Professional"}
+                {shopName || "Your Location"}
               </Text>
             </View>
           </View>
+          
 
           <View style={styles.divider} />
 
@@ -302,16 +306,16 @@ export default function BookingSummaryScreen() {
 
             dispatch(
               addBooking({
-                center: (shopName as string) || "Doorstep Service",
-                date: currentBooking.date!,
-                timeSlot: currentBooking.timeSlot!,
-                car: currentBooking.car!,
-                carImage: currentBooking.carImage!,
+                center: (shopName as string) || "Your Location",
+                date: selectedDate as string,
+                timeSlot: selectedTime as string,
+                car: vehicleType ? `${vehicleType} - ${vehicleNumber}` : "Vehicle",
+                carImage: "https://cdn-icons-png.flaticon.com/512/743/743007.png",
                 phone: userPhone as string,
-                price: grandTotal,
+                price: Number(grandTotal),
                 address: address as string,
-                plate: currentBooking.plate!,
-                serviceName: currentBooking.serviceName!,
+                plate: vehicleNumber as string,
+                serviceName: serviceName as string,
               })
             );
 

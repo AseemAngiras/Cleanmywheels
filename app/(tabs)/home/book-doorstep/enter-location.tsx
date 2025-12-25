@@ -7,18 +7,18 @@ import * as Location from "expo-location";
 import { useNavigation, useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
-  ActivityIndicator,
-  Dimensions,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Dimensions,
+    KeyboardAvoidingView,
+    Modal,
+    Platform,
+    SafeAreaView,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import MapView, { Marker, Region } from "react-native-maps";
 import { useDispatch, useSelector } from "react-redux";
@@ -45,7 +45,6 @@ export default function EnterLocationScreen() {
   >(null);
 
   const [flatNumber, setFlatNumber] = useState("");
-  const [buildingName, setBuildingName] = useState("");
   const [locality, setLocality] = useState("");
   const [landmark, setLandmark] = useState("");
   const [city, setCity] = useState("");
@@ -69,7 +68,6 @@ export default function EnterLocationScreen() {
 
   const fillAddressInputs = (addr: Address) => {
     setFlatNumber(addr.flatNumber);
-    setBuildingName(addr.buildingName);
     setLocality(addr.locality);
     setLandmark(addr.landmark || "");
     setCity(addr.city);
@@ -140,7 +138,6 @@ export default function EnterLocationScreen() {
       if (addressResponse && addressResponse.length > 0) {
         const addr = addressResponse[0];
         setFlatNumber(addr.name || "");
-        setBuildingName(addr.street || "");
         setLocality(addr.district || addr.subregion || "");
         setCity(addr.city || addr.region || "");
         setPincode(addr.postalCode || "");
@@ -156,10 +153,6 @@ export default function EnterLocationScreen() {
     setErrorMsg("");
     if (!flatNumber.trim()) {
       setErrorMsg("Please enter House / Flat Number");
-      return;
-    }
-    if (!buildingName.trim()) {
-      setErrorMsg("Please enter Building / Street Name");
       return;
     }
     if (!locality.trim()) {
@@ -194,12 +187,11 @@ export default function EnterLocationScreen() {
       return;
     }
 
-    const fullAddress = `${flatNumber}, ${buildingName}, ${locality}, ${city}, ${pincode}`;
+    const fullAddress = `${flatNumber}, ${locality}, ${city}, ${pincode}`;
 
     const addressObject = {
       id: nanoid(),
       flatNumber,
-      buildingName,
       locality,
       landmark,
       city,
@@ -340,18 +332,6 @@ export default function EnterLocationScreen() {
             placeholderTextColor="#ccc"
             value={flatNumber}
             onChangeText={handleInputChange(setFlatNumber)}
-          />
-          <TextInput
-            style={[
-              styles.input,
-              !buildingName.trim() &&
-              errorMsg.includes("Building") &&
-              styles.inputError,
-            ]}
-            placeholder="Building / Street Name"
-            placeholderTextColor="#ccc"
-            value={buildingName}
-            onChangeText={handleInputChange(setBuildingName)}
           />
           <TextInput
             style={[

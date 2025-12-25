@@ -3,7 +3,6 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 export type Address = {
   id: string;
   flatNumber: string;
-  buildingName: string;
   locality: string;
   landmark?: string;
   city: string;

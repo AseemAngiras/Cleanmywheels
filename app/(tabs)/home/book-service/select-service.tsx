@@ -259,52 +259,52 @@ export default function SelectServiceScreen() {
                         )}
 
                         {cars.length > 0 && (
-                          <View style={{ marginBottom: 10 }}>
-                            <Text style={styles.sectionTitle}>Saved Cars</Text>
-                                                
-                            <ScrollView
-                              horizontal
-                              showsHorizontalScrollIndicator={false}
-                              contentContainerStyle={{ paddingHorizontal: 20 }}
-                            >
-                              {cars.map((car) => {
-                                const isSelected = selectedCarId === car.id;
-                            
-                                return (
-                                  <TouchableOpacity
-                                    key={car.id}
-                                    style={[
-                                      styles.savedCarCard,
-                                      isSelected && styles.savedCarCardSelected,
-                                    ]}
-                                    onPress={() => handleSelectExistingCar(car)}
-                                  >
-                                    <MaterialCommunityIcons
-                                      name="car"
-                                      size={24}
-                                      color={isSelected ? '#fff' : '#1a1a1a'}
-                                    />
-                                    <Text
-                                      style={[
-                                        styles.savedCarNumber,
-                                        isSelected && { color: '#fff' },
-                                      ]}
-                                    >
-                                      {car.number}
-                                    </Text>
-                                    <Text
-                                      style={[
-                                        styles.savedCarType,
-                                        isSelected && { color: '#fff' },
-                                      ]}
-                                    >
-                                      {car.type.toUpperCase()}
-                                    </Text>
-                                  </TouchableOpacity>
-                                );
-                              })}
-                            </ScrollView>
-                          </View>
+                            <View style={{ marginBottom: 10 }}>
+                                <Text style={styles.sectionTitle}>Saved Cars</Text>
+
+                                <ScrollView
+                                    horizontal
+                                    showsHorizontalScrollIndicator={false}
+                                    contentContainerStyle={{ paddingHorizontal: 20 }}
+                                >
+                                    {cars.map((car) => {
+                                        const isSelected = selectedCarId === car.id;
+
+                                        return (
+                                            <TouchableOpacity
+                                                key={car.id}
+                                                style={[
+                                                    styles.savedCarCard,
+                                                    isSelected && styles.savedCarCardSelected,
+                                                ]}
+                                                onPress={() => handleSelectExistingCar(car)}
+                                            >
+                                                <MaterialCommunityIcons
+                                                    name="car"
+                                                    size={24}
+                                                    color={isSelected ? '#fff' : '#1a1a1a'}
+                                                />
+                                                <Text
+                                                    style={[
+                                                        styles.savedCarNumber,
+                                                        isSelected && { color: '#fff' },
+                                                    ]}
+                                                >
+                                                    {car.number}
+                                                </Text>
+                                                <Text
+                                                    style={[
+                                                        styles.savedCarType,
+                                                        isSelected && { color: '#fff' },
+                                                    ]}
+                                                >
+                                                    {car.type.toUpperCase()}
+                                                </Text>
+                                            </TouchableOpacity>
+                                        );
+                                    })}
+                                </ScrollView>
+                            </View>
                         )}
 
 
@@ -375,7 +375,7 @@ export default function SelectServiceScreen() {
                         }
                         const service = services.find(s => s.id === selectedService);
 
-                        if(!service) return;
+                        if (!service) return;
 
                         const selectedAddons = currentAddons.filter(
                             addon => addons[addon.id]
@@ -383,44 +383,44 @@ export default function SelectServiceScreen() {
 
                         const bookingDraft = {
                             service: {
-                            id: service.id,
-                            name: service.name,
-                            basePrice: service.price,
-                            addons: selectedAddons,
-                            totalPrice: calculateTotal(),
+                                id: service.id,
+                                name: service.name,
+                                basePrice: service.price,
+                                addons: selectedAddons,
+                                totalPrice: calculateTotal(),
                             },
                             vehicle: {
-                            type: vehicleType,
-                            number: vehicleNumber.toUpperCase(),
+                                type: vehicleType,
+                                number: vehicleNumber.toUpperCase(),
                             },
                         };
 
                         const normalizedNumber = vehicleNumber.trim().toUpperCase();
 
                         let existingCar = cars.find(
-                          car => car.number === normalizedNumber
+                            car => car.number === normalizedNumber
                         );
-                        
+
                         if (!existingCar) {
-                          const newCar = {
-                            id: Date.now().toString(),
-                            name: vehicleType.toUpperCase(),
-                            type: vehicleType,
-                            number: normalizedNumber,
-                            image: '',
-                          };
-                        
-                          dispatch(addCar(newCar));
-                          existingCar = newCar;
+                            const newCar = {
+                                id: Date.now().toString(),
+                                name: vehicleType.toUpperCase(),
+                                type: vehicleType,
+                                number: normalizedNumber,
+                                image: '',
+                            };
+
+                            dispatch(addCar(newCar));
+                            existingCar = newCar;
                         }
 
 
-                        router.push({ 
+                        router.push({
                             pathname: '/(tabs)/home/book-service/shops-list',
                             params: {
                                 bookingDraft: JSON.stringify(bookingDraft)
                             }
-                          });
+                        });
                     }}
                 >
                     <Text style={styles.nextButtonText}>Next</Text>
@@ -647,33 +647,33 @@ const styles = StyleSheet.create({
     },
     nextButtonText: { fontSize: 16, fontWeight: 'bold', color: '#1a1a1a' },
     savedCarCard: {
-    width: 120,
-    height: 100,
-    borderRadius: 14,
-    backgroundColor: '#fff',
-    marginRight: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#eee',
+        width: 120,
+        height: 100,
+        borderRadius: 14,
+        backgroundColor: '#fff',
+        marginRight: 12,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 1,
+        borderColor: '#eee',
     },
 
     savedCarCardSelected: {
-    backgroundColor: '#1a1a1a',
-    borderColor: '#1a1a1a',
+        backgroundColor: '#1a1a1a',
+        borderColor: '#1a1a1a',
     },
 
     savedCarNumber: {
-    marginTop: 6,
-    fontSize: 13,
-    fontWeight: 'bold',
-    color: '#1a1a1a',
+        marginTop: 6,
+        fontSize: 13,
+        fontWeight: 'bold',
+        color: '#1a1a1a',
     },
 
     savedCarType: {
-    fontSize: 11,
-    color: '#666',
-    marginTop: 2,
+        fontSize: 11,
+        color: '#666',
+        marginTop: 2,
     },
 
 });

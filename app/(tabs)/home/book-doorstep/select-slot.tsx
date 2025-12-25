@@ -78,6 +78,9 @@ export default function SelectSlotScreen() {
     };
   });
 
+  const isToday = dates[selectedDate].fullDate.toDateString() === new Date().toDateString();
+  const now = new Date();
+
   const timeSlots: TimeSlot[] = [
     { id: '1', time: '08:00 AM', period: 'Morning', available: true },
     { id: '2', time: '08:30 AM', period: 'Morning', available: true },
@@ -94,7 +97,30 @@ export default function SelectSlotScreen() {
     { id: '13', time: '05:00 PM', period: 'Evening', available: true },
     { id: '14', time: '05:30 PM', period: 'Evening', available: false },
     { id: '15', time: '06:00 PM', period: 'Evening', available: true },
-  ];
+  ].map((slot) => {
+    const typedSlot = slot as TimeSlot;
+    // Assuming the dates array is generated starting from Today at index 0
+    const isToday = selectedDate === 0;
+
+    if (!isToday) return typedSlot;
+
+    // Parse time
+    const [timeStr, modifier] = typedSlot.time.trim().split(/\s+/); // Handle potential extra spaces
+    let [hours, minutes] = timeStr.split(':').map(Number);
+    if (modifier === 'PM' && hours < 12) hours += 12;
+    if (modifier === 'AM' && hours === 12) hours = 0;
+
+    // Use current date for comparison since we are checking 'Today'
+    const slotDate = new Date();
+    slotDate.setHours(hours, minutes, 0, 0);
+
+    const bufferTime = new Date(now.getTime() + 30 * 60000); // 30 mins ahead
+
+    if (slotDate < bufferTime) {
+      return { ...typedSlot, available: false };
+    }
+    return typedSlot;
+  });
 
   const inputRefs = useRef<Array<TextInput | null>>([]);
 
@@ -209,21 +235,30 @@ export default function SelectSlotScreen() {
           <View style={styles.gridContainer}>
             {timeSlots.map((slot) => {
               const isSelected = selectedSlot === slot.id;
+              const isUnavailable = !slot.available;
+              // Mock offer logic to match book-service
+              const offer = slot.id === '2' ? '5% OFF' : slot.id === '3' || slot.id === '4' ? '10% OFF' : null;
+
               return (
                 <TouchableOpacity
                   key={slot.id}
-                  disabled={!slot.available}
+                  disabled={isUnavailable}
                   style={[
                     styles.timeGridItem,
                     isSelected && styles.timeGridItemSelected,
-                    !slot.available && { opacity: 0.5, backgroundColor: '#f5f5f5', borderColor: 'transparent' }
+                    isUnavailable && { opacity: 0.5, backgroundColor: '#f5f5f5', borderColor: '#eee' }
                   ]}
                   onPress={() => setSelectedSlot(slot.id)}
                 >
+                  {offer && (
+                    <View style={styles.offerBadge}>
+                      <Text style={styles.offerText}>{offer}</Text>
+                    </View>
+                  )}
                   <Text style={[
                     styles.timeGridText,
                     isSelected && styles.timeGridTextSelected,
-                    !slot.available && styles.timeGridTextUnavailable
+                    isUnavailable && styles.timeGridTextUnavailable
                   ]}>
                     {slot.time}
                   </Text>
@@ -454,11 +489,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     paddingHorizontal: 20,
-    gap: 10,
+    justifyContent: 'space-between', // Changed from gap to space-between
   },
   timeGridItem: {
-    width: '30%', // roughly 3 per row
-    paddingVertical: 12,
+    width: '31%', // roughly 3 per row
+    paddingVertical: 15,
     backgroundColor: '#fff',
     borderRadius: 12,
     alignItems: 'center',

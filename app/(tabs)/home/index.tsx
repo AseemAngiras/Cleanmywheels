@@ -1,13 +1,63 @@
+import { RootState } from '@/store';
+import { Booking } from '@/store/slices/bookingSlice';
 import { Ionicons } from '@expo/vector-icons';
-
 import { useFocusEffect, useNavigation, useRouter } from 'expo-router';
 import React, { useCallback } from 'react';
 import { Image, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useSelector } from 'react-redux';
 
 export default function HomeScreen() {
   const router = useRouter();
   const navigation = useNavigation();
+  const bookings = useSelector((state: RootState) => state.bookings.bookings);
+  const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
 
+  // Filter for completed bookings (or all if we want to show generic history).
+  // Including address in dummy data as per requirement.
+  const allBookings = bookings.length > 0 ? bookings : [
+    {
+      id: 'dummy-1',
+      serviceName: 'Premium Wash',
+      price: 499,
+      car: 'Sedan - KA05 1234',
+      date: '2023-10-10',
+      center: 'Your Location',
+      address: '123, Green Street, Bangalore',
+      carImage: 'https://cdn-icons-png.flaticon.com/512/743/743007.png',
+      status: 'completed'
+    },
+    {
+      id: 'dummy-2',
+      serviceName: 'Interior Detail',
+      price: 899,
+      car: 'SUV - DL01 5678',
+      date: '2023-11-05',
+      center: 'Your Location',
+      address: '456, Blue Avenue, Delhi',
+      carImage: 'https://cdn-icons-png.flaticon.com/512/743/743007.png',
+      status: 'completed'
+    }
+  ] as Partial<Booking>[];
+
+  // Deduplicate bookings: maintain uniqueness by Service + Address + Car
+  // We want to show the list of *unique* services the user has availed, 
+  // effectively creating a "Favorites" or "Quick Rebook" list.
+  const uniqueBookingsMap = new Map();
+
+  allBookings.forEach((booking) => {
+    // key = ServiceName | Address | Car
+    const key = `${booking.serviceName}|${booking.address}|${booking.car}`;
+
+    // If not present, add it.
+    // If present, we could optionally update it if the new one is more recent,
+    // but since we iterate usually in chronological order (or reverse), logic depends.
+    // Assuming `bookings` from Redux might be appended, later items are newer.
+    // So we just overwrite to ensure we have the latest instance (e.g. maybe price changed?).
+    uniqueBookingsMap.set(key, booking);
+  });
+
+  // Convert map values back to array and reverse to show most recent first (if source was chronological)
+  const pastBookings = Array.from(uniqueBookingsMap.values()).reverse();
 
   useFocusEffect(
     useCallback(() => {
@@ -23,10 +73,26 @@ export default function HomeScreen() {
     }, [navigation])
   );
 
-  return (
+  const handleRecentServicePress = (booking: Partial<Booking>) => {
+    // Navigate to Select Slot (Step 2) instead of Summary
+    // We pass necessary details so the user just picks a time
+    router.push({
+      pathname: '/(tabs)/home/book-doorstep/select-slot',
+      params: {
+        serviceName: booking.serviceName,
+        shopName: booking.center || 'Your Location',
+        basePrice: booking.price,
+        // Pass address and vehicle info to pre-fill or context
+        address: booking.address,
+        vehicleType: booking.car?.split(' - ')[0] || 'Sedan',
+        vehicleNumber: booking.car?.split(' - ')[1] || '',
+      }
+    });
+  };
 
+  return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
 
         {/* Header */}
         <View style={styles.header}>
@@ -48,32 +114,65 @@ export default function HomeScreen() {
               source={{ uri: 'https://images.unsplash.com/photo-1601362840469-51e4d8d58785?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80' }}
               style={styles.heroImage}
             />
-
           </View>
 
           <View style={styles.heroContent}>
-            <Text style={styles.heroTitle}>Make Your{'\n'}Car Shine.</Text>
+            <Text style={styles.heroTitle}>Make Your Car Shine.</Text>
             <Text style={styles.heroSubtitle}>
-              Premium eco-friendly car wash{'\n'}service delivered right to your{'\n'}doorstep.
+              Premium eco-friendly car wash service{'\n'}delivered right to your doorstep.
             </Text>
 
             <View style={styles.actionButtons}>
-              <TouchableOpacity style={styles.primaryButton} onPress={() => router.push('/(tabs)/home/book-service/select-service')}>
-                <Text style={styles.primaryButtonText}>BOOK SERVICE</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity style={styles.secondaryButton} onPress={() => router.push('/(tabs)/home/book-doorstep/enter-location')}>
-                <Ionicons name="home-outline" size={20} color="#fff" style={{ marginRight: 8 }} />
-                <Text style={styles.secondaryButtonText}>Book Doorstep</Text>
+              <TouchableOpacity
+                style={styles.bookDoorstepButton}
+                activeOpacity={0.8}
+                onPress={() => router.push('/(tabs)/home/book-doorstep/enter-location')}
+              >
+                <Ionicons name="home" size={22} color="#1a1a1a" style={{ marginRight: 10 }} />
+                <Text style={styles.bookDoorstepButtonText}>Book Doorstep</Text>
               </TouchableOpacity>
             </View>
           </View>
         </View>
 
+        {/* Recent Services Section */}
+        {isLoggedIn && (
+          <View style={styles.recentSection}>
+            <Text style={styles.recentTitle}>Recent Services</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.recentList}>
+              {pastBookings.map((item, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={styles.recentCard}
+                  onPress={() => handleRecentServicePress(item)}
+                >
+                  <View style={styles.recentIconContainer}>
+                    <Ionicons name="sparkles" size={24} color="#84c95c" />
+                  </View>
+                  <View style={styles.recentInfo}>
+                    <Text style={styles.recentServiceName}>{item.serviceName}</Text>
+                    {/* Display Address */}
+                    {item.address && (
+                      <Text style={styles.recentAddress} numberOfLines={1}>
+                        {item.address}
+                      </Text>
+                    )}
+                    <Text style={styles.recentCarText}>{item.car}</Text>
+                    <View style={styles.recentPriceRow}>
+                      <Text style={styles.recentPrice}>₹{item.price}</Text>
+                      <View style={styles.rebookBadge}>
+                        <Text style={styles.rebookText}>Rebook</Text>
+                      </View>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
-
 }
 
 const styles = StyleSheet.create({
@@ -84,7 +183,7 @@ const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 20,
     paddingTop: 10,
-    paddingBottom: 20,
+    paddingBottom: 40,
   },
   header: {
     flexDirection: 'row',
@@ -94,7 +193,7 @@ const styles = StyleSheet.create({
   },
   brandTitle: {
     fontSize: 20,
-    fontWeight: '800', // Extra bold like the image
+    fontWeight: '800',
     color: '#1a1a1a',
   },
   greeting: {
@@ -111,15 +210,15 @@ const styles = StyleSheet.create({
   },
   heroContainer: {
     alignItems: 'center',
+    marginBottom: 30,
   },
   imageWrapper: {
     width: '100%',
-    height: 340,
+    height: 240,
     borderRadius: 25,
     overflow: 'hidden',
     position: 'relative',
     marginBottom: 20,
-    // Add shadow to image container
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.1,
@@ -130,36 +229,6 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     resizeMode: 'cover',
-  },
-  badgeContainer: {
-    position: 'absolute',
-    top: 20,
-    left: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  newBadge: {
-    backgroundColor: '#FFD700', // Or match the yellow/green roughly if needed, but 'NEW' is usually yellow
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 12,
-  },
-  newBadgeText: {
-    fontSize: 10,
-    fontWeight: 'bold',
-    color: '#000',
-  },
-  serviceBadge: {
-    backgroundColor: '#fff',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 12,
-  },
-  serviceBadgeText: {
-    fontSize: 10,
-    fontWeight: 'bold',
-    color: '#000',
   },
   heroContent: {
     alignItems: 'center',
@@ -186,42 +255,104 @@ const styles = StyleSheet.create({
     gap: 15,
     width: '100%',
   },
-  primaryButton: {
-    backgroundColor: '#C8F000', // Secondary color confirmed in recent turns
-    paddingVertical: 16,
+  bookDoorstepButton: {
+    backgroundColor: '#C8F000',
+    paddingVertical: 18,
     paddingHorizontal: 30,
-    borderRadius: 30,
-    minWidth: 160,
-    alignItems: 'center',
-    shadowColor: '#C8F000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 5,
-  },
-  primaryButtonText: {
-    color: '#000',
-    fontWeight: 'bold',
-    fontSize: 14,
-  },
-  secondaryButton: {
-    backgroundColor: '#1a1a1a',
-    paddingVertical: 16,
-    paddingHorizontal: 30,
-    borderRadius: 30,
-    minWidth: 160,
+    borderRadius: 40,
+    width: '80%',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 5,
+    shadowColor: '#C8F000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 8,
   },
-  secondaryButtonText: {
-    color: '#fff',
+  bookDoorstepButtonText: {
+    color: '#1a1a1a',
+    fontWeight: '800',
+    fontSize: 16,
+    letterSpacing: 0.5,
+  },
+
+  // Recent Services Styles
+  recentSection: {
+    marginTop: 0,
+  },
+  recentTitle: {
+    fontSize: 18,
     fontWeight: 'bold',
+    color: '#1a1a1a',
+    marginBottom: 15,
+  },
+  recentList: {
+    paddingRight: 20,
+  },
+  recentCard: {
+    backgroundColor: '#fff',
+    width: 250,
+    padding: 15,
+    borderRadius: 16,
+    marginRight: 15,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#eee',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 5,
+    elevation: 2,
+  },
+  recentIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: '#f0f9eb',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 15,
+  },
+  recentInfo: {
+    flex: 1,
+  },
+  recentServiceName: {
     fontSize: 14,
+    fontWeight: 'bold',
+    color: '#1a1a1a',
+    marginBottom: 2,
+  },
+  recentAddress: {
+    fontSize: 11,
+    color: '#555',
+    marginBottom: 4,
+  },
+  recentCarText: {
+    fontSize: 12,
+    color: '#666',
+    marginBottom: 8,
+  },
+  recentPriceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  recentPrice: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#1a1a1a',
+  },
+  rebookBadge: {
+    backgroundColor: '#1a1a1a',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  rebookText: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#fff',
   },
 });

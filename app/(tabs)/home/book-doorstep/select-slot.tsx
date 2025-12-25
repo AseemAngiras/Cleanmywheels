@@ -1,7 +1,9 @@
+import { loginSuccess } from '@/store/slices/authSlice';
 import { setUser } from '@/store/slices/userSlice';
 import { useFocusEffect, useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+
 
 import BookingStepper from '@/components/BookingStepper';
 import { RootState } from '@/store';
@@ -154,6 +156,7 @@ export default function SelectSlotScreen() {
         phone: phoneNumber.trim(),
       })
     );
+    dispatch(loginSuccess('dummy-token'));
 
     setIsLoginModalVisible(false);
     setModalStep('details');
@@ -177,6 +180,7 @@ export default function SelectSlotScreen() {
         selectedTime: timeSlots.find((s) => s.id === selectedSlot)?.time,
         selectedTimeSlotId: selectedSlot,
         servicePrice: params.basePrice,
+        totalPrice: params.totalPrice || params.basePrice,
       },
     });
   };

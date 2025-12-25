@@ -164,19 +164,18 @@ export default function BookingSummaryScreen() {
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>Booking Details</Text>
 
-          {/* User Location (Service Provider) */}
+          {/* Service Name */}
           <View style={styles.row}>
             <View style={styles.iconBox}>
-              <Ionicons name="briefcase" size={20} color="#555" />
+              <Ionicons name="sparkles" size={20} color="#555" />
             </View>
             <View style={styles.rowContent}>
-              <Text style={styles.label}>Service Provider</Text>
+              <Text style={styles.label}>Service</Text>
               <Text style={styles.value}>
-                {shopName || "Your Location"}
+                {serviceName || "Premium Wash"}
               </Text>
             </View>
           </View>
-          
 
           <View style={styles.divider} />
 

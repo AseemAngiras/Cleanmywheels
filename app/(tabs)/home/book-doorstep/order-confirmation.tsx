@@ -106,7 +106,7 @@ export default function OrderConfirmationScreen() {
                     <Text style={styles.sectionTitle}>Booking Details</Text>
                     <View style={styles.detailRow}>
                         <Text style={styles.detailLabel}>Service</Text>
-                        <Text style={styles.detailValue}>{shopName || 'Premium Wash'}</Text>
+                        <Text style={styles.detailValue}>{params.serviceName || 'Premium Wash'}</Text>
                     </View>
                     <View style={styles.detailRow}>
                         <Text style={styles.detailLabel}>Date & Time</Text>

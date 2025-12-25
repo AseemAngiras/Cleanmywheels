@@ -185,7 +185,7 @@ export default function BookingSummaryScreen() {
               <Text style={styles.value}>
                 {vehicleType
                   ? (vehicleType as string).charAt(0).toUpperCase() +
-                    (vehicleType as string).slice(1)
+                  (vehicleType as string).slice(1)
                   : "Sedan"}{" "}
                 - {vehicleNumber || "N/A"}
               </Text>
@@ -203,9 +203,9 @@ export default function BookingSummaryScreen() {
               <Text style={styles.value}>
                 {selectedDate
                   ? new Date(selectedDate as string).toLocaleDateString(
-                      undefined,
-                      { weekday: "short", day: "numeric", month: "short" }
-                    )
+                    undefined,
+                    { weekday: "short", day: "numeric", month: "short" }
+                  )
                   : "Date"}
                 , {selectedTime || "Time"}
               </Text>
@@ -234,14 +234,10 @@ export default function BookingSummaryScreen() {
             <Text style={styles.paymentValue}>₹{servicePrice || 0}</Text>
           </View>
 
-          {addonNames.map((addon) => (
-            <View key={addon} style={styles.paymentRow}>
-              <Text style={styles.paymentLabel}>
-                {addon.replace(/([A-Z])/g, " $1").trim()}
-              </Text>
-              <Text style={styles.paymentValue}>
-                {addon === "acService" ? "+₹10" : "+₹5"}
-              </Text>
+          {Array.isArray(parsedAddons) && parsedAddons.map((addon: any) => (
+            <View key={addon.id} style={styles.paymentRow}>
+              <Text style={styles.paymentLabel}>{addon.name}</Text>
+              <Text style={styles.paymentValue}>+₹{addon.price}</Text>
             </View>
           ))}
 
@@ -372,7 +368,7 @@ export default function BookingSummaryScreen() {
                   style={[
                     styles.optionCard,
                     selectedPaymentMethod === option.id &&
-                      styles.optionCardSelected,
+                    styles.optionCardSelected,
                   ]}
                   onPress={() => {
                     setSelectedPaymentMethod(option.id);

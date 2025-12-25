@@ -34,6 +34,87 @@ export default function EnterLocationScreen() {
     (state: RootState) => state.profile.addresses
   );
 
+
+    const confirmMapLocation = async () => {
+        if (!selectedCoord) return;
+        setMapVisible(false);
+        setIsLocating(true);
+
+        try {
+            let addressResponse = await Location.reverseGeocodeAsync({
+                latitude: selectedCoord.lat,
+                longitude: selectedCoord.long
+            });
+
+            if (addressResponse && addressResponse.length > 0) {
+                const addr = addressResponse[0];
+                setFlatNumber(addr.name || '');
+                setBuildingName(addr.street || '');
+                setLocality(addr.district || addr.subregion || '');
+                setCity(addr.city || addr.region || '');
+                setPincode(addr.postalCode || '');
+            }
+        } catch (e) {
+            console.log("Geocoding error", e);
+        } finally {
+            setIsLocating(false);
+        }
+    };
+
+    const handleConfirm = () => {
+        setErrorMsg('');
+        if (!flatNumber.trim()) {
+            setErrorMsg('Please enter House / Flat Number');
+            return;
+        }
+        if (!buildingName.trim()) {
+            setErrorMsg('Please enter Building / Street Name');
+            return;
+        }
+        if (!locality.trim()) {
+            setErrorMsg('Please enter Locality / Area');
+            return;
+        }
+        if (!city.trim()) {
+            setErrorMsg('Please enter City');
+            return;
+        }
+        if (!pincode.trim() || pincode.length < 6) {
+            setErrorMsg('Please enter a valid 6-digit Pincode');
+            return;
+        }
+
+        const fullAddress = `${flatNumber}, ${buildingName}, ${locality}, ${city}, ${pincode}`;
+
+        const addressObject = {
+            id: nanoid(),
+            flatNumber,
+            buildingName,
+            locality,
+            landmark,
+            city,
+            pincode,
+            addressType,
+            fullAddress,
+            latitude: selectedCoord?.lat,
+            longitude: selectedCoord?.long,
+        };
+
+        dispatch(addAddress(addressObject));
+
+        dispatch(setBookingAddress({
+            addressId: addressObject.id,
+        }));
+
+        router.push({
+            pathname: "/(tabs)/home/book-doorstep/select-service",
+            params: {
+                address: fullAddress,
+                latitude: selectedCoord?.lat,
+                longitude: selectedCoord?.long,
+            }
+        });
+
   React.useLayoutEffect(() => {
     navigation.getParent()?.setOptions({
       tabBarStyle: { display: "none" },
@@ -200,6 +281,7 @@ export default function EnterLocationScreen() {
       fullAddress,
       latitude: selectedCoord?.lat,
       longitude: selectedCoord?.long,
+
     };
 
     dispatch(addAddress(addressObject));

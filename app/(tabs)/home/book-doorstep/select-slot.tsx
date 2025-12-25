@@ -150,6 +150,9 @@ export default function SelectSlotScreen() {
         selectedDate: dateOnly,
         selectedTime: timeSlots.find((s) => s.id === selectedSlot)?.time,
         selectedTimeSlotId: selectedSlot,
+        // map basePrice from params to servicePrice for summary (or just pass everything)
+        // If params has basePrice, we should probably ensure booking-summary uses it or we rename it here.
+        servicePrice: params.basePrice,
       },
     });
   };

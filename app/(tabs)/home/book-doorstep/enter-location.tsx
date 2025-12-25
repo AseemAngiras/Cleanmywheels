@@ -100,7 +100,7 @@ export default function EnterLocationScreen() {
 
             if (addressResponse && addressResponse.length > 0) {
                 const addr = addressResponse[0];
-                setFlatNumber(addr.name || ''); 
+                setFlatNumber(addr.name || '');
                 setBuildingName(addr.street || '');
                 setLocality(addr.district || addr.subregion || '');
                 setCity(addr.city || addr.region || '');
@@ -114,7 +114,7 @@ export default function EnterLocationScreen() {
     };
 
     const handleConfirm = () => {
-        setErrorMsg(''); 
+        setErrorMsg('');
         if (!flatNumber.trim()) {
             setErrorMsg('Please enter House / Flat Number');
             return;
@@ -138,7 +138,7 @@ export default function EnterLocationScreen() {
 
         const fullAddress = `${flatNumber}, ${buildingName}, ${locality}, ${city}, ${pincode}`;
 
-        const addressObject = {            
+        const addressObject = {
             id: nanoid(),
             flatNumber,
             buildingName,
@@ -146,11 +146,11 @@ export default function EnterLocationScreen() {
             landmark,
             city,
             pincode,
-            addressType, 
+            addressType,
             fullAddress,
             latitude: selectedCoord?.lat,
             longitude: selectedCoord?.long,
-            };
+        };
 
         dispatch(addAddress(addressObject));
 
@@ -158,7 +158,14 @@ export default function EnterLocationScreen() {
             addressId: addressObject.id,
         }));
 
-        router.push("/(tabs)/home/book-doorstep/select-service")
+        router.push({
+            pathname: "/(tabs)/home/book-doorstep/select-service",
+            params: {
+                address: fullAddress,
+                latitude: selectedCoord?.lat,
+                longitude: selectedCoord?.long,
+            }
+        });
     };
 
     return (

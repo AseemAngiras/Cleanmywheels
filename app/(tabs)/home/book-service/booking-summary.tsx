@@ -140,8 +140,15 @@ export default function BookingSummaryScreen() {
 
           <View style={styles.paymentRow}>
             <Text style={styles.paymentLabel}>{service?.name}</Text>
-            <Text style={styles.paymentValue}>₹{service?.totalPrice}</Text>
+            <Text style={styles.paymentValue}>₹{service?.basePrice}</Text>
           </View>
+
+          {service?.addons && Array.isArray(service.addons) && service.addons.map((addon: any) => (
+            <View key={addon.id} style={styles.paymentRow}>
+              <Text style={styles.paymentLabel}>{addon.name}</Text>
+              <Text style={styles.paymentValue}>+₹{addon.price}</Text>
+            </View>
+          ))}
 
           <View style={styles.totalDivider} />
 

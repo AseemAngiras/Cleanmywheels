@@ -130,6 +130,13 @@ export default function ShopsListScreen() {
         };
     });
 
+    // Use robust date comparison
+    const now = new Date();
+    const selectedDateObj = dates[selectedDate].fullDate;
+    const isToday = selectedDateObj.getDate() === now.getDate() &&
+        selectedDateObj.getMonth() === now.getMonth() &&
+        selectedDateObj.getFullYear() === now.getFullYear();
+
     const timeSlots: TimeSlot[] = [
         { id: '1', time: '08:00 AM', period: 'Morning', available: true },
         { id: '2', time: '08:30 AM', period: 'Morning', available: true },
@@ -146,7 +153,26 @@ export default function ShopsListScreen() {
         { id: '13', time: '05:00 PM', period: 'Evening', available: true },
         { id: '14', time: '05:30 PM', period: 'Evening', available: false },
         { id: '15', time: '06:00 PM', period: 'Evening', available: true },
-    ];
+    ].map((slot) => {
+        const typedSlot = slot as TimeSlot;
+        if (!isToday) return typedSlot;
+
+        // Parse time
+        const [timeStr, modifier] = typedSlot.time.trim().split(/\s+/);
+        let [hours, minutes] = timeStr.split(':').map(Number);
+        if (modifier === 'PM' && hours < 12) hours += 12;
+        if (modifier === 'AM' && hours === 12) hours = 0;
+
+        const slotDate = new Date();
+        slotDate.setHours(hours, minutes, 0, 0);
+
+        const bufferTime = new Date(now.getTime() + 30 * 60000); // 30 mins ahead
+
+        if (slotDate < bufferTime) {
+            return { ...typedSlot, available: false };
+        }
+        return typedSlot;
+    });
 
     const slotsByPeriod = {
         Morning: timeSlots.filter(s => s.period === 'Morning'),
@@ -237,9 +263,9 @@ export default function ShopsListScreen() {
                         onPress={() => {
                             setSelectedShop(item);
                             if (user?.name && user?.phone) {
-                              setShowSlotPicker(true);
+                                setShowSlotPicker(true);
                             } else {
-                              setIsLoginModalVisible(true);
+                                setIsLoginModalVisible(true);
                             }
                         }}
                     >
@@ -432,36 +458,36 @@ export default function ShopsListScreen() {
                             onPress={() => {
                                 if (!bookingDraft) return;
 
-                            const updatedBookingDraft = {
-                              ...bookingDraft,
+                                const updatedBookingDraft = {
+                                    ...bookingDraft,
 
-                             shop: {
-                               id: selectedShop.id,
-                               name: selectedShop.name,
-                               address: selectedShop.address,
-                               image: selectedShop.image,
-                               rating: selectedShop.rating,
-                               location: {
-                                 lat: selectedShop.latitude,
-                                 long: selectedShop.longitude,
-                               },
-                             },
+                                    shop: {
+                                        id: selectedShop.id,
+                                        name: selectedShop.name,
+                                        address: selectedShop.address,
+                                        image: selectedShop.image,
+                                        rating: selectedShop.rating,
+                                        location: {
+                                            lat: selectedShop.latitude,
+                                            long: selectedShop.longitude,
+                                        },
+                                    },
 
-                             slot: {
-                               date: dates[selectedDate].fullDate.toISOString(),
-                               time: timeSlots.find(s => s.id === selectedSlot)?.time,
-                               slotId: selectedSlot,
-                             },
-                            };
+                                    slot: {
+                                        date: dates[selectedDate].fullDate.toISOString(),
+                                        time: timeSlots.find(s => s.id === selectedSlot)?.time,
+                                        slotId: selectedSlot,
+                                    },
+                                };
 
                                 setShowSlotPicker(false);
 
-                            router.push({
-                              pathname: "/(tabs)/home/book-service/booking-summary",
-                              params: {
-                                bookingDraft: JSON.stringify(updatedBookingDraft),
-                              },
-                            });
+                                router.push({
+                                    pathname: "/(tabs)/home/book-service/booking-summary",
+                                    params: {
+                                        bookingDraft: JSON.stringify(updatedBookingDraft),
+                                    },
+                                });
                             }}
 
                         >

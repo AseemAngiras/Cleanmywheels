@@ -32,7 +32,7 @@ export default function SelectServiceScreen() {
     const dispatch = useDispatch();
 
     const cars = useAppSelector((state) => {
-    return state.user.cars;
+        return state.user.cars;
     });
 
 

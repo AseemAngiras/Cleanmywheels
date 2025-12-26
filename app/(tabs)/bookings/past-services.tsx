@@ -1,16 +1,22 @@
 "use client";
 
 import { Ionicons } from "@expo/vector-icons";
+import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useRef, useState } from "react";
 import {
+  Alert,
   Animated,
   Easing,
   FlatList,
   Image,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
+  ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -18,13 +24,35 @@ import {
 import { useAppSelector } from "../../../store/hooks";
 
 export default function PastServices() {
-  const bookings = useAppSelector((state) =>
+  const reduxBookings = useAppSelector((state) =>
     state.bookings.bookings.filter(
       (b) => b.status === "completed" || b.status === "cancelled"
     )
   );
 
+  const bookings = reduxBookings.length > 0 ? reduxBookings : [
+    {
+      id: "dummy-1",
+      center: "Tech Zone Car Spa",
+      date: "Oct 12, 2023",
+      timeSlot: "10:30 AM",
+      car: "Hyundai Creta",
+      carImage: "https://cdn-icons-png.flaticon.com/512/743/743007.png",
+      status: "completed",
+      serviceName: "Premium Foam Wash",
+      price: 649,
+      plate: "KA 05 AB 1234",
+      address: "123, Main Street, Bangalore"
+    }
+  ];
+
   const [activeBooking, setActiveBooking] = useState<any | null>(null);
+
+  // Complaint State
+  const [complaintModalVisible, setComplaintModalVisible] = useState(false);
+  const [complaintBooking, setComplaintBooking] = useState<any | null>(null);
+  const [complaintText, setComplaintText] = useState("");
+  const [complaintImage, setComplaintImage] = useState<string | null>(null);
 
   const slideAnim = useRef(new Animated.Value(300)).current;
   const scaleAnim = useRef(new Animated.Value(0.95)).current;
@@ -76,6 +104,43 @@ export default function PastServices() {
     ]).start(() => setActiveBooking(null));
   };
 
+  const handleComplaint = (booking: any) => {
+    setComplaintBooking(booking);
+    setComplaintModalVisible(true);
+  };
+
+  const closeComplaintModal = () => {
+    setComplaintModalVisible(false);
+    setComplaintBooking(null);
+    setComplaintText("");
+    setComplaintImage(null);
+  };
+
+  const pickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setComplaintImage(result.assets[0].uri);
+    }
+  };
+
+  const submitComplaint = () => {
+    if (!complaintText.trim()) {
+      Alert.alert("Required", "Please describe your issue.");
+      return;
+    }
+
+    // optimizing UX with fake delay
+    const ticketId = `TKT-${Math.floor(1000 + Math.random() * 9000)}`;
+    Alert.alert("Complaint Received", `Your ticket #${ticketId} has been created. Our support team will review it shortly.`);
+    closeComplaintModal();
+  };
+
   const renderItem = ({ item }: any) => {
     const isCompleted = item.status === "completed";
     const isCancelled = item.status === "cancelled";
@@ -125,6 +190,14 @@ export default function PastServices() {
                 {isCompleted ? "Completed" : "Cancelled"}
               </Text>
             </View>
+
+            <TouchableOpacity
+              style={styles.complaintButton}
+              onPress={() => handleComplaint(item)}
+            >
+              <Ionicons name="alert-circle-outline" size={14} color="#EF4444" />
+              <Text style={styles.complaintText}>Complaint</Text>
+            </TouchableOpacity>
           </View>
 
           <Image
@@ -217,6 +290,61 @@ export default function PastServices() {
           )}
         </Animated.View>
       </Modal>
+
+      {/* Complaint Modal */}
+      <Modal
+        visible={complaintModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={closeComplaintModal}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={styles.modalOverlay}
+        >
+          <View style={styles.complaintModalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Raise Complaint</Text>
+              <TouchableOpacity onPress={closeComplaintModal}>
+                <Ionicons name="close" size={24} color="#000" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView contentContainerStyle={styles.complaintScroll}>
+              <Text style={styles.complaintSubtitle}>
+                Tell us about the issue with your service on {complaintBooking?.date}
+              </Text>
+
+              <Text style={styles.inputLabel}>Description</Text>
+              <TextInput
+                style={styles.textArea}
+                placeholder="Describe what went wrong..."
+                placeholderTextColor="#999"
+                multiline
+                numberOfLines={4}
+                value={complaintText}
+                onChangeText={setComplaintText}
+              />
+
+              <Text style={styles.inputLabel}>Upload Photo (Optional)</Text>
+              <TouchableOpacity style={styles.uploadButton} onPress={pickImage}>
+                {complaintImage ? (
+                  <Image source={{ uri: complaintImage }} style={styles.uploadedImage} />
+                ) : (
+                  <>
+                    <Ionicons name="camera-outline" size={24} color="#666" />
+                    <Text style={styles.uploadText}>Tap to select image</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </ScrollView>
+
+            <TouchableOpacity style={styles.submitButton} onPress={submitComplaint}>
+              <Text style={styles.submitButtonText}>Submit Complaint</Text>
+            </TouchableOpacity>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </>
   );
 }
@@ -230,7 +358,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#F5F8FF",
     borderRadius: 20,
     padding: 20,
-    paddingBottom: 90,
+    // paddingBottom: 90,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
@@ -356,7 +484,7 @@ const styles = StyleSheet.create({
 
   completedPill: {
     backgroundColor: "#BBF7D0",
-    paddingHorizontal: 12,
+    paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 12,
   },
@@ -433,5 +561,110 @@ const styles = StyleSheet.create({
 
   cancelledText: {
     color: "#B91C1C",
+  },
+
+  complaintButton: {
+    marginTop: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: 'flex-start',
+    gap: 4,
+    paddingVertical: 4,
+    paddingHorizontal: 15,
+    borderRadius: 8,
+    backgroundColor: '#FEF2F2',
+    borderWidth: 1,
+    borderColor: '#FAC7C7'
+  },
+  complaintText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#EF4444",
+  },
+
+  // Complaint Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  complaintModalContent: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    height: '80%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1a1a1a',
+  },
+  complaintScroll: {
+    paddingBottom: 20,
+  },
+  complaintSubtitle: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 20,
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1a1a1a',
+    marginBottom: 8,
+    marginTop: 10,
+  },
+  textArea: {
+    backgroundColor: '#f9f9f9',
+    borderRadius: 12,
+    padding: 15,
+    height: 120,
+    textAlignVertical: 'top',
+    fontSize: 15,
+    color: '#1a1a1a',
+    borderWidth: 1,
+    borderColor: '#eee',
+  },
+  uploadButton: {
+    height: 150,
+    backgroundColor: '#f9f9f9',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#eee',
+    borderStyle: 'dashed',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 5,
+  },
+  uploadText: {
+    marginTop: 8,
+    color: '#666',
+    fontSize: 14,
+  },
+  uploadedImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 12,
+    resizeMode: 'cover',
+  },
+  submitButton: {
+    backgroundColor: '#1a1a1a',
+    paddingVertical: 16,
+    borderRadius: 50,
+    alignItems: 'center',
+    marginTop: 10,
+    marginBottom: 20,
+  },
+  submitButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });

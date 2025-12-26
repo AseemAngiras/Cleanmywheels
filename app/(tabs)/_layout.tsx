@@ -1,12 +1,24 @@
+import { RootState } from "@/store";
 import { Tabs, useSegments } from "expo-router";
+import { useSelector } from "react-redux";
 import { CustomTabBar } from "../../components/CustomTabBar";
+import { ShopTabBar } from "../../components/ShopTabBar";
 
 export default function TabsLayout() {
   const segments = useSegments();
 
   // Check if we are in a sub-flow that should hide tabs
+  const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
+  const userPhone = useSelector((state: RootState) => state.user.phone);
+  // Ensure we compare raw numbers only
+  const sanitizedPhone = userPhone ? userPhone.replace(/\D/g, '') : '';
+  const isAdmin = sanitizedPhone.endsWith('1234567890');
+
+  console.log('DEBUG: userPhone:', userPhone);
+  console.log('DEBUG: sanitizedPhone:', sanitizedPhone);
+  console.log('DEBUG: isAdmin:', isAdmin);
   const segmentString = JSON.stringify(segments);
-  const hideTabs = segmentString.includes('book-service') || segmentString.includes('book-doorstep');
+  const hideTabs = segmentString.includes('book-service') || segmentString.includes('book-doorstep') || !isLoggedIn;
 
   return (
     <Tabs
@@ -15,11 +27,22 @@ export default function TabsLayout() {
         tabBarStyle: hideTabs ? { display: 'none' } : undefined
       }}
       tabBar={(props) => (
-        hideTabs ? null : <CustomTabBar {...props} />
+        hideTabs ? null : isAdmin ? <ShopTabBar {...props} /> : <CustomTabBar {...props} />
       )}
     >
       <Tabs.Screen name="home" />
-      <Tabs.Screen name="my-cars" />
+      <Tabs.Screen
+        name="dashboard"
+        options={{
+          title: 'Dashboard',
+        }}
+      />
+      <Tabs.Screen
+        name="my-cars"
+        options={{
+          title: 'My Cars',
+        }}
+      />
       <Tabs.Screen name="bookings" />
       <Tabs.Screen name="profile" />
     </Tabs>

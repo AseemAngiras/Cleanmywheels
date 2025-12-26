@@ -1,0 +1,475 @@
+import { RootState } from '@/store';
+import { Ionicons } from '@expo/vector-icons';
+import React, { useState } from 'react';
+import {
+    Alert,
+    Image,
+    Modal,
+    SafeAreaView,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
+} from 'react-native';
+import { useSelector } from 'react-redux';
+
+// --- RICH MOCK DATA FOR WORKERS ---
+const INITIAL_WORKERS = [
+    {
+        id: '1',
+        name: 'Amit Kumar',
+        statusText: 'Bay 3: Silver Sedan',
+        statusType: 'active', // green dot
+        avatar: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80',
+    },
+    {
+        id: '2',
+        name: 'Priya Sharma',
+        statusText: 'Back at 2:00 PM',
+        statusType: 'break', // orange dot
+        avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80',
+    },
+    {
+        id: '3',
+        name: 'Rajesh Singh',
+        statusText: 'Interior Detailing',
+        statusType: 'active',
+        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80',
+    },
+    {
+        id: '4',
+        name: 'Neha Gupta',
+        statusText: 'Starts at 4:00 PM',
+        statusType: 'inactive', // grey dot
+        avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80',
+    },
+    {
+        id: '5',
+        name: 'Suresh Patel',
+        statusText: 'Polishing: Black SUV',
+        statusType: 'active',
+        avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80',
+    },
+];
+
+export default function DashboardScreen() {
+    const userName = useSelector((state: RootState) => state.user.name);
+    const [workers, setWorkers] = useState(INITIAL_WORKERS);
+    const [modalVisible, setModalVisible] = useState(false);
+    const [newWorkerName, setNewWorkerName] = useState('');
+    const [newWorkerStatus, setNewWorkerStatus] = useState('');
+
+    const handleAddWorker = () => {
+        if (!newWorkerName.trim()) {
+            Alert.alert("Error", "Please enter a worker name.");
+            return;
+        }
+
+        const newWorker = {
+            id: Date.now().toString(),
+            name: newWorkerName,
+            statusText: newWorkerStatus || 'Available',
+            statusType: 'active',
+            avatar: 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80', // Default avatar
+        };
+
+        setWorkers([...workers, newWorker]);
+        setModalVisible(false);
+        setNewWorkerName('');
+        setNewWorkerStatus('');
+    };
+
+    return (
+        <SafeAreaView style={styles.container}>
+            {/* Header - Preserved as requested */}
+            <View style={styles.header}>
+                <View>
+                    <Text style={styles.greeting}>Admin Dashboard</Text>
+                    <Text style={styles.title}>Worker Management</Text>
+                </View>
+                <TouchableOpacity style={styles.filterBtn}>
+                    <Ionicons name="options-outline" size={24} color="#1a1a1a" />
+                </TouchableOpacity>
+            </View>
+
+            <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+
+
+
+                {/* Stats Cards */}
+                <View style={styles.statsContainer}>
+                    {/* Total */}
+                    <View style={styles.statCard}>
+                        <View style={styles.statIconRow}>
+                            <Ionicons name="people" size={20} color="#909090" />
+                        </View>
+                        <Text style={styles.statLabel}>TOTAL</Text>
+                        <Text style={styles.statValue}>{workers.length}</Text>
+                    </View>
+
+                    {/* Active - Yellow Highlight */}
+                    <View style={[styles.statCard, styles.activeStatCard]}>
+                        <View style={styles.statIconRow}>
+                            <Ionicons name="flash" size={20} color="#1a1a1a" />
+                        </View>
+                        <Text style={[styles.statLabel, styles.activeStatText]}>ACTIVE</Text>
+                        <Text style={[styles.statValue, styles.activeStatText]}>
+                            {workers.filter(w => w.statusType === 'active').length}
+                        </Text>
+                    </View>
+
+                    {/* Break */}
+                    <View style={styles.statCard}>
+                        <View style={styles.statIconRow}>
+                            <Ionicons name="cafe" size={20} color="#E67E22" />
+                        </View>
+                        <Text style={styles.statLabel}>BREAK</Text>
+                        <Text style={styles.statValue}>
+                            {workers.filter(w => w.statusType === 'break').length}
+                        </Text>
+                    </View>
+                </View>
+
+                {/* Directory Header */}
+                <View style={[styles.sectionHeader, { marginTop: 20 }]}>
+                    <Text style={styles.sectionTitle}>Worker Directory</Text>
+                    <TouchableOpacity>
+                        <Text style={styles.viewAllText}>View All</Text>
+                    </TouchableOpacity>
+                </View>
+
+                {/* Worker List */}
+                <View style={styles.directoryList}>
+                    {workers.map((worker) => (
+                        <View key={worker.id} style={styles.workerRow}>
+                            <View style={styles.workerInfoLeft}>
+                                <View>
+                                    <Image source={{ uri: worker.avatar }} style={styles.workerAvatar} />
+                                    <View style={[
+                                        styles.statusDot,
+                                        worker.statusType === 'active' ? styles.dotGreen :
+                                            worker.statusType === 'break' ? styles.dotOrange : styles.dotGrey
+                                    ]} />
+                                </View>
+                                <View>
+                                    <Text style={styles.workerName}>{worker.name}</Text>
+                                    <View style={styles.statusRow}>
+                                        <Ionicons
+                                            name={
+                                                worker.statusType === 'active' ? 'car-sport' :
+                                                    worker.statusType === 'break' ? 'time' : 'person'
+                                            }
+                                            size={12}
+                                            color="#888"
+                                        />
+                                        <Text style={styles.workerStatus}>{worker.statusText}</Text>
+                                    </View>
+                                </View>
+                            </View>
+                            <TouchableOpacity style={styles.moreBtn}>
+                                <Ionicons name="ellipsis-horizontal" size={20} color="#ccc" />
+                            </TouchableOpacity>
+                        </View>
+                    ))}
+                </View>
+
+                <View style={{ height: 100 }} />
+            </ScrollView>
+
+            {/* Floating Action Button */}
+            <TouchableOpacity style={styles.fab} onPress={() => setModalVisible(true)}>
+                <Ionicons name="add" size={32} color="#1a1a1a" />
+            </TouchableOpacity>
+
+            {/* Add Worker Modal */}
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={modalVisible}
+                onRequestClose={() => setModalVisible(false)}
+            >
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalTitle}>Add New Worker</Text>
+
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Worker Name"
+                            value={newWorkerName}
+                            onChangeText={setNewWorkerName}
+                        />
+
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Status (e.g., Bay 1)"
+                            value={newWorkerStatus}
+                            onChangeText={setNewWorkerStatus}
+                        />
+
+                        <View style={styles.modalButtons}>
+                            <TouchableOpacity
+                                style={[styles.btn, styles.btnCancel]}
+                                onPress={() => setModalVisible(false)}
+                            >
+                                <Text style={styles.btnTextCancel}>Cancel</Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                style={[styles.btn, styles.btnAdd]}
+                                onPress={handleAddWorker}
+                            >
+                                <Text style={styles.btnTextAdd}>Add Worker</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
+        </SafeAreaView>
+    );
+}
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: '#F8F9FA',
+    },
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 20,
+        paddingTop: 10,
+        paddingBottom: 10,
+        backgroundColor: '#F8F9FA',
+    },
+    greeting: {
+        fontSize: 14,
+        color: '#666',
+        fontWeight: '500',
+    },
+    title: {
+        fontSize: 24,
+        fontWeight: '800',
+        color: '#1a1a1a',
+    },
+    profileBtn: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+        elevation: 2,
+    },
+    profileAvatar: {
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        borderWidth: 2,
+        borderColor: '#fff',
+    },
+    scrollContent: {
+        paddingHorizontal: 20,
+        paddingTop: 10,
+    },
+    sectionHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 15,
+    },
+    sectionTitle: {
+        fontSize: 20,
+        fontWeight: '700',
+        color: '#1a1a1a',
+        letterSpacing: -0.5,
+    },
+    filterBtn: {
+        backgroundColor: '#fff',
+        padding: 8,
+        borderRadius: 20,
+    },
+    viewAllText: {
+        fontSize: 14,
+        color: '#F1C40F', // Yellowish Gold
+        fontWeight: '600',
+    },
+
+    // Stats Styles
+    statsContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        gap: 12,
+        marginBottom: 10,
+    },
+    statCard: {
+        flex: 1,
+        backgroundColor: '#fff',
+        borderRadius: 16,
+        padding: 16,
+        justifyContent: 'space-between',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.03,
+        shadowRadius: 8,
+        elevation: 2,
+    },
+    activeStatCard: {
+        backgroundColor: '#FCF3CF', // Light Yellow
+    },
+    statIconRow: {
+        marginBottom: 12,
+    },
+    statLabel: {
+        fontSize: 11,
+        fontWeight: '600',
+        color: '#999',
+        letterSpacing: 0.5,
+        marginBottom: 4,
+    },
+    activeStatText: {
+        color: '#1a1a1a', // Darker text on yellow card
+    },
+    statValue: {
+        fontSize: 26,
+        fontWeight: '700',
+        color: '#1a1a1a',
+    },
+
+    // List Styles
+    directoryList: {
+        gap: 12,
+    },
+    workerRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        backgroundColor: '#fff',
+        padding: 16,
+        borderRadius: 20,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.03,
+        shadowRadius: 8,
+        elevation: 2,
+    },
+    workerInfoLeft: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 16,
+    },
+    workerAvatar: {
+        width: 50,
+        height: 50,
+        borderRadius: 25,
+        backgroundColor: '#eee',
+    },
+    statusDot: {
+        width: 14,
+        height: 14,
+        borderRadius: 7,
+        borderWidth: 2,
+        borderColor: '#fff',
+        position: 'absolute',
+        bottom: 0,
+        right: 0,
+    },
+    dotGreen: { backgroundColor: '#2ECC71' },
+    dotOrange: { backgroundColor: '#F39C12' },
+    dotGrey: { backgroundColor: '#BDC3C7' },
+
+    workerName: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: '#1a1a1a',
+        marginBottom: 4,
+    },
+    statusRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+    },
+    workerStatus: {
+        fontSize: 13,
+        color: '#7F8C8D',
+        fontWeight: '500',
+    },
+    moreBtn: {
+        padding: 8,
+        backgroundColor: '#f9f9f9',
+        borderRadius: 20,
+    },
+
+    // FAB
+    fab: {
+        position: 'absolute',
+        bottom: 100,
+        right: 20,
+        width: 64,
+        height: 64,
+        borderRadius: 32,
+        backgroundColor: '#F1C40F', // Vibrant Yellow
+        justifyContent: 'center',
+        alignItems: 'center',
+        shadowColor: '#F1C40F',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.4,
+        shadowRadius: 12,
+        elevation: 8,
+    },
+    // Modal Styles
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    modalContent: {
+        backgroundColor: '#fff',
+        width: '80%',
+        padding: 24,
+        borderRadius: 20,
+        alignItems: 'center',
+    },
+    modalTitle: {
+        fontSize: 18,
+        fontWeight: '700',
+        marginBottom: 20,
+        color: '#1a1a1a',
+    },
+    input: {
+        width: '100%',
+        backgroundColor: '#F5F5F5',
+        padding: 14,
+        borderRadius: 12,
+        marginBottom: 12,
+        fontSize: 14,
+        color: '#333',
+    },
+    modalButtons: {
+        flexDirection: 'row',
+        gap: 12,
+        marginTop: 10,
+        width: '100%',
+    },
+    btn: {
+        flex: 1,
+        paddingVertical: 12,
+        borderRadius: 12,
+        alignItems: 'center',
+    },
+    btnCancel: {
+        backgroundColor: '#F5F5F5',
+    },
+    btnAdd: {
+        backgroundColor: '#F1C40F',
+    },
+    btnTextCancel: {
+        fontWeight: '600',
+        color: '#666',
+    },
+    btnTextAdd: {
+        fontWeight: '700',
+        color: '#1a1a1a',
+    },
+});

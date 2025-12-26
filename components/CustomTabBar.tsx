@@ -13,8 +13,8 @@ export function CustomTabBar({ state, descriptors, navigation }: any) {
   return (
     <View style={styles.wrapper}>
       <View style={styles.container}>
-        {state.routes.map((route: any, index: number) => {
-          const focused = state.index === index;
+        {state.routes.filter((route: any) => ["home", "my-cars", "bookings", "profile"].includes(route.name)).map((route: any, index: number) => {
+          const focused = state.routes[state.index].key === route.key;
 
           const progress = useRef(new Animated.Value(focused ? 1 : 0)).current;
 
@@ -43,18 +43,22 @@ export function CustomTabBar({ state, descriptors, navigation }: any) {
               ? focused ? "home" : "home-outline"
               : route.name === "my-cars"
                 ? focused ? "car" : "car-outline"
-                : route.name === "bookings"
-                  ? focused ? "receipt" : "receipt-outline"
-                  : focused ? "person" : "person-outline";
+                : route.name === "dashboard"
+                  ? focused ? "grid" : "grid-outline"
+                  : route.name === "bookings"
+                    ? focused ? "receipt" : "receipt-outline"
+                    : focused ? "person" : "person-outline";
 
           const label =
             route.name === "home"
               ? "Home"
               : route.name === "my-cars"
                 ? "My Cars"
-                : route.name === "bookings"
-                  ? "Bookings"
-                  : "Profile";
+                : route.name === "dashboard"
+                  ? "Dashboard"
+                  : route.name === "bookings"
+                    ? "Bookings"
+                    : "Profile";
 
           return (
             <TouchableOpacity

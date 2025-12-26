@@ -7,6 +7,7 @@ import {
   Easing,
   Image,
   Modal,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -70,7 +71,11 @@ export default function ProfileHome() {
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={{ paddingBottom: 100 }}
+      showsVerticalScrollIndicator={false}
+    >
       {/* HEADER */}
       <View style={styles.headerRow}>
         <TouchableOpacity style={styles.moreButton} onPress={() => router.back()}>
@@ -120,6 +125,7 @@ export default function ProfileHome() {
         <Row icon="settings-outline" title="Settings" />
       </View>
 
+
       {/* SUPPORT CARD */}
       <View style={styles.card}>
         <Row
@@ -167,7 +173,7 @@ export default function ProfileHome() {
           </View>
         </Animated.View>
       </Modal>
-    </View>
+    </ScrollView>
   );
 }
 

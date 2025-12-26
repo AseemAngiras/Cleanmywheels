@@ -25,9 +25,9 @@ import { useDispatch, useSelector } from 'react-redux';
 
 // --- MOCK DATA FOR SHOP DASHBOARD ---
 const REVENUE_DATA = {
-  amount: '$1,240',
+  amount: '₹1,240',
   growth: '+12%',
-  history: 'vs. $1,105 yesterday'
+  history: 'vs. ₹1,105 yesterday'
 };
 
 const INITIAL_WORKERS = [
@@ -99,7 +99,7 @@ function ShopHomeScreen() {
         <View style={styles.revenueCard}>
           <View style={styles.revenueHeader}>
             <View style={styles.iconCircleBlue}>
-              <Ionicons name="logo-usd" size={20} color="#3498DB" />
+              <Ionicons name="cash-outline" size={20} color="#3498DB" />
             </View>
             <View style={styles.growthBadge}>
               <Ionicons name="trending-up" size={14} color="#2ECC71" />

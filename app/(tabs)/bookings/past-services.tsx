@@ -15,15 +15,18 @@ import {
   Platform,
   ScrollView,
   StyleSheet,
+  Switch,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
 
-import { useAppSelector } from "../../../store/hooks";
+import { useAppDispatch, useAppSelector } from "../../../store/hooks";
+import { addTicket } from "../../../store/slices/bookingSlice";
 
 export default function PastServices() {
+  const dispatch = useAppDispatch();
   const reduxBookings = useAppSelector((state) =>
     state.bookings.bookings.filter(
       (b) => b.status === "completed" || b.status === "cancelled"
@@ -52,6 +55,7 @@ export default function PastServices() {
   const [complaintModalVisible, setComplaintModalVisible] = useState(false);
   const [complaintBooking, setComplaintBooking] = useState<any | null>(null);
   const [complaintText, setComplaintText] = useState("");
+  const [refundRequested, setRefundRequested] = useState(false);
   const [complaintImage, setComplaintImage] = useState<string | null>(null);
 
   const slideAnim = useRef(new Animated.Value(300)).current;
@@ -113,6 +117,7 @@ export default function PastServices() {
     setComplaintModalVisible(false);
     setComplaintBooking(null);
     setComplaintText("");
+    setRefundRequested(false);
     setComplaintImage(null);
   };
 
@@ -136,7 +141,16 @@ export default function PastServices() {
     }
 
     // optimizing UX with fake delay
+    // dispatch Ticket
     const ticketId = `TKT-${Math.floor(1000 + Math.random() * 9000)}`;
+
+    dispatch(addTicket({
+      title: 'Service Issue',
+      description: complaintText,
+      date: new Date().toLocaleDateString(),
+      refundRequested: refundRequested,
+    }));
+
     Alert.alert("Complaint Received", `Your ticket #${ticketId} has been created. Our support team will review it shortly.`);
     closeComplaintModal();
   };
@@ -325,6 +339,16 @@ export default function PastServices() {
                 value={complaintText}
                 onChangeText={setComplaintText}
               />
+
+              <View style={styles.refundRow}>
+                <Text style={styles.refundLabel}>Request Refund</Text>
+                <Switch
+                  value={refundRequested}
+                  onValueChange={setRefundRequested}
+                  trackColor={{ false: "#767577", true: "#EF4444" }}
+                  thumbColor={refundRequested ? "#fff" : "#f4f3f4"}
+                />
+              </View>
 
               <Text style={styles.inputLabel}>Upload Photo (Optional)</Text>
               <TouchableOpacity style={styles.uploadButton} onPress={pickImage}>
@@ -631,6 +655,22 @@ const styles = StyleSheet.create({
     color: '#1a1a1a',
     borderWidth: 1,
     borderColor: '#eee',
+  },
+  refundRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginVertical: 15,
+    backgroundColor: '#fff',
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#eee',
+  },
+  refundLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1a1a1a',
   },
   uploadButton: {
     height: 150,

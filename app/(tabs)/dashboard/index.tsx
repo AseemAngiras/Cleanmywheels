@@ -58,6 +58,9 @@ export default function DashboardScreen() {
     const userName = useSelector((state: RootState) => state.user.name);
     const [workers, setWorkers] = useState(INITIAL_WORKERS);
     const [modalVisible, setModalVisible] = useState(false);
+    const [complaintsModalVisible, setComplaintsModalVisible] = useState(false);
+    const tickets = useSelector((state: RootState) => state.bookings.tickets);
+
     const [newWorkerName, setNewWorkerName] = useState('');
     const [newWorkerStatus, setNewWorkerStatus] = useState('');
 
@@ -89,9 +92,15 @@ export default function DashboardScreen() {
                     <Text style={styles.greeting}>Admin Dashboard</Text>
                     <Text style={styles.title}>Worker Management</Text>
                 </View>
-                <TouchableOpacity style={styles.filterBtn}>
-                    <Ionicons name="options-outline" size={24} color="#1a1a1a" />
-                </TouchableOpacity>
+                <View style={{ flexDirection: 'row', gap: 10 }}>
+                    <TouchableOpacity style={styles.filterBtn} onPress={() => setComplaintsModalVisible(true)}>
+                        <Ionicons name="mail-unread-outline" size={24} color="#EF4444" />
+                        {tickets?.length > 0 && <View style={styles.redDot} />}
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.filterBtn}>
+                        <Ionicons name="options-outline" size={24} color="#1a1a1a" />
+                    </TouchableOpacity>
+                </View>
             </View>
 
             <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
@@ -226,6 +235,49 @@ export default function DashboardScreen() {
                     </View>
                 </View>
             </Modal>
+
+            {/* Complaints Modal */}
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={complaintsModalVisible}
+                onRequestClose={() => setComplaintsModalVisible(false)}
+            >
+                <View style={styles.modalOverlay}>
+                    <View style={[styles.modalContent, { maxHeight: '80%', padding: 0 }]}>
+                        <View style={styles.modalHeader}>
+                            <Text style={styles.modalTitle}>User Complaints ({tickets?.length || 0})</Text>
+                            <TouchableOpacity onPress={() => setComplaintsModalVisible(false)}>
+                                <Ionicons name="close" size={24} color="#666" />
+                            </TouchableOpacity>
+                        </View>
+
+                        <ScrollView contentContainerStyle={{ padding: 24, paddingTop: 0 }}>
+                            {(!tickets || tickets.length === 0) ? (
+                                <Text style={styles.emptyText}>No complaints raised yet.</Text>
+                            ) : (
+                                tickets.map((t) => (
+                                    <View key={t.id} style={styles.ticketCard}>
+                                        <View style={styles.ticketHeader}>
+                                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                                                <Text style={styles.ticketTitle}>{t.title}</Text>
+                                                {t.refundRequested && (
+                                                    <View style={styles.refundBadge}>
+                                                        <Text style={styles.refundBadgeText}>Refund Requested</Text>
+                                                    </View>
+                                                )}
+                                            </View>
+                                            <Text style={styles.ticketDate}>{t.date}</Text>
+                                        </View>
+                                        <Text style={styles.ticketDesc}>{t.description}</Text>
+                                        <Text style={styles.ticketId}>{t.id}</Text>
+                                    </View>
+                                ))
+                            )}
+                        </ScrollView>
+                    </View>
+                </View>
+            </Modal>
         </SafeAreaView>
     );
 }
@@ -288,6 +340,15 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
         padding: 8,
         borderRadius: 20,
+    },
+    redDot: {
+        position: 'absolute',
+        top: 8,
+        right: 8,
+        width: 8,
+        height: 8,
+        borderRadius: 4,
+        backgroundColor: '#EF4444',
     },
     viewAllText: {
         fontSize: 14,
@@ -471,5 +532,65 @@ const styles = StyleSheet.create({
     btnTextAdd: {
         fontWeight: '700',
         color: '#1a1a1a',
+    },
+    // Ticket UI
+    modalHeader: {
+        width: '100%',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: 20,
+        borderBottomWidth: 1,
+        borderBottomColor: '#eee',
+        marginBottom: 10,
+    },
+    ticketCard: {
+        backgroundColor: '#FEF2F2',
+        padding: 15,
+        borderRadius: 12,
+        marginBottom: 10,
+        borderWidth: 1,
+        borderColor: '#FECACA',
+    },
+    ticketHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: 6,
+    },
+    ticketTitle: {
+        fontWeight: '700',
+        color: '#991B1B',
+    },
+    ticketDate: {
+        fontSize: 12,
+        color: '#991B1B',
+    },
+    ticketDesc: {
+        color: '#333',
+        marginBottom: 6,
+    },
+    ticketId: {
+        fontSize: 10,
+        color: '#991B1B',
+        opacity: 0.6,
+    },
+    refundBadge: {
+        backgroundColor: '#FEE2E2',
+        borderWidth: 1,
+        borderColor: '#EF4444',
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+        borderRadius: 4,
+    },
+    refundBadgeText: {
+        color: '#EF4444',
+        fontSize: 10,
+        fontWeight: '700',
+    },
+    emptyText: {
+        textAlign: 'center',
+        color: '#999',
+        fontStyle: 'italic',
+        marginTop: 20,
     },
 });

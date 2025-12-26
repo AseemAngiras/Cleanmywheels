@@ -11,19 +11,30 @@ export interface Booking {
   carImage: string;
   phone: string;
   price: number;
-  address: string;  
+  address: string;
   plate: string;
   serviceName: string;
   status: BookingStatus;
 }
 
+export interface Ticket {
+  id: string;
+  title: string;
+  description: string;
+  date: string;
+  status: 'open' | 'resolved';
+  refundRequested?: boolean;
+}
+
 interface BookingState {
   bookings: Booking[];
+  tickets: Ticket[];
   currentBooking: Partial<Booking>;
 }
 
 const initialState: BookingState = {
   bookings: [],
+  tickets: [],
   currentBooking: {},
 };
 
@@ -31,12 +42,20 @@ const bookingSlice = createSlice({
   name: "bookings",
   initialState,
   reducers: {
-    addBooking(state, action: PayloadAction<Omit<Booking, "id" | "status">>){
+    addBooking(state, action: PayloadAction<Omit<Booking, "id" | "status">>) {
       state.bookings.push({
         ...action.payload,
         id: nanoid(),
         status: "upcoming",
       })
+    },
+
+    addTicket(state, action: PayloadAction<Omit<Ticket, "id" | "status">>) {
+      state.tickets.push({
+        ...action.payload,
+        id: `TKT-${Math.floor(1000 + Math.random() * 9000)}`,
+        status: "open",
+      });
     },
 
     completeBooking(state, action: PayloadAction<string>) {
@@ -55,22 +74,22 @@ const bookingSlice = createSlice({
     },
 
 
-    setBookingAddress(state, action: PayloadAction<{addressId: string}>) {
+    setBookingAddress(state, action: PayloadAction<{ addressId: string }>) {
       state.currentBooking.address = action.payload.addressId;
     },
 
-    setBookingService(state, action: PayloadAction<{serviceName: string, price: number}>) {
+    setBookingService(state, action: PayloadAction<{ serviceName: string, price: number }>) {
       state.currentBooking.serviceName = action.payload.serviceName;
       state.currentBooking.price = action.payload.price;
     },
 
-    setBookingCar(state, action: PayloadAction<{car: string, plate: string, carImage: string}>) {
+    setBookingCar(state, action: PayloadAction<{ car: string, plate: string, carImage: string }>) {
       state.currentBooking.car = action.payload.car;
       state.currentBooking.plate = action.payload.plate;
       state.currentBooking.carImage = action.payload.carImage;
     },
 
-    setBookingSlot(state, action:PayloadAction<{date: string, timeSlot: string}>) {
+    setBookingSlot(state, action: PayloadAction<{ date: string, timeSlot: string }>) {
       state.currentBooking.date = action.payload.date;
       state.currentBooking.timeSlot = action.payload.timeSlot;
     },
@@ -85,6 +104,7 @@ export const {
   completeBooking,
   cancelBooking,
   addBooking,
+  addTicket,
   resetBookings,
   setBookingAddress,
   setBookingCar,

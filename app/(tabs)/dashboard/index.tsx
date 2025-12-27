@@ -69,30 +69,82 @@ export default function DashboardScreen() {
 
     const [newWorkerName, setNewWorkerName] = useState('');
     const [newWorkerStatus, setNewWorkerStatus] = useState('');
+    const [editingWorkerId, setEditingWorkerId] = useState<string | null>(null);
+    const [actionModalVisible, setActionModalVisible] = useState(false);
+    const [selectedWorkerForAction, setSelectedWorkerForAction] = useState<any>(null);
 
-    const handleAddWorker = () => {
+    const openActionModal = (worker: any) => {
+        setSelectedWorkerForAction(worker);
+        setActionModalVisible(true);
+    };
+
+    const handleEditOption = () => {
+        if (selectedWorkerForAction) {
+            setNewWorkerName(selectedWorkerForAction.name);
+            setNewWorkerStatus(selectedWorkerForAction.statusText);
+            setEditingWorkerId(selectedWorkerForAction.id);
+            setActionModalVisible(false);
+            setModalVisible(true);
+        }
+    };
+
+    const handleDeleteOption = () => {
+        if (selectedWorkerForAction) {
+            Alert.alert(
+                "Delete Worker",
+                `Are you sure you want to delete ${selectedWorkerForAction.name}?`,
+                [
+                    { text: "Cancel", style: "cancel" },
+                    {
+                        text: "Delete",
+                        style: "destructive",
+                        onPress: () => {
+                            setWorkers(prev => prev.filter(w => w.id !== selectedWorkerForAction.id));
+                            setActionModalVisible(false);
+                        }
+                    }
+                ]
+            );
+        }
+    };
+
+    const handleSaveWorker = () => {
         if (!newWorkerName.trim()) {
             Alert.alert("Error", "Please enter a worker name.");
             return;
         }
 
-        const newWorker = {
-            id: Date.now().toString(),
-            name: newWorkerName,
-            statusText: newWorkerStatus || 'Available',
-            statusType: 'active',
-            avatar: 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80', // Default avatar
-        };
+        if (editingWorkerId) {
+            // Update existing
+            setWorkers(prev => prev.map(w =>
+                w.id === editingWorkerId
+                    ? { ...w, name: newWorkerName, statusText: newWorkerStatus || 'Available' }
+                    : w
+            ));
+        } else {
+            // Create new
+            const newWorker = {
+                id: Date.now().toString(),
+                name: newWorkerName,
+                statusText: newWorkerStatus || 'Available',
+                statusType: 'active',
+                avatar: 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80', // Default avatar
+            };
+            setWorkers([...workers, newWorker]);
+        }
 
-        setWorkers([...workers, newWorker]);
+        closeModal();
+    };
+
+    const closeModal = () => {
         setModalVisible(false);
         setNewWorkerName('');
         setNewWorkerStatus('');
+        setEditingWorkerId(null);
     };
 
     return (
         <SafeAreaView style={styles.container}>
-            {/* Header - Preserved as requested */}
             {/* Header - Shop Dashboard Style */}
             <View style={styles.header}>
                 <View>
@@ -108,10 +160,6 @@ export default function DashboardScreen() {
             </View>
 
             <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-
-
-
-
 
                 {/* Revenue Card */}
                 <View style={styles.revenueCard}>
@@ -165,7 +213,7 @@ export default function DashboardScreen() {
                                     </View>
                                 </View>
                             </View>
-                            <TouchableOpacity style={styles.moreBtn}>
+                            <TouchableOpacity style={styles.moreBtn} onPress={() => openActionModal(worker)}>
                                 <Ionicons name="ellipsis-horizontal" size={20} color="#ccc" />
                             </TouchableOpacity>
                         </View>
@@ -176,20 +224,20 @@ export default function DashboardScreen() {
             </ScrollView>
 
             {/* Floating Action Button */}
-            <TouchableOpacity style={styles.fab} onPress={() => setModalVisible(true)}>
+            <TouchableOpacity style={styles.fab} onPress={() => { setEditingWorkerId(null); setModalVisible(true); }}>
                 <Ionicons name="add" size={32} color="#1a1a1a" />
             </TouchableOpacity>
 
-            {/* Add Worker Modal */}
+            {/* Add/Edit Worker Modal */}
             <Modal
                 animationType="slide"
                 transparent={true}
                 visible={modalVisible}
-                onRequestClose={() => setModalVisible(false)}
+                onRequestClose={closeModal}
             >
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalContent}>
-                        <Text style={styles.modalTitle}>Add New Worker</Text>
+                        <Text style={styles.modalTitle}>{editingWorkerId ? 'Edit Worker' : 'Add New Worker'}</Text>
 
                         <TextInput
                             style={styles.input}
@@ -208,20 +256,50 @@ export default function DashboardScreen() {
                         <View style={styles.modalButtons}>
                             <TouchableOpacity
                                 style={[styles.btn, styles.btnCancel]}
-                                onPress={() => setModalVisible(false)}
+                                onPress={closeModal}
                             >
                                 <Text style={styles.btnTextCancel}>Cancel</Text>
                             </TouchableOpacity>
 
                             <TouchableOpacity
                                 style={[styles.btn, styles.btnAdd]}
-                                onPress={handleAddWorker}
+                                onPress={handleSaveWorker}
                             >
-                                <Text style={styles.btnTextAdd}>Add Worker</Text>
+                                <Text style={styles.btnTextAdd}>{editingWorkerId ? 'Save Changes' : 'Add Worker'}</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
                 </View>
+            </Modal>
+
+            {/* Action Options Modal */}
+            <Modal
+                animationType="fade"
+                transparent={true}
+                visible={actionModalVisible}
+                onRequestClose={() => setActionModalVisible(false)}
+            >
+                <TouchableOpacity
+                    style={styles.modalOverlay}
+                    activeOpacity={1}
+                    onPress={() => setActionModalVisible(false)}
+                >
+                    <View style={styles.actionModalContent}>
+                        <Text style={styles.actionModalTitle}>Actions</Text>
+
+                        <TouchableOpacity style={styles.actionOption} onPress={handleEditOption}>
+                            <Ionicons name="create-outline" size={20} color="#1a1a1a" />
+                            <Text style={styles.actionText}>Edit Worker</Text>
+                        </TouchableOpacity>
+
+                        <View style={styles.divider} />
+
+                        <TouchableOpacity style={styles.actionOption} onPress={handleDeleteOption}>
+                            <Ionicons name="trash-outline" size={20} color="#EF4444" />
+                            <Text style={[styles.actionText, { color: '#EF4444' }]}>Delete Worker</Text>
+                        </TouchableOpacity>
+                    </View>
+                </TouchableOpacity>
             </Modal>
 
             {/* Complaints Modal */}
@@ -539,6 +617,45 @@ const styles = StyleSheet.create({
         fontWeight: '700',
         color: '#1a1a1a',
     },
+    // Action Modal Styles
+    actionModalContent: {
+        backgroundColor: '#fff',
+        width: '70%',
+        borderRadius: 16,
+        padding: 10,
+        paddingVertical: 15,
+        elevation: 10,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+    },
+    actionModalTitle: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        marginLeft: 15,
+        marginBottom: 10,
+        color: '#666',
+    },
+    actionOption: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 12,
+        paddingHorizontal: 20,
+        gap: 12,
+    },
+    actionText: {
+        fontSize: 16,
+        fontWeight: '500',
+        color: '#1a1a1a',
+    },
+    divider: {
+        height: 1,
+        backgroundColor: '#f0f0f0',
+        marginHorizontal: 15,
+        marginVertical: 4,
+    },
+
     // Ticket UI
     modalHeader: {
         width: '100%',

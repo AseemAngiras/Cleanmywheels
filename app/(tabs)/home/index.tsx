@@ -4,7 +4,7 @@ import { Booking } from '@/store/slices/bookingSlice';
 import { setUser } from '@/store/slices/userSlice';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useNavigation, useRouter } from 'expo-router';
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Image,
@@ -41,28 +41,92 @@ const INITIAL_WORKERS = [
   { id: '8', name: 'Sameer', statusType: 'active' },
 ];
 
-// --- SHOP HOME SCREEN COMPONENT (NEW DASHBOARD DESIGN) ---
-function ShopHomeScreen() {
-  const userName = useSelector((state: RootState) => state.user.name);
-  const [workers, setWorkers] = useState(INITIAL_WORKERS);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [newWorkerName, setNewWorkerName] = useState('');
-  const [newWorkerStatus, setNewWorkerStatus] = useState('');
+const MOCK_COMPLAINTS = [
+  {
+    id: 'TKT-2024-001',
+    title: 'Refund Request - Order #1234',
+    date: 'Today, 10:30 AM',
+    description: 'Customer requested a refund because the washer did not arrive on time. Service was cancelled. The customer waited for 45 minutes beyond the scheduled time.',
+    refundRequested: true,
+    user: {
+      name: 'Rohan Gupta',
+      phone: '+91 98765 43210',
+      email: 'rohan.g@example.com',
+      avatar: 'R'
+    },
+    images: [
+      'https://images.unsplash.com/photo-1601362840469-51e4d8d58785?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80'
+    ]
+  },
+  {
+    id: 'TKT-2024-002',
+    title: 'Service Complaint - Poor Cleaning',
+    date: 'Yesterday, 4:15 PM',
+    description: 'Customer reported that the interior vacuuming was not done properly. Dust was still visible on the dashboard and mats. User provided photos as proof.',
+    refundRequested: false,
+    user: {
+      name: 'Sneha Patel',
+      phone: '+91 87654 32109',
+      email: 'sneha.p@example.com',
+      avatar: 'S'
+    },
+    images: [
+      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80',
+      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80'
+    ]
+  },
+  {
+    id: 'TKT-2024-003',
+    title: 'Payment Issue - Double Deduction',
+    date: '24 Dec, 11:00 AM',
+    description: 'User claims amount was deducted twice for the Premium Wash service. Bank statement attached.',
+    refundRequested: true,
+    user: {
+      name: 'Vikram Singh',
+      phone: '+91 76543 21098',
+      email: 'vikram.s@example.com',
+      avatar: 'V'
+    },
+    images: []
+  },
+];
 
-  const handleAddWorker = () => {
-    if (!newWorkerName.trim()) {
-      Alert.alert("Error", "Please enter a worker name.");
-      return;
+// --- ADMIN COMPLAINTS SCREEN ---
+function AdminComplaintsScreen() {
+  const userName = useSelector((state: RootState) => state.user.name);
+  // Merge Redux tickets with Mock data for demonstration
+  // Use local state to manage the list for "Resolve" functionality demo
+  const reduxTickets = useSelector((state: RootState) => state.bookings.tickets) || [];
+  const [tickets, setTickets] = useState<any[]>([...reduxTickets, ...MOCK_COMPLAINTS]);
+
+  // Update tickets when redux changes, but keep removed ones removed (simplified for demo)
+  useEffect(() => {
+    // Only add if not already in state to preserve "resolved" status in this session
+    // For now, we prefer the local state mutation for the demo "Resolve" action
+    if (tickets.length === 0 && reduxTickets.length > 0) {
+      setTickets([...reduxTickets, ...MOCK_COMPLAINTS]);
     }
-    const newWorker = {
-      id: Date.now().toString(),
-      name: newWorkerName,
-      statusType: 'active',
-    };
-    setWorkers([...workers, newWorker]);
-    setModalVisible(false);
-    setNewWorkerName('');
-    setNewWorkerStatus('');
+  }, [reduxTickets]);
+
+  const [selectedComplaint, setSelectedComplaint] = useState<any>(null);
+  const [detailsModalVisible, setDetailsModalVisible] = useState(false);
+
+  const openComplaintDetails = (complaint: any) => {
+    setSelectedComplaint(complaint);
+    setDetailsModalVisible(true);
+  };
+
+  const closeComplaintDetails = () => {
+    setDetailsModalVisible(false);
+    setSelectedComplaint(null);
+  };
+
+  const handleResolveComplaint = () => {
+    if (selectedComplaint) {
+      // Remove the resolved complaint from the list
+      setTickets(prev => prev.filter(t => t.id !== selectedComplaint.id));
+      closeComplaintDetails();
+    }
   };
 
   return (
@@ -70,8 +134,8 @@ function ShopHomeScreen() {
       {/* Header */}
       <View style={[styles.header, { paddingHorizontal: 20 }]}>
         <View>
-          <Text style={styles.greeting}>Hello, {userName || 'Owner'} 👋</Text>
-          <Text style={styles.brandTitle}>Shop Dashboard</Text>
+          <Text style={styles.greeting}>Admin Panel</Text>
+          <Text style={styles.brandTitle}>Complaints & Refunds</Text>
         </View>
         <TouchableOpacity style={styles.profileBtn}>
           <Image
@@ -82,70 +146,137 @@ function ShopHomeScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-        {/* Shop Hero Image */}
-        {/* Shop Hero Image */}
-        <View style={styles.shopHeroContainer}>
-          <Image
-            source={{ uri: 'https://images.unsplash.com/photo-1601362840469-51e4d8d58785?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80' }}
-            style={styles.shopHeroImage}
-          />
-          <View style={styles.heroOverlay}>
-            <Text style={styles.heroSloganTitle}>Elevate Your Service</Text>
-            <Text style={styles.heroSloganSubtitle}>Manage your wash operation with ease.</Text>
+        {tickets.length === 0 ? (
+          <View style={styles.emptyStateContainer}>
+            <View style={styles.emptyIconCircle}>
+              <Ionicons name="checkmark-done" size={40} color="#2ECC71" />
+            </View>
+            <Text style={styles.emptyStateTitle}>All Caught Up!</Text>
+            <Text style={styles.emptyStateText}>There are no pending complaints or refund requests.</Text>
           </View>
-        </View>
+        ) : (
+          tickets.map((t) => (
+            <TouchableOpacity
+              key={t.id}
+              style={styles.complaintCard}
+              activeOpacity={0.9}
+              onPress={() => openComplaintDetails(t)}
+            >
+              <View style={styles.complaintHeader}>
+                <View style={styles.complaintUserRow}>
+                  <View style={styles.userAvatarSmall}>
+                    <Text style={styles.userAvatarText}>{t.user?.avatar || (t.title ? t.title.charAt(0) : 'U')}</Text>
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.complaintTitle} numberOfLines={1}>{t.title}</Text>
+                    <Text style={styles.complaintDate}>{t.date}</Text>
+                  </View>
+                </View>
+                {t.refundRequested && (
+                  <View style={styles.refundBadge}>
+                    <Text style={styles.refundBadgeText}>Refund</Text>
+                  </View>
+                )}
+              </View>
 
-        {/* Revenue Card */}
-        <View style={styles.revenueCard}>
-          <View style={styles.revenueHeader}>
-            <View style={styles.iconCircleBlue}>
-              <Ionicons name="cash-outline" size={20} color="#3498DB" />
-            </View>
-            <View style={styles.growthBadge}>
-              <Ionicons name="trending-up" size={14} color="#2ECC71" />
-              <Text style={styles.growthText}>{REVENUE_DATA.growth}</Text>
-            </View>
-          </View>
-          <Text style={styles.revenueLabel}>Today's Revenue</Text>
-          <Text style={styles.revenueAmount}>{REVENUE_DATA.amount}</Text>
-          <Text style={styles.revenueHistory}>{REVENUE_DATA.history}</Text>
-        </View>
+              <Text style={styles.complaintDesc} numberOfLines={2}>{t.description}</Text>
 
-        {/* Main Stats Row */}
-        <View style={styles.statsRow}>
-          {/* Active Washers */}
-          <View style={styles.statBox}>
-            <View style={styles.iconCircleBlueLight}>
-              <Ionicons name="car-sport" size={22} color="#3498DB" />
-            </View>
-            <Text style={styles.statBoxLabel}>Active Washers</Text>
-            <View style={styles.statCountRow}>
-              <Text style={styles.statBigNum}>{workers.filter(w => w.statusType === 'active').length}</Text>
-              <Text style={styles.statTotalNum}>/ 12</Text>
-            </View>
-          </View>
-
-          {/* Pending */}
-          <View style={styles.statBox}>
-            <View style={styles.iconCircleOrangeLight}>
-              <Ionicons name="clipboard" size={22} color="#E67E22" />
-            </View>
-            <Text style={styles.statBoxLabel}>Pending</Text>
-            <Text style={styles.statBigNum}>3</Text>
-          </View>
-        </View>
-
-
-
+              <View style={styles.complaintFooter}>
+                <Text style={styles.complaintId}>ID: {t.id}</Text>
+                <TouchableOpacity style={styles.resolveBtn} onPress={() => openComplaintDetails(t)}>
+                  <Text style={styles.resolveBtnText}>View Details</Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableOpacity>
+          ))
+        )}
         <View style={{ height: 100 }} />
       </ScrollView>
 
+      {/* Complaint Details Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={detailsModalVisible}
+        onRequestClose={closeComplaintDetails}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { height: '85%' }]}>
+            <View style={styles.dragHandle} />
 
+            {/* Modal Header */}
+            <View style={styles.detailsModalHeader}>
+              <View>
+                <Text style={styles.detailsModalTitle}>Complaint Details</Text>
+                <Text style={styles.detailsModalId}>{selectedComplaint?.id}</Text>
+              </View>
+              <TouchableOpacity onPress={closeComplaintDetails} style={styles.closeBtn}>
+                <Ionicons name="close" size={24} color="#666" />
+              </TouchableOpacity>
+            </View>
 
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
+              {/* Status Badge */}
+              <View style={styles.statusSection}>
+                {selectedComplaint?.refundRequested ? (
+                  <View style={[styles.refundBadge, { alignSelf: 'flex-start', marginBottom: 15 }]}>
+                    <Text style={[styles.refundBadgeText, { fontSize: 12 }]}>Refound Requested</Text>
+                  </View>
+                ) : (
+                  <View style={[styles.statusBadge, { backgroundColor: '#E0F2FE', borderColor: '#BAE6FD' }]}>
+                    <Text style={[styles.statusBadgeText, { color: '#0EA5E9' }]}>Service Issue</Text>
+                  </View>
+                )}
+                <Text style={styles.fullDate}>{selectedComplaint?.date}</Text>
+              </View>
 
+              <Text style={styles.fullTitle}>{selectedComplaint?.title}</Text>
+
+              {/* User Details Box */}
+              <View style={styles.userDetailsBox}>
+                <View style={styles.userAvatarLarge}>
+                  <Text style={styles.userAvatarTextLarge}>{selectedComplaint?.user?.avatar || 'U'}</Text>
+                </View>
+                <View>
+                  <Text style={styles.userNameLarge}>{selectedComplaint?.user?.name || 'Unknown User'}</Text>
+                  <Text style={styles.userContact}>{selectedComplaint?.user?.phone || 'No Phone'}</Text>
+                  <Text style={styles.userContact}>{selectedComplaint?.user?.email || 'No Email'}</Text>
+                </View>
+              </View>
+
+              <Text style={styles.sectionLabel}>Description</Text>
+              <Text style={styles.fullDesc}>{selectedComplaint?.description}</Text>
+
+              {/* Photos */}
+              {selectedComplaint?.images && selectedComplaint.images.length > 0 && (
+                <>
+                  <Text style={styles.sectionLabel}>Attached Photos</Text>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.photosScroll}>
+                    {selectedComplaint.images.map((img: string, index: number) => (
+                      <Image key={index} source={{ uri: img }} style={styles.proofImage} />
+                    ))}
+                  </ScrollView>
+                </>
+              )}
+            </ScrollView>
+
+            {/* Actions */}
+            <View style={styles.detailsActions}>
+              <TouchableOpacity style={[styles.actionBtn, styles.actionBtnSecondary]} onPress={closeComplaintDetails}>
+                <Text style={styles.actionBtnTextSecondary}>Ignore</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.actionBtn, styles.actionBtnPrimary]}>
+                <Text style={styles.actionBtnTextPrimary}>Resolve Complaint</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
+
+
 
 // --- MAIN HOME SCREEN (CONTROLLER) ---
 export default function HomeScreen() {
@@ -199,6 +330,15 @@ export default function HomeScreen() {
     dispatch(loginSuccess('dummy-token'));
 
     setIsLoginModalVisible(false);
+
+    // Check for Admin Redirect
+    if (phoneNumber.trim().endsWith('1234567890')) {
+      setTimeout(() => {
+        router.replace('/(tabs)/dashboard');
+      }, 100);
+      return;
+    }
+
     setModalStep('details');
     setOtp(['', '', '', '']);
     setName('');
@@ -244,7 +384,9 @@ export default function HomeScreen() {
 
   // --- CONDITIONAL RENDER ---
   if (isAdmin) {
-    return <ShopHomeScreen />;
+    if (isAdmin) {
+      return <AdminComplaintsScreen />;
+    }
   }
 
   return (
@@ -1062,5 +1204,266 @@ const styles = StyleSheet.create({
     textShadowColor: 'rgba(0,0,0,0.5)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 4,
+  },
+  // --- COMPLAINTS SCREEN STYLES ---
+  emptyStateContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
+  },
+  emptyIconCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#F0FDF4',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#DCFCE7',
+  },
+  emptyStateTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#1a1a1a',
+    marginBottom: 8,
+  },
+  emptyStateText: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    maxWidth: '70%',
+    lineHeight: 20,
+  },
+  complaintCard: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#eaeaea',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  complaintHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 12,
+  },
+  complaintUserRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1,
+    marginRight: 10,
+  },
+  userAvatarSmall: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F3F4F6',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  userAvatarText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#4B5563',
+  },
+  complaintTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    marginBottom: 2,
+  },
+  complaintDate: {
+    fontSize: 12,
+    color: '#9CA3AF',
+  },
+  complaintDesc: {
+    fontSize: 14,
+    color: '#4B5563',
+    lineHeight: 20,
+    marginBottom: 16,
+  },
+  complaintFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderTopWidth: 1,
+    borderTopColor: '#f3f4f6',
+    paddingTop: 12,
+  },
+  complaintId: {
+    fontSize: 12,
+    color: '#9CA3AF',
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+  },
+  resolveBtn: {
+    backgroundColor: '#1a1a1a',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  resolveBtnText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  refundBadge: {
+    backgroundColor: '#FEF2F2',
+    borderWidth: 1,
+    borderColor: '#FCA5A5',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  refundBadgeText: {
+    color: '#EF4444',
+    fontSize: 10,
+    fontWeight: '700',
+  },
+  // --- MODAL DETAILS STYLES ---
+  detailsModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+    paddingBottom: 15,
+  },
+  detailsModalTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#1a1a1a',
+  },
+  detailsModalId: {
+    fontSize: 12,
+    color: '#999',
+    marginTop: 2,
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+  },
+  closeBtn: {
+    padding: 8,
+    backgroundColor: '#f5f5f5',
+    borderRadius: 20,
+  },
+  statusSection: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  statusBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  statusBadgeText: {
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  fullDate: {
+    fontSize: 13,
+    color: '#999',
+  },
+  fullTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    marginBottom: 20,
+  },
+  userDetailsBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F9FAFB',
+    padding: 15,
+    borderRadius: 12,
+    marginBottom: 25,
+    borderWidth: 1,
+    borderColor: '#F3F4F6',
+  },
+  userAvatarLarge: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: '#E5E7EB',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 15,
+  },
+  userAvatarTextLarge: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#4B5563',
+  },
+  userNameLarge: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    marginBottom: 2,
+  },
+  userContact: {
+    fontSize: 12,
+    color: '#6B7280',
+  },
+  sectionLabel: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#374151',
+    marginBottom: 8,
+    marginTop: 5,
+  },
+  fullDesc: {
+    fontSize: 15,
+    color: '#4B5563',
+    lineHeight: 24,
+    marginBottom: 25,
+  },
+  photosScroll: {
+    marginBottom: 20,
+  },
+  proofImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 12,
+    marginRight: 10,
+    backgroundColor: '#eee',
+  },
+  detailsActions: {
+    flexDirection: 'row',
+    gap: 15,
+    paddingTop: 15,
+    borderTopWidth: 1,
+    borderTopColor: '#f0f0f0',
+  },
+  actionBtn: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  actionBtnPrimary: {
+    backgroundColor: '#1a1a1a',
+  },
+  actionBtnSecondary: {
+    backgroundColor: '#f5f5f5',
+  },
+  actionBtnTextPrimary: {
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: 14,
+  },
+  actionBtnTextSecondary: {
+    color: '#666',
+    fontWeight: '600',
+    fontSize: 14,
   },
 });

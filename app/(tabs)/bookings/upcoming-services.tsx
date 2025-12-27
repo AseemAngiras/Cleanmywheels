@@ -42,6 +42,78 @@ export default function UpcomingServices() {
   const opacityAnim = useRef(new Animated.Value(0)).current
   const scanLineAnim = useRef(new Animated.Value(0)).current
 
+  // --- ADMIN & WORKER LOGIC ---
+  const userPhone = useAppSelector((state: RootState) => state.user.phone);
+  console.log("DEBUG: Bookings - userPhone:", userPhone);
+
+  // Ensure we handle potential undefined or different formats
+  const isAdmin = userPhone && (String(userPhone).endsWith('1234567890') || String(userPhone).includes('1234567890'));
+  console.log("DEBUG: Bookings - isAdmin:", isAdmin, "Phone:", userPhone);
+
+  const MOCK_WORKERS = [
+    { id: 'W1', name: 'Amit Sharma', phone: '+919876543210' },
+    { id: 'W2', name: 'Rahul Verma', phone: '+918765432109' },
+    { id: 'W3', name: 'Suresh Singh', phone: '+917654321098' },
+    { id: 'W4', name: 'Vikram Yadav', phone: '+916543210987' },
+  ];
+
+  const [workerModalVisible, setWorkerModalVisible] = useState(false);
+
+  // Send WhatsApp to User ensuring them about the worker
+  const sendUserConfirmation = (worker: any, booking: any) => {
+    const message = `Hello, your booking for *${booking.serviceName}* is confirmed! 🚗✨\n\n*${worker.name}* will be arriving shortly to service your vehicle.\n\nBooking ID: ${booking.id}\nTime: ${booking.timeSlot}`;
+    const url = `whatsapp://send?phone=${booking.phone}&text=${encodeURIComponent(message)}`;
+
+    Linking.canOpenURL(url).then(supported => {
+      if (supported) {
+        Linking.openURL(url);
+      } else {
+        Alert.alert("Error", "WhatsApp is not installed");
+      }
+    });
+  };
+
+  // Send WhatsApp to Worker with job details
+  const sendWorkerJobDetails = (worker: any, booking: any) => {
+    const message = `🛠️ *New Job Assigned!*\n\nCustomer: ${booking.user || 'Valued Customer'}\nPhone: ${booking.phone}\nAddress: ${booking.address}\n\nService: ${booking.serviceName}\nCar: ${booking.car} (${booking.plate})\nTime: ${booking.timeSlot}\n\nPlease reach on time.`;
+    const url = `whatsapp://send?phone=${worker.phone}&text=${encodeURIComponent(message)}`;
+
+    Linking.canOpenURL(url).then(supported => {
+      if (supported) {
+        Linking.openURL(url);
+      }
+    });
+  };
+
+  const handleAssignWorker = (worker: any) => {
+    if (!activeBooking) return;
+
+    Alert.alert(
+      "Confirm Assignment",
+      `Assign ${worker.name} to this job? This will open WhatsApp to notify both parties.`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Assign & Notify",
+          onPress: () => {
+            // 1. Send to User
+            sendUserConfirmation(worker, activeBooking);
+
+            // 2. Send to Worker (slight delay or just open - linking might conflict if too fast, but usually valid)
+            // Ideally we'd wait for user to return, but for simple flow we try:
+            setTimeout(() => {
+              sendWorkerJobDetails(worker, activeBooking);
+            }, 1500);
+
+            setWorkerModalVisible(false);
+            closeSheet();
+            Alert.alert("Success", "Worker assigned and notifications initiated!");
+          }
+        }
+      ]
+    );
+  };
+
   useEffect(() => {
     if (activeBooking) {
       Animated.parallel([
@@ -257,10 +329,22 @@ export default function UpcomingServices() {
                 <Text style={styles.value}>{activeBooking.plate}</Text>
               </View>
 
-              <TouchableOpacity style={styles.callBtn} onPress={() => handleCall(activeBooking.phone)}>
-                <Ionicons name="call-outline" size={18} />
-                <Text style={styles.callText}>{activeBooking.phone}</Text>
-              </TouchableOpacity>
+              {!isAdmin && (
+                <TouchableOpacity style={styles.callBtn} onPress={() => handleCall(activeBooking.phone)}>
+                  <Ionicons name="call-outline" size={18} />
+                  <Text style={styles.callText}>{activeBooking.phone}</Text>
+                </TouchableOpacity>
+              )}
+
+              {isAdmin && (
+                <TouchableOpacity
+                  style={[styles.qrButton, { backgroundColor: '#1a1a1a', borderColor: '#000', marginTop: 10 }]}
+                  onPress={() => setWorkerModalVisible(true)}
+                >
+                  <Ionicons name="person-add-outline" size={20} color="#FFF" />
+                  <Text style={[styles.qrText, { color: '#FFF' }]}>Assign Worker</Text>
+                </TouchableOpacity>
+              )}
 
               <View style={styles.sheetFooter}>
                 <Text style={styles.price}>₹ {activeBooking.price}</Text>
@@ -327,6 +411,37 @@ export default function UpcomingServices() {
               </View>
             </>
           )}
+        </View>
+      </Modal>
+
+      {/* Worker Selection Modal */}
+      <Modal visible={workerModalVisible} animationType="slide" transparent>
+        <TouchableOpacity style={styles.backdrop} onPress={() => setWorkerModalVisible(false)} />
+        <View style={styles.workerModalContainer}>
+          <View style={styles.workerHeader}>
+            <Text style={styles.sheetTitle}>Select Worker</Text>
+            <TouchableOpacity onPress={() => setWorkerModalVisible(false)}>
+              <Ionicons name="close" size={24} color="#666" />
+            </TouchableOpacity>
+          </View>
+          <FlatList
+            data={MOCK_WORKERS}
+            keyExtractor={item => item.id}
+            renderItem={({ item }) => (
+              <TouchableOpacity style={styles.workerRow} onPress={() => handleAssignWorker(item)}>
+                <View style={styles.workerAvatar}>
+                  <Text style={styles.workerInitials}>{item.name.charAt(0)}</Text>
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.workerName}>{item.name}</Text>
+                  <Text style={styles.workerPhone}>{item.phone}</Text>
+                </View>
+                <View style={styles.assignBtn}>
+                  <Text style={styles.assignBtnText}>Assign</Text>
+                </View>
+              </TouchableOpacity>
+            )}
+          />
         </View>
       </Modal>
     </>
@@ -610,4 +725,71 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     borderWidth: 2,
   },
-})
+
+  // WORKER MODAL STYLES
+  workerModalContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 20,
+    height: '50%',
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 20,
+  },
+  workerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  workerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  workerAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F3F4F6',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  workerInitials: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#4B5563',
+  },
+  workerName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1a1a1a',
+  },
+  workerPhone: {
+    fontSize: 12,
+    color: '#6B7280',
+  },
+  assignBtn: {
+    backgroundColor: '#e0f2fe',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  assignBtnText: {
+    color: '#0284c7',
+    fontWeight: '600',
+    fontSize: 12,
+  },
+});
+
+

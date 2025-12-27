@@ -16,6 +16,12 @@ import {
 import { useSelector } from 'react-redux';
 
 // --- RICH MOCK DATA FOR WORKERS ---
+const REVENUE_DATA = {
+    amount: '₹1,240',
+    growth: '+12%',
+    history: 'vs. ₹1,105 yesterday'
+};
+
 const INITIAL_WORKERS = [
     {
         id: '1',
@@ -87,58 +93,40 @@ export default function DashboardScreen() {
     return (
         <SafeAreaView style={styles.container}>
             {/* Header - Preserved as requested */}
+            {/* Header - Shop Dashboard Style */}
             <View style={styles.header}>
                 <View>
-                    <Text style={styles.greeting}>Admin Dashboard</Text>
-                    <Text style={styles.title}>Worker Management</Text>
+                    <Text style={styles.greeting}>Hello, {userName || 'Owner'} 👋</Text>
+                    <Text style={styles.brandTitle}>Shop Dashboard</Text>
                 </View>
-                <View style={{ flexDirection: 'row', gap: 10 }}>
-                    <TouchableOpacity style={styles.filterBtn} onPress={() => setComplaintsModalVisible(true)}>
-                        <Ionicons name="mail-unread-outline" size={24} color="#EF4444" />
-                        {tickets?.length > 0 && <View style={styles.redDot} />}
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.filterBtn}>
-                        <Ionicons name="options-outline" size={24} color="#1a1a1a" />
-                    </TouchableOpacity>
-                </View>
+                <TouchableOpacity style={styles.profileBtn}>
+                    <Image
+                        source={{ uri: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80' }}
+                        style={styles.profileAvatar}
+                    />
+                </TouchableOpacity>
             </View>
 
             <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 
 
 
-                {/* Stats Cards */}
-                <View style={styles.statsContainer}>
-                    {/* Total */}
-                    <View style={styles.statCard}>
-                        <View style={styles.statIconRow}>
-                            <Ionicons name="people" size={20} color="#909090" />
-                        </View>
-                        <Text style={styles.statLabel}>TOTAL</Text>
-                        <Text style={styles.statValue}>{workers.length}</Text>
-                    </View>
 
-                    {/* Active - Yellow Highlight */}
-                    <View style={[styles.statCard, styles.activeStatCard]}>
-                        <View style={styles.statIconRow}>
-                            <Ionicons name="flash" size={20} color="#1a1a1a" />
-                        </View>
-                        <Text style={[styles.statLabel, styles.activeStatText]}>ACTIVE</Text>
-                        <Text style={[styles.statValue, styles.activeStatText]}>
-                            {workers.filter(w => w.statusType === 'active').length}
-                        </Text>
-                    </View>
 
-                    {/* Break */}
-                    <View style={styles.statCard}>
-                        <View style={styles.statIconRow}>
-                            <Ionicons name="cafe" size={20} color="#E67E22" />
+                {/* Revenue Card */}
+                <View style={styles.revenueCard}>
+                    <View style={styles.revenueHeader}>
+                        <View style={styles.iconCircleBlue}>
+                            <Ionicons name="cash-outline" size={20} color="#3498DB" />
                         </View>
-                        <Text style={styles.statLabel}>BREAK</Text>
-                        <Text style={styles.statValue}>
-                            {workers.filter(w => w.statusType === 'break').length}
-                        </Text>
+                        <View style={styles.growthBadge}>
+                            <Ionicons name="trending-up" size={14} color="#2ECC71" />
+                            <Text style={styles.growthText}>{REVENUE_DATA.growth}</Text>
+                        </View>
                     </View>
+                    <Text style={styles.revenueLabel}>Today's Revenue</Text>
+                    <Text style={styles.revenueAmount}>{REVENUE_DATA.amount}</Text>
+                    <Text style={styles.revenueHistory}>{REVENUE_DATA.history}</Text>
                 </View>
 
                 {/* Directory Header */}
@@ -297,12 +285,12 @@ const styles = StyleSheet.create({
         backgroundColor: '#F8F9FA',
     },
     greeting: {
-        fontSize: 14,
+        fontSize: 12,
         color: '#666',
-        fontWeight: '500',
+        marginTop: 2,
     },
-    title: {
-        fontSize: 24,
+    brandTitle: {
+        fontSize: 20,
         fontWeight: '800',
         color: '#1a1a1a',
     },
@@ -356,45 +344,63 @@ const styles = StyleSheet.create({
         fontWeight: '600',
     },
 
-    // Stats Styles
-    statsContainer: {
+
+
+    // Revenue Card Styles
+    revenueCard: {
+        backgroundColor: '#fff',
+        borderRadius: 24,
+        padding: 20,
+        marginBottom: 20,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.05,
+        shadowRadius: 12,
+        elevation: 3,
+    },
+    revenueHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        gap: 12,
-        marginBottom: 10,
-    },
-    statCard: {
-        flex: 1,
-        backgroundColor: '#fff',
-        borderRadius: 16,
-        padding: 16,
-        justifyContent: 'space-between',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.03,
-        shadowRadius: 8,
-        elevation: 2,
-    },
-    activeStatCard: {
-        backgroundColor: '#FCF3CF', // Light Yellow
-    },
-    statIconRow: {
+        alignItems: 'center',
         marginBottom: 12,
     },
-    statLabel: {
-        fontSize: 11,
+    iconCircleBlue: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: '#EBF5FB',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    growthBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#E9F7EF',
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 12,
+        gap: 4,
+    },
+    growthText: {
+        fontSize: 12,
         fontWeight: '600',
-        color: '#999',
-        letterSpacing: 0.5,
+        color: '#2ECC71',
+    },
+    revenueLabel: {
+        fontSize: 14,
+        color: '#7F8C8D',
+        fontWeight: '500',
         marginBottom: 4,
     },
-    activeStatText: {
-        color: '#1a1a1a', // Darker text on yellow card
-    },
-    statValue: {
-        fontSize: 26,
-        fontWeight: '700',
+    revenueAmount: {
+        fontSize: 32,
+        fontWeight: '800',
         color: '#1a1a1a',
+        marginBottom: 4,
+    },
+    revenueHistory: {
+        fontSize: 12,
+        color: '#95A5A6',
     },
 
     // List Styles

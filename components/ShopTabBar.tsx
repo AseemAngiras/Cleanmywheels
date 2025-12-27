@@ -14,7 +14,7 @@ export function ShopTabBar({ state, descriptors, navigation }: any) {
 
     console.log('ShopTabBar Routes:', state.routes.map((r: any) => r.name));
 
-    const ORDER = ["home", "dashboard", "bookings", "profile"];
+    const ORDER = ["dashboard", "bookings", "home", "profile"];
 
     return (
         <View style={styles.wrapper}>
@@ -56,7 +56,7 @@ export function ShopTabBar({ state, descriptors, navigation }: any) {
                     // Icons specific for Shop Owner
                     const icon =
                         name === "home"
-                            ? focused ? "home" : "home-outline"
+                            ? focused ? "alert-circle" : "alert-circle-outline"
                             : name === "dashboard"
                                 ? focused ? "grid" : "grid-outline"
                                 : name === "bookings"
@@ -65,7 +65,7 @@ export function ShopTabBar({ state, descriptors, navigation }: any) {
 
                     const label =
                         name === "home"
-                            ? "Home"
+                            ? "Complaint"
                             : name === "dashboard"
                                 ? "Dashboard"
                                 : name === "bookings"

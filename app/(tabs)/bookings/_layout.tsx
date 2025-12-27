@@ -2,7 +2,7 @@ import { RootState } from "@/store";
 import { Ionicons } from "@expo/vector-icons";
 import { Slot, usePathname, useRouter } from "expo-router";
 import { useState } from "react";
-import { Alert, FlatList, Image, Linking, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Alert, FlatList, Image, Linking, Modal, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useSelector } from "react-redux";
 
 // --- MOCK DATA FOR ADMIN BOOKINGS ---
@@ -17,7 +17,8 @@ const ADMIN_BOOKINGS = [
     license: 'ABC-1234',
     service: 'Full Exterior Wash',
     avatar: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80',
-    phone: '919876543210'
+    phone: '919876543210',
+    address: 'Block A, Sector 14, Gurgaon, Haryana'
   },
   {
     id: '2',
@@ -28,8 +29,16 @@ const ADMIN_BOOKINGS = [
     license: 'BMW-9988',
     service: 'Interior Detailing',
     avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80',
-    phone: '919876543211'
+    phone: '919876543211',
+    address: 'Flat 402, Sunshine Apartments, Delhi'
   }
+];
+
+const MOCK_WORKERS = [
+  { id: 'W1', name: 'Amit Sharma', phone: '+919876543210' },
+  { id: 'W2', name: 'Rahul Verma', phone: '+918765432109' },
+  { id: 'W3', name: 'Suresh Singh', phone: '+917654321098' },
+  { id: 'W4', name: 'Vikram Yadav', phone: '+916543210987' },
 ];
 
 // --- DYNAMIC DATES GENERATOR ---
@@ -53,6 +62,52 @@ const getNextSevenDays = () => {
 function AdminBookingsScreen() {
   const [filter, setFilter] = useState('All');
   const [dates] = useState(getNextSevenDays());
+  const [workerModalVisible, setWorkerModalVisible] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState<any>(null);
+
+  const handleAssignWorker = (worker: any) => {
+    setWorkerModalVisible(false);
+
+    Alert.alert(
+      "Confirm Assignment",
+      `Assign ${worker.name} to ${selectedBooking?.customerName}?`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Confirm & Notify",
+          onPress: () => {
+            // 1. Send WhatsApp to User
+            const userMsg = `Hello ${selectedBooking.customerName}, your service for ${selectedBooking.car} has been assigned to ${worker.name} (Ph: ${worker.phone}). They will arrive shortly.`;
+            const userUrl = `whatsapp://send?phone=${selectedBooking.phone}&text=${encodeURIComponent(userMsg)}`;
+
+            Linking.openURL(userUrl).catch(() => {
+              Alert.alert("Error", "Could not open WhatsApp");
+            });
+
+            // 2. Prompt to Send WhatsApp to Worker (Sequential Step)
+            setTimeout(() => {
+              Alert.alert(
+                "Notify Worker",
+                "Send job details to the worker now?",
+                [
+                  { text: "Skip", style: "cancel" },
+                  {
+                    text: "Send to Worker",
+                    onPress: () => {
+                      const workerMsg = `🛠 *New Job Assigned!*\n\n👤 Client: ${selectedBooking.customerName}\n🚗 Car: ${selectedBooking.car} (${selectedBooking.license})\n📋 Service: ${selectedBooking.service}\n⏰ Time: ${selectedBooking.time}\n📍 Address: ${selectedBooking.address}\n📞 Phone: ${selectedBooking.phone}`;
+                      const workerUrl = `whatsapp://send?phone=${worker.phone}&text=${encodeURIComponent(workerMsg)}`;
+                      Linking.openURL(workerUrl).catch(() => Alert.alert("Error", "Could not open WhatsApp for Worker"));
+                    }
+                  }
+                ]
+              );
+            }, 1000); // Small delay to allow app interaction
+          }
+        }
+      ]
+    );
+  };
+
 
   // Format current month and year (e.g., "December 2025")
   const currentMonthYear = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
@@ -113,9 +168,15 @@ function AdminBookingsScreen() {
       </View>
 
       {/* Action Button */}
-      <TouchableOpacity style={adminStyles.whatsappButton} onPress={() => handleWhatsApp(item.phone, item.customerName)}>
-        <Ionicons name="logo-whatsapp" size={18} color="#fff" />
-        <Text style={adminStyles.whatsappButtonText}>Contact on WhatsApp</Text>
+      <TouchableOpacity
+        style={[adminStyles.whatsappButton, { backgroundColor: '#1a1a1a' }]}
+        onPress={() => {
+          setSelectedBooking(item);
+          setWorkerModalVisible(true);
+        }}
+      >
+        <Ionicons name="person-add" size={18} color="#fff" />
+        <Text style={adminStyles.whatsappButtonText}>Assign Worker</Text>
       </TouchableOpacity>
     </View>
   );
@@ -166,6 +227,46 @@ function AdminBookingsScreen() {
           </View>
         }
       />
+
+      {/* WORKER SELECTION MODAL */}
+      <Modal
+        visible={workerModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setWorkerModalVisible(false)}
+      >
+        <View style={styles.backdrop}>
+          <TouchableOpacity style={styles.backdropTouchable} onPress={() => setWorkerModalVisible(false)} />
+          <View style={styles.workerModalContainer}>
+            <View style={styles.workerHeader}>
+              <Text style={styles.sheetTitle}>Select Worker</Text>
+              <TouchableOpacity onPress={() => setWorkerModalVisible(false)}>
+                <Ionicons name="close" size={24} color="#000" />
+              </TouchableOpacity>
+            </View>
+            <FlatList
+              data={MOCK_WORKERS}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <TouchableOpacity style={styles.workerRow} onPress={() => handleAssignWorker(item)}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <View style={styles.workerAvatar}>
+                      <Text style={styles.workerInitials}>{item.name.charAt(0)}</Text>
+                    </View>
+                    <View>
+                      <Text style={styles.workerName}>{item.name}</Text>
+                      <Text style={styles.workerPhone}>{item.phone}</Text>
+                    </View>
+                  </View>
+                  <View style={styles.assignBtn}>
+                    <Text style={styles.assignBtnText}>Assign</Text>
+                  </View>
+                </TouchableOpacity>
+              )}
+            />
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -266,6 +367,80 @@ const styles = StyleSheet.create({
   inactiveText: {
     color: "#000",
     fontSize: 15,
+  },
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.5)",
+  },
+  backdropTouchable: { flex: 1 },
+  workerModalContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 20,
+    height: '50%',
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 20,
+  },
+  workerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  sheetTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#111",
+  },
+  workerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  workerAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F3F4F6',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  workerInitials: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#4B5563',
+  },
+  workerName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1a1a1a',
+  },
+  workerPhone: {
+    fontSize: 12,
+    color: '#6B7280',
+  },
+  assignBtn: {
+    backgroundColor: '#e0f2fe',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  assignBtnText: {
+    color: '#0284c7',
+    fontWeight: '600',
+    fontSize: 12,
   },
 });
 

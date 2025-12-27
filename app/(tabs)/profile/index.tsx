@@ -49,7 +49,7 @@ export default function ProfileHome() {
     }
   }, [showLogout]);
 
-  const closeSheet = () => {
+  const closeSheet = (callback?: () => void) => {
     Animated.parallel([
       Animated.timing(translateY, {
         toValue: height,
@@ -62,12 +62,22 @@ export default function ProfileHome() {
         duration: 200,
         useNativeDriver: true,
       }),
-    ]).start(() => setShowLogout(false));
+    ]).start(() => {
+      setShowLogout(false);
+      if (typeof callback === 'function') {
+        callback();
+      }
+    });
   };
 
   const handleLogout = () => {
-    dispatch(logout());
-    router.replace("/(tabs)/home");
+    closeSheet(() => {
+      // Small delay to ensure state update has propagated (optional but safe)
+      setTimeout(() => {
+        dispatch(logout());
+        router.replace("/(tabs)/home");
+      }, 100);
+    });
   };
 
   return (
@@ -150,7 +160,7 @@ export default function ProfileHome() {
         >
           <TouchableOpacity
             style={StyleSheet.absoluteFill}
-            onPress={closeSheet}
+            onPress={() => closeSheet()}
           />
         </Animated.View>
 
@@ -163,7 +173,7 @@ export default function ProfileHome() {
           </Text>
 
           <View style={styles.logoutActions}>
-            <TouchableOpacity style={styles.cancelBtn} onPress={closeSheet}>
+            <TouchableOpacity style={styles.cancelBtn} onPress={() => closeSheet()}>
               <Text style={styles.cancelText}>Cancel</Text>
             </TouchableOpacity>
 

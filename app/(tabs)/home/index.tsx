@@ -303,13 +303,32 @@ export default function HomeScreen() {
 
   // ... (Login handlers)
   const handleSendOtp = () => {
-    if (!name.trim()) {
-      Alert.alert('Required', 'Please enter your name.');
-      return;
-    }
-    if (!phoneNumber.trim() || phoneNumber.length < 10) {
-      Alert.alert('Invalid Phone', 'Please enter a valid phone number.');
-      return;
+    // Name validation removed for Homepage Login
+
+    const cleanedPhone = phoneNumber.trim();
+
+    // 1. Allow Admin Number check bypass
+    if (cleanedPhone === '1234567890') {
+      // Proceed directly for admin
+      // continue execution below...
+    } else {
+      // 2. Basic Length Check
+      if (!cleanedPhone || cleanedPhone.length !== 10) {
+        Alert.alert('Invalid Phone', 'Please enter a 10-digit phone number.');
+        return;
+      }
+
+      // 3. Indian Mobile Number Check (starts with 6-9)
+      if (!/^[6-9]/.test(cleanedPhone)) {
+        Alert.alert('Invalid Phone', 'Please enter a valid mobile number.');
+        return;
+      }
+
+      // 4. Repeated Digits Check (e.g., 8888888888)
+      if (/^(\d)\1{9}$/.test(cleanedPhone)) {
+        Alert.alert('Invalid Phone', 'Please enter a valid mobile number.');
+        return;
+      }
     }
 
     setIsLoading(true);
@@ -326,23 +345,26 @@ export default function HomeScreen() {
       return;
     }
 
-    dispatch(setUser({ name: name.trim(), phone: phoneNumber.trim() }));
+    // Use 'User' as default if name is empty (since field is hidden)
+    dispatch(setUser({ name: name.trim() || 'User', phone: phoneNumber.trim() }));
     dispatch(loginSuccess('dummy-token'));
 
+    const isAdminUser = phoneNumber.trim().endsWith('1234567890');
+
+    // Reset State immediately
+    setModalStep('details');
+    setOtp(['', '', '', '']);
+    setName('');
+    setPhoneNumber('');
     setIsLoginModalVisible(false);
 
     // Check for Admin Redirect
-    if (phoneNumber.trim().endsWith('1234567890')) {
+    if (isAdminUser) {
       setTimeout(() => {
         router.replace('/(tabs)/dashboard');
       }, 100);
       return;
     }
-
-    setModalStep('details');
-    setOtp(['', '', '', '']);
-    setName('');
-    setPhoneNumber('');
   };
 
 
@@ -512,17 +534,7 @@ export default function HomeScreen() {
 
             {modalStep === 'details' ? (
               <>
-                <View style={styles.inputContainer}>
-                  <Ionicons name="person-outline" size={20} color="#666" style={{ marginRight: 10 }} />
-                  <TextInput
-                    style={styles.inputField}
-                    placeholder="Full Name"
-                    placeholderTextColor="#ccc"
-                    value={name}
-                    onChangeText={setName}
-                    autoCapitalize="words"
-                  />
-                </View>
+                {/* Name field removed for Homepage Login */}
 
                 <View style={styles.phoneContainer}>
                   <View style={styles.countryCode}>

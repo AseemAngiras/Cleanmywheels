@@ -3,12 +3,14 @@ import authReducer, { logout } from "./slices/authSlice";
 import bookingReducer from "./slices/bookingSlice";
 import profileReducer from "./slices/profileSlice";
 import userReducer from "./slices/userSlice";
+import { authApi } from "./api/authApi";
 
 const appReducer = combineReducers({
   auth: authReducer,
   profile: profileReducer,
   bookings: bookingReducer,
   user: userReducer,
+  [authApi.reducerPath]: authApi.reducer,
 });
 
 const rootReducer = (state: any, action: any) => {
@@ -21,6 +23,8 @@ const rootReducer = (state: any, action: any) => {
 
 export const store = configureStore({
   reducer: rootReducer,
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware().concat(authApi.middleware),
 });
 
 export type RootState = ReturnType<typeof store.getState>;

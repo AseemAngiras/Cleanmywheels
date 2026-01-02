@@ -1,13 +1,17 @@
-import { loginSuccess } from '@/store/slices/authSlice';
-import { setUser } from '@/store/slices/userSlice';
-import { useFocusEffect, useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { loginSuccess } from "@/store/slices/authSlice";
+import { setUser } from "@/store/slices/userSlice";
+import {
+  useFocusEffect,
+  useLocalSearchParams,
+  useNavigation,
+  useRouter,
+} from "expo-router";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 
-
-import BookingStepper from '@/components/BookingStepper';
-import { RootState } from '@/store';
-import { Ionicons } from '@expo/vector-icons';
+import BookingStepper from "@/components/BookingStepper";
+import { RootState } from "@/store";
+import { Ionicons } from "@expo/vector-icons";
 import {
   Alert,
   KeyboardAvoidingView,
@@ -20,13 +24,13 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-} from 'react-native';
+} from "react-native";
 
 // Types
 type TimeSlot = {
   id: string;
   time: string;
-  period: 'Morning' | 'Afternoon' | 'Evening';
+  period: "Morning" | "Afternoon" | "Evening";
   available: boolean;
 };
 
@@ -43,14 +47,14 @@ export default function SelectSlotScreen() {
   useFocusEffect(
     useCallback(() => {
       navigation.getParent()?.setOptions({
-        tabBarStyle: { display: 'none' },
+        tabBarStyle: { display: "none" },
       });
     }, [navigation])
   );
 
   // --- Local state (synced with Redux user) ---
-  const [name, setName] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
+  const [name, setName] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
 
   useEffect(() => {
     if (userName) setName(userName);
@@ -60,8 +64,8 @@ export default function SelectSlotScreen() {
   // Login Modal State
   const [isLoginModalVisible, setIsLoginModalVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [modalStep, setModalStep] = useState<'details' | 'otp'>('details');
-  const [otp, setOtp] = useState(['', '', '', '']);
+  const [modalStep, setModalStep] = useState<"details" | "otp">("details");
+  const [otp, setOtp] = useState(["", "", "", ""]);
 
   // Slot Picker State
   const [selectedDate, setSelectedDate] = useState<number>(0);
@@ -73,32 +77,33 @@ export default function SelectSlotScreen() {
     d.setDate(d.getDate() + i);
     return {
       id: i,
-      day: d.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase(),
+      day: d.toLocaleDateString("en-US", { weekday: "short" }).toUpperCase(),
       date: d.getDate(),
-      month: d.toLocaleDateString('en-US', { month: 'short' }).toUpperCase(),
+      month: d.toLocaleDateString("en-US", { month: "short" }).toUpperCase(),
       fullDate: d,
     };
   });
 
-  const isToday = dates[selectedDate].fullDate.toDateString() === new Date().toDateString();
+  const isToday =
+    dates[selectedDate].fullDate.toDateString() === new Date().toDateString();
   const now = new Date();
 
   const timeSlots: TimeSlot[] = [
-    { id: '1', time: '08:00 AM', period: 'Morning', available: true },
-    { id: '2', time: '08:30 AM', period: 'Morning', available: true },
-    { id: '3', time: '09:00 AM', period: 'Morning', available: false },
-    { id: '4', time: '09:30 AM', period: 'Morning', available: true },
-    { id: '5', time: '10:00 AM', period: 'Morning', available: true },
-    { id: '6', time: '10:30 AM', period: 'Morning', available: false },
-    { id: '7', time: '12:00 PM', period: 'Afternoon', available: true },
-    { id: '8', time: '12:30 PM', period: 'Afternoon', available: true },
-    { id: '9', time: '01:00 PM', period: 'Afternoon', available: true },
-    { id: '10', time: '01:30 PM', period: 'Afternoon', available: true },
-    { id: '11', time: '02:00 PM', period: 'Afternoon', available: true },
-    { id: '12', time: '02:30 PM', period: 'Afternoon', available: false },
-    { id: '13', time: '05:00 PM', period: 'Evening', available: true },
-    { id: '14', time: '05:30 PM', period: 'Evening', available: false },
-    { id: '15', time: '06:00 PM', period: 'Evening', available: true },
+    { id: "1", time: "08:00 AM", period: "Morning", available: true },
+    { id: "2", time: "08:30 AM", period: "Morning", available: true },
+    { id: "3", time: "09:00 AM", period: "Morning", available: false },
+    { id: "4", time: "09:30 AM", period: "Morning", available: true },
+    { id: "5", time: "10:00 AM", period: "Morning", available: true },
+    { id: "6", time: "10:30 AM", period: "Morning", available: false },
+    { id: "7", time: "12:00 PM", period: "Afternoon", available: true },
+    { id: "8", time: "12:30 PM", period: "Afternoon", available: true },
+    { id: "9", time: "01:00 PM", period: "Afternoon", available: true },
+    { id: "10", time: "01:30 PM", period: "Afternoon", available: true },
+    { id: "11", time: "02:00 PM", period: "Afternoon", available: true },
+    { id: "12", time: "02:30 PM", period: "Afternoon", available: false },
+    { id: "13", time: "05:00 PM", period: "Evening", available: true },
+    { id: "14", time: "05:30 PM", period: "Evening", available: false },
+    { id: "15", time: "06:00 PM", period: "Evening", available: true },
   ].map((slot) => {
     const typedSlot = slot as TimeSlot;
     // Assuming the dates array is generated starting from Today at index 0
@@ -108,9 +113,9 @@ export default function SelectSlotScreen() {
 
     // Parse time
     const [timeStr, modifier] = typedSlot.time.trim().split(/\s+/); // Handle potential extra spaces
-    let [hours, minutes] = timeStr.split(':').map(Number);
-    if (modifier === 'PM' && hours < 12) hours += 12;
-    if (modifier === 'AM' && hours === 12) hours = 0;
+    let [hours, minutes] = timeStr.split(":").map(Number);
+    if (modifier === "PM" && hours < 12) hours += 12;
+    if (modifier === "AM" && hours === 12) hours = 0;
 
     // Use current date for comparison since we are checking 'Today'
     const slotDate = new Date();
@@ -128,25 +133,25 @@ export default function SelectSlotScreen() {
 
   const handleSendOtp = () => {
     if (!name.trim()) {
-      Alert.alert('Required', 'Please enter your name.');
+      Alert.alert("Required", "Please enter your name.");
       return;
     }
     if (!phoneNumber.trim() || phoneNumber.length < 10) {
-      Alert.alert('Invalid Phone', 'Please enter a valid phone number.');
+      Alert.alert("Invalid Phone", "Please enter a valid phone number.");
       return;
     }
 
     setIsLoading(true);
     setTimeout(() => {
       setIsLoading(false);
-      setModalStep('otp');
+      setModalStep("otp");
     }, 1500);
   };
 
   const handleVerifyOtp = () => {
-    const otpValue = otp.join('');
+    const otpValue = otp.join("");
     if (otpValue.length < 4) {
-      Alert.alert('Invalid OTP', 'Please enter the complete 4-digit OTP.');
+      Alert.alert("Invalid OTP", "Please enter the complete 4-digit OTP.");
       return;
     }
 
@@ -156,24 +161,23 @@ export default function SelectSlotScreen() {
         phone: phoneNumber.trim(),
       })
     );
-    dispatch(loginSuccess('dummy-token'));
+    dispatch(loginSuccess("dummy-token"));
 
     setIsLoginModalVisible(false);
-    setModalStep('details');
-    setOtp(['', '', '', '']);
+    setModalStep("details");
+    setOtp(["", "", "", ""]);
 
     navigateToSummary();
   };
 
   const navigateToSummary = () => {
-    const dateOnly =
-      dates[selectedDate].fullDate.toISOString().split('T')[0];
+    const dateOnly = dates[selectedDate].fullDate.toISOString().split("T")[0];
 
     router.push({
-      pathname: '/(tabs)/home/book-doorstep/booking-summary',
+      pathname: "/(tabs)/home/book-doorstep/booking-summary",
       params: {
         ...params,
-        shopName: 'Your Location',
+        shopName: "Your Location",
         userName: userName || name,
         userPhone: userPhone || phoneNumber,
         selectedDate: dateOnly,
@@ -198,7 +202,10 @@ export default function SelectSlotScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={styles.backButton}
+        >
           <Ionicons name="chevron-back" size={24} color="#000" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Select Slot</Text>
@@ -209,22 +216,49 @@ export default function SelectSlotScreen() {
 
       <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
         <Text style={styles.pageTitle}>When should we arrive?</Text>
-        <Text style={styles.pageSubtitle}>Choose a date and time for your service.</Text>
+        <Text style={styles.pageSubtitle}>
+          Choose a date and time for your service.
+        </Text>
 
         {/* Date Selection */}
         <View style={styles.sectionContainer}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.dateList}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.dateList}
+          >
             {dates.map((item, index) => {
               const isSelected = selectedDate === index;
               return (
                 <TouchableOpacity
                   key={item.id}
-                  style={[styles.dateItem, isSelected && styles.dateItemSelected]}
+                  style={[
+                    styles.dateItem,
+                    isSelected && styles.dateItemSelected,
+                  ]}
                   onPress={() => setSelectedDate(index)}
                 >
-                  <Text style={[styles.monthText, isSelected && styles.textSelected]}>{item.month}</Text>
-                  <Text style={[styles.dateNumberText, isSelected && styles.textSelected]}>{item.date}</Text>
-                  <Text style={[styles.dayText, isSelected && styles.textSelected]}>{item.day}</Text>
+                  <Text
+                    style={[
+                      styles.monthText,
+                      isSelected && styles.textSelected,
+                    ]}
+                  >
+                    {item.month}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.dateNumberText,
+                      isSelected && styles.textSelected,
+                    ]}
+                  >
+                    {item.date}
+                  </Text>
+                  <Text
+                    style={[styles.dayText, isSelected && styles.textSelected]}
+                  >
+                    {item.day}
+                  </Text>
                 </TouchableOpacity>
               );
             })}
@@ -234,14 +268,21 @@ export default function SelectSlotScreen() {
         {/* Time Selection */}
         <View style={styles.sectionContainer}>
           <Text style={styles.sectionTitle}>Available Slots</Text>
-          <Text style={styles.durationHint}>Service duration: approx. 45 mins</Text>
+          <Text style={styles.durationHint}>
+            Service duration: approx. 45 mins
+          </Text>
 
           <View style={styles.gridContainer}>
             {timeSlots.map((slot) => {
               const isSelected = selectedSlot === slot.id;
               const isUnavailable = !slot.available;
               // Mock offer logic to match book-service
-              const offer = slot.id === '2' ? '5% OFF' : slot.id === '3' || slot.id === '4' ? '10% OFF' : null;
+              const offer =
+                slot.id === "2"
+                  ? "5% OFF"
+                  : slot.id === "3" || slot.id === "4"
+                  ? "10% OFF"
+                  : null;
 
               return (
                 <TouchableOpacity
@@ -250,7 +291,11 @@ export default function SelectSlotScreen() {
                   style={[
                     styles.timeGridItem,
                     isSelected && styles.timeGridItemSelected,
-                    isUnavailable && { opacity: 0.5, backgroundColor: '#f5f5f5', borderColor: '#eee' }
+                    isUnavailable && {
+                      opacity: 0.5,
+                      backgroundColor: "#f5f5f5",
+                      borderColor: "#eee",
+                    },
                   ]}
                   onPress={() => setSelectedSlot(slot.id)}
                 >
@@ -259,15 +304,17 @@ export default function SelectSlotScreen() {
                       <Text style={styles.offerText}>{offer}</Text>
                     </View>
                   )}
-                  <Text style={[
-                    styles.timeGridText,
-                    isSelected && styles.timeGridTextSelected,
-                    isUnavailable && styles.timeGridTextUnavailable
-                  ]}>
+                  <Text
+                    style={[
+                      styles.timeGridText,
+                      isSelected && styles.timeGridTextSelected,
+                      isUnavailable && styles.timeGridTextUnavailable,
+                    ]}
+                  >
                     {slot.time}
                   </Text>
                 </TouchableOpacity>
-              )
+              );
             })}
           </View>
         </View>
@@ -279,7 +326,8 @@ export default function SelectSlotScreen() {
           <Text style={styles.summaryLabel}>Selected Slot</Text>
           {selectedSlot ? (
             <Text style={styles.summaryValue}>
-              {dates[selectedDate].month} {dates[selectedDate].date}, {timeSlots.find(s => s.id === selectedSlot)?.time}
+              {dates[selectedDate].month} {dates[selectedDate].date},{" "}
+              {timeSlots.find((s) => s.id === selectedSlot)?.time}
             </Text>
           ) : (
             <Text style={styles.placeholderSummary}>Please select a time</Text>
@@ -291,7 +339,12 @@ export default function SelectSlotScreen() {
           onPress={handleConfirmSlot}
         >
           <Text style={styles.continueButtonText}>Continue</Text>
-          <Ionicons name="arrow-forward" size={20} color="#1a1a1a" style={{ marginLeft: 8 }} />
+          <Ionicons
+            name="arrow-forward"
+            size={20}
+            color="#1a1a1a"
+            style={{ marginLeft: 8 }}
+          />
         </TouchableOpacity>
       </View>
 
@@ -316,19 +369,23 @@ export default function SelectSlotScreen() {
             <View style={styles.dragHandle} />
 
             <Text style={styles.modalTitle}>
-              {modalStep === 'details' ? 'Add Details' : 'Verify OTP'}
+              {modalStep === "details" ? "Add Details" : "Verify OTP"}
             </Text>
             <Text style={styles.modalSubtitle}>
-              {modalStep === 'details'
-                ? 'We need your details to confirm the booking.'
-                : `Enter the 4-digit code sent to +91 ${phoneNumber}`
-              }
+              {modalStep === "details"
+                ? "We need your details to confirm the booking."
+                : `Enter the 4-digit code sent to +91 ${phoneNumber}`}
             </Text>
 
-            {modalStep === 'details' ? (
+            {modalStep === "details" ? (
               <>
                 <View style={styles.inputContainer}>
-                  <Ionicons name="person-outline" size={20} color="#666" style={{ marginRight: 10 }} />
+                  <Ionicons
+                    name="person-outline"
+                    size={20}
+                    color="#666"
+                    style={{ marginRight: 10 }}
+                  />
                   <TextInput
                     style={styles.inputField}
                     placeholder="Full Name"
@@ -368,17 +425,24 @@ export default function SelectSlotScreen() {
             ) : (
               <>
                 <View style={styles.otpHeaderRow}>
-                  <TouchableOpacity onPress={() => setModalStep('details')} style={{ marginRight: 10 }}>
+                  <TouchableOpacity
+                    onPress={() => setModalStep("details")}
+                    style={{ marginRight: 10 }}
+                  >
                     <Ionicons name="arrow-back" size={24} color="#1a1a1a" />
                   </TouchableOpacity>
-                  <Text style={{ fontSize: 14, color: '#666' }}>Change Number</Text>
+                  <Text style={{ fontSize: 14, color: "#666" }}>
+                    Change Number
+                  </Text>
                 </View>
 
                 <View style={styles.otpContainer}>
                   {otp.map((digit, i) => (
                     <TextInput
                       key={i}
-                      ref={(ref) => { inputRefs.current[i] = ref; }}
+                      ref={(ref) => {
+                        inputRefs.current[i] = ref;
+                      }}
                       style={styles.otpBox}
                       keyboardType="number-pad"
                       maxLength={1}
@@ -392,7 +456,11 @@ export default function SelectSlotScreen() {
                         }
                       }}
                       onKeyPress={({ nativeEvent }) => {
-                        if (nativeEvent.key === 'Backspace' && !otp[i] && i > 0) {
+                        if (
+                          nativeEvent.key === "Backspace" &&
+                          !otp[i] &&
+                          i > 0
+                        ) {
                           inputRefs.current[i - 1]?.focus();
                         }
                       }}
@@ -404,7 +472,9 @@ export default function SelectSlotScreen() {
                   style={styles.modalContinueButton}
                   onPress={handleVerifyOtp}
                 >
-                  <Text style={styles.continueButtonText}>Verify & Proceed</Text>
+                  <Text style={styles.continueButtonText}>
+                    Verify & Proceed
+                  </Text>
                 </TouchableOpacity>
               </>
             )}
@@ -418,31 +488,31 @@ export default function SelectSlotScreen() {
 /* styles unchanged */
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#f9f9f9' },
+  safeArea: { flex: 1, backgroundColor: "#f9f9f9" },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 20,
     paddingVertical: 15,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: "#f9f9f9",
   },
   backButton: { padding: 5 },
-  headerTitle: { fontSize: 18, fontWeight: 'bold' },
+  headerTitle: { fontSize: 18, fontWeight: "bold" },
 
   pageTitle: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#1a1a1a',
+    fontWeight: "bold",
+    color: "#1a1a1a",
     paddingHorizontal: 20,
-    marginTop: 10
+    marginTop: 10,
   },
   pageSubtitle: {
     fontSize: 14,
-    color: '#666',
+    color: "#666",
     paddingHorizontal: 20,
     marginTop: 5,
-    marginBottom: 20
+    marginBottom: 20,
   },
 
   sectionContainer: {
@@ -450,17 +520,17 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1a1a1a',
+    fontWeight: "bold",
+    color: "#1a1a1a",
     paddingHorizontal: 20,
     marginBottom: 15,
   },
   durationHint: {
     fontSize: 13,
-    color: '#888',
+    color: "#888",
     paddingHorizontal: 20,
     marginTop: -10,
-    marginBottom: 15
+    marginBottom: 15,
   },
 
   // Date List
@@ -471,62 +541,72 @@ const styles = StyleSheet.create({
     width: 70,
     height: 90,
     borderRadius: 15,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#fff",
+    alignItems: "center",
+    justifyContent: "center",
     marginRight: 10,
     borderWidth: 1,
-    borderColor: '#eee',
+    borderColor: "#eee",
   },
   dateItemSelected: {
-    backgroundColor: '#1a1a1a',
-    borderColor: '#1a1a1a',
-    transform: [{ scale: 1.05 }]
+    backgroundColor: "#1a1a1a",
+    borderColor: "#1a1a1a",
+    transform: [{ scale: 1.05 }],
   },
-  monthText: { fontSize: 12, color: '#888', marginBottom: 4, textTransform: 'uppercase' },
-  dateNumberText: { fontSize: 20, fontWeight: 'bold', color: '#1a1a1a', marginBottom: 2 },
-  dayText: { fontSize: 12, color: '#666' },
-  textSelected: { color: '#fff' },
+  monthText: {
+    fontSize: 12,
+    color: "#888",
+    marginBottom: 4,
+    textTransform: "uppercase",
+  },
+  dateNumberText: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#1a1a1a",
+    marginBottom: 2,
+  },
+  dayText: { fontSize: 12, color: "#666" },
+  textSelected: { color: "#fff" },
 
   // Time Grid
   gridContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     paddingHorizontal: 20,
-    justifyContent: 'space-between', // Changed from gap to space-between
+    justifyContent: "space-between", // Changed from gap to space-between
   },
   timeGridItem: {
-    width: '31%', // roughly 3 per row
+    width: "31%", // roughly 3 per row
     paddingVertical: 15,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 12,
-    alignItems: 'center',
+    alignItems: "center",
     borderWidth: 1,
-    borderColor: '#eee',
+    borderColor: "#eee",
     marginBottom: 5,
-    position: 'relative',
+    position: "relative",
   },
   timeGridItemSelected: {
-    backgroundColor: '#1a1a1a',
-    borderColor: '#1a1a1a',
+    backgroundColor: "#1a1a1a",
+    borderColor: "#1a1a1a",
   },
   timeGridText: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#1a1a1a',
+    fontWeight: "600",
+    color: "#1a1a1a",
   },
   timeGridTextSelected: {
-    color: '#fff',
+    color: "#fff",
   },
   timeGridTextUnavailable: {
-    color: '#ccc',
-    textDecorationLine: 'line-through'
+    color: "#ccc",
+    textDecorationLine: "line-through",
   },
   offerBadge: {
-    position: 'absolute',
+    position: "absolute",
     top: -6,
     right: -6,
-    backgroundColor: '#C8F000',
+    backgroundColor: "#C8F000",
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 6,
@@ -534,63 +614,63 @@ const styles = StyleSheet.create({
   },
   offerText: {
     fontSize: 8,
-    fontWeight: 'bold',
-    color: '#1a1a1a'
+    fontWeight: "bold",
+    color: "#1a1a1a",
   },
 
   // Footer
   footer: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     padding: 20,
     paddingBottom: 30,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     borderTopWidth: 1,
-    borderTopColor: '#f0f0f0',
-    shadowColor: '#000',
+    borderTopColor: "#f0f0f0",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.05,
     shadowRadius: 10,
     elevation: 10,
   },
-  selectionSummary: { flex: 1, justifyContent: 'center' },
-  summaryLabel: { fontSize: 12, color: '#888' },
-  summaryValue: { fontSize: 15, fontWeight: 'bold', color: '#1a1a1a' },
-  placeholderSummary: { fontSize: 14, color: '#ccc', fontStyle: 'italic' },
+  selectionSummary: { flex: 1, justifyContent: "center" },
+  summaryLabel: { fontSize: 12, color: "#888" },
+  summaryValue: { fontSize: 15, fontWeight: "bold", color: "#1a1a1a" },
+  placeholderSummary: { fontSize: 14, color: "#ccc", fontStyle: "italic" },
 
   continueButton: {
-    backgroundColor: '#C8F000', // Yellow
+    backgroundColor: "#C8F000", // Yellow
     paddingVertical: 15,
     paddingHorizontal: 25,
     borderRadius: 30,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   continueButtonText: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#1a1a1a',
+    fontWeight: "bold",
+    color: "#1a1a1a",
   },
 
   // Modal
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'flex-end',
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "flex-end",
   },
   modalOverlayTouch: { flex: 1 },
   modalContent: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderTopLeftRadius: 25,
     borderTopRightRadius: 25,
     padding: 25,
     paddingBottom: 40,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.1,
     shadowRadius: 10,
@@ -599,75 +679,75 @@ const styles = StyleSheet.create({
   dragHandle: {
     width: 40,
     height: 4,
-    backgroundColor: '#e0e0e0',
+    backgroundColor: "#e0e0e0",
     borderRadius: 2,
-    alignSelf: 'center',
+    alignSelf: "center",
     marginBottom: 20,
   },
   modalTitle: {
     fontSize: 22,
-    fontWeight: 'bold',
-    color: '#1a1a1a',
+    fontWeight: "bold",
+    color: "#1a1a1a",
     marginBottom: 5,
   },
   modalSubtitle: {
     fontSize: 14,
-    color: '#888',
+    color: "#888",
     marginBottom: 20,
   },
   inputLabel: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#1a1a1a',
+    fontWeight: "600",
+    color: "#1a1a1a",
     marginBottom: 8,
   },
   inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f9f9f9',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f9f9f9",
     borderRadius: 30,
     paddingHorizontal: 20,
     paddingVertical: 12,
     marginBottom: 15,
     borderWidth: 1,
-    borderColor: '#f0f0f0',
+    borderColor: "#f0f0f0",
   },
   inputField: {
     flex: 1,
     fontSize: 14,
-    color: '#1a1a1a',
+    color: "#1a1a1a",
   },
   phoneContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f9f9f9',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f9f9f9",
     borderRadius: 30,
     paddingHorizontal: 20,
     paddingVertical: 12,
     marginBottom: 25,
     borderWidth: 1,
-    borderColor: '#f0f0f0',
+    borderColor: "#f0f0f0",
   },
   countryCode: { marginRight: 10 },
-  countryCodeText: { fontSize: 14, fontWeight: 'bold', color: '#1a1a1a' },
+  countryCodeText: { fontSize: 14, fontWeight: "bold", color: "#1a1a1a" },
 
   modalContinueButton: {
-    backgroundColor: '#C8F000',
+    backgroundColor: "#C8F000",
     paddingVertical: 16,
     borderRadius: 30,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
   },
 
   otpHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 5,
   },
   otpContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginBottom: 20,
     paddingHorizontal: 20,
   },
@@ -676,11 +756,11 @@ const styles = StyleSheet.create({
     height: 60,
     borderRadius: 15,
     borderWidth: 1,
-    borderColor: '#f0f0f0',
+    borderColor: "#f0f0f0",
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#1a1a1a',
-    backgroundColor: '#f9f9f9',
-    textAlign: 'center'
+    fontWeight: "bold",
+    color: "#1a1a1a",
+    backgroundColor: "#f9f9f9",
+    textAlign: "center",
   },
 });

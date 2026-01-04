@@ -8,6 +8,11 @@ import {
 } from "expo-router";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import {
+  useRegisterMutation,
+  useRequestOtpMutation,
+  useVerifyLoginOtpMutation,
+} from "@/store/api/authApi";
 
 import BookingStepper from "@/components/BookingStepper";
 import { RootState } from "@/store";
@@ -26,7 +31,6 @@ import {
   View,
 } from "react-native";
 
-// Types
 type TimeSlot = {
   id: string;
   time: string;
@@ -52,7 +56,6 @@ export default function SelectSlotScreen() {
     }, [navigation])
   );
 
-  // --- Local state (synced with Redux user) ---
   const [name, setName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
 
@@ -61,17 +64,20 @@ export default function SelectSlotScreen() {
     if (userPhone) setPhoneNumber(userPhone);
   }, [userName, userPhone]);
 
-  // Login Modal State
   const [isLoginModalVisible, setIsLoginModalVisible] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [modalStep, setModalStep] = useState<"details" | "otp">("details");
-  const [otp, setOtp] = useState(["", "", "", ""]);
+  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
 
-  // Slot Picker State
   const [selectedDate, setSelectedDate] = useState<number>(0);
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
 
-  // --- Mock Dates ---
+  const [register, { isLoading: isRegistering }] = useRegisterMutation();
+  const [requestOtp, { isLoading: isSendingOtp }] = useRequestOtpMutation();
+  const [verifyLoginOtp, { isLoading: isVerifyingOtp }] =
+    useVerifyLoginOtpMutation();
+
+  const isProcessing = isRegistering || isSendingOtp;
+
   const dates = Array.from({ length: 7 }).map((_, i) => {
     const d = new Date();
     d.setDate(d.getDate() + i);
@@ -84,8 +90,6 @@ export default function SelectSlotScreen() {
     };
   });
 
-  const isToday =
-    dates[selectedDate].fullDate.toDateString() === new Date().toDateString();
   const now = new Date();
 
   const timeSlots: TimeSlot[] = [
@@ -106,18 +110,15 @@ export default function SelectSlotScreen() {
     { id: "15", time: "06:00 PM", period: "Evening", available: true },
   ].map((slot) => {
     const typedSlot = slot as TimeSlot;
-    // Assuming the dates array is generated starting from Today at index 0
     const isToday = selectedDate === 0;
 
     if (!isToday) return typedSlot;
 
-    // Parse time
-    const [timeStr, modifier] = typedSlot.time.trim().split(/\s+/); // Handle potential extra spaces
+    const [timeStr, modifier] = typedSlot.time.trim().split(/\s+/); 
     let [hours, minutes] = timeStr.split(":").map(Number);
     if (modifier === "PM" && hours < 12) hours += 12;
     if (modifier === "AM" && hours === 12) hours = 0;
 
-    // Use current date for comparison since we are checking 'Today'
     const slotDate = new Date();
     slotDate.setHours(hours, minutes, 0, 0);
 
@@ -130,8 +131,9 @@ export default function SelectSlotScreen() {
   });
 
   const inputRefs = useRef<Array<TextInput | null>>([]);
+  const handleSendOtp = async () => {
+    console.log("🔵 handleSendOtp started");
 
-  const handleSendOtp = () => {
     if (!name.trim()) {
       Alert.alert("Required", "Please enter your name.");
       return;
@@ -141,36 +143,103 @@ export default function SelectSlotScreen() {
       return;
     }
 
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
+    const trimmedPhone = phoneNumber.trim();
+    const trimmedName = name.trim();
+
+    try {
+      const registerResult = await register({
+        name: trimmedName,
+        countryCode: "+91",
+        phone: trimmedPhone,
+        accountType: "Seeker",
+      }).unwrap();
+
+      console.log("✅ New user registered");
+
+      const { token, user: backendUser } = registerResult.data;
+
+      dispatch(loginSuccess(token));
+      dispatch(
+        setUser({
+          name: trimmedName,
+          phone: trimmedPhone,
+          ...backendUser,
+        })
+      );
+
+      await requestOtp({
+        otpType: "LOGIN",
+        verifyType: "PHONE",
+        countryCode: "+91",
+        phone: trimmedPhone,
+      }).unwrap();
       setModalStep("otp");
-    }, 1500);
+      return;
+    } catch (err: any) {
+      console.log("Register attempt:", err);
+
+      try {
+        await requestOtp({
+          otpType: "LOGIN",
+          verifyType: "PHONE",
+          countryCode: "+91",
+          phone: trimmedPhone,
+        }).unwrap();
+
+        console.log("✅ OTP sent (new or existing user)");
+
+        dispatch(
+          setUser({
+            name: trimmedName,
+            phone: trimmedPhone,
+          })
+        );
+
+        setModalStep("otp");
+      } catch (loginErr: any) {
+        Alert.alert("Error", loginErr?.data?.message || "Failed to send OTP");
+      }
+    }
   };
 
-  const handleVerifyOtp = () => {
-    const otpValue = otp.join("");
-    if (otpValue.length < 4) {
-      Alert.alert("Invalid OTP", "Please enter the complete 4-digit OTP.");
+  const handleVerifyOtp = async () => {
+    const otpValue = otp.join("").trim();
+
+    if (otpValue.length < 6) {
+      Alert.alert("Invalid OTP", "Please enter the complete 6-digit OTP.");
       return;
     }
 
-    dispatch(
-      setUser({
-        name: name.trim(),
+    try {
+      const response = await verifyLoginOtp({
+        countryCode: "+91",
         phone: phoneNumber.trim(),
-      })
-    );
-    dispatch(loginSuccess("dummy-token"));
+        loginToken: otpValue,
+      }).unwrap();
 
-    setIsLoginModalVisible(false);
-    setModalStep("details");
-    setOtp(["", "", "", ""]);
+      console.log("✅ Login successful");
 
-    navigateToSummary();
+      const { token, user: backendUser } = response.data;
+
+      dispatch(loginSuccess(token));
+      dispatch(
+        setUser({
+          name: name.trim(),
+          phone: phoneNumber.trim(),
+          ...backendUser,
+        })
+      );
+
+      setIsLoginModalVisible(false);
+      setOtp(["", "", "", "", "", ""]);
+      navigateToSummary();
+    } catch (err: any) {
+      Alert.alert("Error", err?.data?.message || "Invalid OTP");
+    }
   };
-
   const navigateToSummary = () => {
+    console.log("➡️ Navigating to summary");
+
     const dateOnly = dates[selectedDate].fullDate.toISOString().split("T")[0];
 
     router.push({
@@ -190,11 +259,15 @@ export default function SelectSlotScreen() {
   };
 
   const handleConfirmSlot = () => {
+    console.log("🎰 Confirm slot clicked, selectedSlot:", selectedSlot);
+
     if (!selectedSlot) return;
 
     if (userName && userPhone) {
+      console.log("👤 User already logged in → go to summary");
       navigateToSummary();
     } else {
+      console.log("🔐 User not logged in → opening modal");
       setIsLoginModalVisible(true);
     }
   };
@@ -276,7 +349,6 @@ export default function SelectSlotScreen() {
             {timeSlots.map((slot) => {
               const isSelected = selectedSlot === slot.id;
               const isUnavailable = !slot.available;
-              // Mock offer logic to match book-service
               const offer =
                 slot.id === "2"
                   ? "5% OFF"
@@ -414,12 +486,11 @@ export default function SelectSlotScreen() {
                 <TouchableOpacity
                   style={styles.modalContinueButton}
                   onPress={handleSendOtp}
+                  disabled={isProcessing}
                 >
-                  {isLoading ? (
-                    <Text style={styles.continueButtonText}>Sending...</Text>
-                  ) : (
-                    <Text style={styles.continueButtonText}>Send OTP</Text>
-                  )}
+                  <Text style={styles.continueButtonText}>
+                    {isProcessing ? "Processing..." : "Send OTP"}
+                  </Text>
                 </TouchableOpacity>
               </>
             ) : (
@@ -451,7 +522,7 @@ export default function SelectSlotScreen() {
                         const newOtp = [...otp];
                         newOtp[i] = val;
                         setOtp(newOtp);
-                        if (val && i < 3) {
+                        if (val && i < 5) {
                           inputRefs.current[i + 1]?.focus();
                         }
                       }}
@@ -471,9 +542,10 @@ export default function SelectSlotScreen() {
                 <TouchableOpacity
                   style={styles.modalContinueButton}
                   onPress={handleVerifyOtp}
+                  disabled={isVerifyingOtp}
                 >
                   <Text style={styles.continueButtonText}>
-                    Verify & Proceed
+                    {isVerifyingOtp ? "Verifying..." : "Verify & Continue"}
                   </Text>
                 </TouchableOpacity>
               </>
@@ -484,7 +556,6 @@ export default function SelectSlotScreen() {
     </SafeAreaView>
   );
 }
-
 /* styles unchanged */
 
 const styles = StyleSheet.create({
@@ -749,7 +820,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     marginBottom: 20,
-    paddingHorizontal: 20,
+    // paddingHorizontal: 20,
   },
   otpBox: {
     width: 60,

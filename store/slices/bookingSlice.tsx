@@ -48,7 +48,7 @@ const bookingSlice = createSlice({
         id: nanoid(),
         status: "upcoming",
       })
-    },
+    },  
 
     addTicket(state, action: PayloadAction<Omit<Ticket, "id" | "status">>) {
       state.tickets.push({

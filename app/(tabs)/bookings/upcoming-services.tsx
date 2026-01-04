@@ -1,9 +1,9 @@
-"use client"
+"use client";
 
-import { Ionicons } from "@expo/vector-icons"
-import { CameraView, useCameraPermissions } from "expo-camera"
-import { LinearGradient } from "expo-linear-gradient"
-import { useEffect, useRef, useState } from "react"
+import { Ionicons } from "@expo/vector-icons";
+import { CameraView, useCameraPermissions } from "expo-camera";
+import { LinearGradient } from "expo-linear-gradient";
+import { useEffect, useRef, useState } from "react";
 import {
   Alert,
   Animated,
@@ -16,45 +16,50 @@ import {
   Text,
   TouchableOpacity,
   View,
-} from "react-native"
+} from "react-native";
 
-import { useRouter } from "expo-router"
-import type { RootState } from "../../../store"
-import { useAppDispatch, useAppSelector } from "../../../store/hooks"
-import { type Booking, cancelBooking, completeBooking } from "../../../store/slices/bookingSlice"
+import { useRouter } from "expo-router";
+import type { RootState } from "../../../store";
+import { useAppDispatch, useAppSelector } from "../../../store/hooks";
+import {
+  type Booking,
+  cancelBooking,
+  completeBooking,
+} from "../../../store/slices/bookingSlice";
 
 export default function UpcomingServices() {
   const router = useRouter();
-  const dispatch = useAppDispatch()
+  const dispatch = useAppDispatch();
 
   const bookings = useAppSelector((state: RootState) =>
-    state.bookings.bookings.filter((b: Booking) => b.status === "upcoming"),
-  )
+    state.bookings.bookings.filter((b: Booking) => b.status === "upcoming")
+  );
 
-  const [activeBooking, setActiveBooking] = useState<Booking | null>(null)
+  const [activeBooking, setActiveBooking] = useState<Booking | null>(null);
 
-  const [scannerVisible, setScannerVisible] = useState(false)
-  const [permission, requestPermission] = useCameraPermissions()
-  const [torchOn, setTorchOn] = useState(false)
+  const [scannerVisible, setScannerVisible] = useState(false);
+  const [permission, requestPermission] = useCameraPermissions();
+  const [torchOn, setTorchOn] = useState(false);
 
-  const slideAnim = useRef(new Animated.Value(300)).current
-  const scaleAnim = useRef(new Animated.Value(0.95)).current
-  const opacityAnim = useRef(new Animated.Value(0)).current
-  const scanLineAnim = useRef(new Animated.Value(0)).current
+  const slideAnim = useRef(new Animated.Value(300)).current;
+  const scaleAnim = useRef(new Animated.Value(0.95)).current;
+  const opacityAnim = useRef(new Animated.Value(0)).current;
+  const scanLineAnim = useRef(new Animated.Value(0)).current;
 
   // --- ADMIN & WORKER LOGIC ---
   const userPhone = useAppSelector((state: RootState) => state.user.phone);
-  console.log("DEBUG: Bookings - userPhone:", userPhone);
 
   // Ensure we handle potential undefined or different formats
-  const isAdmin = userPhone && (String(userPhone).endsWith('1234567890') || String(userPhone).includes('1234567890'));
-  console.log("DEBUG: Bookings - isAdmin:", isAdmin, "Phone:", userPhone);
+  const isAdmin =
+    userPhone &&
+    (String(userPhone).endsWith("1234567890") ||
+      String(userPhone).includes("1234567890"));
 
   const MOCK_WORKERS = [
-    { id: 'W1', name: 'Amit Sharma', phone: '+919876543210' },
-    { id: 'W2', name: 'Rahul Verma', phone: '+918765432109' },
-    { id: 'W3', name: 'Suresh Singh', phone: '+917654321098' },
-    { id: 'W4', name: 'Vikram Yadav', phone: '+916543210987' },
+    { id: "W1", name: "Amit Sharma", phone: "+919876543210" },
+    { id: "W2", name: "Rahul Verma", phone: "+918765432109" },
+    { id: "W3", name: "Suresh Singh", phone: "+917654321098" },
+    { id: "W4", name: "Vikram Yadav", phone: "+916543210987" },
   ];
 
   const [workerModalVisible, setWorkerModalVisible] = useState(false);
@@ -62,9 +67,11 @@ export default function UpcomingServices() {
   // Send WhatsApp to User ensuring them about the worker
   const sendUserConfirmation = (worker: any, booking: any) => {
     const message = `Hello, your booking for *${booking.serviceName}* is confirmed! 🚗✨\n\n*${worker.name}* will be arriving shortly to service your vehicle.\n\nBooking ID: ${booking.id}\nTime: ${booking.timeSlot}`;
-    const url = `whatsapp://send?phone=${booking.phone}&text=${encodeURIComponent(message)}`;
+    const url = `whatsapp://send?phone=${
+      booking.phone
+    }&text=${encodeURIComponent(message)}`;
 
-    Linking.canOpenURL(url).then(supported => {
+    Linking.canOpenURL(url).then((supported) => {
       if (supported) {
         Linking.openURL(url);
       } else {
@@ -75,10 +82,18 @@ export default function UpcomingServices() {
 
   // Send WhatsApp to Worker with job details
   const sendWorkerJobDetails = (worker: any, booking: any) => {
-    const message = `🛠️ *New Job Assigned!*\n\nCustomer: ${booking.user || 'Valued Customer'}\nPhone: ${booking.phone}\nAddress: ${booking.address}\n\nService: ${booking.serviceName}\nCar: ${booking.car} (${booking.plate})\nTime: ${booking.timeSlot}\n\nPlease reach on time.`;
-    const url = `whatsapp://send?phone=${worker.phone}&text=${encodeURIComponent(message)}`;
+    const message = `🛠️ *New Job Assigned!*\n\nCustomer: ${
+      booking.user || "Valued Customer"
+    }\nPhone: ${booking.phone}\nAddress: ${booking.address}\n\nService: ${
+      booking.serviceName
+    }\nCar: ${booking.car} (${booking.plate})\nTime: ${
+      booking.timeSlot
+    }\n\nPlease reach on time.`;
+    const url = `whatsapp://send?phone=${
+      worker.phone
+    }&text=${encodeURIComponent(message)}`;
 
-    Linking.canOpenURL(url).then(supported => {
+    Linking.canOpenURL(url).then((supported) => {
       if (supported) {
         Linking.openURL(url);
       }
@@ -107,9 +122,12 @@ export default function UpcomingServices() {
 
             setWorkerModalVisible(false);
             closeSheet();
-            Alert.alert("Success", "Worker assigned and notifications initiated!");
-          }
-        }
+            Alert.alert(
+              "Success",
+              "Worker assigned and notifications initiated!"
+            );
+          },
+        },
       ]
     );
   };
@@ -134,9 +152,9 @@ export default function UpcomingServices() {
           duration: 450,
           useNativeDriver: true,
         }),
-      ]).start()
+      ]).start();
     }
-  }, [activeBooking])
+  }, [activeBooking]);
 
   console.log("active bookings :", activeBooking);
 
@@ -156,10 +174,10 @@ export default function UpcomingServices() {
             easing: Easing.linear,
             useNativeDriver: true,
           }),
-        ]),
-      ).start()
+        ])
+      ).start();
     }
-  }, [scannerVisible])
+  }, [scannerVisible]);
 
   const closeSheet = () => {
     Animated.parallel([
@@ -180,19 +198,19 @@ export default function UpcomingServices() {
         duration: 350,
         useNativeDriver: true,
       }),
-    ]).start(() => setActiveBooking(null))
-  }
+    ]).start(() => setActiveBooking(null));
+  };
 
   const handleQrScanned = () => {
-    if (!activeBooking) return
+    if (!activeBooking) return;
 
-    dispatch(completeBooking(activeBooking.id))
+    dispatch(completeBooking(activeBooking.id));
 
-    setScannerVisible(false)
-    setTorchOn(false)
-    closeSheet()
+    setScannerVisible(false);
+    setTorchOn(false);
+    closeSheet();
     router.push("/(tabs)/bookings/arrival-confirmed");
-  }
+  };
 
   const handleDelete = (id: string) => {
     Alert.alert("Cancel Booking", "Are you sure you want to cancel?", [
@@ -201,21 +219,28 @@ export default function UpcomingServices() {
         text: "Yes",
         style: "destructive",
         onPress: () => {
-          dispatch(cancelBooking(id))
-          closeSheet()
+          dispatch(cancelBooking(id));
+          closeSheet();
         },
       },
-    ])
-  }
+    ]);
+  };
 
   const handleCall = (phone: string) => {
-    Linking.openURL(`tel:${phone}`)
-  }
+    Linking.openURL(`tel:${phone}`);
+  };
 
   const renderItem = ({ item }: any) => {
     return (
-      <TouchableOpacity activeOpacity={0.9} style={styles.cardContainer} onPress={() => setActiveBooking(item)}>
-        <LinearGradient colors={["#FFFFFF", "#F5F8FF", "#F7FAE6"]} style={styles.sessionCard}>
+      <TouchableOpacity
+        activeOpacity={0.9}
+        style={styles.cardContainer}
+        onPress={() => setActiveBooking(item)}
+      >
+        <LinearGradient
+          colors={["#FFFFFF", "#F5F8FF", "#F7FAE6"]}
+          style={styles.sessionCard}
+        >
           <View style={{ flex: 1 }}>
             <Text style={styles.sessionTitle}>{item.center}</Text>
             <Text style={styles.sessionSubtitle}>
@@ -224,11 +249,17 @@ export default function UpcomingServices() {
             <Text style={styles.sessionDuration}>{item.car}</Text>
           </View>
 
-          <Image source={{ uri: item.carImage }} style={{ width: 90, height: 90, borderRadius: 12, marginLeft: 16 }} />
+          <Image
+            source={{ uri: item.carImage }}
+            style={{ width: 90, height: 90, borderRadius: 12, marginLeft: 16 }}
+          />
 
           {/* ACTION ROW */}
           <View style={styles.sessionActionRow}>
-            <TouchableOpacity style={styles.sessionButton} onPress={() => setActiveBooking(item)}>
+            <TouchableOpacity
+              style={styles.sessionButton}
+              onPress={() => setActiveBooking(item)}
+            >
               <Text style={styles.sessionButtonText}>I am at Workshop</Text>
               <Ionicons name="chevron-forward" size={18} color="#FFF" />
             </TouchableOpacity>
@@ -236,8 +267,8 @@ export default function UpcomingServices() {
             <TouchableOpacity
               style={styles.qrIconButton}
               onPress={() => {
-                setScannerVisible(true)
-                setActiveBooking(item)
+                setScannerVisible(true);
+                setActiveBooking(item);
               }}
               hitSlop={10}
             >
@@ -246,8 +277,8 @@ export default function UpcomingServices() {
           </View>
         </LinearGradient>
       </TouchableOpacity>
-    )
-  }
+    );
+  };
 
   return (
     <>
@@ -258,8 +289,12 @@ export default function UpcomingServices() {
         ListEmptyComponent={() => (
           <View style={{ alignItems: "center", marginTop: 80 }}>
             <Ionicons name="calendar-outline" size={60} color="#CBD5E1" />
-            <Text style={{ fontSize: 18, fontWeight: "600", marginTop: 16 }}>No upcoming bookings</Text>
-            <Text style={{ color: "#64748B", marginTop: 6 }}>Book a service to see it here</Text>
+            <Text style={{ fontSize: 18, fontWeight: "600", marginTop: 16 }}>
+              No upcoming bookings
+            </Text>
+            <Text style={{ color: "#64748B", marginTop: 6 }}>
+              Book a service to see it here
+            </Text>
           </View>
         )}
       />
@@ -267,7 +302,10 @@ export default function UpcomingServices() {
       {/* Bottom Sheet */}
       <Modal visible={!!activeBooking} transparent animationType="none">
         <Animated.View style={[styles.backdrop, { opacity: opacityAnim }]}>
-          <TouchableOpacity style={styles.backdropTouchable} onPress={closeSheet} />
+          <TouchableOpacity
+            style={styles.backdropTouchable}
+            onPress={closeSheet}
+          />
         </Animated.View>
 
         <Animated.View
@@ -287,7 +325,10 @@ export default function UpcomingServices() {
 
           {activeBooking && (
             <>
-              <TouchableOpacity style={styles.qrButton} onPress={() => setScannerVisible(true)}>
+              <TouchableOpacity
+                style={styles.qrButton}
+                onPress={() => setScannerVisible(true)}
+              >
                 <Ionicons name="qr-code-outline" size={22} />
                 <Text style={styles.qrText}>Scan QR to Check-In</Text>
               </TouchableOpacity>
@@ -330,7 +371,10 @@ export default function UpcomingServices() {
               </View>
 
               {!isAdmin && (
-                <TouchableOpacity style={styles.callBtn} onPress={() => handleCall(activeBooking.phone)}>
+                <TouchableOpacity
+                  style={styles.callBtn}
+                  onPress={() => handleCall(activeBooking.phone)}
+                >
                   <Ionicons name="call-outline" size={18} />
                   <Text style={styles.callText}>{activeBooking.phone}</Text>
                 </TouchableOpacity>
@@ -338,17 +382,29 @@ export default function UpcomingServices() {
 
               {isAdmin && (
                 <TouchableOpacity
-                  style={[styles.qrButton, { backgroundColor: '#1a1a1a', borderColor: '#000', marginTop: 10 }]}
+                  style={[
+                    styles.qrButton,
+                    {
+                      backgroundColor: "#1a1a1a",
+                      borderColor: "#000",
+                      marginTop: 10,
+                    },
+                  ]}
                   onPress={() => setWorkerModalVisible(true)}
                 >
                   <Ionicons name="person-add-outline" size={20} color="#FFF" />
-                  <Text style={[styles.qrText, { color: '#FFF' }]}>Assign Worker</Text>
+                  <Text style={[styles.qrText, { color: "#FFF" }]}>
+                    Assign Worker
+                  </Text>
                 </TouchableOpacity>
               )}
 
               <View style={styles.sheetFooter}>
                 <Text style={styles.price}>₹ {activeBooking.price}</Text>
-                <TouchableOpacity style={styles.cancelBtn} onPress={() => handleDelete(activeBooking.id)}>
+                <TouchableOpacity
+                  style={styles.cancelBtn}
+                  onPress={() => handleDelete(activeBooking.id)}
+                >
                   <Ionicons name="trash-outline" size={18} />
                   <Text style={styles.cancelText}>Cancel</Text>
                 </TouchableOpacity>
@@ -360,15 +416,23 @@ export default function UpcomingServices() {
 
       {/* QR Scanner Modal */}
       <Modal visible={scannerVisible} animationType="slide">
-        <TouchableOpacity style={styles.scannerCloseButton} onPress={() => setScannerVisible(false)}>
+        <TouchableOpacity
+          style={styles.scannerCloseButton}
+          onPress={() => setScannerVisible(false)}
+        >
           <Ionicons name="close" size={28} color="#FFF" />
         </TouchableOpacity>
 
         <View style={styles.scannerContainer}>
           {!permission?.granted ? (
             <View style={styles.permissionView}>
-              <Text style={styles.permissionText}>Camera permission required</Text>
-              <TouchableOpacity style={styles.allowButton} onPress={requestPermission}>
+              <Text style={styles.permissionText}>
+                Camera permission required
+              </Text>
+              <TouchableOpacity
+                style={styles.allowButton}
+                onPress={requestPermission}
+              >
                 <Text style={styles.allowText}>Allow Camera</Text>
               </TouchableOpacity>
             </View>
@@ -403,9 +467,14 @@ export default function UpcomingServices() {
                   </View>
                 </View>
 
-                <Text style={styles.scanHint}>Align QR code inside the frame</Text>
+                <Text style={styles.scanHint}>
+                  Align QR code inside the frame
+                </Text>
 
-                <TouchableOpacity style={styles.flashButton} onPress={() => setTorchOn(!torchOn)}>
+                <TouchableOpacity
+                  style={styles.flashButton}
+                  onPress={() => setTorchOn(!torchOn)}
+                >
                   <Ionicons name="flashlight-outline" size={24} color="#FFF" />
                 </TouchableOpacity>
               </View>
@@ -416,7 +485,10 @@ export default function UpcomingServices() {
 
       {/* Worker Selection Modal */}
       <Modal visible={workerModalVisible} animationType="slide" transparent>
-        <TouchableOpacity style={styles.backdrop} onPress={() => setWorkerModalVisible(false)} />
+        <TouchableOpacity
+          style={styles.backdrop}
+          onPress={() => setWorkerModalVisible(false)}
+        />
         <View style={styles.workerModalContainer}>
           <View style={styles.workerHeader}>
             <Text style={styles.sheetTitle}>Select Worker</Text>
@@ -426,11 +498,16 @@ export default function UpcomingServices() {
           </View>
           <FlatList
             data={MOCK_WORKERS}
-            keyExtractor={item => item.id}
+            keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
-              <TouchableOpacity style={styles.workerRow} onPress={() => handleAssignWorker(item)}>
+              <TouchableOpacity
+                style={styles.workerRow}
+                onPress={() => handleAssignWorker(item)}
+              >
                 <View style={styles.workerAvatar}>
-                  <Text style={styles.workerInitials}>{item.name.charAt(0)}</Text>
+                  <Text style={styles.workerInitials}>
+                    {item.name.charAt(0)}
+                  </Text>
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.workerName}>{item.name}</Text>
@@ -445,7 +522,7 @@ export default function UpcomingServices() {
         </View>
       </Modal>
     </>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -728,15 +805,15 @@ const styles = StyleSheet.create({
 
   // WORKER MODAL STYLES
   workerModalContainer: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 20,
-    height: '50%',
+    height: "50%",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.1,
@@ -744,52 +821,50 @@ const styles = StyleSheet.create({
     elevation: 20,
   },
   workerHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 20,
   },
   workerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: "#f0f0f0",
   },
   workerAvatar: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#F3F4F6',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#F3F4F6",
+    alignItems: "center",
+    justifyContent: "center",
     marginRight: 12,
   },
   workerInitials: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#4B5563',
+    fontWeight: "600",
+    color: "#4B5563",
   },
   workerName: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#1a1a1a',
+    fontWeight: "600",
+    color: "#1a1a1a",
   },
   workerPhone: {
     fontSize: 12,
-    color: '#6B7280',
+    color: "#6B7280",
   },
   assignBtn: {
-    backgroundColor: '#e0f2fe',
+    backgroundColor: "#e0f2fe",
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 8,
   },
   assignBtnText: {
-    color: '#0284c7',
-    fontWeight: '600',
+    color: "#0284c7",
+    fontWeight: "600",
     fontSize: 12,
   },
 });
-
-

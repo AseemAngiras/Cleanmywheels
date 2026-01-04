@@ -14,9 +14,6 @@ export default function TabsLayout() {
   const sanitizedPhone = userPhone ? userPhone.replace(/\D/g, '') : '';
   const isAdmin = sanitizedPhone.endsWith('1234567890');
 
-  console.log('DEBUG: userPhone:', userPhone);
-  console.log('DEBUG: sanitizedPhone:', sanitizedPhone);
-  console.log('DEBUG: isAdmin:', isAdmin);
   const segmentString = JSON.stringify(segments);
   const hideTabs = segmentString.includes('book-service') || segmentString.includes('book-doorstep') || !isLoggedIn;
 

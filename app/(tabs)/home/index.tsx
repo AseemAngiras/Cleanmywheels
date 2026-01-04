@@ -1,10 +1,10 @@
-import { RootState } from '@/store';
-import { loginSuccess } from '@/store/slices/authSlice';
-import { Booking } from '@/store/slices/bookingSlice';
-import { setUser } from '@/store/slices/userSlice';
-import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect, useNavigation, useRouter } from 'expo-router';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { RootState } from "@/store";
+import { loginSuccess } from "@/store/slices/authSlice";
+import { Booking } from "@/store/slices/bookingSlice";
+import { setUser } from "@/store/slices/userSlice";
+import { Ionicons } from "@expo/vector-icons";
+import { useFocusEffect, useNavigation, useRouter } from "expo-router";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Alert,
   Image,
@@ -17,77 +17,78 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View
-} from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
-
-
+  View,
+} from "react-native";
+import { useDispatch, useSelector } from "react-redux";
 
 // --- MOCK DATA FOR SHOP DASHBOARD ---
 const REVENUE_DATA = {
-  amount: '₹1,240',
-  growth: '+12%',
-  history: 'vs. ₹1,105 yesterday'
+  amount: "₹1,240",
+  growth: "+12%",
+  history: "vs. ₹1,105 yesterday",
 };
 
 const INITIAL_WORKERS = [
-  { id: '1', name: 'Amit', statusType: 'active' },
-  { id: '2', name: 'Priya', statusType: 'active' },
-  { id: '3', name: 'Rajesh', statusType: 'active' },
-  { id: '4', name: 'Neha', statusType: 'break' },
-  { id: '5', name: 'Suresh', statusType: 'active' },
-  { id: '6', name: 'Rahul', statusType: 'active' },
-  { id: '7', name: 'Vikram', statusType: 'active' },
-  { id: '8', name: 'Sameer', statusType: 'active' },
+  { id: "1", name: "Amit", statusType: "active" },
+  { id: "2", name: "Priya", statusType: "active" },
+  { id: "3", name: "Rajesh", statusType: "active" },
+  { id: "4", name: "Neha", statusType: "break" },
+  { id: "5", name: "Suresh", statusType: "active" },
+  { id: "6", name: "Rahul", statusType: "active" },
+  { id: "7", name: "Vikram", statusType: "active" },
+  { id: "8", name: "Sameer", statusType: "active" },
 ];
 
 const MOCK_COMPLAINTS = [
   {
-    id: 'TKT-2024-001',
-    title: 'Refund Request - Order #1234',
-    date: 'Today, 10:30 AM',
-    description: 'Customer requested a refund because the washer did not arrive on time. Service was cancelled. The customer waited for 45 minutes beyond the scheduled time.',
+    id: "TKT-2024-001",
+    title: "Refund Request - Order #1234",
+    date: "Today, 10:30 AM",
+    description:
+      "Customer requested a refund because the washer did not arrive on time. Service was cancelled. The customer waited for 45 minutes beyond the scheduled time.",
     refundRequested: true,
     user: {
-      name: 'Rohan Gupta',
-      phone: '+91 98765 43210',
-      email: 'rohan.g@example.com',
-      avatar: 'R'
+      name: "Rohan Gupta",
+      phone: "+91 98765 43210",
+      email: "rohan.g@example.com",
+      avatar: "R",
     },
     images: [
-      'https://images.unsplash.com/photo-1601362840469-51e4d8d58785?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80'
-    ]
+      "https://images.unsplash.com/photo-1601362840469-51e4d8d58785?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80",
+    ],
   },
   {
-    id: 'TKT-2024-002',
-    title: 'Service Complaint - Poor Cleaning',
-    date: 'Yesterday, 4:15 PM',
-    description: 'Customer reported that the interior vacuuming was not done properly. Dust was still visible on the dashboard and mats. User provided photos as proof.',
+    id: "TKT-2024-002",
+    title: "Service Complaint - Poor Cleaning",
+    date: "Yesterday, 4:15 PM",
+    description:
+      "Customer reported that the interior vacuuming was not done properly. Dust was still visible on the dashboard and mats. User provided photos as proof.",
     refundRequested: false,
     user: {
-      name: 'Sneha Patel',
-      phone: '+91 87654 32109',
-      email: 'sneha.p@example.com',
-      avatar: 'S'
+      name: "Sneha Patel",
+      phone: "+91 87654 32109",
+      email: "sneha.p@example.com",
+      avatar: "S",
     },
     images: [
-      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80',
-      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80'
-    ]
+      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80",
+      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80",
+    ],
   },
   {
-    id: 'TKT-2024-003',
-    title: 'Payment Issue - Double Deduction',
-    date: '24 Dec, 11:00 AM',
-    description: 'User claims amount was deducted twice for the Premium Wash service. Bank statement attached.',
+    id: "TKT-2024-003",
+    title: "Payment Issue - Double Deduction",
+    date: "24 Dec, 11:00 AM",
+    description:
+      "User claims amount was deducted twice for the Premium Wash service. Bank statement attached.",
     refundRequested: true,
     user: {
-      name: 'Vikram Singh',
-      phone: '+91 76543 21098',
-      email: 'vikram.s@example.com',
-      avatar: 'V'
+      name: "Vikram Singh",
+      phone: "+91 76543 21098",
+      email: "vikram.s@example.com",
+      avatar: "V",
     },
-    images: []
+    images: [],
   },
 ];
 
@@ -96,8 +97,12 @@ function AdminComplaintsScreen() {
   const userName = useSelector((state: RootState) => state.user.name);
   // Merge Redux tickets with Mock data for demonstration
   // Use local state to manage the list for "Resolve" functionality demo
-  const reduxTickets = useSelector((state: RootState) => state.bookings.tickets) || [];
-  const [tickets, setTickets] = useState<any[]>([...reduxTickets, ...MOCK_COMPLAINTS]);
+  const reduxTickets =
+    useSelector((state: RootState) => state.bookings.tickets) || [];
+  const [tickets, setTickets] = useState<any[]>([
+    ...reduxTickets,
+    ...MOCK_COMPLAINTS,
+  ]);
 
   // Update tickets when redux changes, but keep removed ones removed (simplified for demo)
   useEffect(() => {
@@ -124,7 +129,7 @@ function AdminComplaintsScreen() {
   const handleResolveComplaint = () => {
     if (selectedComplaint) {
       // Remove the resolved complaint from the list
-      setTickets(prev => prev.filter(t => t.id !== selectedComplaint.id));
+      setTickets((prev) => prev.filter((t) => t.id !== selectedComplaint.id));
       closeComplaintDetails();
     }
   };
@@ -139,20 +144,27 @@ function AdminComplaintsScreen() {
         </View>
         <TouchableOpacity style={styles.profileBtn}>
           <Image
-            source={{ uri: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80' }}
+            source={{
+              uri: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80",
+            }}
             style={styles.profileAvatar}
           />
         </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}
+      >
         {tickets.length === 0 ? (
           <View style={styles.emptyStateContainer}>
             <View style={styles.emptyIconCircle}>
               <Ionicons name="checkmark-done" size={40} color="#2ECC71" />
             </View>
             <Text style={styles.emptyStateTitle}>All Caught Up!</Text>
-            <Text style={styles.emptyStateText}>There are no pending complaints or refund requests.</Text>
+            <Text style={styles.emptyStateText}>
+              There are no pending complaints or refund requests.
+            </Text>
           </View>
         ) : (
           tickets.map((t) => (
@@ -165,10 +177,14 @@ function AdminComplaintsScreen() {
               <View style={styles.complaintHeader}>
                 <View style={styles.complaintUserRow}>
                   <View style={styles.userAvatarSmall}>
-                    <Text style={styles.userAvatarText}>{t.user?.avatar || (t.title ? t.title.charAt(0) : 'U')}</Text>
+                    <Text style={styles.userAvatarText}>
+                      {t.user?.avatar || (t.title ? t.title.charAt(0) : "U")}
+                    </Text>
                   </View>
                   <View style={{ flex: 1 }}>
-                    <Text style={styles.complaintTitle} numberOfLines={1}>{t.title}</Text>
+                    <Text style={styles.complaintTitle} numberOfLines={1}>
+                      {t.title}
+                    </Text>
                     <Text style={styles.complaintDate}>{t.date}</Text>
                   </View>
                 </View>
@@ -179,11 +195,16 @@ function AdminComplaintsScreen() {
                 )}
               </View>
 
-              <Text style={styles.complaintDesc} numberOfLines={2}>{t.description}</Text>
+              <Text style={styles.complaintDesc} numberOfLines={2}>
+                {t.description}
+              </Text>
 
               <View style={styles.complaintFooter}>
                 <Text style={styles.complaintId}>ID: {t.id}</Text>
-                <TouchableOpacity style={styles.resolveBtn} onPress={() => openComplaintDetails(t)}>
+                <TouchableOpacity
+                  style={styles.resolveBtn}
+                  onPress={() => openComplaintDetails(t)}
+                >
                   <Text style={styles.resolveBtnText}>View Details</Text>
                 </TouchableOpacity>
               </View>
@@ -201,30 +222,54 @@ function AdminComplaintsScreen() {
         onRequestClose={closeComplaintDetails}
       >
         <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, { height: '85%' }]}>
+          <View style={[styles.modalContent, { height: "85%" }]}>
             <View style={styles.dragHandle} />
 
             {/* Modal Header */}
             <View style={styles.detailsModalHeader}>
               <View>
                 <Text style={styles.detailsModalTitle}>Complaint Details</Text>
-                <Text style={styles.detailsModalId}>{selectedComplaint?.id}</Text>
+                <Text style={styles.detailsModalId}>
+                  {selectedComplaint?.id}
+                </Text>
               </View>
-              <TouchableOpacity onPress={closeComplaintDetails} style={styles.closeBtn}>
+              <TouchableOpacity
+                onPress={closeComplaintDetails}
+                style={styles.closeBtn}
+              >
                 <Ionicons name="close" size={24} color="#666" />
               </TouchableOpacity>
             </View>
 
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ paddingBottom: 40 }}
+            >
               {/* Status Badge */}
               <View style={styles.statusSection}>
                 {selectedComplaint?.refundRequested ? (
-                  <View style={[styles.refundBadge, { alignSelf: 'flex-start', marginBottom: 15 }]}>
-                    <Text style={[styles.refundBadgeText, { fontSize: 12 }]}>Refound Requested</Text>
+                  <View
+                    style={[
+                      styles.refundBadge,
+                      { alignSelf: "flex-start", marginBottom: 15 },
+                    ]}
+                  >
+                    <Text style={[styles.refundBadgeText, { fontSize: 12 }]}>
+                      Refound Requested
+                    </Text>
                   </View>
                 ) : (
-                  <View style={[styles.statusBadge, { backgroundColor: '#E0F2FE', borderColor: '#BAE6FD' }]}>
-                    <Text style={[styles.statusBadgeText, { color: '#0EA5E9' }]}>Service Issue</Text>
+                  <View
+                    style={[
+                      styles.statusBadge,
+                      { backgroundColor: "#E0F2FE", borderColor: "#BAE6FD" },
+                    ]}
+                  >
+                    <Text
+                      style={[styles.statusBadgeText, { color: "#0EA5E9" }]}
+                    >
+                      Service Issue
+                    </Text>
                   </View>
                 )}
                 <Text style={styles.fullDate}>{selectedComplaint?.date}</Text>
@@ -235,38 +280,66 @@ function AdminComplaintsScreen() {
               {/* User Details Box */}
               <View style={styles.userDetailsBox}>
                 <View style={styles.userAvatarLarge}>
-                  <Text style={styles.userAvatarTextLarge}>{selectedComplaint?.user?.avatar || 'U'}</Text>
+                  <Text style={styles.userAvatarTextLarge}>
+                    {selectedComplaint?.user?.avatar || "U"}
+                  </Text>
                 </View>
                 <View>
-                  <Text style={styles.userNameLarge}>{selectedComplaint?.user?.name || 'Unknown User'}</Text>
-                  <Text style={styles.userContact}>{selectedComplaint?.user?.phone || 'No Phone'}</Text>
-                  <Text style={styles.userContact}>{selectedComplaint?.user?.email || 'No Email'}</Text>
+                  <Text style={styles.userNameLarge}>
+                    {selectedComplaint?.user?.name || "Unknown User"}
+                  </Text>
+                  <Text style={styles.userContact}>
+                    {selectedComplaint?.user?.phone || "No Phone"}
+                  </Text>
+                  <Text style={styles.userContact}>
+                    {selectedComplaint?.user?.email || "No Email"}
+                  </Text>
                 </View>
               </View>
 
               <Text style={styles.sectionLabel}>Description</Text>
-              <Text style={styles.fullDesc}>{selectedComplaint?.description}</Text>
+              <Text style={styles.fullDesc}>
+                {selectedComplaint?.description}
+              </Text>
 
               {/* Photos */}
-              {selectedComplaint?.images && selectedComplaint.images.length > 0 && (
-                <>
-                  <Text style={styles.sectionLabel}>Attached Photos</Text>
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.photosScroll}>
-                    {selectedComplaint.images.map((img: string, index: number) => (
-                      <Image key={index} source={{ uri: img }} style={styles.proofImage} />
-                    ))}
-                  </ScrollView>
-                </>
-              )}
+              {selectedComplaint?.images &&
+                selectedComplaint.images.length > 0 && (
+                  <>
+                    <Text style={styles.sectionLabel}>Attached Photos</Text>
+                    <ScrollView
+                      horizontal
+                      showsHorizontalScrollIndicator={false}
+                      style={styles.photosScroll}
+                    >
+                      {selectedComplaint.images.map(
+                        (img: string, index: number) => (
+                          <Image
+                            key={index}
+                            source={{ uri: img }}
+                            style={styles.proofImage}
+                          />
+                        )
+                      )}
+                    </ScrollView>
+                  </>
+                )}
             </ScrollView>
 
             {/* Actions */}
             <View style={styles.detailsActions}>
-              <TouchableOpacity style={[styles.actionBtn, styles.actionBtnSecondary]} onPress={closeComplaintDetails}>
+              <TouchableOpacity
+                style={[styles.actionBtn, styles.actionBtnSecondary]}
+                onPress={closeComplaintDetails}
+              >
                 <Text style={styles.actionBtnTextSecondary}>Ignore</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={[styles.actionBtn, styles.actionBtnPrimary]}>
-                <Text style={styles.actionBtnTextPrimary}>Resolve Complaint</Text>
+              <TouchableOpacity
+                style={[styles.actionBtn, styles.actionBtnPrimary]}
+              >
+                <Text style={styles.actionBtnTextPrimary}>
+                  Resolve Complaint
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -275,8 +348,6 @@ function AdminComplaintsScreen() {
     </SafeAreaView>
   );
 }
-
-
 
 // --- MAIN HOME SCREEN (CONTROLLER) ---
 export default function HomeScreen() {
@@ -289,15 +360,15 @@ export default function HomeScreen() {
   const dispatch = useDispatch();
 
   // Admin Check
-  const sanitizedPhone = userPhone ? userPhone.replace(/\D/g, '') : '';
-  const isAdmin = sanitizedPhone.endsWith('1234567890');
+  const sanitizedPhone = userPhone ? userPhone.replace(/\D/g, "") : "";
+  const isAdmin = sanitizedPhone.endsWith("1234567890");
 
   // Login State
   const [isLoginModalVisible, setIsLoginModalVisible] = useState(false);
-  const [modalStep, setModalStep] = useState<'details' | 'otp'>('details');
-  const [name, setName] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [otp, setOtp] = useState(['', '', '', '']);
+  const [modalStep, setModalStep] = useState<"details" | "otp">("details");
+  const [name, setName] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [isLoading, setIsLoading] = useState(false);
   const inputRefs = useRef<Array<TextInput | null>>([]);
 
@@ -308,25 +379,25 @@ export default function HomeScreen() {
     const cleanedPhone = phoneNumber.trim();
 
     // 1. Allow Admin Number check bypass
-    if (cleanedPhone === '1234567890') {
+    if (cleanedPhone === "1234567890") {
       // Proceed directly for admin
       // continue execution below...
     } else {
       // 2. Basic Length Check
       if (!cleanedPhone || cleanedPhone.length !== 10) {
-        Alert.alert('Invalid Phone', 'Please enter a 10-digit phone number.');
+        Alert.alert("Invalid Phone", "Please enter a 10-digit phone number.");
         return;
       }
 
       // 3. Indian Mobile Number Check (starts with 6-9)
       if (!/^[6-9]/.test(cleanedPhone)) {
-        Alert.alert('Invalid Phone', 'Please enter a valid mobile number.');
+        Alert.alert("Invalid Phone", "Please enter a valid mobile number.");
         return;
       }
 
       // 4. Repeated Digits Check (e.g., 8888888888)
       if (/^(\d)\1{9}$/.test(cleanedPhone)) {
-        Alert.alert('Invalid Phone', 'Please enter a valid mobile number.');
+        Alert.alert("Invalid Phone", "Please enter a valid mobile number.");
         return;
       }
     }
@@ -334,39 +405,40 @@ export default function HomeScreen() {
     setIsLoading(true);
     setTimeout(() => {
       setIsLoading(false);
-      setModalStep('otp');
+      setModalStep("otp");
     }, 1500);
   };
 
   const handleVerifyOtp = () => {
-    const otpValue = otp.join('');
-    if (otpValue.length < 4) {
-      Alert.alert('Invalid OTP', 'Please enter the complete 4-digit OTP.');
+    const otpValue = otp.join("");
+    if (otpValue.length < 6) {
+      Alert.alert("Invalid OTP", "Please enter the complete 6-digit OTP.");
       return;
     }
 
     // Use 'User' as default if name is empty (since field is hidden)
-    dispatch(setUser({ name: name.trim() || 'User', phone: phoneNumber.trim() }));
-    dispatch(loginSuccess('dummy-token'));
+    dispatch(
+      setUser({ name: name.trim() || "User", phone: phoneNumber.trim() })
+    );
+    dispatch(loginSuccess("dummy-token"));
 
-    const isAdminUser = phoneNumber.trim().endsWith('1234567890');
+    const isAdminUser = phoneNumber.trim().endsWith("1234567890");
 
     // Reset State immediately
-    setModalStep('details');
-    setOtp(['', '', '', '']);
-    setName('');
-    setPhoneNumber('');
+    setModalStep("details");
+    setOtp(["", "", "", "", "", ""]);
+    setName("");
+    setPhoneNumber("");
     setIsLoginModalVisible(false);
 
     // Check for Admin Redirect
     if (isAdminUser) {
       setTimeout(() => {
-        router.replace('/(tabs)/dashboard');
+        router.replace("/(tabs)/dashboard");
       }, 100);
       return;
     }
   };
-
 
   const allBookings = bookings;
   const uniqueBookingsMap = new Map();
@@ -384,7 +456,7 @@ export default function HomeScreen() {
 
       if (tabs) {
         tabs.setOptions({
-          tabBarStyle: { display: 'flex' }
+          tabBarStyle: { display: "flex" },
         });
       }
     }, [navigation])
@@ -392,15 +464,15 @@ export default function HomeScreen() {
 
   const handleRecentServicePress = (booking: Partial<Booking>) => {
     router.push({
-      pathname: '/(tabs)/home/book-doorstep/select-slot',
+      pathname: "/(tabs)/home/book-doorstep/select-slot",
       params: {
         serviceName: booking.serviceName,
-        shopName: booking.center || 'Your Location',
+        shopName: booking.center || "Your Location",
         basePrice: booking.price ? Math.round(booking.price / 1.18) : 0,
         address: booking.address,
-        vehicleType: booking.car?.split(' - ')[0] || 'Sedan',
-        vehicleNumber: booking.car?.split(' - ')[1] || '',
-      }
+        vehicleType: booking.car?.split(" - ")[0] || "Sedan",
+        vehicleNumber: booking.car?.split(" - ")[1] || "",
+      },
     });
   };
 
@@ -413,21 +485,26 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-
+      <ScrollView
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Header */}
         <View style={styles.header}>
           <View>
             <Text style={styles.brandTitle}>Cleanmywheels</Text>
             {isLoggedIn ? (
-              <Text style={styles.greeting}>Hi, {userName || 'User'}</Text>
+              <Text style={styles.greeting}>Hi, {userName || "User"}</Text>
             ) : (
               <Text style={styles.greeting}>Welcome</Text>
             )}
           </View>
           <View style={styles.headerIcons}>
             {!isLoggedIn && (
-              <TouchableOpacity style={styles.headerLoginBtn} onPress={() => setIsLoginModalVisible(true)}>
+              <TouchableOpacity
+                style={styles.headerLoginBtn}
+                onPress={() => setIsLoginModalVisible(true)}
+              >
                 <Text style={styles.headerLoginText}>Log in</Text>
               </TouchableOpacity>
             )}
@@ -439,9 +516,16 @@ export default function HomeScreen() {
 
         {/* Hero Section */}
         <View style={styles.heroContainer}>
-          <View style={[styles.imageWrapper, (!isLoggedIn || pastBookings.length === 0) && { height: 450 }]}>
+          <View
+            style={[
+              styles.imageWrapper,
+              (!isLoggedIn || pastBookings.length === 0) && { height: 450 },
+            ]}
+          >
             <Image
-              source={{ uri: 'https://images.unsplash.com/photo-1601362840469-51e4d8d58785?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80' }}
+              source={{
+                uri: "https://images.unsplash.com/photo-1601362840469-51e4d8d58785?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
+              }}
               style={styles.heroImage}
             />
           </View>
@@ -449,16 +533,24 @@ export default function HomeScreen() {
           <View style={styles.heroContent}>
             <Text style={styles.heroTitle}>Make Your Car Shine.</Text>
             <Text style={styles.heroSubtitle}>
-              Premium eco-friendly car wash service{'\n'}delivered right to your doorstep.
+              Premium eco-friendly car wash service{"\n"}delivered right to your
+              doorstep.
             </Text>
 
             <View style={styles.actionButtons}>
               <TouchableOpacity
                 style={styles.bookDoorstepButton}
                 activeOpacity={0.8}
-                onPress={() => router.push('/(tabs)/home/book-doorstep/enter-location')}
+                onPress={() =>
+                  router.push("/(tabs)/home/book-doorstep/enter-location")
+                }
               >
-                <Ionicons name="home" size={22} color="#1a1a1a" style={{ marginRight: 10 }} />
+                <Ionicons
+                  name="home"
+                  size={22}
+                  color="#1a1a1a"
+                  style={{ marginRight: 10 }}
+                />
                 <Text style={styles.bookDoorstepButtonText}>Book Doorstep</Text>
               </TouchableOpacity>
             </View>
@@ -469,7 +561,11 @@ export default function HomeScreen() {
         {isLoggedIn && pastBookings.length > 0 && (
           <View style={styles.recentSection}>
             <Text style={styles.recentTitle}>Recent Services</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.recentList}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.recentList}
+            >
               {pastBookings.map((item, index) => (
                 <TouchableOpacity
                   key={index}
@@ -480,7 +576,9 @@ export default function HomeScreen() {
                     <Ionicons name="sparkles" size={24} color="#84c95c" />
                   </View>
                   <View style={styles.recentInfo}>
-                    <Text style={styles.recentServiceName}>{item.serviceName}</Text>
+                    <Text style={styles.recentServiceName}>
+                      {item.serviceName}
+                    </Text>
                     {/* Display Address */}
                     {item.address && (
                       <Text style={styles.recentAddress} numberOfLines={1}>
@@ -523,16 +621,15 @@ export default function HomeScreen() {
             <View style={styles.dragHandle} />
 
             <Text style={styles.modalTitle}>
-              {modalStep === 'details' ? 'Welcome' : 'Verify OTP'}
+              {modalStep === "details" ? "Welcome" : "Verify OTP"}
             </Text>
             <Text style={styles.modalSubtitle}>
-              {modalStep === 'details'
-                ? 'Enter your details to log in.'
-                : `Enter the 4-digit code sent to +91 ${phoneNumber}`
-              }
+              {modalStep === "details"
+                ? "Enter your details to log in."
+                : `Enter the 4-digit code sent to +91 ${phoneNumber}`}
             </Text>
 
-            {modalStep === 'details' ? (
+            {modalStep === "details" ? (
               <>
                 {/* Name field removed for Homepage Login */}
 
@@ -565,17 +662,24 @@ export default function HomeScreen() {
             ) : (
               <>
                 <View style={styles.otpHeaderRow}>
-                  <TouchableOpacity onPress={() => setModalStep('details')} style={{ marginRight: 10 }}>
+                  <TouchableOpacity
+                    onPress={() => setModalStep("details")}
+                    style={{ marginRight: 10 }}
+                  >
                     <Ionicons name="arrow-back" size={24} color="#1a1a1a" />
                   </TouchableOpacity>
-                  <Text style={{ fontSize: 14, color: '#666' }}>Change Number</Text>
+                  <Text style={{ fontSize: 14, color: "#666" }}>
+                    Change Number
+                  </Text>
                 </View>
 
                 <View style={styles.otpContainer}>
                   {otp.map((digit, i) => (
                     <TextInput
                       key={i}
-                      ref={(ref) => { inputRefs.current[i] = ref; }}
+                      ref={(ref) => {
+                        inputRefs.current[i] = ref;
+                      }}
                       style={styles.otpBox}
                       keyboardType="number-pad"
                       maxLength={1}
@@ -589,7 +693,11 @@ export default function HomeScreen() {
                         }
                       }}
                       onKeyPress={({ nativeEvent }) => {
-                        if (nativeEvent.key === 'Backspace' && !otp[i] && i > 0) {
+                        if (
+                          nativeEvent.key === "Backspace" &&
+                          !otp[i] &&
+                          i > 0
+                        ) {
                           inputRefs.current[i - 1]?.focus();
                         }
                       }}
@@ -601,7 +709,9 @@ export default function HomeScreen() {
                   style={styles.modalContinueButton}
                   onPress={handleVerifyOtp}
                 >
-                  <Text style={styles.continueButtonText}>Verify & Proceed</Text>
+                  <Text style={styles.continueButtonText}>
+                    Verify & Proceed
+                  </Text>
                 </TouchableOpacity>
               </>
             )}
@@ -615,7 +725,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   container: {
     paddingHorizontal: 20,
@@ -623,93 +733,93 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 16,
   },
   brandTitle: {
     fontSize: 20,
-    fontWeight: '800',
-    color: '#1a1a1a',
+    fontWeight: "800",
+    color: "#1a1a1a",
   },
   greeting: {
     fontSize: 12,
-    color: '#666',
+    color: "#666",
     marginTop: 2,
   },
   headerIcons: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 15,
   },
   iconButton: {
     padding: 4,
   },
   heroContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 30,
   },
   imageWrapper: {
-    width: '100%',
+    width: "100%",
     height: 240,
     borderRadius: 25,
-    overflow: 'hidden',
-    position: 'relative',
+    overflow: "hidden",
+    position: "relative",
     marginBottom: 20,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.1,
     shadowRadius: 20,
     elevation: 8,
   },
   heroImage: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
   },
   heroContent: {
-    alignItems: 'center',
-    width: '100%',
+    alignItems: "center",
+    width: "100%",
   },
   heroTitle: {
     fontSize: 32,
-    fontWeight: '900',
-    textAlign: 'center',
-    color: '#1a1a1a',
+    fontWeight: "900",
+    textAlign: "center",
+    color: "#1a1a1a",
     lineHeight: 38,
     marginBottom: 12,
   },
   heroSubtitle: {
     fontSize: 14,
-    color: '#666',
-    textAlign: 'center',
+    color: "#666",
+    textAlign: "center",
     lineHeight: 22,
     marginBottom: 24,
   },
   actionButtons: {
-    flexDirection: 'row',
-    justifyContent: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
     gap: 15,
-    width: '100%',
+    width: "100%",
   },
   bookDoorstepButton: {
-    backgroundColor: '#C8F000',
+    backgroundColor: "#C8F000",
     paddingVertical: 16,
     paddingHorizontal: 30,
     borderRadius: 40,
-    width: '80%',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#C8F000',
+    width: "80%",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#C8F000",
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.4,
     shadowRadius: 12,
     elevation: 8,
   },
   bookDoorstepButtonText: {
-    color: '#1a1a1a',
-    fontWeight: '800',
+    color: "#1a1a1a",
+    fontWeight: "800",
     fontSize: 16,
     letterSpacing: 0.5,
   },
@@ -720,24 +830,24 @@ const styles = StyleSheet.create({
   },
   recentTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1a1a1a',
+    fontWeight: "bold",
+    color: "#1a1a1a",
     marginBottom: 15,
   },
   recentList: {
     paddingRight: 20,
   },
   recentCard: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     width: 250,
     padding: 15,
     borderRadius: 16,
     marginRight: 15,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     borderWidth: 1,
-    borderColor: '#eee',
-    shadowColor: '#000',
+    borderColor: "#eee",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 5,
@@ -747,9 +857,9 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 12,
-    backgroundColor: '#f0f9eb',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#f0f9eb",
+    alignItems: "center",
+    justifyContent: "center",
     marginRight: 15,
   },
   recentInfo: {
@@ -757,63 +867,63 @@ const styles = StyleSheet.create({
   },
   recentServiceName: {
     fontSize: 14,
-    fontWeight: 'bold',
-    color: '#1a1a1a',
+    fontWeight: "bold",
+    color: "#1a1a1a",
     marginBottom: 2,
   },
   recentAddress: {
     fontSize: 11,
-    color: '#555',
+    color: "#555",
     marginBottom: 4,
   },
   recentCarText: {
     fontSize: 12,
-    color: '#666',
+    color: "#666",
     marginBottom: 8,
   },
   recentPriceRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   recentPrice: {
     fontSize: 14,
-    fontWeight: 'bold',
-    color: '#1a1a1a',
+    fontWeight: "bold",
+    color: "#1a1a1a",
   },
   rebookBadge: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: "#1a1a1a",
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
   },
   rebookText: {
     fontSize: 10,
-    fontWeight: 'bold',
-    color: '#fff',
+    fontWeight: "bold",
+    color: "#fff",
   },
 
   // Login Styles
   loginText: {
     fontSize: 14,
-    fontWeight: '400',
-    color: '#666',
+    fontWeight: "400",
+    color: "#666",
   },
 
   // Modal Styles
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'flex-end',
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "flex-end",
   },
   modalOverlayTouch: { flex: 1 },
   modalContent: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderTopLeftRadius: 25,
     borderTopRightRadius: 25,
     padding: 25,
     paddingBottom: 40,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.1,
     shadowRadius: 10,
@@ -822,80 +932,80 @@ const styles = StyleSheet.create({
   dragHandle: {
     width: 40,
     height: 4,
-    backgroundColor: '#e0e0e0',
+    backgroundColor: "#e0e0e0",
     borderRadius: 2,
-    alignSelf: 'center',
+    alignSelf: "center",
     marginBottom: 20,
   },
   modalTitle: {
     fontSize: 22,
-    fontWeight: 'bold',
-    color: '#1a1a1a',
+    fontWeight: "bold",
+    color: "#1a1a1a",
     marginBottom: 5,
   },
   modalSubtitle: {
     fontSize: 14,
-    color: '#888',
+    color: "#888",
     marginBottom: 20,
   },
   inputLabel: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#1a1a1a',
+    fontWeight: "600",
+    color: "#1a1a1a",
     marginBottom: 8,
   },
   inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f9f9f9',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f9f9f9",
     borderRadius: 30,
     paddingHorizontal: 20,
     paddingVertical: 12,
     marginBottom: 15,
     borderWidth: 1,
-    borderColor: '#f0f0f0',
+    borderColor: "#f0f0f0",
   },
   inputField: {
     flex: 1,
     fontSize: 14,
-    color: '#1a1a1a',
+    color: "#1a1a1a",
   },
   phoneContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f9f9f9',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f9f9f9",
     borderRadius: 30,
     paddingHorizontal: 20,
     paddingVertical: 12,
     marginBottom: 25,
     borderWidth: 1,
-    borderColor: '#f0f0f0',
+    borderColor: "#f0f0f0",
   },
   countryCode: { marginRight: 10 },
-  countryCodeText: { fontSize: 14, fontWeight: 'bold', color: '#1a1a1a' },
+  countryCodeText: { fontSize: 14, fontWeight: "bold", color: "#1a1a1a" },
 
   modalContinueButton: {
-    backgroundColor: '#C8F000',
+    backgroundColor: "#C8F000",
     paddingVertical: 16,
     borderRadius: 30,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
   },
   continueButtonText: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#1a1a1a',
+    fontWeight: "bold",
+    color: "#1a1a1a",
   },
 
   otpHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 5,
   },
   otpContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginBottom: 20,
     paddingHorizontal: 20,
   },
@@ -904,32 +1014,32 @@ const styles = StyleSheet.create({
     height: 60,
     borderRadius: 15,
     borderWidth: 1,
-    borderColor: '#f0f0f0',
+    borderColor: "#f0f0f0",
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#1a1a1a',
-    backgroundColor: '#f9f9f9',
-    textAlign: 'center'
+    fontWeight: "bold",
+    color: "#1a1a1a",
+    backgroundColor: "#f9f9f9",
+    textAlign: "center",
   },
 
   // Header Login Button
   headerLoginBtn: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: "#1a1a1a",
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   headerLoginText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 
   // --- DASHBOARD STYLES (Appended) ---
   profileBtn: {
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -940,56 +1050,56 @@ const styles = StyleSheet.create({
     height: 44,
     borderRadius: 22,
     borderWidth: 2,
-    borderColor: '#fff',
+    borderColor: "#fff",
   },
   sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginTop: 20,
     marginBottom: 15,
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: '700',
-    color: '#1a1a1a',
+    fontWeight: "700",
+    color: "#1a1a1a",
   },
   viewAllText: {
     fontSize: 14,
-    color: '#3498DB',
-    fontWeight: '600',
+    color: "#3498DB",
+    fontWeight: "600",
   },
 
   // Revenue Card
   revenueCard: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 24,
     padding: 20,
     marginBottom: 20,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.05,
     shadowRadius: 12,
     elevation: 3,
   },
   revenueHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 12,
   },
   iconCircleBlue: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#EBF5FB',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#EBF5FB",
+    justifyContent: "center",
+    alignItems: "center",
   },
   growthBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#E9F7EF',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#E9F7EF",
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
@@ -997,40 +1107,40 @@ const styles = StyleSheet.create({
   },
   growthText: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#2ECC71',
+    fontWeight: "600",
+    color: "#2ECC71",
   },
   revenueLabel: {
     fontSize: 14,
-    color: '#7F8C8D',
-    fontWeight: '500',
+    color: "#7F8C8D",
+    fontWeight: "500",
     marginBottom: 4,
   },
   revenueAmount: {
     fontSize: 32,
-    fontWeight: '800',
-    color: '#1a1a1a',
+    fontWeight: "800",
+    color: "#1a1a1a",
     marginBottom: 4,
   },
   revenueHistory: {
     fontSize: 12,
-    color: '#95A5A6',
+    color: "#95A5A6",
   },
 
   // Stats Row
   statsRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 16,
     marginBottom: 10,
   },
   statBox: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 20,
     padding: 16,
     height: 140,
-    justifyContent: 'space-between',
-    shadowColor: '#000',
+    justifyContent: "space-between",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.03,
     shadowRadius: 8,
@@ -1040,37 +1150,37 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#EBF5FB',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#EBF5FB",
+    justifyContent: "center",
+    alignItems: "center",
   },
   iconCircleOrangeLight: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#FEF5E7',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#FEF5E7",
+    justifyContent: "center",
+    alignItems: "center",
   },
   statBoxLabel: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#7F8C8D',
+    fontWeight: "600",
+    color: "#7F8C8D",
   },
   statCountRow: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
+    flexDirection: "row",
+    alignItems: "baseline",
     gap: 4,
   },
   statBigNum: {
     fontSize: 28,
-    fontWeight: '800',
-    color: '#1a1a1a',
+    fontWeight: "800",
+    color: "#1a1a1a",
   },
   statTotalNum: {
     fontSize: 16,
-    color: '#95A5A6',
-    fontWeight: '500',
+    color: "#95A5A6",
+    fontWeight: "500",
   },
 
   // Live Status Timeline
@@ -1078,63 +1188,63 @@ const styles = StyleSheet.create({
     gap: 0, // Timeline items connect
   },
   timelineItem: {
-    flexDirection: 'row',
+    flexDirection: "row",
     minHeight: 80,
   },
   timelineLeft: {
-    alignItems: 'center',
+    alignItems: "center",
     width: 30,
     marginRight: 12,
   },
   timelineLine: {
     width: 2,
     flex: 1,
-    backgroundColor: '#E0E0E0',
+    backgroundColor: "#E0E0E0",
     marginTop: 4,
   },
   timelineContent: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.03,
     shadowRadius: 8,
     elevation: 1,
   },
   timelineHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   timelineTitle: {
     fontSize: 14,
-    fontWeight: '700',
-    color: '#1a1a1a',
+    fontWeight: "700",
+    color: "#1a1a1a",
     marginBottom: 4,
   },
   timelineTime: {
     fontSize: 12,
-    color: '#95A5A6',
-    fontWeight: '500',
+    color: "#95A5A6",
+    fontWeight: "500",
   },
   timelineSubtitle: {
     fontSize: 13,
-    color: '#7F8C8D',
+    color: "#7F8C8D",
   },
   // FAB (Matches dashboard)
   fab: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 100,
     right: 20,
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: '#F1C40F',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#F1C40F',
+    backgroundColor: "#F1C40F",
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#F1C40F",
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.4,
     shadowRadius: 12,
@@ -1144,131 +1254,132 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 12,
     borderRadius: 12,
-    alignItems: 'center',
+    alignItems: "center",
   },
   btnCancel: {
-    backgroundColor: '#F5F5F5',
+    backgroundColor: "#F5F5F5",
   },
   btnAdd: {
-    backgroundColor: '#F1C40F',
+    backgroundColor: "#F1C40F",
   },
   btnTextCancel: {
-    fontWeight: '600',
-    color: '#666',
+    fontWeight: "600",
+    color: "#666",
   },
   btnTextAdd: {
-    fontWeight: '700',
-    color: '#1a1a1a',
+    fontWeight: "700",
+    color: "#1a1a1a",
   },
-  filterBtn: { // Keeping definition for safety
-    backgroundColor: '#fff',
+  filterBtn: {
+    // Keeping definition for safety
+    backgroundColor: "#fff",
     padding: 8,
     borderRadius: 20,
   },
   input: {
-    width: '100%',
-    backgroundColor: '#F5F5F5',
+    width: "100%",
+    backgroundColor: "#F5F5F5",
     padding: 14,
     borderRadius: 12,
     marginBottom: 12,
     fontSize: 14,
-    color: '#333',
+    color: "#333",
   },
   modalButtons: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 12,
     marginTop: 10,
-    width: '100%',
+    width: "100%",
   },
   shopHeroContainer: {
-    width: '100%',
+    width: "100%",
     height: 260,
     borderRadius: 24,
-    overflow: 'hidden',
+    overflow: "hidden",
     marginBottom: 20,
-    position: 'relative',
+    position: "relative",
   },
   shopHeroImage: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
   },
   heroOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    justifyContent: 'flex-end',
+    backgroundColor: "rgba(0,0,0,0.3)",
+    justifyContent: "flex-end",
     padding: 20,
   },
   heroSloganTitle: {
     fontSize: 22,
-    fontWeight: '800',
-    color: '#fff',
+    fontWeight: "800",
+    color: "#fff",
     marginBottom: 4,
-    textShadowColor: 'rgba(0,0,0,0.5)',
+    textShadowColor: "rgba(0,0,0,0.5)",
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 4,
   },
   heroSloganSubtitle: {
     fontSize: 14,
-    color: '#fff',
-    fontWeight: '500',
+    color: "#fff",
+    fontWeight: "500",
     opacity: 0.9,
-    textShadowColor: 'rgba(0,0,0,0.5)',
+    textShadowColor: "rgba(0,0,0,0.5)",
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 4,
   },
   // --- COMPLAINTS SCREEN STYLES ---
   emptyStateContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     paddingVertical: 60,
   },
   emptyIconCircle: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#F0FDF4',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#F0FDF4",
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: '#DCFCE7',
+    borderColor: "#DCFCE7",
   },
   emptyStateTitle: {
     fontSize: 20,
-    fontWeight: '800',
-    color: '#1a1a1a',
+    fontWeight: "800",
+    color: "#1a1a1a",
     marginBottom: 8,
   },
   emptyStateText: {
     fontSize: 14,
-    color: '#666',
-    textAlign: 'center',
-    maxWidth: '70%',
+    color: "#666",
+    textAlign: "center",
+    maxWidth: "70%",
     lineHeight: 20,
   },
   complaintCard: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 16,
     padding: 16,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#eaeaea',
-    shadowColor: '#000',
+    borderColor: "#eaeaea",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.03,
     shadowRadius: 8,
     elevation: 2,
   },
   complaintHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
     marginBottom: 12,
   },
   complaintUserRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 12,
     flex: 1,
     marginRight: 10,
@@ -1277,98 +1388,98 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#F3F4F6',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#F3F4F6",
+    alignItems: "center",
+    justifyContent: "center",
   },
   userAvatarText: {
     fontSize: 16,
-    fontWeight: '700',
-    color: '#4B5563',
+    fontWeight: "700",
+    color: "#4B5563",
   },
   complaintTitle: {
     fontSize: 16,
-    fontWeight: '700',
-    color: '#1a1a1a',
+    fontWeight: "700",
+    color: "#1a1a1a",
     marginBottom: 2,
   },
   complaintDate: {
     fontSize: 12,
-    color: '#9CA3AF',
+    color: "#9CA3AF",
   },
   complaintDesc: {
     fontSize: 14,
-    color: '#4B5563',
+    color: "#4B5563",
     lineHeight: 20,
     marginBottom: 16,
   },
   complaintFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     borderTopWidth: 1,
-    borderTopColor: '#f3f4f6',
+    borderTopColor: "#f3f4f6",
     paddingTop: 12,
   },
   complaintId: {
     fontSize: 12,
-    color: '#9CA3AF',
-    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+    color: "#9CA3AF",
+    fontFamily: Platform.OS === "ios" ? "Courier" : "monospace",
   },
   resolveBtn: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: "#1a1a1a",
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
   },
   resolveBtnText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   refundBadge: {
-    backgroundColor: '#FEF2F2',
+    backgroundColor: "#FEF2F2",
     borderWidth: 1,
-    borderColor: '#FCA5A5',
+    borderColor: "#FCA5A5",
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
   },
   refundBadgeText: {
-    color: '#EF4444',
+    color: "#EF4444",
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   // --- MODAL DETAILS STYLES ---
   detailsModalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: "#f0f0f0",
     paddingBottom: 15,
   },
   detailsModalTitle: {
     fontSize: 20,
-    fontWeight: '800',
-    color: '#1a1a1a',
+    fontWeight: "800",
+    color: "#1a1a1a",
   },
   detailsModalId: {
     fontSize: 12,
-    color: '#999',
+    color: "#999",
     marginTop: 2,
-    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+    fontFamily: Platform.OS === "ios" ? "Courier" : "monospace",
   },
   closeBtn: {
     padding: 8,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: "#f5f5f5",
     borderRadius: 20,
   },
   statusSection: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 10,
   },
   statusBadge: {
@@ -1379,62 +1490,62 @@ const styles = StyleSheet.create({
   },
   statusBadgeText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   fullDate: {
     fontSize: 13,
-    color: '#999',
+    color: "#999",
   },
   fullTitle: {
     fontSize: 18,
-    fontWeight: '700',
-    color: '#1a1a1a',
+    fontWeight: "700",
+    color: "#1a1a1a",
     marginBottom: 20,
   },
   userDetailsBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F9FAFB',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F9FAFB",
     padding: 15,
     borderRadius: 12,
     marginBottom: 25,
     borderWidth: 1,
-    borderColor: '#F3F4F6',
+    borderColor: "#F3F4F6",
   },
   userAvatarLarge: {
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: '#E5E7EB',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#E5E7EB",
+    alignItems: "center",
+    justifyContent: "center",
     marginRight: 15,
   },
   userAvatarTextLarge: {
     fontSize: 20,
-    fontWeight: '700',
-    color: '#4B5563',
+    fontWeight: "700",
+    color: "#4B5563",
   },
   userNameLarge: {
     fontSize: 16,
-    fontWeight: '700',
-    color: '#1a1a1a',
+    fontWeight: "700",
+    color: "#1a1a1a",
     marginBottom: 2,
   },
   userContact: {
     fontSize: 12,
-    color: '#6B7280',
+    color: "#6B7280",
   },
   sectionLabel: {
     fontSize: 14,
-    fontWeight: '700',
-    color: '#374151',
+    fontWeight: "700",
+    color: "#374151",
     marginBottom: 8,
     marginTop: 5,
   },
   fullDesc: {
     fontSize: 15,
-    color: '#4B5563',
+    color: "#4B5563",
     lineHeight: 24,
     marginBottom: 25,
   },
@@ -1446,36 +1557,36 @@ const styles = StyleSheet.create({
     height: 120,
     borderRadius: 12,
     marginRight: 10,
-    backgroundColor: '#eee',
+    backgroundColor: "#eee",
   },
   detailsActions: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 15,
     paddingTop: 15,
     borderTopWidth: 1,
-    borderTopColor: '#f0f0f0',
+    borderTopColor: "#f0f0f0",
   },
   actionBtn: {
     flex: 1,
     paddingVertical: 14,
     borderRadius: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   actionBtnPrimary: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: "#1a1a1a",
   },
   actionBtnSecondary: {
-    backgroundColor: '#f5f5f5',
+    backgroundColor: "#f5f5f5",
   },
   actionBtnTextPrimary: {
-    color: '#fff',
-    fontWeight: '700',
+    color: "#fff",
+    fontWeight: "700",
     fontSize: 14,
   },
   actionBtnTextSecondary: {
-    color: '#666',
-    fontWeight: '600',
+    color: "#666",
+    fontWeight: "600",
     fontSize: 14,
   },
 });

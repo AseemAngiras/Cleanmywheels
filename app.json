@@ -8,14 +8,12 @@
     "scheme": "cleanmywheels",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
         "NSCameraUsageDescription": "CleanMyWheels needs camera access to scan QR codes for service check-in."
       }
     },
-
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
@@ -32,12 +30,10 @@
         }
       }
     },
-
     "web": {
       "output": "static",
       "favicon": "./assets/images/favicon.png"
     },
-
     "plugins": [
       "expo-router",
       [
@@ -51,9 +47,17 @@
             "backgroundColor": "#000000"
           }
         }
-      ]
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
+      ],
+      "react-native-localize"
     ],
-
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true

@@ -29,7 +29,16 @@ export default function ProfileHome() {
   const translateY = useRef(new Animated.Value(height)).current;
   const overlayOpacity = useRef(new Animated.Value(0)).current;
 
-  const user = useSelector((state: RootState) => state.user);
+  // Get user info from Redux
+  const userState = useSelector((state: RootState) => state.user);
+  const userData = userState.user;
+  
+  // Get saved addresses from profile Redux slice
+  const profileState = useSelector((state: RootState) => state.profile);
+  const savedAddresses = profileState?.addresses || [];
+
+  console.log(" [Profile] User Data:", userData);
+  console.log(" [Profile] Saved Addresses:", savedAddresses);
 
   useEffect(() => {
     if (showLogout) {
@@ -104,13 +113,44 @@ export default function ProfileHome() {
           />
           <View>
             <Text style={styles.profileName}>
-              {user.name || "Your Name"}
+              {profileState?.name || userData?.name || "Your Name"}
             </Text>
             <Text style={styles.profileSubtitle}>
-              {user.phone || "Phone number"}
+              {profileState?.phone || userData?.phone || "Phone number"}
             </Text>
+            {(profileState?.email || userData?.email) ? (
+                <Text style={styles.profileSubtitle}>
+                {profileState?.email || userData?.email}
+                </Text>
+            ) : null}
           </View>
         </View>
+      </View>
+
+      {/* SAVED ADDRESSES */}
+      <View style={styles.card}>
+        <View style={{ paddingHorizontal: 16, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#f0f0f0' }}>
+           <Text style={{ fontSize: 16, fontWeight: '600' }}>Saved Addresses</Text>
+        </View>
+        {savedAddresses.length === 0 ? (
+           <View style={{ padding: 16 }}>
+               <Text style={{ color: '#888' }}>No addresses saved yet.</Text>
+           </View>
+        ) : (
+            savedAddresses.map((addr: any, idx: number) => (
+                <View key={addr.id || idx} style={styles.addressRow}>
+                    <View style={styles.iconBox}>
+                        <Ionicons name="location-outline" size={18} color="#555" />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                        <Text style={styles.rowTitle}>{addr.addressType || "Home"}</Text>
+                        <Text style={styles.rowSubtitle} numberOfLines={1}>
+                            {addr.fullAddress || `${addr.flatNumber}, ${addr.locality}, ${addr.city}`}
+                        </Text>
+                    </View>
+                </View>
+            ))
+        )}
       </View>
 
       {/* ACCOUNT CARD */}
@@ -353,5 +393,22 @@ const styles = StyleSheet.create({
   logoutText: {
     fontWeight: "600",
     color: "#111",
+  },
+  addressRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f9f9f9",
+  },
+  iconBox: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: "#F3F4F7",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
   },
 });

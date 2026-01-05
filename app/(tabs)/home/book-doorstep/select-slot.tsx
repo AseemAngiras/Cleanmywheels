@@ -1,36 +1,37 @@
+import {
+    useRegisterMutation,
+    useRequestOtpMutation,
+    useVerifyLoginOtpMutation,
+    useVerifyRegisterOtpMutation
+} from "@/store/api/authApi";
 import { loginSuccess } from "@/store/slices/authSlice";
+import { updateProfile } from "@/store/slices/profileSlice";
 import { setUser } from "@/store/slices/userSlice";
 import {
-  useFocusEffect,
-  useLocalSearchParams,
-  useNavigation,
-  useRouter,
+    useFocusEffect,
+    useLocalSearchParams,
+    useNavigation,
+    useRouter,
 } from "expo-router";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  useRegisterMutation,
-  useRequestOtpMutation,
-  useVerifyLoginOtpMutation,
-} from "@/store/api/authApi";
 
 import BookingStepper from "@/components/BookingStepper";
 import { RootState } from "@/store";
 import { Ionicons } from "@expo/vector-icons";
 import {
-  Alert,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Alert,
+    KeyboardAvoidingView,
+    Modal,
+    Platform,
+    SafeAreaView,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
-
 type TimeSlot = {
   id: string;
   time: string;
@@ -40,9 +41,9 @@ type TimeSlot = {
 
 export default function SelectSlotScreen() {
   const dispatch = useDispatch();
-  const { name: userName, phone: userPhone } = useSelector(
-    (state: RootState) => state.user || {}
-  );
+  const userState = useSelector((state: RootState) => state.user.user);
+  const userName = userState?.name;
+  const userPhone = userState?.phone;
 
   const router = useRouter();
   const navigation = useNavigation();
@@ -72,11 +73,12 @@ export default function SelectSlotScreen() {
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
 
   const [register, { isLoading: isRegistering }] = useRegisterMutation();
-  const [requestOtp, { isLoading: isSendingOtp }] = useRequestOtpMutation();
-  const [verifyLoginOtp, { isLoading: isVerifyingOtp }] =
-    useVerifyLoginOtpMutation();
+  const [requestOtp, { isLoading: isRequestingOtp }] = useRequestOtpMutation();
+  const [verifyLoginOtp, { isLoading: isVerifyingLoginOtp }] = useVerifyLoginOtpMutation();
+  const [verifyRegisterOtp, { isLoading: isVerifyingRegOtp }] = useVerifyRegisterOtpMutation();
 
-  const isProcessing = isRegistering || isSendingOtp;
+  const isProcessing = isRegistering || isRequestingOtp;
+  const isVerifying = isVerifyingLoginOtp || isVerifyingRegOtp;
 
   const dates = Array.from({ length: 7 }).map((_, i) => {
     const d = new Date();
@@ -131,8 +133,13 @@ export default function SelectSlotScreen() {
   });
 
   const inputRefs = useRef<Array<TextInput | null>>([]);
+ 
+  const [registrationToken, setRegistrationToken] = useState<string | null>(null);
+  const guestAddresses = useSelector((state: RootState) => state.profile.addresses);
+  const currentBooking = useSelector((state: RootState) => state.bookings.currentBooking);
+
   const handleSendOtp = async () => {
-    console.log("🔵 handleSendOtp started");
+    console.log("handleSendOtp (Register Only) started");
 
     if (!name.trim()) {
       Alert.alert("Required", "Please enter your name.");
@@ -147,58 +154,31 @@ export default function SelectSlotScreen() {
     const trimmedName = name.trim();
 
     try {
-      const registerResult = await register({
-        name: trimmedName,
-        countryCode: "+91",
-        phone: trimmedPhone,
-        accountType: "Seeker",
-      }).unwrap();
+        if (trimmedName) {
+            const result = await register({
+                name: trimmedName,
+                countryCode: "+91",
+                phone: trimmedPhone,
+                accountType: "Seeker",
+            }).unwrap();
 
-      console.log("✅ New user registered");
-
-      const { token, user: backendUser } = registerResult.data;
-
-      dispatch(loginSuccess(token));
-      dispatch(
-        setUser({
-          name: trimmedName,
-          phone: trimmedPhone,
-          ...backendUser,
-        })
-      );
-
-      await requestOtp({
-        otpType: "LOGIN",
-        verifyType: "PHONE",
-        countryCode: "+91",
-        phone: trimmedPhone,
-      }).unwrap();
-      setModalStep("otp");
-      return;
-    } catch (err: any) {
-      console.log("Register attempt:", err);
-
-      try {
-        await requestOtp({
-          otpType: "LOGIN",
-          verifyType: "PHONE",
-          countryCode: "+91",
-          phone: trimmedPhone,
-        }).unwrap();
-
-        console.log("✅ OTP sent (new or existing user)");
-
-        dispatch(
-          setUser({
-            name: trimmedName,
-            phone: trimmedPhone,
-          })
-        );
+            const token = result.data?.token || result.token;
+            if (token) {
+                setRegistrationToken(token);
+            }
+        } else {
+            await requestOtp({
+                phone: trimmedPhone,
+                countryCode: "+91",
+                verifyType: "PHONE",
+                otpType: "LOGIN",
+            }).unwrap();
+        }
 
         setModalStep("otp");
-      } catch (loginErr: any) {
-        Alert.alert("Error", loginErr?.data?.message || "Failed to send OTP");
-      }
+    } catch (err: any) {
+        console.log("Auth request failed:", err);
+        Alert.alert("Error", err?.data?.message || "Something went wrong. Try adding your name.");
     }
   };
 
@@ -211,30 +191,63 @@ export default function SelectSlotScreen() {
     }
 
     try {
-      const response = await verifyLoginOtp({
-        countryCode: "+91",
-        phone: phoneNumber.trim(),
-        loginToken: otpValue,
-      }).unwrap();
+        const payload = {
+            verifyType: "PHONE",
+            countryCode: "+91",
+            phone: phoneNumber.trim(),
+            phoneToken: otpValue,
+        };
 
-      console.log("✅ Login successful");
+        let response;
+        if (name.trim()) {
+            response = await verifyRegisterOtp({ 
+              body: { ...payload, otpType: "REGISTER" },
+              token: registrationToken 
+            }).unwrap();
+        } else {
+            // BACKEND Joi strictly requires ONLY these 3 keys for login verification
+            const loginPayload = {
+                countryCode: payload.countryCode,
+                phone: payload.phone,
+                loginToken: payload.phoneToken
+            };
+            response = await verifyLoginOtp(loginPayload).unwrap();
+        }
 
-      const { token, user: backendUser } = response.data;
+        console.log("✅ Auth verified successfully:", response);
 
-      dispatch(loginSuccess(token));
-      dispatch(
-        setUser({
-          name: name.trim(),
-          phone: phoneNumber.trim(),
-          ...backendUser,
-        })
-      );
+        if (response.success || response.data || typeof response.data === 'string') {
+            const responseToken = response.data?.token || response.token || (typeof response.data === 'string' ? response.data : null);
+            const user = response.data?.user || response.user;
+            const finalToken = responseToken || registrationToken;
 
-      setIsLoginModalVisible(false);
-      setOtp(["", "", "", "", "", ""]);
-      navigateToSummary();
+            if (finalToken) {
+                console.log(" [SelectSlot] Final token stored in Redux:", finalToken.substring(0, 10) + "...");
+                dispatch(loginSuccess(finalToken));
+            } else {
+                console.warn(" [SelectSlot] No token found in response or local state!");
+            }
+
+            if (user) dispatch(setUser(user));
+
+            // Save the entered name and phone to profile slice
+            if (name.trim()) {
+                dispatch(updateProfile({ key: "name", value: name.trim() }));
+            }
+            if (phoneNumber.trim()) {
+                dispatch(updateProfile({ key: "phone", value: phoneNumber.trim() }));
+            }
+
+            setIsLoginModalVisible(false);
+            setOtp(["", "", "", "", "", ""]);
+            setModalStep("details"); 
+            navigateToSummary();
+        } else {
+            Alert.alert("Error", response.message || "Verification failed.");
+        }
     } catch (err: any) {
-      Alert.alert("Error", err?.data?.message || "Invalid OTP");
+        console.error("Auth Verify Error:", err);
+        Alert.alert("Error", err?.data?.message || "Invalid OTP");
     }
   };
   const navigateToSummary = () => {
@@ -258,16 +271,18 @@ export default function SelectSlotScreen() {
     });
   };
 
+  const authState = useSelector((state: RootState) => state.auth);
+
   const handleConfirmSlot = () => {
-    console.log("🎰 Confirm slot clicked, selectedSlot:", selectedSlot);
+    console.log("Confirm slot clicked, selectedSlot:", selectedSlot);
 
     if (!selectedSlot) return;
 
-    if (userName && userPhone) {
-      console.log("👤 User already logged in → go to summary");
+    if (authState.isLoggedIn && authState.token) {
+      console.log("User has valid token → go to summary");
       navigateToSummary();
     } else {
-      console.log("🔐 User not logged in → opening modal");
+      console.log("No token found → opening login modal");
       setIsLoginModalVisible(true);
     }
   };
@@ -446,7 +461,7 @@ export default function SelectSlotScreen() {
             <Text style={styles.modalSubtitle}>
               {modalStep === "details"
                 ? "We need your details to confirm the booking."
-                : `Enter the 4-digit code sent to +91 ${phoneNumber}`}
+                : `Enter the 6-digit code sent to +91 ${phoneNumber}`}
             </Text>
 
             {modalStep === "details" ? (
@@ -542,10 +557,10 @@ export default function SelectSlotScreen() {
                 <TouchableOpacity
                   style={styles.modalContinueButton}
                   onPress={handleVerifyOtp}
-                  disabled={isVerifyingOtp}
+                  disabled={isVerifying}
                 >
                   <Text style={styles.continueButtonText}>
-                    {isVerifyingOtp ? "Verifying..." : "Verify & Continue"}
+                    {isVerifying ? "Verifying..." : "Verify & Continue"}
                   </Text>
                 </TouchableOpacity>
               </>
@@ -556,7 +571,6 @@ export default function SelectSlotScreen() {
     </SafeAreaView>
   );
 }
-/* styles unchanged */
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: "#f9f9f9" },
@@ -823,15 +837,15 @@ const styles = StyleSheet.create({
     // paddingHorizontal: 20,
   },
   otpBox: {
-    width: 60,
-    height: 60,
-    borderRadius: 15,
+    width: 45,
+    height: 50,
     borderWidth: 1,
-    borderColor: "#f0f0f0",
-    fontSize: 24,
+    borderColor: "#e0e0e0",
+    borderRadius: 10,
+    textAlign: "center",
+    fontSize: 20,
     fontWeight: "bold",
     color: "#1a1a1a",
     backgroundColor: "#f9f9f9",
-    textAlign: "center",
   },
 });

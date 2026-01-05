@@ -11,7 +11,6 @@ import {
   View,
 } from "react-native";
 
-import { setUser } from "@/store/slices/userSlice";
 import { useAppDispatch, useAppSelector } from "../../../store/hooks";
 import { updateProfile } from "../../../store/slices/profileSlice";
 
@@ -21,8 +20,8 @@ export default function EditProfile() {
   const profile = useAppSelector((state) => state.profile);
   const user = useAppSelector((state) => state.user);
 
-  const [fullName, setFullName] = React.useState(user.name ?? "");
-  const [mobile, setMobile] = React.useState(user.phone?? "");
+  const [fullName, setFullName] = React.useState("");
+  const [mobile, setMobile] = React.useState("");
   const [email, setEmail] = React.useState(profile.email ?? "");
 
   const [focusedInput, setFocusedInput] = React.useState<string | null>(null);
@@ -31,15 +30,20 @@ export default function EditProfile() {
   // Animation value for save button (translateX + opacity)
   const saveAnim = useRef(new Animated.Value(0)).current;
 
+  // Initialize from user.user (the nested user object)
   useEffect(() => {
-    setFullName(user.name?? "");
-    setMobile(user.phone?? "");
-  }, [user.name, user.phone]);
+    const userName = user?.user?.name || profile?.name || "";
+    const userPhone = user?.user?.phone || profile?.phone || "";
+    setFullName(userName);
+    setMobile(userPhone);
+  }, [user?.user?.name, user?.user?.phone, profile?.name, profile?.phone]);
 
   useEffect(() => {
+    const originalName = user?.user?.name || profile?.name || "";
+    const originalPhone = user?.user?.phone || profile?.phone || "";
     const changes =
-      fullName !== profile.name ||
-      mobile !== profile.phone ||
+      fullName !== originalName ||
+      mobile !== originalPhone ||
       email !== (profile.email ?? "");
 
     setHasChanges(changes);
@@ -50,14 +54,10 @@ export default function EditProfile() {
       duration: 300,
       useNativeDriver: true,
     }).start();
-  }, [fullName, email, profile, saveAnim]);
+  }, [fullName, mobile, email, profile, user, saveAnim]);
 
  const handleSave = () => {
-  dispatch(setUser({
-    name: fullName,
-    phone: mobile,
-  }));
-
+  // Update profile slice
   dispatch(updateProfile({ key: "name", value: fullName }));
   dispatch(updateProfile({ key: "phone", value: mobile }));
   dispatch(updateProfile({ key: "email", value: email }));

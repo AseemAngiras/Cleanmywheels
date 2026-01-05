@@ -163,6 +163,41 @@ export default function SelectServiceScreen() {
         setAddons((prev) => ({ ...prev, [id]: !prev[id] }));
     };
 
+    const validateVehicleNumber = (number: string): { isValid: boolean; message: string } => {
+        if (!number || !number.trim()) {
+            return { isValid: false, message: "Please enter your vehicle number." };
+        }
+
+        const cleaned = number.replace(/[\s-]/g, '').toUpperCase();
+
+        const indianVehicleRegex = /^[A-Z]{2}[0-9]{1,2}[A-Z]{1,3}[0-9]{1,4}$/;
+        
+        const alternateRegex = /^[A-Z]{2}[0-9]{2}[A-Z]{1,2}[0-9]{4}$/;
+
+        if (!indianVehicleRegex.test(cleaned) && !alternateRegex.test(cleaned)) {
+            return { 
+                isValid: false, 
+                message: "Please enter a valid vehicle number.\n\nExamples:\n• MH01AB1234\n• DL12CA5678\n• KA09MA1234" 
+            };
+        }
+
+        const validStateCodes = [
+            'AN', 'AP', 'AR', 'AS', 'BH', 'BR', 'CG', 'CH', 'DD', 'DL', 'GA', 'GJ', 
+            'HP', 'HR', 'JH', 'JK', 'KA', 'KL', 'LA', 'LD', 'MH', 'ML', 'MN', 'MP', 
+            'MZ', 'NL', 'OD', 'OR', 'PB', 'PY', 'RJ', 'SK', 'TN', 'TR', 'TS', 'UK', 
+            'UP', 'WB'
+        ];
+        const stateCode = cleaned.substring(0, 2);
+        if (!validStateCodes.includes(stateCode)) {
+            return { 
+                isValid: false, 
+                message: `'${stateCode}' is not a valid Indian state code.` 
+            };
+        }
+
+        return { isValid: true, message: "" };
+    };
+
     const handleServiceSelect = (id: string) => {
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
         setSelectedService(id);
@@ -473,8 +508,11 @@ export default function SelectServiceScreen() {
                             Alert.alert("Selection Required", "Please select a service to proceed.");
                             return;
                         }
-                        if (!vehicleNumber.trim()) {
-                            Alert.alert("Missing Detail", "Please enter your vehicle number to proceed.");
+                        
+                        // Validate vehicle number format
+                        const validation = validateVehicleNumber(vehicleNumber);
+                        if (!validation.isValid) {
+                            Alert.alert("Invalid Vehicle Number", validation.message);
                             return;
                         }
 
@@ -486,7 +524,7 @@ export default function SelectServiceScreen() {
 
                         const selectedAddons = currentAddons.filter(addon => addons[addon.id]);
 
-                        const normalizedNumber = vehicleNumber.trim().toUpperCase();
+                        const normalizedNumber = vehicleNumber.replace(/[\s-]/g, '').toUpperCase();
 
                         let existingCar = cars.find(car => car.number === normalizedNumber);
 

@@ -8,18 +8,18 @@ import * as Location from "expo-location";
 import { useNavigation, useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
-  ActivityIndicator,
-  Dimensions,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View
+    ActivityIndicator,
+    Dimensions,
+    KeyboardAvoidingView,
+    Modal,
+    Platform,
+    SafeAreaView,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
 } from "react-native";
 import MapView, { Marker, Region } from "react-native-maps";
 import { useDispatch, useSelector } from "react-redux";
@@ -187,7 +187,8 @@ export default function EnterLocationScreen() {
         params: {
           address: savedAddr?.fullAddress,
           latitude: savedAddr?.latitude,
-          longitude: savedAddr?.longitude
+          longitude: savedAddr?.longitude,
+          addressId: selectedSavedAddressId,
         }
       });
       return;
@@ -221,6 +222,7 @@ export default function EnterLocationScreen() {
             address: fullAddress,
             latitude: selectedCoord?.lat,
             longitude: selectedCoord?.long,
+            addressId: fallbackId,
           }
         });
         return;
@@ -247,6 +249,7 @@ export default function EnterLocationScreen() {
             address: fullAddress,
             latitude: selectedCoord?.lat,
             longitude: selectedCoord?.long,
+            addressId: newAddress.id || newAddress._id,
           }
         });
       } else {
@@ -262,6 +265,7 @@ export default function EnterLocationScreen() {
             address: fullAddress,
             latitude: selectedCoord?.lat,
             longitude: selectedCoord?.long,
+            addressId: fallbackId,
           }
         });
       }

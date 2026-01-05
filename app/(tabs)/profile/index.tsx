@@ -1,3 +1,4 @@
+import { useGetAddressesQuery } from "@/store/api/addressApi";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useEffect, useRef, useState } from "react";
@@ -29,7 +30,12 @@ export default function ProfileHome() {
   const translateY = useRef(new Animated.Value(height)).current;
   const overlayOpacity = useRef(new Animated.Value(0)).current;
 
-  const user = useSelector((state: RootState) => state.user);
+  // state.user is { user: UserData, cars: ... }
+  const userState = useSelector((state: RootState) => state.user);
+  const userData = userState.user;
+
+  const { data: addressResponse } = useGetAddressesQuery();
+  const addresses = addressResponse?.data || [];
 
   useEffect(() => {
     if (showLogout) {
@@ -104,13 +110,44 @@ export default function ProfileHome() {
           />
           <View>
             <Text style={styles.profileName}>
-              {user.name || "Your Name"}
+              {userData?.name || "Your Name"}
             </Text>
             <Text style={styles.profileSubtitle}>
-              {user.phone || "Phone number"}
+              {userData?.phone || "Phone number"}
             </Text>
+            {userData?.email && (
+                <Text style={styles.profileSubtitle}>
+                {userData.email}
+                </Text>
+            )}
           </View>
         </View>
+      </View>
+
+      {/* SAVED ADDRESSES */}
+      <View style={styles.card}>
+        <View style={{ paddingHorizontal: 16, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#f0f0f0' }}>
+           <Text style={{ fontSize: 16, fontWeight: '600' }}>Saved Addresses</Text>
+        </View>
+        {addresses.length === 0 ? (
+           <View style={{ padding: 16 }}>
+               <Text style={{ color: '#888' }}>No addresses saved yet.</Text>
+           </View>
+        ) : (
+            addresses.map((addr: any, idx: number) => (
+                <View key={addr._id || idx} style={styles.addressRow}>
+                    <View style={styles.iconBox}>
+                        <Ionicons name="location-outline" size={18} color="#555" />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                        <Text style={styles.rowTitle}>{addr.addressType || "Home"}</Text>
+                        <Text style={styles.rowSubtitle} numberOfLines={1}>
+                            {`${addr.houseOrFlatNo}, ${addr.locality}, ${addr.city}`}
+                        </Text>
+                    </View>
+                </View>
+            ))
+        )}
       </View>
 
       {/* ACCOUNT CARD */}
@@ -353,5 +390,22 @@ const styles = StyleSheet.create({
   logoutText: {
     fontWeight: "600",
     color: "#111",
+  },
+  addressRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f9f9f9",
+  },
+  iconBox: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: "#F3F4F7",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
   },
 });

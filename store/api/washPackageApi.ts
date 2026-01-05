@@ -34,7 +34,6 @@ export const washPackageApi = createApi({
       const token = state.auth?.token;
       
       if (token) {
-        // BACKEND REQUIREMENT: Send raw token without 'Bearer'
         headers.set("Authorization", `${token}`);
         headers.set("x-auth-token", token);
       }

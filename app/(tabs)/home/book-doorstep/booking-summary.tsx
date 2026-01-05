@@ -1,5 +1,7 @@
 import { RootState } from "@/store";
+import { useCreateAddressMutation } from "@/store/api/addressApi";
 import { useCreateBookingMutation } from "@/store/api/bookingApi";
+import { useCreateVehicleMutation } from "@/store/api/vehicleApi";
 import { logout } from "@/store/slices/authSlice";
 import { addBooking } from "@/store/slices/bookingSlice";
 import { Ionicons } from "@expo/vector-icons";
@@ -36,6 +38,8 @@ export default function BookingSummaryScreen() {
 
   const dispatch = useDispatch();
   const [createBooking, { isLoading: isCreatingBooking }] = useCreateBookingMutation();
+  const [createAddress] = useCreateAddressMutation();
+  const [createVehicle] = useCreateVehicleMutation();
   const currentBooking = useSelector(
     (state: RootState) => state.bookings.currentBooking
   );
@@ -323,6 +327,69 @@ export default function BookingSummaryScreen() {
                 console.log("🛠 [BookingSummary] Address Raw:", address);
                 console.log("🛠 [BookingSummary] Address Parts Length:", addressParts.length);
 
+                const isValidObjectId = (id: any) => /^[0-9a-fA-F]{24}$/.test(id);
+
+                let currentAddressId: string | undefined = Array.isArray(params.addressId) ? params.addressId[0] : params.addressId;
+                if (currentAddressId === "undefined" || currentAddressId === "null") currentAddressId = undefined;
+                
+                // If ID exists but is NOT a valid Mongo ID (e.g. nanoid), treat as missing so we create a new one
+                if (currentAddressId && !isValidObjectId(currentAddressId)) {
+                    console.log("[BookingSummary] Address ID is temporary/invalid, will create new:", currentAddressId);
+                    currentAddressId = undefined;
+                }
+
+                if (!currentAddressId && currentBooking.address && isValidObjectId(currentBooking.address)) {
+                     currentAddressId = currentBooking.address;
+                }
+
+                // If no addressId but we have address text, try to create it
+                if (!currentAddressId && address) {
+                  try {
+                    const newAddrPayload = {
+                      houseOrFlatNo: String(houseNumClean),
+                      locality: String(addressParts[1] || "Locality"),
+                      landmark: String(addressParts[2] || "Landmark"),
+                      city: String(addressParts[2] || (addressParts[1] ? "City" : "Your City")),
+                      postalCode: String(addressParts[3] || "000000"),
+                      addressType: "Home",
+                    };
+                    console.log("[BookingSummary] Creating new Address:", newAddrPayload);
+                    const addrRes = await createAddress(newAddrPayload).unwrap();
+                    if (addrRes?.data?._id) {
+                       currentAddressId = addrRes.data._id;
+                       console.log("[BookingSummary] New Address Created:", currentAddressId);
+                    }
+                  } catch (e) {
+                     console.error("[BookingSummary] Failed to auto-create address", e);
+                  }
+                }
+
+                let currentVehicleId: string | undefined = Array.isArray(params.vehicleId) ? params.vehicleId[0] : params.vehicleId;
+                if (currentVehicleId === "undefined" || currentVehicleId === "null") currentVehicleId = undefined;
+
+                if (currentVehicleId && !isValidObjectId(currentVehicleId)) {
+                     console.log("[BookingSummary] Vehicle ID is temporary/invalid, will create new:", currentVehicleId);
+                     currentVehicleId = undefined;
+                }
+
+                if (!currentVehicleId && vehicleNumber) {
+                   try {
+                     const vType = VEHICLE_TYPE_MAP[(vehicleType as string)?.toLowerCase()] || (vehicleType as string) || "Sedan";
+                     const vehiclePayload = {
+                        vehicleType: vType,
+                        vehicleNo: String(vehicleNumber),
+                     };
+                     console.log("[BookingSummary] Creating new Vehicle:", vehiclePayload);
+                     const vehRes = await createVehicle(vehiclePayload).unwrap();
+                     if (vehRes?.data?._id) {
+                        currentVehicleId = vehRes.data._id;
+                        console.log("[BookingSummary] New Vehicle Created:", currentVehicleId);
+                     }
+                   } catch (e) {
+                      console.error("[BookingSummary] Failed to auto-create vehicle", e);
+                   }
+                }
+
                     const finalWashPackageId = serviceId as string;
 
                     if (!finalWashPackageId || finalWashPackageId.length !== 24) {
@@ -345,8 +412,8 @@ export default function BookingSummaryScreen() {
                         bookingTime: Number(hour)
                     };
 
-                    if (params.addressId) bookingPayload.address = params.addressId;
-                    if (params.vehicleId) bookingPayload.vehicle = params.vehicleId;
+                    if (currentAddressId) bookingPayload.address = currentAddressId;
+                    if (currentVehicleId) bookingPayload.vehicle = currentVehicleId;
 
                 console.log("[BookingSummary] TRACE - Auth Token:", authState.token);
                 console.log("[BookingSummary] TRACE - Payload:", JSON.stringify(bookingPayload, null, 2));
@@ -365,6 +432,7 @@ export default function BookingSummaryScreen() {
                     address: address as string,
                     plate: vehicleNumber as string,
                     serviceName: serviceName as string,
+                    serviceId: finalWashPackageId,
                   })
                 );
     

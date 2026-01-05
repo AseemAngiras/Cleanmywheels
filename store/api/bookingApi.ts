@@ -21,14 +21,14 @@ export const bookingApi = createApi({
 
       const state = getState() as any;
       const token = state.auth?.token;
-      console.log("🛠 [BookingApi] Token found:", !!token);
+      console.log(" [BookingApi] Token found:", !!token);
 
       if (token) {
         headers.set("Authorization", `${token}`);
         headers.set("x-auth-token", `${token}`);
-        console.log("🛠 [BookingApi] Authorization Header Set (Raw Token)");
+        console.log(" [BookingApi] Authorization Header Set (Raw Token)");
       } else {
-        console.warn("⚠️ [BookingApi] NO TOKEN - Authorization header missing!");
+        console.warn("[BookingApi] NO TOKEN - Authorization header missing!");
       }
 
       headers.set("x-platform", Platform.OS === "ios" ? "ios" : "android");
@@ -57,7 +57,7 @@ export const bookingApi = createApi({
           await queryFulfilled;
         } catch (error: any) {
           if (error.error?.status === 401) {
-            console.error("❌ [BookingApi] 401 Unauthorized - Logging out");
+            console.error(" [BookingApi] 401 Unauthorized - Logging out");
             dispatch(logout());
           }
         }

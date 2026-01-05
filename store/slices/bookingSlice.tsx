@@ -14,6 +14,7 @@ export interface Booking {
   address: string;
   plate: string;
   serviceName: string;
+  serviceId?: string;
   status: BookingStatus;
 }
 

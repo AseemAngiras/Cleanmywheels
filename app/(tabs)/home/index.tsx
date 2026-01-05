@@ -538,7 +538,6 @@ export default function HomeScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      // Ensure tab bar is visible when on Home root
       const homeStack = navigation.getParent();
       const tabs = homeStack?.getParent();
 
@@ -551,6 +550,21 @@ export default function HomeScreen() {
   );
 
   const handleRecentServicePress = (booking: Partial<Booking>) => {
+    if (!booking.serviceId) {
+      Alert.alert(
+        "Rebook Unavailable",
+        "This past booking cannot be quick-rebooked. Please start a new booking.",
+        [
+          { 
+            text: "Start New Booking", 
+            onPress: () => router.push("/(tabs)/home/book-doorstep/enter-location") 
+          },
+          { text: "Cancel", style: "cancel" }
+        ]
+      );
+      return;
+    }
+
     router.push({
       pathname: "/(tabs)/home/book-doorstep/select-slot",
       params: {
@@ -560,15 +574,13 @@ export default function HomeScreen() {
         address: booking.address,
         vehicleType: booking.car?.split(" - ")[0] || "Sedan",
         vehicleNumber: booking.car?.split(" - ")[1] || "",
+        serviceId: booking.serviceId,
       },
     });
   };
 
-  // --- CONDITIONAL RENDER ---
   if (isAdmin) {
-    if (isAdmin) {
-      return <AdminComplaintsScreen />;
-    }
+    return <AdminComplaintsScreen />;
   }
 
   return (

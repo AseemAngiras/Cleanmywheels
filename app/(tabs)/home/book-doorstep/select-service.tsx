@@ -49,7 +49,7 @@ export default function SelectServiceScreen() {
 
     const router = useRouter();
     const navigation = useNavigation();
-    const { address, latitude, longitude } = useLocalSearchParams();
+    const { address, latitude, longitude, addressId } = useLocalSearchParams();
     const user = useAppSelector((state) => state.user.user);
     const userPhone = user?.phone || "";
     const sanitizedPhone = userPhone.replace(/\D/g, "");
@@ -512,6 +512,8 @@ export default function SelectServiceScreen() {
                             address,
                             latitude,
                             longitude,
+                            addressId,
+                            vehicleId: selectedCarId,
                         };
 
                         router.push({ pathname: '/(tabs)/home/book-doorstep/select-slot', params });

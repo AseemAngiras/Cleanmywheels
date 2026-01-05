@@ -4,6 +4,8 @@ import { useCreateBookingMutation } from "@/store/api/bookingApi";
 import { useCreateVehicleMutation } from "@/store/api/vehicleApi";
 import { logout } from "@/store/slices/authSlice";
 import { addBooking } from "@/store/slices/bookingSlice";
+import { addAddress } from "@/store/slices/profileSlice";
+import { addCar } from "@/store/slices/userSlice";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
@@ -313,7 +315,7 @@ export default function BookingSummaryScreen() {
                 const addressParts = (address as string)?.split(',').map(s => s.trim()) || [];
                 
                 const houseNumRaw = addressParts[0] || "0";
-                const houseNumClean = parseInt(houseNumRaw.replace(/\D/g, '')) || 0;
+                const houseNumClean = houseNumRaw.trim();
 
                 let hour = 10; 
                 if (selectedTime) {
@@ -381,12 +383,16 @@ export default function BookingSummaryScreen() {
                      };
                      console.log("[BookingSummary] Creating new Vehicle:", vehiclePayload);
                      const vehRes = await createVehicle(vehiclePayload).unwrap();
+                     console.log("[BookingSummary] Vehicle Created Response:", vehRes);
                      if (vehRes?.data?._id) {
                         currentVehicleId = vehRes.data._id;
                         console.log("[BookingSummary] New Vehicle Created:", currentVehicleId);
+                     } else {
+                        console.warn("[BookingSummary] Vehicle created but no ID returned:", vehRes);
                      }
-                   } catch (e) {
+                   } catch (e: any) {
                       console.error("[BookingSummary] Failed to auto-create vehicle", e);
+                      console.log("[BookingSummary] Vehicle Error Details:", JSON.stringify(e?.data || e, null, 2));
                    }
                 }
 
@@ -435,6 +441,35 @@ export default function BookingSummaryScreen() {
                     serviceId: finalWashPackageId,
                   })
                 );
+
+                // Save address to Redux profile
+                if (address) {
+                  dispatch(
+                    addAddress({
+                      id: currentAddressId || `addr-${Date.now()}`,
+                      flatNumber: String(houseNumClean),
+                      locality: String(addressParts[1] || "Locality"),
+                      landmark: String(addressParts[2] || ""),
+                      city: String(addressParts[2] || addressParts[1] || "City"),
+                      pincode: String(addressParts[3] || "000000"),
+                      addressType: "Home",
+                      fullAddress: address as string,
+                    })
+                  );
+                }
+
+                // Save vehicle to Redux user cars
+                if (vehicleNumber) {
+                  dispatch(
+                    addCar({
+                      id: currentVehicleId || `car-${Date.now()}`,
+                      name: `${vehicleType || "Car"}`,
+                      type: VEHICLE_TYPE_MAP[(vehicleType as string)?.toLowerCase()] || "Sedan",
+                      number: vehicleNumber as string,
+                      image: "https://cdn-icons-png.flaticon.com/512/743/743007.png",
+                    })
+                  );
+                }
     
                 router.push({
                   pathname: "/(tabs)/home/book-doorstep/order-confirmation",

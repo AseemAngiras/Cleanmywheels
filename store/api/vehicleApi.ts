@@ -29,12 +29,12 @@ export const vehicleApi = createApi({
   }),
   endpoints: (builder) => ({
     getVehicles: builder.query<any, void>({
-      query: () => "/user-vehicle",
+      query: () => "/vehicle",
       providesTags: ["Vehicle"],
     }),
     createVehicle: builder.mutation<any, any>({
       query: (body) => ({
-        url: "/user-vehicle",
+        url: "/vehicle",
         method: "POST",
         body,
       }),

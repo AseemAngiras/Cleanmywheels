@@ -1,16 +1,17 @@
 import {
-  useRegisterMutation,
-  useRequestOtpMutation,
-  useVerifyLoginOtpMutation,
-  useVerifyRegisterOtpMutation
+    useRegisterMutation,
+    useRequestOtpMutation,
+    useVerifyLoginOtpMutation,
+    useVerifyRegisterOtpMutation
 } from "@/store/api/authApi";
 import { loginSuccess } from "@/store/slices/authSlice";
+import { updateProfile } from "@/store/slices/profileSlice";
 import { setUser } from "@/store/slices/userSlice";
 import {
-  useFocusEffect,
-  useLocalSearchParams,
-  useNavigation,
-  useRouter,
+    useFocusEffect,
+    useLocalSearchParams,
+    useNavigation,
+    useRouter,
 } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -19,17 +20,17 @@ import BookingStepper from "@/components/BookingStepper";
 import { RootState } from "@/store";
 import { Ionicons } from "@expo/vector-icons";
 import {
-  Alert,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Alert,
+    KeyboardAvoidingView,
+    Modal,
+    Platform,
+    SafeAreaView,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 type TimeSlot = {
   id: string;
@@ -228,6 +229,14 @@ export default function SelectSlotScreen() {
             }
 
             if (user) dispatch(setUser(user));
+
+            // Save the entered name and phone to profile slice
+            if (name.trim()) {
+                dispatch(updateProfile({ key: "name", value: name.trim() }));
+            }
+            if (phoneNumber.trim()) {
+                dispatch(updateProfile({ key: "phone", value: phoneNumber.trim() }));
+            }
 
             setIsLoginModalVisible(false);
             setOtp(["", "", "", "", "", ""]);

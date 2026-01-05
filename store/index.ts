@@ -2,6 +2,7 @@ import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import { addressApi } from "./api/addressApi";
 import { authApi } from "./api/authApi";
 import { bookingApi } from "./api/bookingApi";
+import { notificationApi } from "./api/notificationApi";
 import { vehicleApi } from "./api/vehicleApi";
 import { washPackageApi } from "./api/washPackageApi";
 import authReducer, { logout } from "./slices/authSlice";
@@ -17,6 +18,7 @@ const appReducer = combineReducers({
   [authApi.reducerPath]: authApi.reducer,
   [addressApi.reducerPath]: addressApi.reducer,
   [bookingApi.reducerPath]: bookingApi.reducer,
+  [notificationApi.reducerPath]: notificationApi.reducer,
   [vehicleApi.reducerPath]: vehicleApi.reducer,
   [washPackageApi.reducerPath]: washPackageApi.reducer,
 });
@@ -36,6 +38,7 @@ export const store = configureStore({
       authApi.middleware,
       addressApi.middleware,
       bookingApi.middleware,
+      notificationApi.middleware,
       vehicleApi.middleware,
       washPackageApi.middleware
     ),
@@ -43,3 +46,4 @@ export const store = configureStore({
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
+

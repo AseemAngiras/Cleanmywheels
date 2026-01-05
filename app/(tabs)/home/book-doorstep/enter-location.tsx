@@ -1,4 +1,5 @@
 import { RootState } from "@/store";
+import { useCreateAddressMutation, useLazyGetAddressesQuery } from "@/store/api/addressApi";
 import { setBookingAddress } from "@/store/slices/bookingSlice";
 import { addAddress, Address } from "@/store/slices/profileSlice";
 import { Ionicons } from "@expo/vector-icons";
@@ -7,18 +8,18 @@ import * as Location from "expo-location";
 import { useNavigation, useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
-    ActivityIndicator,
-    Dimensions,
-    KeyboardAvoidingView,
-    Modal,
-    Platform,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Dimensions,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from "react-native";
 import MapView, { Marker, Region } from "react-native-maps";
 import { useDispatch, useSelector } from "react-redux";
@@ -30,9 +31,14 @@ export default function EnterLocationScreen() {
   const router = useRouter();
   const navigation = useNavigation();
 
+  const [createAddress, { isLoading: isCreating }] = useCreateAddressMutation();
+  const [triggerGetAddresses] = useLazyGetAddressesQuery();
+
   const savedAddresses = useSelector(
     (state: RootState) => state.profile.addresses
   );
+
+  const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
 
   React.useLayoutEffect(() => {
     navigation.getParent()?.setOptions({
@@ -124,7 +130,7 @@ export default function EnterLocationScreen() {
     if (!selectedCoord) return;
     setMapVisible(false);
     setIsLocating(true);
-
+  
     if (selectedSavedAddressId) {
       setSelectedSavedAddressId(null);
     }
@@ -149,7 +155,7 @@ export default function EnterLocationScreen() {
     }
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     setErrorMsg("");
     if (!flatNumber.trim()) {
       setErrorMsg("Please enter House / Flat Number");
@@ -189,8 +195,7 @@ export default function EnterLocationScreen() {
 
     const fullAddress = `${flatNumber}, ${locality}, ${city}, ${pincode}`;
 
-    const addressObject = {
-      id: nanoid(),
+    const addressPayload = {
       flatNumber,
       locality,
       landmark,
@@ -200,21 +205,71 @@ export default function EnterLocationScreen() {
       fullAddress,
       latitude: selectedCoord?.lat,
       longitude: selectedCoord?.long,
-
     };
 
-    dispatch(addAddress(addressObject));
+    if (!isLoggedIn) {
+        console.log("Guest User: Saving address locally");
+        const fallbackId = nanoid();
+        const fallbackAddr = { ...addressPayload, id: fallbackId };
+        
+        dispatch(addAddress(fallbackAddr));
+        dispatch(setBookingAddress({ addressId: fallbackId }));
+        
+        router.push({
+          pathname: "/(tabs)/home/book-doorstep/select-service",
+          params: {
+            address: fullAddress,
+            latitude: selectedCoord?.lat,
+            longitude: selectedCoord?.long,
+          }
+        });
+        return;
+    }
 
-    dispatch(setBookingAddress({ addressId: addressObject.id }));
+    try {
+      await createAddress(addressPayload).unwrap();
+      
+      const result = await triggerGetAddresses().unwrap();
+      const addressList = result.addressList || [];
+      
+      const newAddress = addressList.find((addr: any) => 
+        addr.fullAddress === fullAddress && 
+        addr.addressType === addressType
+      );
 
-    router.push({
-      pathname: "/(tabs)/home/book-doorstep/select-service",
-      params: {
-        address: fullAddress,
-        latitude: selectedCoord?.lat,
-        longitude: selectedCoord?.long,
+      if (newAddress) {
+        dispatch(addAddress(newAddress));
+        dispatch(setBookingAddress({ addressId: newAddress.id || newAddress._id }));
+
+        router.push({
+          pathname: "/(tabs)/home/book-doorstep/select-service",
+          params: {
+            address: fullAddress,
+            latitude: selectedCoord?.lat,
+            longitude: selectedCoord?.long,
+          }
+        });
+      } else {
+        console.warn("New address not found in list, using local fallback");
+        const fallbackId = nanoid();
+        const fallbackAddr = { ...addressPayload, id: fallbackId };
+        dispatch(addAddress(fallbackAddr));
+        dispatch(setBookingAddress({ addressId: fallbackId }));
+        
+        router.push({
+          pathname: "/(tabs)/home/book-doorstep/select-service",
+          params: {
+            address: fullAddress,
+            latitude: selectedCoord?.lat,
+            longitude: selectedCoord?.long,
+          }
+        });
       }
-    });
+
+    } catch (err) {
+      console.error("Failed to create address", err);
+      setErrorMsg("Failed to save address. Please try again.");
+    }
   };
 
   return (
@@ -441,8 +496,16 @@ export default function EnterLocationScreen() {
       {/* Footer Button */}
       <View style={styles.footer}>
         {errorMsg ? <Text style={styles.errorText}>{errorMsg}</Text> : null}
-        <TouchableOpacity style={styles.confirmButton} onPress={handleConfirm}>
-          <Text style={styles.confirmButtonText}>Confirm Address</Text>
+        <TouchableOpacity 
+            style={[styles.confirmButton, isCreating && { opacity: 0.7 }]} 
+            onPress={handleConfirm}
+            disabled={isCreating}
+        >
+            {isCreating ? (
+                 <ActivityIndicator color="#1a1a1a" />
+            ) : (
+                <Text style={styles.confirmButtonText}>Confirm Address</Text>
+            )}
         </TouchableOpacity>
       </View>
 
@@ -506,12 +569,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 15,
     backgroundColor: "#fff",
-    // Minimal header, no shadow per design
   },
   backButton: {
     width: 40,
     height: 40,
-    backgroundColor: "#f5f5f5", // Use light grey for circle bg if needed, or white
+    backgroundColor: "#f5f5f5", 
     borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
@@ -523,7 +585,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingBottom: 100, // Space for footer
+    paddingBottom: 100,   
   },
 
   currentLocationRow: {
@@ -581,7 +643,7 @@ const styles = StyleSheet.create({
   tagSelected: {
     backgroundColor: "#fff",
     borderWidth: 1,
-    borderColor: "#e0e0e0", // Keep specific border
+    borderColor: "#e0e0e0",
     elevation: 1,
   },
   tagText: { fontSize: 14, fontWeight: "600", color: "#666" },

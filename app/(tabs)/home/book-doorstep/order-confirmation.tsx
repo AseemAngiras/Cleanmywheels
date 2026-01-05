@@ -1,7 +1,7 @@
 
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Dimensions, Image, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const { width } = Dimensions.get('window');
@@ -23,7 +23,6 @@ export default function OrderConfirmationScreen() {
     const [status, setStatus] = useState('Confirmed');
     const [statusMessage, setStatusMessage] = useState('Your booking has been confirmed.');
 
-    // Simulate Status Updates
     useEffect(() => {
         const timer1 = setTimeout(() => {
             setStatus('Assigning Professional');

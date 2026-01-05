@@ -1,22 +1,33 @@
 import { RootState } from "@/store";
-import { loginSuccess } from "@/store/slices/authSlice";
+import { useCreateBookingMutation } from "@/store/api/bookingApi";
+import { logout } from "@/store/slices/authSlice";
 import { addBooking } from "@/store/slices/bookingSlice";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
-    Alert,
-    Modal,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    TouchableWithoutFeedback,
-    View,
+  Alert,
+  Modal,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
 } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import BookingStepper from "../../../../components/BookingStepper";
+
+const VEHICLE_TYPE_MAP: Record<string, string> = {
+  sedan: "Sedan",
+  suv: "SUV",
+  hatchback: "Hatchback",
+  luxury: "Luxury",
+  bike: "Bike",
+  scooter: "Scooter",
+  others: "Car",
+};
 
 export default function BookingSummaryScreen() {
   const router = useRouter();
@@ -24,42 +35,33 @@ export default function BookingSummaryScreen() {
   const params = useLocalSearchParams();
 
   const dispatch = useDispatch();
+  const [createBooking, { isLoading: isCreatingBooking }] = useCreateBookingMutation();
   const currentBooking = useSelector(
     (state: RootState) => state.bookings.currentBooking
   );
-  // Extract params - Note that for doorstep flow, we display user address instead of shop address
+  const authState = useSelector((state: RootState) => state.auth);
+
   const {
     serviceName,
     servicePrice,
     addons,
     vehicleType,
     vehicleNumber,
-    shopName, // This might be the selected shop name for service assignment
-    // shopAddress, // Not used for map, but might be relevant?
-    // shopImage,
-    // shopRating,
-    shopLat, // These might be shop coordinates
+    shopName, 
+    shopLat, 
     shopLong,
-
-    // Slot info
     selectedDate,
     selectedTime,
 
-    // User info
     userPhone,
     userName,
 
-    // Address info (passed from earlier flow or context)
-    // Wait, where is address coming from?
-    // It should have been passed down from enter-location -> select-service -> shops-list -> select-slot -> summary
-    // Let's assume we need to ensure these params traverse the stack.
-    // Or if using context, we grab from there.
-    // For now, let's look for address params.
     address,
     latitude,
     longitude,
 
     totalPrice,
+    serviceId,
   } = params;
 
   const lat = parseFloat(latitude as string) || 37.7749;
@@ -68,7 +70,6 @@ export default function BookingSummaryScreen() {
   const isDoorstep = shopName === "Your Location";
 
 
-  // Payment Logic
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<
     string | null
   >("upi");
@@ -292,10 +293,10 @@ export default function BookingSummaryScreen() {
         <TouchableOpacity
           style={[
             styles.payButton,
-            !selectedPaymentMethod && styles.payButtonDisabled,
+            (!selectedPaymentMethod || isCreatingBooking) && styles.payButtonDisabled,
           ]}
-          disabled={!selectedPaymentMethod}
-          onPress={() => {
+          disabled={!selectedPaymentMethod || isCreatingBooking}
+          onPress={async () => {
             if (!selectedPaymentMethod) {
               Alert.alert(
                 "Payment Method Required",
@@ -304,32 +305,92 @@ export default function BookingSummaryScreen() {
               return;
             }
 
-            dispatch(
-              addBooking({
-                center: (shopName as string) || "Your Location",
-                date: selectedDate as string,
-                timeSlot: selectedTime as string,
-                car: vehicleType ? `${vehicleType} - ${vehicleNumber}` : "Vehicle",
-                carImage: "https://cdn-icons-png.flaticon.com/512/743/743007.png",
-                phone: userPhone as string,
-                price: Number(grandTotal),
-                address: address as string,
-                plate: vehicleNumber as string,
-                serviceName: serviceName as string,
-              })
-            );
+            try {
+                const addressParts = (address as string)?.split(',').map(s => s.trim()) || [];
+                
+                const houseNumRaw = addressParts[0] || "0";
+                const houseNumClean = parseInt(houseNumRaw.replace(/\D/g, '')) || 0;
 
-            // Ensure user is logged in after booking
-            dispatch(loginSuccess('dummy-token'));
+                let hour = 10; 
+                if (selectedTime) {
+                    const [time, modifier] = (selectedTime as string).split(' ');
+                    let [h] = time.split(':').map(Number);
+                    if (modifier === 'PM' && h < 12) h += 12;
+                    if (modifier === 'AM' && h === 12) h = 0;
+                    hour = h;
+                }
 
-            router.push({
-              pathname: "/(tabs)/home/book-doorstep/order-confirmation",
-              params: {
-                ...params,
-                grandTotal,
-                paymentMethod: selectedPaymentMethod,
-              },
-            });
+                console.log("🛠 [BookingSummary] Address Raw:", address);
+                console.log("🛠 [BookingSummary] Address Parts Length:", addressParts.length);
+
+                    const finalWashPackageId = serviceId as string;
+
+                    if (!finalWashPackageId || finalWashPackageId.length !== 24) {
+                        console.error("❌ [BookingSummary] Invalid washPackage ID format:", serviceId);
+                        Alert.alert("Selection Error", "Invalid wash package selected. Please go back and select a service again.");
+                        return;
+                    }
+
+                    const bookingPayload: any = {
+                        houseOrFlatNo: String(houseNumClean),
+                        locality: String(addressParts[1] || "Locality"),
+                        landmark: String(addressParts[2] || "Landmark"),
+                        city: String(addressParts[2] || (addressParts[1] ? "City" : "Your City")),
+                        postalCode: String(addressParts[3] || "000000"),
+                        addressType: "Home",
+                        washPackage: finalWashPackageId,
+                        vehicleType: VEHICLE_TYPE_MAP[(vehicleType as string)?.toLowerCase()] || (vehicleType as string) || "Sedan",
+                        vehicleNo: String(vehicleNumber ? (vehicleNumber as string) : "N/A"),
+                        bookingDate: selectedDate ? (selectedDate as string) : new Date().toISOString().split('T')[0],
+                        bookingTime: Number(hour)
+                    };
+
+                    if (params.addressId) bookingPayload.address = params.addressId;
+                    if (params.vehicleId) bookingPayload.vehicle = params.vehicleId;
+
+                console.log("[BookingSummary] TRACE - Auth Token:", authState.token);
+                console.log("[BookingSummary] TRACE - Payload:", JSON.stringify(bookingPayload, null, 2));
+                const response = await createBooking(bookingPayload).unwrap();
+                console.log("[BookingSummary] TRACE - Response:", response);
+
+                dispatch(
+                  addBooking({
+                    center: (shopName as string) || "Your Location",
+                    date: selectedDate as string,
+                    timeSlot: selectedTime as string,
+                    car: vehicleType ? `${vehicleType} - ${vehicleNumber}` : "Vehicle",
+                    carImage: "https://cdn-icons-png.flaticon.com/512/743/743007.png",
+                    phone: userPhone as string,
+                    price: Number(grandTotal),
+                    address: address as string,
+                    plate: vehicleNumber as string,
+                    serviceName: serviceName as string,
+                  })
+                );
+    
+                router.push({
+                  pathname: "/(tabs)/home/book-doorstep/order-confirmation",
+                  params: {
+                    ...params,
+                    grandTotal,
+                    paymentMethod: selectedPaymentMethod,
+                    bookingId: response?.data?._id || "temp-id"
+                  },
+                });
+
+            } catch (err: any) {
+                console.error("❌ [BookingSummary] FULL ERROR OBJECT:", JSON.stringify(err, null, 2));
+                if (err.status === 401) {
+                    Alert.alert(
+                        "Session Expired",
+                        "Your technical session has expired or is invalid. Please log out and log in again.",
+                        [{ text: "OK", onPress: () => dispatch(logout()) }]
+                    );
+                } else {
+                    const errorMsg = err?.data?.message || err?.message || "Something went wrong while creating your booking.";
+                    Alert.alert("Booking Failed", errorMsg);
+                }
+            }
           }}
         >
           <View style={styles.payButtonContent}>
@@ -338,13 +399,17 @@ export default function BookingSummaryScreen() {
               <Text style={styles.payButtonTotalLabel}>TOTAL</Text>
             </View>
             <View style={styles.payButtonActionContainer}>
-              <Text style={styles.payButtonActionText}>Pay Now</Text>
-              <Ionicons
-                name="caret-forward"
-                size={16}
-                color="#1a1a1a"
-                style={{ marginLeft: 4 }}
-              />
+              <Text style={styles.payButtonActionText}>
+                {isCreatingBooking ? "Processing..." : "Pay Now"}
+              </Text>
+              {!isCreatingBooking && (
+                  <Ionicons
+                    name="caret-forward"
+                    size={16}
+                    color="#1a1a1a"
+                    style={{ marginLeft: 4 }}
+                  />
+              )}
             </View>
           </View>
         </TouchableOpacity>
@@ -450,7 +515,6 @@ const styles = StyleSheet.create({
   backButton: { padding: 5 },
   headerTitle: { fontSize: 18, fontWeight: "bold", color: "#1a1a1a" },
 
-  // Map
   mapContainer: {
     height: 200,
     marginHorizontal: 20,
@@ -486,7 +550,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: "#fff3e0", // Orange-ish for user address
+    backgroundColor: "#fff3e0",
     alignItems: "center",
     justifyContent: "center",
     marginRight: 10,
@@ -494,7 +558,6 @@ const styles = StyleSheet.create({
   pinShopName: { fontSize: 14, fontWeight: "bold", color: "#1a1a1a" },
   pinShopAddress: { fontSize: 10, color: "#666", marginTop: 2 },
 
-  // Card
   card: {
     backgroundColor: "#fff",
     borderRadius: 20,
@@ -546,7 +609,6 @@ const styles = StyleSheet.create({
     marginLeft: 51,
   },
 
-  // Payment
   paymentRow: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -565,7 +627,6 @@ const styles = StyleSheet.create({
   totalTextLabel: { fontSize: 16, fontWeight: "bold", color: "#1a1a1a" },
   totalTextValue: { fontSize: 18, fontWeight: "bold", color: "#1a1a1a" },
 
-  // Footer
   footer: {
     position: "absolute",
     bottom: 0,
@@ -577,7 +638,6 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    // Shadow
     shadowColor: "#000",
     shadowOffset: { width: 0, height: -5 },
     shadowOpacity: 0.1,
@@ -613,7 +673,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingVertical: 10,
     paddingHorizontal: 16,
-    flex: 1.2, // Give button more space
+    flex: 1.2,
     height: 50,
     justifyContent: "center",
   },
@@ -684,7 +744,6 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
 
-  // Payment Options Styles
   optionCard: {
     backgroundColor: "#fff",
     borderRadius: 20,
@@ -692,7 +751,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     padding: 20,
     borderWidth: 1,
-    borderColor: "#eee", // Changed to match other file
+    borderColor: "#eee",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.03,
@@ -703,7 +762,7 @@ const styles = StyleSheet.create({
   },
   optionCardSelected: {
     borderColor: "#84c95c",
-    backgroundColor: "#f8fff5", // Changed to match other file
+    backgroundColor: "#f8fff5",
   },
   recommendedBadge: {
     position: "absolute",

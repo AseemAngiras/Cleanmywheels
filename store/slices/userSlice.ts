@@ -34,7 +34,12 @@ const userSlice = createSlice({
         },
 
         addCar(state, action: PayloadAction<Car>){
-            state.cars.push(action.payload);
+            const existingCar = state.cars.find(
+                car => car.number.toUpperCase() === action.payload.number.toUpperCase()
+            );
+            if (!existingCar) {
+                state.cars.push(action.payload);
+            }
         },
 
         updateCar(state, action: PayloadAction<Car>) {

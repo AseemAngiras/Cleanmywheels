@@ -7,6 +7,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Image, Keyboard, KeyboardAvoidingView, LayoutAnimation, Modal, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import { useDispatch } from 'react-redux';
 import BookingStepper from '../../../../components/BookingStepper';
+import { ListSkeleton } from '../../../../components/SkeletonLoader';
 
 
 const SERVICE_ADDONS: Record<string, { id: string; name: string; price: number }[]> = {};
@@ -280,7 +281,7 @@ export default function SelectServiceScreen() {
                         {/* Services - Vertical Accordion */}
                         <View style={styles.servicesContainer}>
                             {isLoadingPackages ? (
-                                <ActivityIndicator size="large" color="#84c95c" style={{ marginTop: 20 }} />
+                                <ListSkeleton type="service" count={3} />
                             ) : services.length === 0 ? (
                                 <Text style={{ textAlign: 'center', marginTop: 20, color: '#888' }}>No wash packages available</Text>
                             ) : services.map((service) => {

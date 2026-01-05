@@ -1,4 +1,15 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
+import {
+  FLUSH,
+  PAUSE,
+  PERSIST,
+  persistReducer,
+  persistStore,
+  PURGE,
+  REGISTER,
+  REHYDRATE,
+} from "redux-persist";
 import { addressApi } from "./api/addressApi";
 import { authApi } from "./api/authApi";
 import { bookingApi } from "./api/bookingApi";
@@ -9,6 +20,12 @@ import authReducer, { logout } from "./slices/authSlice";
 import bookingReducer from "./slices/bookingSlice";
 import profileReducer from "./slices/profileSlice";
 import userReducer from "./slices/userSlice";
+
+const persistConfig = {
+  key: "root",
+  storage: AsyncStorage,
+  whitelist: ["auth", "profile", "user", "bookings"],
+};
 
 const appReducer = combineReducers({
   auth: authReducer,
@@ -25,16 +42,23 @@ const appReducer = combineReducers({
 
 const rootReducer = (state: any, action: any) => {
   if (action.type === logout.type) {
+    AsyncStorage.removeItem("persist:root");
     state = undefined;
   }
 
   return appReducer(state, action);
 };
 
+const persistedReducer = persistReducer(persistConfig, rootReducer);
+
 export const store = configureStore({
-  reducer: rootReducer,
+  reducer: persistedReducer,
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(
+    getDefaultMiddleware({
+      serializableCheck: {
+        ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
+      },
+    }).concat(
       authApi.middleware,
       addressApi.middleware,
       bookingApi.middleware,
@@ -44,6 +68,7 @@ export const store = configureStore({
     ),
 });
 
+export const persistor = persistStore(store);
+
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
-

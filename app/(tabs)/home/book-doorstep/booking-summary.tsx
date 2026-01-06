@@ -1,7 +1,5 @@
 import { RootState } from "@/store";
-import { useCreateAddressMutation } from "@/store/api/addressApi";
 import { useCreateBookingMutation } from "@/store/api/bookingApi";
-import { useCreateVehicleMutation } from "@/store/api/vehicleApi";
 import { logout } from "@/store/slices/authSlice";
 import { addBooking } from "@/store/slices/bookingSlice";
 import { addAddress } from "@/store/slices/profileSlice";
@@ -39,12 +37,8 @@ export default function BookingSummaryScreen() {
   const params = useLocalSearchParams();
 
   const dispatch = useDispatch();
-  const [createBooking, { isLoading: isCreatingBooking }] = useCreateBookingMutation();
-  const [createAddress] = useCreateAddressMutation();
-  const [createVehicle] = useCreateVehicleMutation();
-  const currentBooking = useSelector(
-    (state: RootState) => state.bookings.currentBooking
-  );
+  const [createBooking, { isLoading: isCreatingBooking }] =
+    useCreateBookingMutation();
   const authState = useSelector((state: RootState) => state.auth);
 
   const {
@@ -53,8 +47,8 @@ export default function BookingSummaryScreen() {
     addons,
     vehicleType,
     vehicleNumber,
-    shopName, 
-    shopLat, 
+    shopName,
+    shopLat,
     shopLong,
     selectedDate,
     selectedTime,
@@ -74,7 +68,6 @@ export default function BookingSummaryScreen() {
   const long = parseFloat(longitude as string) || -122.4194;
 
   const isDoorstep = shopName === "Your Location";
-
 
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<
     string | null
@@ -179,9 +172,7 @@ export default function BookingSummaryScreen() {
             </View>
             <View style={styles.rowContent}>
               <Text style={styles.label}>Service</Text>
-              <Text style={styles.value}>
-                {serviceName || "Premium Wash"}
-              </Text>
+              <Text style={styles.value}>{serviceName || "Premium Wash"}</Text>
             </View>
           </View>
 
@@ -196,7 +187,7 @@ export default function BookingSummaryScreen() {
               <Text style={styles.value}>
                 {vehicleType
                   ? (vehicleType as string).charAt(0).toUpperCase() +
-                  (vehicleType as string).slice(1)
+                    (vehicleType as string).slice(1)
                   : "Sedan"}{" "}
                 - {vehicleNumber || "N/A"}
               </Text>
@@ -214,9 +205,9 @@ export default function BookingSummaryScreen() {
               <Text style={styles.value}>
                 {selectedDate
                   ? new Date(selectedDate as string).toLocaleDateString(
-                    undefined,
-                    { weekday: "short", day: "numeric", month: "short" }
-                  )
+                      undefined,
+                      { weekday: "short", day: "numeric", month: "short" }
+                    )
                   : "Date"}
                 , {selectedTime || "Time"}
               </Text>
@@ -245,12 +236,13 @@ export default function BookingSummaryScreen() {
             <Text style={styles.paymentValue}>₹{servicePrice || 0}</Text>
           </View>
 
-          {Array.isArray(parsedAddons) && parsedAddons.map((addon: any) => (
-            <View key={addon.id} style={styles.paymentRow}>
-              <Text style={styles.paymentLabel}>{addon.name}</Text>
-              <Text style={styles.paymentValue}>+₹{addon.price}</Text>
-            </View>
-          ))}
+          {Array.isArray(parsedAddons) &&
+            parsedAddons.map((addon: any) => (
+              <View key={addon.id} style={styles.paymentRow}>
+                <Text style={styles.paymentLabel}>{addon.name}</Text>
+                <Text style={styles.paymentValue}>+₹{addon.price}</Text>
+              </View>
+            ))}
 
           <View style={styles.totalDivider} />
 
@@ -299,7 +291,8 @@ export default function BookingSummaryScreen() {
         <TouchableOpacity
           style={[
             styles.payButton,
-            (!selectedPaymentMethod || isCreatingBooking) && styles.payButtonDisabled,
+            (!selectedPaymentMethod || isCreatingBooking) &&
+              styles.payButtonDisabled,
           ]}
           disabled={!selectedPaymentMethod || isCreatingBooking}
           onPress={async () => {
@@ -312,187 +305,164 @@ export default function BookingSummaryScreen() {
             }
 
             try {
-                const addressParts = (address as string)?.split(',').map(s => s.trim()) || [];
-                
-                const houseNumRaw = addressParts[0] || "0";
-                const houseNumClean = houseNumRaw.trim();
+              const addressParts =
+                (address as string)?.split(",").map((s) => s.trim()) || [];
 
-                let hour = 10; 
-                if (selectedTime) {
-                    const [time, modifier] = (selectedTime as string).split(' ');
-                    let [h] = time.split(':').map(Number);
-                    if (modifier === 'PM' && h < 12) h += 12;
-                    if (modifier === 'AM' && h === 12) h = 0;
-                    hour = h;
-                }
+              const houseNumRaw = addressParts[0] || "0";
+              const houseNumClean = houseNumRaw.trim();
 
-                console.log("🛠 [BookingSummary] Address Raw:", address);
-                console.log("🛠 [BookingSummary] Address Parts Length:", addressParts.length);
+              const postalCodeMatch = (address as string)?.match(/\b\d{6}\b/);
+              const postalCode = postalCodeMatch
+                ? postalCodeMatch[0]
+                : "000000";
 
-                const isValidObjectId = (id: any) => /^[0-9a-fA-F]{24}$/.test(id);
+              let hour = 10;
+              if (selectedTime) {
+                const [time, modifier] = (selectedTime as string).split(" ");
+                let [h] = time.split(":").map(Number);
+                if (modifier === "PM" && h < 12) h += 12;
+                if (modifier === "AM" && h === 12) h = 0;
+                hour = h;
+              }
 
-                let currentAddressId: string | undefined = Array.isArray(params.addressId) ? params.addressId[0] : params.addressId;
-                if (currentAddressId === "undefined" || currentAddressId === "null") currentAddressId = undefined;
-                
-                // If ID exists but is NOT a valid Mongo ID (e.g. nanoid), treat as missing so we create a new one
-                if (currentAddressId && !isValidObjectId(currentAddressId)) {
-                    console.log("[BookingSummary] Address ID is temporary/invalid, will create new:", currentAddressId);
-                    currentAddressId = undefined;
-                }
+              console.log("🛠 [BookingSummary] Address Raw:", address);
+              console.log(
+                "🛠 [BookingSummary] Postal Code Extracted:",
+                postalCode
+              );
 
-                if (!currentAddressId && currentBooking.address && isValidObjectId(currentBooking.address)) {
-                     currentAddressId = currentBooking.address;
-                }
+              const finalWashPackageId = serviceId as string;
 
-                // If no addressId but we have address text, try to create it
-                if (!currentAddressId && address) {
-                  try {
-                    const newAddrPayload = {
-                      houseOrFlatNo: String(houseNumClean),
-                      locality: String(addressParts[1] || "Locality"),
-                      landmark: String(addressParts[2] || "Landmark"),
-                      city: String(addressParts[2] || (addressParts[1] ? "City" : "Your City")),
-                      postalCode: String(addressParts[3] || "000000"),
-                      addressType: "Home",
-                    };
-                    console.log("[BookingSummary] Creating new Address:", newAddrPayload);
-                    const addrRes = await createAddress(newAddrPayload).unwrap();
-                    if (addrRes?.data?._id) {
-                       currentAddressId = addrRes.data._id;
-                       console.log("[BookingSummary] New Address Created:", currentAddressId);
-                    }
-                  } catch (e) {
-                     console.error("[BookingSummary] Failed to auto-create address", e);
-                  }
-                }
+              if (!finalWashPackageId || finalWashPackageId.length !== 24) {
+                console.error(
+                  "❌ [BookingSummary] Invalid washPackage ID format:",
+                  serviceId
+                );
+                Alert.alert(
+                  "Selection Error",
+                  "Invalid wash package selected. Please go back and select a service again."
+                );
+                return;
+              }
 
-                let currentVehicleId: string | undefined = Array.isArray(params.vehicleId) ? params.vehicleId[0] : params.vehicleId;
-                if (currentVehicleId === "undefined" || currentVehicleId === "null") currentVehicleId = undefined;
+              const cityPart =
+                addressParts.find(
+                  (part, index) => index >= 2 && !/^\d{6}$/.test(part)
+                ) ||
+                addressParts[2] ||
+                "City";
 
-                if (currentVehicleId && !isValidObjectId(currentVehicleId)) {
-                     console.log("[BookingSummary] Vehicle ID is temporary/invalid, will create new:", currentVehicleId);
-                     currentVehicleId = undefined;
-                }
+              const bookingPayload: any = {
+                houseOrFlatNo: String(houseNumClean),
+                locality: String(addressParts[1] || "Locality"),
+                landmark: String(addressParts[2] || "Landmark"),
+                city: String(cityPart),
+                postalCode: postalCode,
+                addressType: "Home",
+                washPackage: finalWashPackageId,
+                vehicleType:
+                  VEHICLE_TYPE_MAP[(vehicleType as string)?.toLowerCase()] ||
+                  (vehicleType as string) ||
+                  "Sedan",
+                vehicleNo: String(
+                  vehicleNumber ? (vehicleNumber as string) : "N/A"
+                ),
+                bookingDate: selectedDate
+                  ? (selectedDate as string)
+                  : new Date().toISOString().split("T")[0],
+                bookingTime: Number(hour),
+              };
 
-                if (!currentVehicleId && vehicleNumber) {
-                   try {
-                     const vType = VEHICLE_TYPE_MAP[(vehicleType as string)?.toLowerCase()] || (vehicleType as string) || "Sedan";
-                     const vehiclePayload = {
-                        vehicleType: vType,
-                        vehicleNo: String(vehicleNumber),
-                     };
-                     console.log("[BookingSummary] Creating new Vehicle:", vehiclePayload);
-                     const vehRes = await createVehicle(vehiclePayload).unwrap();
-                     console.log("[BookingSummary] Vehicle Created Response:", vehRes);
-                     if (vehRes?.data?._id) {
-                        currentVehicleId = vehRes.data._id;
-                        console.log("[BookingSummary] New Vehicle Created:", currentVehicleId);
-                     } else {
-                        console.warn("[BookingSummary] Vehicle created but no ID returned:", vehRes);
-                     }
-                   } catch (e: any) {
-                      console.error("[BookingSummary] Failed to auto-create vehicle", e);
-                      console.log("[BookingSummary] Vehicle Error Details:", JSON.stringify(e?.data || e, null, 2));
-                   }
-                }
+              console.log(
+                "[BookingSummary] TRACE - Auth Token:",
+                authState.token
+              );
+              console.log(
+                "[BookingSummary] TRACE - Payload:",
+                JSON.stringify(bookingPayload, null, 2)
+              );
+              const response = await createBooking(bookingPayload).unwrap();
+              console.log("[BookingSummary] TRACE - Response:", response);
 
-                    const finalWashPackageId = serviceId as string;
+              dispatch(
+                addBooking({
+                  center: (shopName as string) || "Your Location",
+                  date: selectedDate as string,
+                  timeSlot: selectedTime as string,
+                  car: vehicleType
+                    ? `${vehicleType} - ${vehicleNumber}`
+                    : "Vehicle",
+                  carImage:
+                    "https://cdn-icons-png.flaticon.com/512/743/743007.png",
+                  phone: userPhone as string,
+                  price: Number(grandTotal),
+                  address: address as string,
+                  plate: vehicleNumber as string,
+                  serviceName: serviceName as string,
+                  serviceId: finalWashPackageId,
+                })
+              );
 
-                    if (!finalWashPackageId || finalWashPackageId.length !== 24) {
-                        console.error("❌ [BookingSummary] Invalid washPackage ID format:", serviceId);
-                        Alert.alert("Selection Error", "Invalid wash package selected. Please go back and select a service again.");
-                        return;
-                    }
-
-                    const bookingPayload: any = {
-                        houseOrFlatNo: String(houseNumClean),
-                        locality: String(addressParts[1] || "Locality"),
-                        landmark: String(addressParts[2] || "Landmark"),
-                        city: String(addressParts[2] || (addressParts[1] ? "City" : "Your City")),
-                        postalCode: String(addressParts[3] || "000000"),
-                        addressType: "Home",
-                        washPackage: finalWashPackageId,
-                        vehicleType: VEHICLE_TYPE_MAP[(vehicleType as string)?.toLowerCase()] || (vehicleType as string) || "Sedan",
-                        vehicleNo: String(vehicleNumber ? (vehicleNumber as string) : "N/A"),
-                        bookingDate: selectedDate ? (selectedDate as string) : new Date().toISOString().split('T')[0],
-                        bookingTime: Number(hour)
-                    };
-
-                    if (currentAddressId) bookingPayload.address = currentAddressId;
-                    if (currentVehicleId) bookingPayload.vehicle = currentVehicleId;
-
-                console.log("[BookingSummary] TRACE - Auth Token:", authState.token);
-                console.log("[BookingSummary] TRACE - Payload:", JSON.stringify(bookingPayload, null, 2));
-                const response = await createBooking(bookingPayload).unwrap();
-                console.log("[BookingSummary] TRACE - Response:", response);
-
+              // Save address to Redux profile
+              if (address) {
                 dispatch(
-                  addBooking({
-                    center: (shopName as string) || "Your Location",
-                    date: selectedDate as string,
-                    timeSlot: selectedTime as string,
-                    car: vehicleType ? `${vehicleType} - ${vehicleNumber}` : "Vehicle",
-                    carImage: "https://cdn-icons-png.flaticon.com/512/743/743007.png",
-                    phone: userPhone as string,
-                    price: Number(grandTotal),
-                    address: address as string,
-                    plate: vehicleNumber as string,
-                    serviceName: serviceName as string,
-                    serviceId: finalWashPackageId,
+                  addAddress({
+                    id: `addr-${Date.now()}`,
+                    flatNumber: String(houseNumClean),
+                    locality: String(addressParts[1] || "Locality"),
+                    landmark: String(addressParts[2] || ""),
+                    city: String(cityPart),
+                    pincode: postalCode,
+                    addressType: "Home",
+                    fullAddress: address as string,
                   })
                 );
+              }
 
-                // Save address to Redux profile
-                if (address) {
-                  dispatch(
-                    addAddress({
-                      id: currentAddressId || `addr-${Date.now()}`,
-                      flatNumber: String(houseNumClean),
-                      locality: String(addressParts[1] || "Locality"),
-                      landmark: String(addressParts[2] || ""),
-                      city: String(addressParts[2] || addressParts[1] || "City"),
-                      pincode: String(addressParts[3] || "000000"),
-                      addressType: "Home",
-                      fullAddress: address as string,
-                    })
-                  );
-                }
+              // Save vehicle to Redux user cars
+              if (vehicleNumber) {
+                dispatch(
+                  addCar({
+                    id: `car-${Date.now()}`,
+                    name: `${vehicleType || "Car"}`,
+                    type:
+                      VEHICLE_TYPE_MAP[
+                        (vehicleType as string)?.toLowerCase()
+                      ] || "Sedan",
+                    number: vehicleNumber as string,
+                    image:
+                      "https://cdn-icons-png.flaticon.com/512/743/743007.png",
+                  })
+                );
+              }
 
-                // Save vehicle to Redux user cars
-                if (vehicleNumber) {
-                  dispatch(
-                    addCar({
-                      id: currentVehicleId || `car-${Date.now()}`,
-                      name: `${vehicleType || "Car"}`,
-                      type: VEHICLE_TYPE_MAP[(vehicleType as string)?.toLowerCase()] || "Sedan",
-                      number: vehicleNumber as string,
-                      image: "https://cdn-icons-png.flaticon.com/512/743/743007.png",
-                    })
-                  );
-                }
-    
-                router.push({
-                  pathname: "/(tabs)/home/book-doorstep/order-confirmation",
-                  params: {
-                    ...params,
-                    grandTotal,
-                    paymentMethod: selectedPaymentMethod,
-                    bookingId: response?.data?._id || "temp-id"
-                  },
-                });
-
+              router.push({
+                pathname: "/(tabs)/home/book-doorstep/order-confirmation",
+                params: {
+                  ...params,
+                  grandTotal,
+                  paymentMethod: selectedPaymentMethod,
+                  bookingId: response?.data?._id || "temp-id",
+                },
+              });
             } catch (err: any) {
-                console.error("❌ [BookingSummary] FULL ERROR OBJECT:", JSON.stringify(err, null, 2));
-                if (err.status === 401) {
-                    Alert.alert(
-                        "Session Expired",
-                        "Your technical session has expired or is invalid. Please log out and log in again.",
-                        [{ text: "OK", onPress: () => dispatch(logout()) }]
-                    );
-                } else {
-                    const errorMsg = err?.data?.message || err?.message || "Something went wrong while creating your booking.";
-                    Alert.alert("Booking Failed", errorMsg);
-                }
+              console.error(
+                "❌ [BookingSummary] FULL ERROR OBJECT:",
+                JSON.stringify(err, null, 2)
+              );
+              if (err.status === 401) {
+                Alert.alert(
+                  "Session Expired",
+                  "Your technical session has expired or is invalid. Please log out and log in again.",
+                  [{ text: "OK", onPress: () => dispatch(logout()) }]
+                );
+              } else {
+                const errorMsg =
+                  err?.data?.message ||
+                  err?.message ||
+                  "Something went wrong while creating your booking.";
+                Alert.alert("Booking Failed", errorMsg);
+              }
             }
           }}
         >
@@ -506,12 +476,12 @@ export default function BookingSummaryScreen() {
                 {isCreatingBooking ? "Processing..." : "Pay Now"}
               </Text>
               {!isCreatingBooking && (
-                  <Ionicons
-                    name="caret-forward"
-                    size={16}
-                    color="#1a1a1a"
-                    style={{ marginLeft: 4 }}
-                  />
+                <Ionicons
+                  name="caret-forward"
+                  size={16}
+                  color="#1a1a1a"
+                  style={{ marginLeft: 4 }}
+                />
               )}
             </View>
           </View>
@@ -543,7 +513,7 @@ export default function BookingSummaryScreen() {
                   style={[
                     styles.optionCard,
                     selectedPaymentMethod === option.id &&
-                    styles.optionCardSelected,
+                      styles.optionCardSelected,
                   ]}
                   onPress={() => {
                     setSelectedPaymentMethod(option.id);

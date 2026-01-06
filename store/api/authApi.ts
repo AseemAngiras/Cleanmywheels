@@ -2,7 +2,7 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import Constants from "expo-constants";
 import { Platform } from "react-native";
 
-export const MY_PC_IP = "192.168.1.5";
+export const MY_PC_IP = "192.168.1.6";
 
 export const API_BASE_URL = __DEV__
   ? `http://${MY_PC_IP}:5000/api`
@@ -64,7 +64,9 @@ export const authApi = createApi({
         url: "/auth/verify-otp",
         method: "POST",
         body,
-        headers: token ? { "Authorization": token, "x-auth-token": token } : undefined
+        headers: token
+          ? { Authorization: token, "x-auth-token": token }
+          : undefined,
       }),
     }),
   }),

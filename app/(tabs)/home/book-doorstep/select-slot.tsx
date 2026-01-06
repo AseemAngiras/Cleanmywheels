@@ -1,17 +1,17 @@
 import {
-    useRegisterMutation,
-    useRequestOtpMutation,
-    useVerifyLoginOtpMutation,
-    useVerifyRegisterOtpMutation
+  useRegisterMutation,
+  useRequestOtpMutation,
+  useVerifyLoginOtpMutation,
+  useVerifyRegisterOtpMutation,
 } from "@/store/api/authApi";
 import { loginSuccess } from "@/store/slices/authSlice";
 import { updateProfile } from "@/store/slices/profileSlice";
 import { setUser } from "@/store/slices/userSlice";
 import {
-    useFocusEffect,
-    useLocalSearchParams,
-    useNavigation,
-    useRouter,
+  useFocusEffect,
+  useLocalSearchParams,
+  useNavigation,
+  useRouter,
 } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -20,17 +20,17 @@ import BookingStepper from "@/components/BookingStepper";
 import { RootState } from "@/store";
 import { Ionicons } from "@expo/vector-icons";
 import {
-    Alert,
-    KeyboardAvoidingView,
-    Modal,
-    Platform,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 type TimeSlot = {
   id: string;
@@ -74,8 +74,10 @@ export default function SelectSlotScreen() {
 
   const [register, { isLoading: isRegistering }] = useRegisterMutation();
   const [requestOtp, { isLoading: isRequestingOtp }] = useRequestOtpMutation();
-  const [verifyLoginOtp, { isLoading: isVerifyingLoginOtp }] = useVerifyLoginOtpMutation();
-  const [verifyRegisterOtp, { isLoading: isVerifyingRegOtp }] = useVerifyRegisterOtpMutation();
+  const [verifyLoginOtp, { isLoading: isVerifyingLoginOtp }] =
+    useVerifyLoginOtpMutation();
+  const [verifyRegisterOtp, { isLoading: isVerifyingRegOtp }] =
+    useVerifyRegisterOtpMutation();
 
   const isProcessing = isRegistering || isRequestingOtp;
   const isVerifying = isVerifyingLoginOtp || isVerifyingRegOtp;
@@ -116,7 +118,7 @@ export default function SelectSlotScreen() {
 
     if (!isToday) return typedSlot;
 
-    const [timeStr, modifier] = typedSlot.time.trim().split(/\s+/); 
+    const [timeStr, modifier] = typedSlot.time.trim().split(/\s+/);
     let [hours, minutes] = timeStr.split(":").map(Number);
     if (modifier === "PM" && hours < 12) hours += 12;
     if (modifier === "AM" && hours === 12) hours = 0;
@@ -133,13 +135,20 @@ export default function SelectSlotScreen() {
   });
 
   const inputRefs = useRef<Array<TextInput | null>>([]);
- 
-  const [registrationToken, setRegistrationToken] = useState<string | null>(null);
-  const guestAddresses = useSelector((state: RootState) => state.profile.addresses);
-  const currentBooking = useSelector((state: RootState) => state.bookings.currentBooking);
+
+  const [registrationToken, setRegistrationToken] = useState<string | null>(
+    null
+  );
+  const guestAddresses = useSelector(
+    (state: RootState) => state.profile.addresses
+  );
+  const currentBooking = useSelector(
+    (state: RootState) => state.bookings.currentBooking
+  );
 
   const handleSendOtp = async () => {
-    console.log("handleSendOtp (Register Only) started");
+    console.log("handleSendOtp started");
+    console.log("Name:", name, "Phone:", phoneNumber);
 
     if (!name.trim()) {
       Alert.alert("Required", "Please enter your name.");
@@ -154,31 +163,37 @@ export default function SelectSlotScreen() {
     const trimmedName = name.trim();
 
     try {
-        if (trimmedName) {
-            const result = await register({
-                name: trimmedName,
-                countryCode: "+91",
-                phone: trimmedPhone,
-                accountType: "Seeker",
-            }).unwrap();
+      console.log("Calling REGISTER API with:", {
+        name: trimmedName,
+        phone: trimmedPhone,
+      });
+      const result = await register({
+        name: trimmedName,
+        countryCode: "+91",
+        phone: trimmedPhone,
+        accountType: "Seeker",
+      }).unwrap();
 
-            const token = result.data?.token || result.token;
-            if (token) {
-                setRegistrationToken(token);
-            }
-        } else {
-            await requestOtp({
-                phone: trimmedPhone,
-                countryCode: "+91",
-                verifyType: "PHONE",
-                otpType: "LOGIN",
-            }).unwrap();
-        }
+      console.log("REGISTER API Response:", JSON.stringify(result, null, 2));
 
-        setModalStep("otp");
+      const token = result.data?.token || result.token;
+      if (token) {
+        setRegistrationToken(token);
+        console.log(
+          "Registration token saved:",
+          token.substring(0, 20) + "..."
+        );
+      } else {
+        console.warn("No token in register response!");
+      }
+
+      setModalStep("otp");
     } catch (err: any) {
-        console.log("Auth request failed:", err);
-        Alert.alert("Error", err?.data?.message || "Something went wrong. Try adding your name.");
+      console.error("Auth request failed:", JSON.stringify(err, null, 2));
+      Alert.alert(
+        "Error",
+        err?.data?.message || "Something went wrong. Try adding your name."
+      );
     }
   };
 
@@ -191,63 +206,73 @@ export default function SelectSlotScreen() {
     }
 
     try {
-        const payload = {
-            verifyType: "PHONE",
-            countryCode: "+91",
-            phone: phoneNumber.trim(),
-            phoneToken: otpValue,
+      const payload = {
+        verifyType: "PHONE",
+        countryCode: "+91",
+        phone: phoneNumber.trim(),
+        phoneToken: otpValue,
+      };
+
+      let response;
+      if (name.trim()) {
+        response = await verifyRegisterOtp({
+          body: { ...payload, otpType: "REGISTER" },
+          token: registrationToken,
+        }).unwrap();
+      } else {
+        const loginPayload = {
+          countryCode: payload.countryCode,
+          phone: payload.phone,
+          loginToken: payload.phoneToken,
         };
+        response = await verifyLoginOtp(loginPayload).unwrap();
+      }
 
-        let response;
+      console.log("✅ Auth verified successfully:", response);
+
+      if (
+        response.success ||
+        response.data ||
+        typeof response.data === "string"
+      ) {
+        const responseToken =
+          response.data?.token ||
+          response.token ||
+          (typeof response.data === "string" ? response.data : null);
+        const user = response.data?.user || response.user;
+        const finalToken = responseToken || registrationToken;
+
+        if (finalToken) {
+          console.log(
+            " [SelectSlot] Final token stored in Redux:",
+            finalToken.substring(0, 10) + "..."
+          );
+          dispatch(loginSuccess(finalToken));
+        } else {
+          console.warn(
+            " [SelectSlot] No token found in response or local state!"
+          );
+        }
+
+        if (user) dispatch(setUser(user));
+
         if (name.trim()) {
-            response = await verifyRegisterOtp({ 
-              body: { ...payload, otpType: "REGISTER" },
-              token: registrationToken 
-            }).unwrap();
-        } else {
-            // BACKEND Joi strictly requires ONLY these 3 keys for login verification
-            const loginPayload = {
-                countryCode: payload.countryCode,
-                phone: payload.phone,
-                loginToken: payload.phoneToken
-            };
-            response = await verifyLoginOtp(loginPayload).unwrap();
+          dispatch(updateProfile({ key: "name", value: name.trim() }));
+        }
+        if (phoneNumber.trim()) {
+          dispatch(updateProfile({ key: "phone", value: phoneNumber.trim() }));
         }
 
-        console.log("✅ Auth verified successfully:", response);
-
-        if (response.success || response.data || typeof response.data === 'string') {
-            const responseToken = response.data?.token || response.token || (typeof response.data === 'string' ? response.data : null);
-            const user = response.data?.user || response.user;
-            const finalToken = responseToken || registrationToken;
-
-            if (finalToken) {
-                console.log(" [SelectSlot] Final token stored in Redux:", finalToken.substring(0, 10) + "...");
-                dispatch(loginSuccess(finalToken));
-            } else {
-                console.warn(" [SelectSlot] No token found in response or local state!");
-            }
-
-            if (user) dispatch(setUser(user));
-
-            // Save the entered name and phone to profile slice
-            if (name.trim()) {
-                dispatch(updateProfile({ key: "name", value: name.trim() }));
-            }
-            if (phoneNumber.trim()) {
-                dispatch(updateProfile({ key: "phone", value: phoneNumber.trim() }));
-            }
-
-            setIsLoginModalVisible(false);
-            setOtp(["", "", "", "", "", ""]);
-            setModalStep("details"); 
-            navigateToSummary();
-        } else {
-            Alert.alert("Error", response.message || "Verification failed.");
-        }
+        setIsLoginModalVisible(false);
+        setOtp(["", "", "", "", "", ""]);
+        setModalStep("details");
+        navigateToSummary();
+      } else {
+        Alert.alert("Error", response.message || "Verification failed.");
+      }
     } catch (err: any) {
-        console.error("Auth Verify Error:", err);
-        Alert.alert("Error", err?.data?.message || "Invalid OTP");
+      console.error("Auth Verify Error:", err);
+      Alert.alert("Error", err?.data?.message || "Invalid OTP");
     }
   };
   const navigateToSummary = () => {

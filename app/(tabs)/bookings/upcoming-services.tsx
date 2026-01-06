@@ -260,19 +260,8 @@ export default function UpcomingServices() {
               style={styles.sessionButton}
               onPress={() => setActiveBooking(item)}
             >
-              <Text style={styles.sessionButtonText}>I am at Workshop</Text>
+              <Text style={styles.sessionButtonText}>Review details</Text>
               <Ionicons name="chevron-forward" size={18} color="#FFF" />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.qrIconButton}
-              onPress={() => {
-                setScannerVisible(true);
-                setActiveBooking(item);
-              }}
-              hitSlop={10}
-            >
-              <Ionicons name="qr-code-outline" size={22} color="#000" />
             </TouchableOpacity>
           </View>
         </LinearGradient>
@@ -325,14 +314,6 @@ export default function UpcomingServices() {
 
           {activeBooking && (
             <>
-              <TouchableOpacity
-                style={styles.qrButton}
-                onPress={() => setScannerVisible(true)}
-              >
-                <Ionicons name="qr-code-outline" size={22} />
-                <Text style={styles.qrText}>Scan QR to Check-In</Text>
-              </TouchableOpacity>
-
               <View style={styles.detailRow}>
                 <Text style={styles.label}>Service</Text>
                 <Text style={styles.value}>{activeBooking.serviceName}</Text>
@@ -401,13 +382,9 @@ export default function UpcomingServices() {
 
               <View style={styles.sheetFooter}>
                 <Text style={styles.price}>₹ {activeBooking.price}</Text>
-                <TouchableOpacity
-                  style={styles.cancelBtn}
-                  onPress={() => handleDelete(activeBooking.id)}
-                >
-                  <Ionicons name="trash-outline" size={18} />
-                  <Text style={styles.cancelText}>Cancel</Text>
-                </TouchableOpacity>
+                <View style={styles.statusBadge}>
+                  <Text style={styles.statusText}>Confirmed</Text>
+                </View>
               </View>
             </>
           )}
@@ -709,17 +686,16 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     color: "#111",
   },
-  cancelBtn: {
+  statusBadge: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
     paddingHorizontal: 16,
     paddingVertical: 10,
-    backgroundColor: "#FEE2E2",
-    borderRadius: 12,
+    backgroundColor: "#DCFCE7",
+    borderRadius: 20,
   },
-  cancelText: {
-    color: "#B91C1C",
+  statusText: {
+    color: "#16A34A",
     fontSize: 14,
     fontWeight: "600",
   },

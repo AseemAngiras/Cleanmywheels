@@ -56,7 +56,8 @@
           }
         }
       ],
-      "react-native-localize"
+      "react-native-localize",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,

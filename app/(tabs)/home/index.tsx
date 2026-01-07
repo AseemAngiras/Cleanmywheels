@@ -370,7 +370,7 @@ export default function HomeScreen() {
 
   // Admin Check
   const sanitizedPhone = userPhone ? userPhone.replace(/\D/g, "") : "";
-  const isAdmin = sanitizedPhone.endsWith("1234567890");
+  const isAdmin = sanitizedPhone.endsWith("1234567890") || sanitizedPhone.endsWith("8969214235");
 
   // Login State
   const [isLoginModalVisible, setIsLoginModalVisible] = useState(false);
@@ -405,55 +405,58 @@ export default function HomeScreen() {
     // 3. Indian Mobile Number Check (starts with 6-9)
     // Relaxed check for test numbers if needed, but keeping original logic
     if (!/^[6-9]/.test(cleanedPhone) && cleanedPhone !== "1234567890") {
-       // Allowing 1234567890 to pass regex check if it fails, though 1 doesn't match 6-9
-       // Actually 1234567890 starts with 1.
-       Alert.alert("Invalid Phone", "Please enter a valid mobile number.");
-       return;
+      // Allowing 1234567890 to pass regex check if it fails, though 1 doesn't match 6-9
+      // Actually 1234567890 starts with 1.
+      Alert.alert("Invalid Phone", "Please enter a valid mobile number.");
+      return;
     }
-    
+
     // 4. Repeated Digits Check (e.g., 8888888888)
     // keeping original logic
 
     setIsLoading(true);
     try {
-        if (name.trim()) {
-            // Explicit registration/update if name is provided
-            const trimmedName = name.trim();
-            const trimmedPhone = cleanedPhone;
-            const result = await register({
-                name: trimmedName,
-                countryCode: "+91",
-                phone: trimmedPhone,
-                accountType: trimmedPhone === "1234567890" ? "SuperAdmin" : "Seeker",
-            }).unwrap();
+      if (name.trim()) {
+        // Explicit registration/update if name is provided
+        const trimmedName = name.trim();
+        const trimmedPhone = cleanedPhone;
+        const result = await register({
+          name: trimmedName,
+          countryCode: "+91",
+          phone: trimmedPhone,
+          accountType: trimmedPhone === "1234567890" ? "SuperAdmin" : "Seeker",
+        }).unwrap();
 
-            // Store initial token from register response (needed for verify-otp)
-            const token = result.data?.token;
-            const backendUser = result.data?.user;
-            
-            if (token) {
-                dispatch(loginSuccess(token));
-            }
-            if (backendUser) {
-                dispatch(setUser(backendUser));
-            }
-        } else {
-            // Default to normal Login (works if user exists)
-            await requestOtp({ 
-                phone: cleanedPhone,
-                countryCode: "+91",
-                verifyType: "PHONE",
-                otpType: "LOGIN"
-            }).unwrap();
+        // Store initial token from register response (needed for verify-otp)
+        const token = result.data?.token;
+        const backendUser = result.data?.user;
+
+        if (token) {
+          dispatch(loginSuccess(token));
         }
-        
-        Alert.alert("OTP Sent", "Please check your messages.");
-        setModalStep("otp");
+        if (backendUser) {
+          dispatch(setUser(backendUser));
+        }
+      } else {
+        // Default to normal Login (works if user exists)
+        await requestOtp({
+          phone: cleanedPhone,
+          countryCode: "+91",
+          verifyType: "PHONE",
+          otpType: "LOGIN"
+        }).unwrap();
+      }
+
+      Alert.alert("OTP Sent", "Please check your messages.");
+      setModalStep("otp");
+
+      Alert.alert("OTP Sent", "Please check your messages.");
+      setModalStep("otp");
     } catch (err: any) {
-        console.error("Auth Request Failed", err);
-        Alert.alert("Error", err?.data?.message || "Failed to proceed. Try entering your name to register.");
+      console.error("Auth Request Failed", err);
+      Alert.alert("Error", err?.data?.message || "Failed to proceed. Try entering your name to register.");
     } finally {
-        setIsLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -466,65 +469,59 @@ export default function HomeScreen() {
 
     setIsLoading(true);
     try {
-        const payload = {
-            countryCode: "+91",
-            verifyType: "PHONE",
-            phone: phoneNumber.trim(),
-            phoneToken: otpValue,
-        };
+      const payload = {
+        countryCode: "+91",
+        verifyType: "PHONE",
+        phone: phoneNumber.trim(),
+        phoneToken: otpValue,
+      };
 
-        let response;
-        if (name.trim()) {
-            response = await verifyRegisterOtp({ ...payload, otpType: "REGISTER" }).unwrap();
-        } else {
-            // BACKEND Joi strictly requires ONLY these 3 keys for login verification
-            const loginPayload = {
-                countryCode: payload.countryCode,
-                phone: payload.phone,
-                loginToken: payload.phoneToken
-            };
-            response = await verifyLoginOtp(loginPayload).unwrap();
+      // Strict Login - always verify Login OTP
+      const loginPayload = {
+        countryCode: payload.countryCode,
+        phone: payload.phone,
+        loginToken: payload.phoneToken
+      };
+      const response = await verifyLoginOtp(loginPayload).unwrap();
+
+      console.log("✅ Auth verified successfully:", response);
+
+      const token = response?.data?.token || response?.token || (typeof response?.data === 'string' ? response?.data : null);
+
+      if (token) {
+        console.log("🎟 [HomeScreen] New token received and stored");
+        // Store full user object from response
+        const backendUser = response?.data?.user;
+        if (backendUser) {
+          dispatch(setUser(backendUser));
         }
-        
-        console.log("✅ Auth verified successfully:", response);
-        
-        // Assuming response structure. Adjust path as needed based on actual API.
-        // If response is { data: { token: ... } } or just { token: ... }
-        const token = response?.data?.token || response?.token || (typeof response?.data === 'string' ? response?.data : null);
+        dispatch(loginSuccess(token));
 
-        if (token) {
-            console.log("🎟 [HomeScreen] New token received and stored");
-            // Store full user object from response
-            const backendUser = response?.data?.user;
-            if (backendUser) {
-                dispatch(setUser(backendUser));
-            }
-            dispatch(loginSuccess(token));
+        const isAdminUser = phoneNumber.trim() === "1234567890" || phoneNumber.trim() === "8969214235";
 
-            const isAdminUser = phoneNumber.trim() === "1234567890";
+        // Reset State immediately
+        setModalStep("details");
+        setOtp(["", "", "", "", "", ""]);
+        setName("");
+        setPhoneNumber("");
+        setIsLoginModalVisible(false);
 
-            // Reset State immediately
-            setModalStep("details");
-            setOtp(["", "", "", "", "", ""]);
-            setName("");
-            setPhoneNumber("");
-            setIsLoginModalVisible(false);
-
-            // Check for Admin Redirect
-            if (isAdminUser) {
-              setTimeout(() => {
-                router.replace("/(tabs)/dashboard");
-              }, 100);
-            }
-        } else {
-             Alert.alert("Login Failed", "No access token received.");
+        // Check for Admin Redirect
+        if (isAdminUser) {
+          // Small delay to ensure state updates
+          setTimeout(() => {
+            router.replace("/(tabs)/dashboard");
+          }, 100);
         }
+      } else {
+        Alert.alert("Login Failed", "No access token received.");
+      }
 
     } catch (err: any) {
-        console.error("Login Verification Failed", err);
-        Alert.alert("Login Failed", err?.data?.message || "Invalid OTP or Server Error");
+      console.error("Login Verification Failed", err);
+      Alert.alert("Login Failed", err?.data?.message || "Invalid OTP or Server Error");
     } finally {
-        setIsLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -555,9 +552,9 @@ export default function HomeScreen() {
         "Rebook Unavailable",
         "This past booking cannot be quick-rebooked. Please start a new booking.",
         [
-          { 
-            text: "Start New Booking", 
-            onPress: () => router.push("/(tabs)/home/book-doorstep/enter-location") 
+          {
+            text: "Start New Booking",
+            onPress: () => router.push("/(tabs)/home/book-doorstep/enter-location")
           },
           { text: "Cancel", style: "cancel" }
         ]
@@ -731,23 +728,6 @@ export default function HomeScreen() {
 
             {modalStep === "details" ? (
               <>
-                <View style={styles.inputContainer}>
-                  <Ionicons
-                    name="person-outline"
-                    size={20}
-                    color="#666"
-                    style={{ marginRight: 10 }}
-                  />
-                  <TextInput
-                    style={styles.inputField}
-                    placeholder="Full Name (optional for login)"
-                    placeholderTextColor="#ccc"
-                    value={name}
-                    onChangeText={setName}
-                    autoCapitalize="words"
-                  />
-                </View>
-
                 <View style={styles.phoneContainer}>
                   <View style={styles.countryCode}>
                     <Text style={styles.countryCodeText}>🇮🇳 +91</Text>

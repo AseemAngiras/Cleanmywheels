@@ -65,7 +65,7 @@ export default function SelectServiceScreen() {
     const servicesFromApi = washPackagesData?.data?.washPackageList || [];
 
     // Prioritize API data if available, otherwise use hardcoded static data
-    const services = servicesFromApi.length > 0 
+    const services = servicesFromApi.length > 0
         ? servicesFromApi.map(pkg => ({
             id: pkg._id,
             name: pkg.name,
@@ -172,27 +172,27 @@ export default function SelectServiceScreen() {
         const cleaned = number.replace(/[\s-]/g, '').toUpperCase();
 
         const indianVehicleRegex = /^[A-Z]{2}[0-9]{1,2}[A-Z]{1,3}[0-9]{1,4}$/;
-        
+
         const alternateRegex = /^[A-Z]{2}[0-9]{2}[A-Z]{1,2}[0-9]{4}$/;
 
         if (!indianVehicleRegex.test(cleaned) && !alternateRegex.test(cleaned)) {
-            return { 
-                isValid: false, 
-                message: "Please enter a valid vehicle number.\n\nExamples:\n• MH01AB1234\n• DL12CA5678\n• KA09MA1234" 
+            return {
+                isValid: false,
+                message: "Please enter a valid vehicle number.\n\nExamples:\n• MH01AB1234\n• DL12CA5678\n• KA09MA1234"
             };
         }
 
         const validStateCodes = [
-            'AN', 'AP', 'AR', 'AS', 'BH', 'BR', 'CG', 'CH', 'DD', 'DL', 'GA', 'GJ', 
-            'HP', 'HR', 'JH', 'JK', 'KA', 'KL', 'LA', 'LD', 'MH', 'ML', 'MN', 'MP', 
-            'MZ', 'NL', 'OD', 'OR', 'PB', 'PY', 'RJ', 'SK', 'TN', 'TR', 'TS', 'UK', 
+            'AN', 'AP', 'AR', 'AS', 'BH', 'BR', 'CG', 'CH', 'DD', 'DL', 'GA', 'GJ',
+            'HP', 'HR', 'JH', 'JK', 'KA', 'KL', 'LA', 'LD', 'MH', 'ML', 'MN', 'MP',
+            'MZ', 'NL', 'OD', 'OR', 'PB', 'PY', 'RJ', 'SK', 'TN', 'TR', 'TS', 'UK',
             'UP', 'WB'
         ];
         const stateCode = cleaned.substring(0, 2);
         if (!validStateCodes.includes(stateCode)) {
-            return { 
-                isValid: false, 
-                message: `'${stateCode}' is not a valid Indian state code.` 
+            return {
+                isValid: false,
+                message: `'${stateCode}' is not a valid Indian state code.`
             };
         }
 
@@ -207,11 +207,11 @@ export default function SelectServiceScreen() {
 
     const handleUpdatePrice = async () => {
         if (!editingService || !newPrice) return;
-        
+
         try {
-            await updateWashPackage({ 
-                id: editingService.id, 
-                body: { price: Number(newPrice) } 
+            await updateWashPackage({
+                id: editingService.id,
+                body: { price: Number(newPrice) }
             }).unwrap();
             Alert.alert("Success", "Price updated successfully");
             setEditingService(null);
@@ -262,7 +262,7 @@ export default function SelectServiceScreen() {
 
                         {/* Developer Seed Tool */}
                         {isAdmin && (
-                            <TouchableOpacity 
+                            <TouchableOpacity
                                 style={{
                                     backgroundColor: '#333',
                                     paddingVertical: 10,
@@ -316,7 +316,7 @@ export default function SelectServiceScreen() {
                                                             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                                                                 <Text style={styles.expandedPrice}>₹{service.price}</Text>
                                                                 {isAdmin && (
-                                                                    <TouchableOpacity 
+                                                                    <TouchableOpacity
                                                                         onPress={(e) => {
                                                                             e.stopPropagation();
                                                                             setEditingService({ id: service.id, name: service.name, price: service.price });
@@ -500,7 +500,7 @@ export default function SelectServiceScreen() {
                 </View>
                 <TouchableOpacity
                     style={[
-                        styles.nextButton, 
+                        styles.nextButton,
                         (services.length === 0 || !selectedService) && { opacity: 0.5, backgroundColor: '#ccc' }
                     ]}
                     disabled={services.length === 0 || !selectedService}
@@ -509,7 +509,7 @@ export default function SelectServiceScreen() {
                             Alert.alert("Selection Required", "Please select a service to proceed.");
                             return;
                         }
-                        
+
                         // Validate vehicle number format
                         const validation = validateVehicleNumber(vehicleNumber);
                         if (!validation.isValid) {
@@ -573,7 +573,7 @@ export default function SelectServiceScreen() {
                     <View style={styles.modalContent}>
                         <Text style={styles.modalTitle}>Update Price</Text>
                         <Text style={styles.modalSubtitle}>Change price for {editingService?.name}</Text>
-                        
+
                         <TextInput
                             style={styles.priceInput}
                             keyboardType="numeric"
@@ -583,14 +583,14 @@ export default function SelectServiceScreen() {
                         />
 
                         <View style={styles.modalActions}>
-                            <TouchableOpacity 
-                                style={[styles.modalButton, styles.cancelButton]} 
+                            <TouchableOpacity
+                                style={[styles.modalButton, styles.cancelButton]}
                                 onPress={() => setEditingService(null)}
                             >
                                 <Text style={styles.cancelButtonText}>Cancel</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity 
-                                style={[styles.modalButton, styles.saveButton]} 
+                            <TouchableOpacity
+                                style={[styles.modalButton, styles.saveButton]}
                                 onPress={handleUpdatePrice}
                                 disabled={isUpdating}
                             >

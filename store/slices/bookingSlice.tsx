@@ -23,7 +23,7 @@ export interface Ticket {
   title: string;
   description: string;
   date: string;
-  status: 'open' | 'resolved';
+  status: "open" | "resolved";
   refundRequested?: boolean;
 }
 
@@ -48,8 +48,8 @@ const bookingSlice = createSlice({
         ...action.payload,
         id: nanoid(),
         status: "upcoming",
-      })
-    },  
+      });
+    },
 
     addTicket(state, action: PayloadAction<Omit<Ticket, "id" | "status">>) {
       state.tickets.push({
@@ -74,30 +74,50 @@ const bookingSlice = createSlice({
       state.currentBooking = {};
     },
 
-
     setBookingAddress(state, action: PayloadAction<{ addressId: string }>) {
       state.currentBooking.address = action.payload.addressId;
     },
 
-    setBookingService(state, action: PayloadAction<{ serviceName: string, price: number }>) {
+    setBookingService(
+      state,
+      action: PayloadAction<{ serviceName: string; price: number }>
+    ) {
       state.currentBooking.serviceName = action.payload.serviceName;
       state.currentBooking.price = action.payload.price;
     },
 
-    setBookingCar(state, action: PayloadAction<{ car: string, plate: string, carImage: string }>) {
+    setBookingCar(
+      state,
+      action: PayloadAction<{ car: string; plate: string; carImage: string }>
+    ) {
       state.currentBooking.car = action.payload.car;
       state.currentBooking.plate = action.payload.plate;
       state.currentBooking.carImage = action.payload.carImage;
     },
 
-    setBookingSlot(state, action: PayloadAction<{ date: string, timeSlot: string }>) {
+    setBookingSlot(
+      state,
+      action: PayloadAction<{ date: string; timeSlot: string }>
+    ) {
       state.currentBooking.date = action.payload.date;
       state.currentBooking.timeSlot = action.payload.timeSlot;
     },
 
     clearCurrentBooking(state) {
       state.currentBooking = {};
-    }
+    },
+
+    updateBookingStatus(
+      state,
+      action: PayloadAction<{ bookingId: string; status: BookingStatus }>
+    ) {
+      const booking = state.bookings.find(
+        (b) => b.id === action.payload.bookingId
+      );
+      if (booking) {
+        booking.status = action.payload.status;
+      }
+    },
   },
 });
 
@@ -111,5 +131,6 @@ export const {
   setBookingCar,
   setBookingService,
   setBookingSlot,
+  updateBookingStatus,
 } = bookingSlice.actions;
 export default bookingSlice.reducer;

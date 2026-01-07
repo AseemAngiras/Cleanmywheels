@@ -12,7 +12,6 @@ import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 import { useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator,
   Alert,
   SafeAreaView,
   ScrollView,
@@ -23,6 +22,7 @@ import {
 } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import BookingStepper from "../../../../components/BookingStepper";
+import PulseLoader from "../../../../components/PulseLoader";
 
 const VEHICLE_TYPE_MAP: Record<string, string> = {
   sedan: "Sedan",
@@ -489,12 +489,10 @@ export default function BookingSummaryScreen() {
       {/* Loading Overlay */}
       {isVerifyingPayment && (
         <View style={styles.modalOverlay}>
-          <View style={[styles.card, { padding: 30, alignItems: "center" }]}>
-            <ActivityIndicator size="large" color="#C8F000" />
-            <Text style={{ marginTop: 20, fontSize: 16, fontWeight: "bold" }}>
-              Verifying Payment...
-            </Text>
-            <Text style={{ marginTop: 10, color: "#666", textAlign: "center" }}>
+          <View style={styles.loaderCard}>
+            <PulseLoader size={60} color="#C8F000" />
+            <Text style={styles.loaderTitle}>Verifying Payment...</Text>
+            <Text style={styles.loaderSubtitle}>
               Please wait while we confirm with the bank.
             </Text>
           </View>
@@ -715,9 +713,42 @@ const styles = StyleSheet.create({
 
   // Modal Styles
   modalOverlay: {
-    flex: 1,
-    justifyContent: "flex-end",
+    position: "absolute",
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    zIndex: 999,
+    justifyContent: "center",
     backgroundColor: "rgba(0,0,0,0.5)",
+  },
+  loaderCard: {
+    backgroundColor: "#fff",
+    borderRadius: 24,
+    marginHorizontal: 40,
+    marginBottom: "auto",
+    marginTop: "auto",
+    padding: 40,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.15,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  loaderTitle: {
+    marginTop: 24,
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#111",
+    textAlign: "center",
+  },
+  loaderSubtitle: {
+    marginTop: 8,
+    fontSize: 14,
+    color: "#64748B",
+    textAlign: "center",
+    lineHeight: 20,
   },
   modalBackdrop: {
     flex: 1,

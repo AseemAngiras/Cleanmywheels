@@ -80,7 +80,10 @@ export const bookingApi = createApi({
         method: "PUT",
         body: { status },
       }),
-      invalidatesTags: (result, error, { id }) => [{ type: "Booking", id }, "Booking"],
+      invalidatesTags: (result, error, { id }) => [
+        { type: "Booking", id },
+        "Booking",
+      ],
     }),
   }),
 });
@@ -89,5 +92,6 @@ export const {
   useGetBookingsQuery,
   useCreateBookingMutation,
   useGetBookingByIdQuery,
+  useLazyGetBookingByIdQuery,
   useUpdateBookingStatusMutation,
 } = bookingApi;

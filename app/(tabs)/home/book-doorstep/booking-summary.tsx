@@ -1,21 +1,24 @@
 import { RootState } from "@/store";
-import { useCreateBookingMutation } from "@/store/api/bookingApi";
+import {
+  useCreateBookingMutation,
+  useLazyGetBookingByIdQuery,
+  useUpdateBookingStatusMutation,
+} from "@/store/api/bookingApi";
 import { logout } from "@/store/slices/authSlice";
-import { addBooking } from "@/store/slices/bookingSlice";
 import { addAddress } from "@/store/slices/profileSlice";
 import { addCar } from "@/store/slices/userSlice";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import * as WebBrowser from "expo-web-browser";
+import { useEffect, useRef, useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
-  Modal,
   SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  TouchableWithoutFeedback,
   View,
 } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
@@ -39,7 +42,14 @@ export default function BookingSummaryScreen() {
   const dispatch = useDispatch();
   const [createBooking, { isLoading: isCreatingBooking }] =
     useCreateBookingMutation();
+  const [updateBookingStatus] = useUpdateBookingStatusMutation();
   const authState = useSelector((state: RootState) => state.auth);
+
+  // Payment state tracking
+  const [isVerifyingPayment, setIsVerifyingPayment] = useState(false);
+  const currentBookingIdRef = useRef<string | null>(null);
+
+  const [triggerGetBooking] = useLazyGetBookingByIdQuery();
 
   const {
     serviceName,
@@ -69,46 +79,9 @@ export default function BookingSummaryScreen() {
 
   const isDoorstep = shopName === "Your Location";
 
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<
-    string | null
-  >("upi");
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
-
   const itemTotal = parseFloat(totalPrice as string) || 0;
   const taxAmount = Math.round(itemTotal * 0.18);
   const grandTotal = itemTotal + taxAmount;
-
-  const paymentOptions = [
-    {
-      id: "upi",
-      label: "UPI",
-      subLabel: "Pay via Google Pay, PhonePe, Paytm",
-      icon: "wallet-outline",
-      recommended: true,
-    },
-    {
-      id: "card",
-      label: "Credit / Debit Cards",
-      subLabel: "VISA, MasterCard",
-      icon: "card-outline",
-    },
-    {
-      id: "netbanking",
-      label: "Netbanking",
-      subLabel: "All major banks supported",
-      icon: "business-outline",
-    },
-    {
-      id: "cash",
-      label: "Pay with Cash",
-      subLabel: "Pay after service completion",
-      icon: "cash-outline",
-    },
-  ];
-
-  const selectedPaymentOption = paymentOptions.find(
-    (opt) => opt.id === selectedPaymentMethod
-  );
 
   const parsedAddons = addons ? JSON.parse(addons as string) : {};
   const addonNames = Object.keys(parsedAddons).filter((k) => parsedAddons[k]);
@@ -118,6 +91,248 @@ export default function BookingSummaryScreen() {
       tabBarStyle: { display: "none" },
     });
   }, [navigation]);
+
+  const checkPaymentStatus = async (bookingId: string) => {
+    setIsVerifyingPayment(true);
+    let attempts = 0;
+    const maxAttempts = 10;
+
+    // Poll every 3 seconds for 30 seconds total
+    const pollInterval = setInterval(async () => {
+      attempts++;
+      try {
+        console.log(
+          `[Payment] Polling status... Attempt ${attempts}/${maxAttempts}`
+        );
+        const result = await triggerGetBooking(bookingId).unwrap();
+        const status = result?.data?.status?.toLowerCase();
+
+        console.log(`[Payment] Status received:`, status);
+
+        if (
+          status === "confirmed" ||
+          status === "paid" ||
+          status === "successful"
+        ) {
+          console.log("✅ [Payment] SUCCESS! Status is:", status);
+          console.log("✅ [Payment] Redirecting to Order Confirmation...");
+          clearInterval(pollInterval);
+          setIsVerifyingPayment(false);
+          router.push({
+            pathname: "/(tabs)/home/book-doorstep/order-confirmation",
+            params: {
+              ...params,
+              grandTotal,
+              bookingId,
+              paymentMethod: "razorpay",
+            },
+          });
+        } else if (status === "cancelled" || status === "failed") {
+          clearInterval(pollInterval);
+          setIsVerifyingPayment(false);
+          Alert.alert("Payment Failed", "The payment was cancelled or failed.");
+        } else if (attempts >= maxAttempts) {
+          clearInterval(pollInterval);
+          setIsVerifyingPayment(false);
+          Alert.alert(
+            "Payment Verification Failed",
+            "We couldn't confirm your payment status yet. Please check 'My Bookings'.",
+            [
+              {
+                text: "Check Bookings",
+                onPress: () => router.push("/(tabs)/bookings"),
+              },
+              { text: "Close", style: "cancel" },
+            ]
+          );
+        }
+      } catch (err) {
+        console.error("Polling error", err);
+      }
+    }, 3000);
+  };
+
+  const handlePay = async () => {
+    try {
+      const addressParts =
+        (address as string)?.split(",").map((s) => s.trim()) || [];
+
+      const houseNumRaw = addressParts[0] || "0";
+      const houseNumClean = houseNumRaw.trim();
+
+      const postalCodeMatch = (address as string)?.match(/\b\d{6}\b/);
+      const postalCode = postalCodeMatch ? postalCodeMatch[0] : "000000";
+
+      let hour = 10;
+      if (selectedTime) {
+        const [time, modifier] = (selectedTime as string).split(" ");
+        let [h] = time.split(":").map(Number);
+        if (modifier === "PM" && h < 12) h += 12;
+        if (modifier === "AM" && h === 12) h = 0;
+        hour = h;
+      }
+
+      console.log("🛠 [BookingSummary] Address Raw:", address);
+
+      const finalWashPackageId = serviceId as string;
+
+      if (!finalWashPackageId || finalWashPackageId.length !== 24) {
+        Alert.alert(
+          "Selection Error",
+          "Invalid wash package selected. Please go back and select a service again."
+        );
+        return;
+      }
+
+      const cityPart =
+        addressParts.find(
+          (part, index) => index >= 2 && !/^\d{6}$/.test(part)
+        ) ||
+        addressParts[2] ||
+        "City";
+
+      const bookingPayload: any = {
+        houseOrFlatNo: String(houseNumClean),
+        locality: String(addressParts[1] || "Locality"),
+        landmark: String(addressParts[2] || "Landmark"),
+        city: String(cityPart),
+        postalCode: postalCode,
+        addressType: "Home",
+        washPackage: finalWashPackageId,
+        vehicleType:
+          VEHICLE_TYPE_MAP[(vehicleType as string)?.toLowerCase()] ||
+          (vehicleType as string) ||
+          "Sedan",
+        vehicleNo: String(vehicleNumber ? (vehicleNumber as string) : "N/A"),
+        bookingDate: selectedDate
+          ? (selectedDate as string)
+          : new Date().toISOString().split("T")[0],
+        bookingTime: Number(hour),
+      };
+
+      console.log(
+        "[BookingSummary] TRACE - Payload:",
+        JSON.stringify(bookingPayload, null, 2)
+      );
+      const response = await createBooking(bookingPayload).unwrap();
+      console.log("[BookingSummary] TRACE - Response:", response);
+
+      // Save address to Redux profile
+      if (address) {
+        dispatch(
+          addAddress({
+            id: `addr-${Date.now()}`,
+            flatNumber: String(houseNumClean),
+            locality: String(addressParts[1] || "Locality"),
+            landmark: String(addressParts[2] || ""),
+            city: String(cityPart),
+            pincode: postalCode,
+            addressType: "Home",
+            fullAddress: address as string,
+          })
+        );
+      }
+
+      // Save vehicle to Redux user cars
+      if (vehicleNumber) {
+        dispatch(
+          addCar({
+            id: `car-${Date.now()}`,
+            name: `${vehicleType || "Car"}`,
+            type:
+              VEHICLE_TYPE_MAP[(vehicleType as string)?.toLowerCase()] ||
+              "Sedan",
+            number: vehicleNumber as string,
+            image: "https://cdn-icons-png.flaticon.com/512/743/743007.png",
+          })
+        );
+      }
+
+      const paymentUrl =
+        response?.data?.paymentLinkUrl || response?.data?.short_url;
+
+      console.log(
+        "[BookingSummary] DEBUG - Raw Response Keys:",
+        Object.keys(response || {})
+      );
+      if (response?.data)
+        console.log(
+          "[BookingSummary] DEBUG - Response.data Keys:",
+          Object.keys(response.data || {})
+        );
+
+      // Try multiple paths for ID
+      const bookingId =
+        response?.data?.bookingId ||
+        response?.data?._id ||
+        response?.bookingId ||
+        response?._id;
+
+      if (!bookingId || bookingId === "temp-id") {
+        console.error(
+          "[BookingSummary] ❌ CRITICAL: No Booking ID found in response!",
+          response
+        );
+        Alert.alert(
+          "Error",
+          "Could not create booking. Please try again. (Missing ID)"
+        );
+        return;
+      }
+
+      console.log("[BookingSummary] ✅ Booking ID Extracted:", bookingId);
+
+      currentBookingIdRef.current = bookingId;
+
+      // 2. Open AuthSession & Wait for Return
+      let result = { type: "cancel" };
+      if (paymentUrl) {
+        console.log(
+          "[BookingSummary] Opening Razorpay AuthSession:",
+          paymentUrl
+        );
+        try {
+          // @ts-ignore
+          result = await WebBrowser.openAuthSessionAsync(
+            paymentUrl,
+            "cleanmywheels://payment-success"
+          );
+        } catch (e) {
+          console.log("Browser Error", e);
+        }
+      }
+
+      // 3. Handle Result
+      // 3. Handle Result + Fallback
+      if (result.type === "success") {
+        // Auto-redirected! Success!
+        // Verify via backend polling just to be safe (and show UI feedback)
+        checkPaymentStatus(bookingId);
+      } else {
+        // 4. Fallback: If dismissed/cancelled
+        // User might have paid but closed the tab manually. Poll to confirm.
+        checkPaymentStatus(bookingId);
+      }
+    } catch (err: any) {
+      console.error(
+        "❌ [BookingSummary] FULL ERROR OBJECT:",
+        JSON.stringify(err, null, 2)
+      );
+      if (err.status === 401) {
+        Alert.alert(
+          "Session Expired",
+          "Your technical session has expired or is invalid. Please log out and log in again.",
+          [{ text: "OK", onPress: () => dispatch(logout()) }]
+        );
+      } else {
+        const errorMsg =
+          err?.data?.message ||
+          err?.message ||
+          "Something went wrong while creating your booking.";
+        Alert.alert("Booking Failed", errorMsg);
+      }
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -146,7 +361,7 @@ export default function BookingSummaryScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 150 }}
       >
-        {/* Service Location (No Map) */}
+        {/* Service Location */}
         <View style={[styles.card, { marginTop: 10 }]}>
           <View style={{ flexDirection: "row", alignItems: "center" }}>
             <View style={styles.shopIconContainer}>
@@ -165,7 +380,6 @@ export default function BookingSummaryScreen() {
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>Booking Details</Text>
 
-          {/* Service Name */}
           <View style={styles.row}>
             <View style={styles.iconBox}>
               <Ionicons name="sparkles" size={20} color="#555" />
@@ -188,7 +402,7 @@ export default function BookingSummaryScreen() {
                 {vehicleType
                   ? (vehicleType as string).charAt(0).toUpperCase() +
                     (vehicleType as string).slice(1)
-                  : "Sedan"}{" "}
+                  : "Same"}{" "}
                 - {vehicleNumber || "N/A"}
               </Text>
             </View>
@@ -211,18 +425,6 @@ export default function BookingSummaryScreen() {
                   : "Date"}
                 , {selectedTime || "Time"}
               </Text>
-            </View>
-          </View>
-
-          <View style={styles.divider} />
-
-          <View style={styles.row}>
-            <View style={styles.iconBox}>
-              <Ionicons name="call" size={20} color="#555" />
-            </View>
-            <View style={styles.rowContent}>
-              <Text style={styles.label}>Contact Number</Text>
-              <Text style={styles.value}>+91 {userPhone || "N/A"}</Text>
             </View>
           </View>
         </View>
@@ -261,210 +463,12 @@ export default function BookingSummaryScreen() {
       {/* Footer */}
       <View style={styles.footer}>
         <TouchableOpacity
-          style={styles.paymentMethodSelector}
-          onPress={() => setShowPaymentModal(true)}
-        >
-          <View style={styles.payUsingRow}>
-            {selectedPaymentOption && (
-              <Ionicons
-                name={selectedPaymentOption.icon as any}
-                size={14}
-                color="#666"
-                style={{ marginRight: 4 }}
-              />
-            )}
-            <Text style={styles.payUsingText}>PAY USING</Text>
-            <Ionicons
-              name="caret-up"
-              size={10}
-              color="#666"
-              style={{ marginLeft: 4 }}
-            />
-          </View>
-          <Text style={styles.selectedMethodText} numberOfLines={1}>
-            {selectedPaymentOption
-              ? selectedPaymentOption.label
-              : "Select Payment Mode"}
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
           style={[
             styles.payButton,
-            (!selectedPaymentMethod || isCreatingBooking) &&
-              styles.payButtonDisabled,
+            isCreatingBooking && styles.payButtonDisabled,
           ]}
-          disabled={!selectedPaymentMethod || isCreatingBooking}
-          onPress={async () => {
-            if (!selectedPaymentMethod) {
-              Alert.alert(
-                "Payment Method Required",
-                "Please select a payment option to proceed."
-              );
-              return;
-            }
-
-            try {
-              const addressParts =
-                (address as string)?.split(",").map((s) => s.trim()) || [];
-
-              const houseNumRaw = addressParts[0] || "0";
-              const houseNumClean = houseNumRaw.trim();
-
-              const postalCodeMatch = (address as string)?.match(/\b\d{6}\b/);
-              const postalCode = postalCodeMatch
-                ? postalCodeMatch[0]
-                : "000000";
-
-              let hour = 10;
-              if (selectedTime) {
-                const [time, modifier] = (selectedTime as string).split(" ");
-                let [h] = time.split(":").map(Number);
-                if (modifier === "PM" && h < 12) h += 12;
-                if (modifier === "AM" && h === 12) h = 0;
-                hour = h;
-              }
-
-              console.log("🛠 [BookingSummary] Address Raw:", address);
-              console.log(
-                "🛠 [BookingSummary] Postal Code Extracted:",
-                postalCode
-              );
-
-              const finalWashPackageId = serviceId as string;
-
-              if (!finalWashPackageId || finalWashPackageId.length !== 24) {
-                console.error(
-                  "❌ [BookingSummary] Invalid washPackage ID format:",
-                  serviceId
-                );
-                Alert.alert(
-                  "Selection Error",
-                  "Invalid wash package selected. Please go back and select a service again."
-                );
-                return;
-              }
-
-              const cityPart =
-                addressParts.find(
-                  (part, index) => index >= 2 && !/^\d{6}$/.test(part)
-                ) ||
-                addressParts[2] ||
-                "City";
-
-              const bookingPayload: any = {
-                houseOrFlatNo: String(houseNumClean),
-                locality: String(addressParts[1] || "Locality"),
-                landmark: String(addressParts[2] || "Landmark"),
-                city: String(cityPart),
-                postalCode: postalCode,
-                addressType: "Home",
-                washPackage: finalWashPackageId,
-                vehicleType:
-                  VEHICLE_TYPE_MAP[(vehicleType as string)?.toLowerCase()] ||
-                  (vehicleType as string) ||
-                  "Sedan",
-                vehicleNo: String(
-                  vehicleNumber ? (vehicleNumber as string) : "N/A"
-                ),
-                bookingDate: selectedDate
-                  ? (selectedDate as string)
-                  : new Date().toISOString().split("T")[0],
-                bookingTime: Number(hour),
-              };
-
-              console.log(
-                "[BookingSummary] TRACE - Auth Token:",
-                authState.token
-              );
-              console.log(
-                "[BookingSummary] TRACE - Payload:",
-                JSON.stringify(bookingPayload, null, 2)
-              );
-              const response = await createBooking(bookingPayload).unwrap();
-              console.log("[BookingSummary] TRACE - Response:", response);
-
-              dispatch(
-                addBooking({
-                  center: (shopName as string) || "Your Location",
-                  date: selectedDate as string,
-                  timeSlot: selectedTime as string,
-                  car: vehicleType
-                    ? `${vehicleType} - ${vehicleNumber}`
-                    : "Vehicle",
-                  carImage:
-                    "https://cdn-icons-png.flaticon.com/512/743/743007.png",
-                  phone: userPhone as string,
-                  price: Number(grandTotal),
-                  address: address as string,
-                  plate: vehicleNumber as string,
-                  serviceName: serviceName as string,
-                  serviceId: finalWashPackageId,
-                })
-              );
-
-              // Save address to Redux profile
-              if (address) {
-                dispatch(
-                  addAddress({
-                    id: `addr-${Date.now()}`,
-                    flatNumber: String(houseNumClean),
-                    locality: String(addressParts[1] || "Locality"),
-                    landmark: String(addressParts[2] || ""),
-                    city: String(cityPart),
-                    pincode: postalCode,
-                    addressType: "Home",
-                    fullAddress: address as string,
-                  })
-                );
-              }
-
-              // Save vehicle to Redux user cars
-              if (vehicleNumber) {
-                dispatch(
-                  addCar({
-                    id: `car-${Date.now()}`,
-                    name: `${vehicleType || "Car"}`,
-                    type:
-                      VEHICLE_TYPE_MAP[
-                        (vehicleType as string)?.toLowerCase()
-                      ] || "Sedan",
-                    number: vehicleNumber as string,
-                    image:
-                      "https://cdn-icons-png.flaticon.com/512/743/743007.png",
-                  })
-                );
-              }
-
-              router.push({
-                pathname: "/(tabs)/home/book-doorstep/order-confirmation",
-                params: {
-                  ...params,
-                  grandTotal,
-                  paymentMethod: selectedPaymentMethod,
-                  bookingId: response?.data?._id || "temp-id",
-                },
-              });
-            } catch (err: any) {
-              console.error(
-                "❌ [BookingSummary] FULL ERROR OBJECT:",
-                JSON.stringify(err, null, 2)
-              );
-              if (err.status === 401) {
-                Alert.alert(
-                  "Session Expired",
-                  "Your technical session has expired or is invalid. Please log out and log in again.",
-                  [{ text: "OK", onPress: () => dispatch(logout()) }]
-                );
-              } else {
-                const errorMsg =
-                  err?.data?.message ||
-                  err?.message ||
-                  "Something went wrong while creating your booking.";
-                Alert.alert("Booking Failed", errorMsg);
-              }
-            }
-          }}
+          disabled={isCreatingBooking}
+          onPress={handlePay}
         >
           <View style={styles.payButtonContent}>
             <View style={styles.payButtonPriceContainer}>
@@ -488,89 +492,20 @@ export default function BookingSummaryScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Payment Options Modal */}
-      <Modal
-        visible={showPaymentModal}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setShowPaymentModal(false)}
-      >
+      {/* Loading Overlay */}
+      {isVerifyingPayment && (
         <View style={styles.modalOverlay}>
-          <TouchableWithoutFeedback onPress={() => setShowPaymentModal(false)}>
-            <View style={styles.modalBackdrop} />
-          </TouchableWithoutFeedback>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Payment Options</Text>
-              <TouchableOpacity onPress={() => setShowPaymentModal(false)}>
-                <Ionicons name="close" size={24} color="#1a1a1a" />
-              </TouchableOpacity>
-            </View>
-            <ScrollView contentContainerStyle={styles.modalScroll}>
-              {paymentOptions.map((option) => (
-                <TouchableOpacity
-                  key={option.id}
-                  style={[
-                    styles.optionCard,
-                    selectedPaymentMethod === option.id &&
-                      styles.optionCardSelected,
-                  ]}
-                  onPress={() => {
-                    setSelectedPaymentMethod(option.id);
-                    setShowPaymentModal(false);
-                  }}
-                >
-                  <View style={styles.optionRow}>
-                    <View style={styles.radioContainer}>
-                      <View
-                        style={[
-                          styles.radioInfo,
-                          selectedPaymentMethod === option.id
-                            ? styles.radioSelected
-                            : styles.radioUnselected,
-                        ]}
-                      >
-                        {selectedPaymentMethod === option.id && (
-                          <View style={styles.radioDot} />
-                        )}
-                      </View>
-                    </View>
-
-                    <View
-                      style={[
-                        styles.optionIconContainer,
-                        {
-                          backgroundColor:
-                            selectedPaymentMethod === option.id
-                              ? "#f0f9eb"
-                              : "#F5F5F5",
-                        },
-                      ]}
-                    >
-                      <Ionicons
-                        name={option.icon as any}
-                        size={24}
-                        color={
-                          selectedPaymentMethod === option.id
-                            ? "#1a1a1a"
-                            : "#666"
-                        }
-                      />
-                    </View>
-
-                    <View style={styles.optionContent}>
-                      <Text style={styles.optionLabel}>{option.label}</Text>
-                      <Text style={styles.optionSubLabel}>
-                        {option.subLabel}
-                      </Text>
-                    </View>
-                  </View>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
+          <View style={[styles.card, { padding: 30, alignItems: "center" }]}>
+            <ActivityIndicator size="large" color="#C8F000" />
+            <Text style={{ marginTop: 20, fontSize: 16, fontWeight: "bold" }}>
+              Verifying Payment...
+            </Text>
+            <Text style={{ marginTop: 10, color: "#666", textAlign: "center" }}>
+              Please wait while we confirm with the bank.
+            </Text>
           </View>
         </View>
-      </Modal>
+      )}
     </SafeAreaView>
   );
 }

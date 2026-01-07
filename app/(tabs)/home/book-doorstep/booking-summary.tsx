@@ -302,15 +302,9 @@ export default function BookingSummaryScreen() {
         }
       }
 
-      // 3. Handle Result
-      // 3. Handle Result + Fallback
       if (result.type === "success") {
-        // Auto-redirected! Success!
-        // Verify via backend polling just to be safe (and show UI feedback)
         checkPaymentStatus(bookingId);
       } else {
-        // 4. Fallback: If dismissed/cancelled
-        // User might have paid but closed the tab manually. Poll to confirm.
         checkPaymentStatus(bookingId);
       }
     } catch (err: any) {

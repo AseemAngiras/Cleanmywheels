@@ -8,18 +8,18 @@ import * as Location from "expo-location";
 import { useNavigation, useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
-    ActivityIndicator,
-    Dimensions,
-    KeyboardAvoidingView,
-    Modal,
-    Platform,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Dimensions,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from "react-native";
 import MapView, { Marker, Region } from "react-native-maps";
 import { useDispatch, useSelector } from "react-redux";
@@ -54,7 +54,7 @@ export default function EnterLocationScreen() {
   const [locality, setLocality] = useState("");
   const [landmark, setLandmark] = useState("");
   const [city, setCity] = useState("");
-  const [pincode, setPincode] = useState("");
+  const [postalCode, setPostalCode] = useState("");
   const [addressType, setAddressType] = useState<"Home" | "Work">("Home");
 
   const [errorMsg, setErrorMsg] = useState("");
@@ -77,7 +77,7 @@ export default function EnterLocationScreen() {
     setLocality(addr.locality);
     setLandmark(addr.landmark || "");
     setCity(addr.city);
-    setPincode(addr.pincode);
+    setPostalCode(addr.postalCode);
     setAddressType(addr.addressType);
     setSelectedCoord(
       addr.latitude && addr.longitude
@@ -130,7 +130,7 @@ export default function EnterLocationScreen() {
     if (!selectedCoord) return;
     setMapVisible(false);
     setIsLocating(true);
-  
+
     if (selectedSavedAddressId) {
       setSelectedSavedAddressId(null);
     }
@@ -146,7 +146,7 @@ export default function EnterLocationScreen() {
         setFlatNumber(addr.name || "");
         setLocality(addr.district || addr.subregion || "");
         setCity(addr.city || addr.region || "");
-        setPincode(addr.postalCode || "");
+        setPostalCode(addr.postalCode || "");
       }
     } catch (e) {
       console.log("Geocoding error", e);
@@ -169,7 +169,7 @@ export default function EnterLocationScreen() {
       setErrorMsg("Please enter City");
       return;
     }
-    if (!pincode.trim() || pincode.length < 6) {
+    if (!postalCode.trim() || postalCode.length < 6) {
       setErrorMsg("Please enter a valid 6-digit Pincode");
       return;
     }
@@ -194,14 +194,25 @@ export default function EnterLocationScreen() {
       return;
     }
 
-    const fullAddress = `${flatNumber}, ${locality}, ${city}, ${pincode}`;
+    const fullAddress = `${flatNumber}, ${locality}, ${city}, ${postalCode}`;
 
-    const addressPayload = {
+    // Payload for Backend API (Strict Validation)
+    const apiPayload = {
+      houseOrFlatNo: flatNumber, // Backend expects houseOrFlatNo
+      locality,
+      landmark: landmark || "",
+      city,
+      postalCode,
+      addressType,
+    };
+
+    // Payload for Redux / Local State (UI needs these)
+    const localPayload = {
       flatNumber,
       locality,
       landmark,
       city,
-      pincode,
+      postalCode,
       addressType,
       fullAddress,
       latitude: selectedCoord?.lat,
@@ -209,39 +220,53 @@ export default function EnterLocationScreen() {
     };
 
     if (!isLoggedIn) {
-        console.log("Guest User: Saving address locally");
-        const fallbackId = nanoid();
-        const fallbackAddr = { ...addressPayload, id: fallbackId };
-        
-        dispatch(addAddress(fallbackAddr));
-        dispatch(setBookingAddress({ addressId: fallbackId }));
-        
-        router.push({
-          pathname: "/(tabs)/home/book-doorstep/select-service",
-          params: {
-            address: fullAddress,
-            latitude: selectedCoord?.lat,
-            longitude: selectedCoord?.long,
-            addressId: fallbackId,
-          }
-        });
-        return;
+      console.log("Guest User: Saving address locally");
+      const fallbackId = nanoid();
+      const fallbackAddr = { ...localPayload, id: fallbackId };
+
+      dispatch(addAddress(fallbackAddr));
+      dispatch(setBookingAddress({ addressId: fallbackId }));
+
+
+      router.push({
+        pathname: "/(tabs)/home/book-doorstep/select-service",
+        params: {
+          address: fullAddress,
+          latitude: selectedCoord?.lat,
+          longitude: selectedCoord?.long,
+          addressId: fallbackId,
+        }
+      });
+      return;
     }
 
     try {
-      await createAddress(addressPayload).unwrap();
-      
-      const result = await triggerGetAddresses().unwrap();
+      // 1. Send STRICT payload to backend
+      await createAddress(apiPayload).unwrap();
+
+      // 2. Fetch updated list
+      const result = await triggerGetAddresses({ page: 1, perPage: 100 }).unwrap();
       const addressList = result.addressList || [];
-      
-      const newAddress = addressList.find((addr: any) => 
-        addr.fullAddress === fullAddress && 
+
+      // 3. Find string match to get the new ID
+      const newAddress = addressList.find((addr: any) =>
+        addr.houseOrFlatNo === flatNumber && // Backend returns houseOrFlatNo
+        addr.locality === locality &&
+        addr.postalCode === postalCode &&
         addr.addressType === addressType
       );
 
       if (newAddress) {
-        dispatch(addAddress(newAddress));
-        dispatch(setBookingAddress({ addressId: newAddress.id || newAddress._id }));
+        // Backend returns `houseOrFlatNo`, map it back to `flatNumber` for Redux if needed
+        // But our Redux `addAddress` expects `flatNumber`.
+        // We can just construct a Redux-friendly object merging backend ID with local data
+        const reduxAddress = {
+          ...localPayload,
+          id: newAddress.id || newAddress._id
+        };
+
+        dispatch(addAddress(reduxAddress));
+        dispatch(setBookingAddress({ addressId: reduxAddress.id }));
 
         router.push({
           pathname: "/(tabs)/home/book-doorstep/select-service",
@@ -249,16 +274,16 @@ export default function EnterLocationScreen() {
             address: fullAddress,
             latitude: selectedCoord?.lat,
             longitude: selectedCoord?.long,
-            addressId: newAddress.id || newAddress._id,
+            addressId: reduxAddress.id,
           }
         });
       } else {
         console.warn("New address not found in list, using local fallback");
         const fallbackId = nanoid();
-        const fallbackAddr = { ...addressPayload, id: fallbackId };
+        const fallbackAddr = { ...localPayload, id: fallbackId };
         dispatch(addAddress(fallbackAddr));
         dispatch(setBookingAddress({ addressId: fallbackId }));
-        
+
         router.push({
           pathname: "/(tabs)/home/book-doorstep/select-service",
           params: {
@@ -427,7 +452,7 @@ export default function EnterLocationScreen() {
               style={[
                 styles.input,
                 { flex: 1 },
-                (!pincode.trim() || pincode.length < 6) &&
+                (!postalCode.trim() || postalCode.length < 6) &&
                 errorMsg.includes("Pincode") &&
                 styles.inputError,
               ]}
@@ -435,8 +460,8 @@ export default function EnterLocationScreen() {
               placeholderTextColor="#ccc"
               keyboardType="number-pad"
               maxLength={6}
-              value={pincode}
-              onChangeText={handleInputChange(setPincode)}
+              value={postalCode}
+              onChangeText={handleInputChange(setPostalCode)}
             />
           </View>
 
@@ -500,16 +525,16 @@ export default function EnterLocationScreen() {
       {/* Footer Button */}
       <View style={styles.footer}>
         {errorMsg ? <Text style={styles.errorText}>{errorMsg}</Text> : null}
-        <TouchableOpacity 
-            style={[styles.confirmButton, isCreating && { opacity: 0.7 }]} 
-            onPress={handleConfirm}
-            disabled={isCreating}
+        <TouchableOpacity
+          style={[styles.confirmButton, isCreating && { opacity: 0.7 }]}
+          onPress={handleConfirm}
+          disabled={isCreating}
         >
-            {isCreating ? (
-                 <ActivityIndicator color="#1a1a1a" />
-            ) : (
-                <Text style={styles.confirmButtonText}>Confirm Address</Text>
-            )}
+          {isCreating ? (
+            <ActivityIndicator color="#1a1a1a" />
+          ) : (
+            <Text style={styles.confirmButtonText}>Confirm Address</Text>
+          )}
         </TouchableOpacity>
       </View>
 
@@ -577,7 +602,7 @@ const styles = StyleSheet.create({
   backButton: {
     width: 40,
     height: 40,
-    backgroundColor: "#f5f5f5", 
+    backgroundColor: "#f5f5f5",
     borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
@@ -589,7 +614,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingBottom: 100,   
+    paddingBottom: 100,
   },
 
   currentLocationRow: {

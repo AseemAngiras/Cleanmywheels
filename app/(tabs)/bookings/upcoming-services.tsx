@@ -57,13 +57,7 @@ export default function UpcomingServices() {
   const scanLineAnim = useRef(new Animated.Value(0)).current;
 
   // --- ADMIN & WORKER LOGIC ---
-  const userPhone = useAppSelector((state: RootState) => state.user.phone);
-
-  // Ensure we handle potential undefined or different formats
-  const isAdmin =
-    userPhone &&
-    (String(userPhone).endsWith("1234567890") ||
-      String(userPhone).includes("1234567890"));
+  const isAdmin = useAppSelector((state: RootState) => state.user.user?.accountType === 'Super Admin');
 
   const MOCK_WORKERS = [
     { id: "W1", name: "Amit Sharma", phone: "+919876543210" },
@@ -77,9 +71,8 @@ export default function UpcomingServices() {
   // Send WhatsApp to User ensuring them about the worker
   const sendUserConfirmation = (worker: any, booking: any) => {
     const message = `Hello, your booking for *${booking.serviceName}* is confirmed! 🚗✨\n\n*${worker.name}* will be arriving shortly to service your vehicle.\n\nBooking ID: ${booking.id}\nTime: ${booking.timeSlot}`;
-    const url = `whatsapp://send?phone=${
-      booking.phone
-    }&text=${encodeURIComponent(message)}`;
+    const url = `whatsapp://send?phone=${booking.phone
+      }&text=${encodeURIComponent(message)}`;
 
     Linking.canOpenURL(url).then((supported) => {
       if (supported) {
@@ -92,16 +85,12 @@ export default function UpcomingServices() {
 
   // Send WhatsApp to Worker with job details
   const sendWorkerJobDetails = (worker: any, booking: any) => {
-    const message = `🛠️ *New Job Assigned!*\n\nCustomer: ${
-      booking.user || "Valued Customer"
-    }\nPhone: ${booking.phone}\nAddress: ${booking.address}\n\nService: ${
-      booking.serviceName
-    }\nCar: ${booking.car} (${booking.plate})\nTime: ${
-      booking.timeSlot
-    }\n\nPlease reach on time.`;
-    const url = `whatsapp://send?phone=${
-      worker.phone
-    }&text=${encodeURIComponent(message)}`;
+    const message = `🛠️ *New Job Assigned!*\n\nCustomer: ${booking.user || "Valued Customer"
+      }\nPhone: ${booking.phone}\nAddress: ${booking.address}\n\nService: ${booking.serviceName
+      }\nCar: ${booking.car} (${booking.plate})\nTime: ${booking.timeSlot
+      }\n\nPlease reach on time.`;
+    const url = `whatsapp://send?phone=${worker.phone
+      }&text=${encodeURIComponent(message)}`;
 
     Linking.canOpenURL(url).then((supported) => {
       if (supported) {
@@ -355,7 +344,10 @@ export default function UpcomingServices() {
 
               <View style={styles.detailRow}>
                 <Text style={styles.label}>Address</Text>
-                <Text style={styles.value}>{activeBooking.address}</Text>
+                <Text style={styles.value}>
+                  {activeBooking.address ||
+                    (activeBooking.locality ? `${activeBooking.houseOrFlatNo ? activeBooking.houseOrFlatNo + ', ' : ''}${activeBooking.locality}, ${activeBooking.city}` : 'Address not provided')}
+                </Text>
               </View>
 
               <View style={styles.detailRow}>

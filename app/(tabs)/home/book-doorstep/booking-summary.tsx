@@ -208,6 +208,8 @@ export default function BookingSummaryScreen() {
           ? (selectedDate as string)
           : new Date().toISOString().split("T")[0],
         bookingTime: Number(hour),
+        address: params.addressId as string,
+        serviceName: (serviceName as string) || "Premium Wash",
       };
 
       console.log(
@@ -226,7 +228,7 @@ export default function BookingSummaryScreen() {
             locality: String(addressParts[1] || "Locality"),
             landmark: String(addressParts[2] || ""),
             city: String(cityPart),
-            pincode: postalCode,
+            postalCode: postalCode,
             addressType: "Home",
             fullAddress: address as string,
           })
@@ -395,7 +397,7 @@ export default function BookingSummaryScreen() {
               <Text style={styles.value}>
                 {vehicleType
                   ? (vehicleType as string).charAt(0).toUpperCase() +
-                    (vehicleType as string).slice(1)
+                  (vehicleType as string).slice(1)
                   : "Same"}{" "}
                 - {vehicleNumber || "N/A"}
               </Text>
@@ -413,9 +415,9 @@ export default function BookingSummaryScreen() {
               <Text style={styles.value}>
                 {selectedDate
                   ? new Date(selectedDate as string).toLocaleDateString(
-                      undefined,
-                      { weekday: "short", day: "numeric", month: "short" }
-                    )
+                    undefined,
+                    { weekday: "short", day: "numeric", month: "short" }
+                  )
                   : "Date"}
                 , {selectedTime || "Time"}
               </Text>

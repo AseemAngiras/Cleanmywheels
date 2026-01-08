@@ -1,20 +1,20 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 export type Address = {
-  id: string;
-  flatNumber: string;
-  locality: string;
-  landmark?: string;
-  city: string;
-  pincode: string;
-  addressType: 'Home' | 'Work';
-  fullAddress: string;
-  latitude?: number;
-  longitude?: number;
+    id: string;
+    flatNumber: string;
+    locality: string;
+    landmark?: string;
+    city: string;
+    postalCode: string;
+    addressType: 'Home' | 'Work';
+    fullAddress: string;
+    latitude?: number;
+    longitude?: number;
 };
 
 interface ProfileState {
-    name : string,
+    name: string,
     phone: string,
     email?: string,
     addresses: Address[],
@@ -31,9 +31,9 @@ const profileSlice = createSlice({
     name: "profile",
     initialState,
     reducers: {
-        updateProfile<K extends keyof ProfileState> (
-            state : any,
-            action: PayloadAction<{ key : K; value : ProfileState[K]}>
+        updateProfile<K extends keyof ProfileState>(
+            state: any,
+            action: PayloadAction<{ key: K; value: ProfileState[K] }>
         ) {
             state[action.payload.key] = action.payload.value;
         },
@@ -42,12 +42,12 @@ const profileSlice = createSlice({
             const exists = state.addresses.find(
                 addr => addr.fullAddress === action.payload.fullAddress
             );
-            if(!exists) {
+            if (!exists) {
                 state.addresses.push(action.payload);
             }
         },
 
-        removeAddresses(state, action:PayloadAction<string>){
+        removeAddresses(state, action: PayloadAction<string>) {
             state.addresses = state.addresses.filter(
                 addr => addr.id !== action.payload
             )
@@ -56,9 +56,9 @@ const profileSlice = createSlice({
         resetProfile() {
             return initialState;
         }
-        
+
     }
 })
 
-export const {updateProfile, resetProfile, addAddress, removeAddresses} = profileSlice.actions;
+export const { updateProfile, resetProfile, addAddress, removeAddresses } = profileSlice.actions;
 export default profileSlice.reducer;

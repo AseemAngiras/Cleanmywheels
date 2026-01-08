@@ -15,7 +15,7 @@ export const addressApi = createApi({
 
       const state = getState() as any;
       const token = state.auth?.token;
-      
+
       console.log(" [AddressApi] PrepareHeaders - Token present:", !!token);
       if (token) {
         console.log(" [AddressApi] Adding Authorization header (Raw)");
@@ -34,8 +34,11 @@ export const addressApi = createApi({
     },
   }),
   endpoints: (builder) => ({
-    getAddresses: builder.query<any, void>({
-      query: () => "/address",
+    getAddresses: builder.query<any, { page?: number; perPage?: number; search?: string } | void>({
+      query: (params) => ({
+        url: "/address",
+        params: params || {},
+      }),
       providesTags: ["Address"],
     }),
     createAddress: builder.mutation<any, any>({

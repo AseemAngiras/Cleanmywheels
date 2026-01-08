@@ -1,8 +1,9 @@
 import { RootState } from "@/store";
+import { useGetBookingsQuery } from "@/store/api/bookingApi";
 import { Ionicons } from "@expo/vector-icons";
 import { Slot, usePathname, useRouter } from "expo-router";
 import { useState } from "react";
-import { Alert, FlatList, Image, Linking, Modal, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, FlatList, Image, Linking, Modal, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useSelector } from "react-redux";
 
 // --- MOCK DATA FOR ADMIN BOOKINGS ---
@@ -65,23 +66,60 @@ function AdminBookingsScreen() {
   const [workerModalVisible, setWorkerModalVisible] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
 
+  // Fetch Real Bookings
+  const { data: bookingsData, isLoading, refetch } = useGetBookingsQuery();
+
+  console.log("AdminBookingsScreen Debug:", {
+    bookingsData,
+    isLoading,
+    list: bookingsData?.data?.bookingList
+  });
+
+  // Process Bookings
+  const allBookings = bookingsData?.data?.bookingList || [];
+
+  // Filter Logic
+  const filteredBookings = allBookings.filter((b) => {
+    if (filter === 'All') return true;
+    // Backend uses Title Case: 'Pending', 'Confirmed', 'Completed', 'In Progress'
+    if (filter === 'Pending') {
+      return b.status === 'Pending' || b.status === 'Confirmed' || b.status === 'In Progress' || b.status === 'upcoming' || b.status === 'pending';
+    }
+    if (filter === 'Completed') {
+      return b.status === 'Completed' || b.status === 'completed';
+    }
+    return true;
+  });
+
   const handleAssignWorker = (worker: any) => {
     setWorkerModalVisible(false);
 
     Alert.alert(
       "Confirm Assignment",
-      `Assign ${worker.name} to ${selectedBooking?.customerName}?`,
+      `Assign ${worker.name} to ${selectedBooking?.user?.name || 'Customer'}?`,
       [
         { text: "Cancel", style: "cancel" },
         {
           text: "Confirm & Notify",
           onPress: () => {
             // 1. Send WhatsApp to User
-            const userMsg = `Hello ${selectedBooking.customerName}, your service for ${selectedBooking.car} has been assigned to ${worker.name} (Ph: ${worker.phone}). They will arrive shortly.`;
-            const userUrl = `whatsapp://send?phone=${selectedBooking.phone}&text=${encodeURIComponent(userMsg)}`;
+            const customerName = selectedBooking?.user?.name || 'Valued Customer';
+            let customerPhone = selectedBooking?.user?.phone || selectedBooking?.phone || '';
+            // Clean phone number: remove non-numeric chars
+            customerPhone = customerPhone.replace(/\D/g, '');
+            if (customerPhone.length === 10) {
+              customerPhone = '91' + customerPhone;
+            }
 
-            Linking.openURL(userUrl).catch(() => {
-              Alert.alert("Error", "Could not open WhatsApp");
+            const serviceString = selectedBooking.serviceName || selectedBooking.washPackage?.name || "Service";
+            const vehicleString = selectedBooking.vehicleType || 'Car';
+
+            const userMsg = `Hello ${customerName}, your ${serviceString} for ${vehicleString} (${selectedBooking.vehicleNo || ''}) has been assigned to ${worker.name} (Ph: ${worker.phone}). They will arrive shortly.`;
+            const userUrl = `https://wa.me/${customerPhone}?text=${encodeURIComponent(userMsg)}`;
+
+            Linking.openURL(userUrl).catch((err) => {
+              console.log("WhatsApp Error:", err);
+              Alert.alert("Error", "Could not open WhatsApp. Valid phone number required.");
             });
 
             // 2. Prompt to Send WhatsApp to Worker (Sequential Step)
@@ -94,8 +132,22 @@ function AdminBookingsScreen() {
                   {
                     text: "Send to Worker",
                     onPress: () => {
-                      const workerMsg = `🛠 *New Job Assigned!*\n\n👤 Client: ${selectedBooking.customerName}\n🚗 Car: ${selectedBooking.car} (${selectedBooking.license})\n📋 Service: ${selectedBooking.service}\n⏰ Time: ${selectedBooking.time}\n📍 Address: ${selectedBooking.address}\n📞 Phone: ${selectedBooking.phone}`;
-                      const workerUrl = `whatsapp://send?phone=${worker.phone}&text=${encodeURIComponent(workerMsg)}`;
+                      const addressString = selectedBooking.address?.fullAddress || selectedBooking.address?.locality || (selectedBooking.locality ? `${selectedBooking.houseOrFlatNo ? selectedBooking.houseOrFlatNo + ', ' : ''}${selectedBooking.locality}, ${selectedBooking.city}` : 'Address not provided');
+                      const serviceString = selectedBooking.serviceName || selectedBooking.washPackage?.name || "Service";
+                      const timeString = selectedBooking.bookingTime ? `${selectedBooking.bookingTime}:00` : 'TBD';
+                      const dateString = new Date(selectedBooking.bookingDate || selectedBooking.date).toLocaleDateString();
+
+                      let workerPhone = worker.phone || '';
+                      workerPhone = workerPhone.replace(/\D/g, '');
+                      if (workerPhone.length === 10) {
+                        workerPhone = '91' + workerPhone;
+                      }
+
+                      const workerMsg = `🛠 *New Job Assigned!*\n\n👤 Client: ${customerName}\n🚗 Car: ${selectedBooking.vehicleType || 'Car'} (${selectedBooking.vehicleNo || '- '})\n📋 Service: ${serviceString}\n⏰ Time: ${timeString} on ${dateString}\n📍 Address: ${addressString}\n📞 Phone: ${customerPhone}`;
+                      const workerUrl = `https://wa.me/${workerPhone}?text=${encodeURIComponent(workerMsg)}`;
+
+                      console.log("Opening WhatsApp for Worker:", workerUrl);
+
                       Linking.openURL(workerUrl).catch(() => Alert.alert("Error", "Could not open WhatsApp for Worker"));
                     }
                   }
@@ -132,23 +184,29 @@ function AdminBookingsScreen() {
     );
   };
 
-  const renderCard = ({ item }: { item: typeof ADMIN_BOOKINGS[0] }) => (
+  const renderCard = ({ item }: { item: any }) => (
     <View style={adminStyles.card}>
-      {/* ... (Keep existing card render logic) ... */}
       <View style={adminStyles.cardHeader}>
         <View style={adminStyles.userInfo}>
-          <Image source={{ uri: item.avatar }} style={adminStyles.avatar} />
+          {/* Fallback avatar if no image provided */}
+          <Image
+            source={{ uri: item.user?.avatar || 'https://ui-avatars.com/api/?name=' + (item.user?.name || 'User') + '&background=random' }}
+            style={adminStyles.avatar}
+          />
           <View>
-            <Text style={adminStyles.userName}>{item.customerName}</Text>
+            <Text style={adminStyles.userName}>{item.user?.name || 'Customer'}</Text>
             <View style={adminStyles.timeRow}>
               <Ionicons name="time" size={12} color="#007BFF" />
-              <Text style={adminStyles.timeText}>{item.time}</Text>
+              <Text style={adminStyles.timeText}>
+                {/* Format Time: 10 -> 10:00 AM */}
+                {item.bookingTime ? `${item.bookingTime}:00` : 'TBD'} • {new Date(item.bookingDate || item.date).toLocaleDateString()}
+              </Text>
             </View>
           </View>
         </View>
-        <View style={[adminStyles.statusBadge, item.status === 'CONFIRMED' ? adminStyles.badgeConfirmed : adminStyles.badgeProgress]}>
+        <View style={[adminStyles.statusBadge, (item.status === 'Completed' || item.status === 'completed') ? adminStyles.badgeConfirmed : adminStyles.badgeProgress]}>
           <View style={adminStyles.statusDot} />
-          <Text style={adminStyles.statusText}>{item.status}</Text>
+          <Text style={adminStyles.statusText}>{item.status ? item.status.toUpperCase() : 'PENDING'}</Text>
         </View>
       </View>
 
@@ -157,13 +215,21 @@ function AdminBookingsScreen() {
         <View style={adminStyles.detailRow}>
           <Ionicons name="car-sport-outline" size={16} color="#666" style={adminStyles.detailIcon} />
           <View>
-            <Text style={adminStyles.detailTitle}>{item.car}</Text>
-            <Text style={adminStyles.detailSub}>{item.license}</Text>
+            <Text style={adminStyles.detailTitle}>{item.vehicleType || 'Car'}</Text>
+            <Text style={adminStyles.detailSub}>{item.vehicleNo || item.plate || 'No Plate'}</Text>
           </View>
         </View>
         <View style={[adminStyles.detailRow, { marginTop: 12 }]}>
           <Ionicons name="water-outline" size={16} color="#666" style={adminStyles.detailIcon} />
-          <Text style={adminStyles.detailTitle}>{item.service}</Text>
+          <Text style={adminStyles.detailTitle}>{item.washPackage?.name || item.serviceName || 'Unknown Service'}</Text>
+        </View>
+        <View style={[adminStyles.detailRow, { marginTop: 12 }]}>
+          <Ionicons name="location-outline" size={16} color="#666" style={adminStyles.detailIcon} />
+          <Text style={[adminStyles.detailSub, { flex: 1 }]} numberOfLines={2}>
+            {item.address?.fullAddress ||
+              item.address?.locality ||
+              (item.locality ? `${item.houseOrFlatNo ? item.houseOrFlatNo + ', ' : ''}${item.locality}, ${item.city}` : 'Address not provided')}
+          </Text>
         </View>
       </View>
 
@@ -216,14 +282,20 @@ function AdminBookingsScreen() {
 
       {/* List */}
       <FlatList
-        data={filter === 'All' ? ADMIN_BOOKINGS : []}
+        data={filteredBookings}
+        refreshing={isLoading}
+        onRefresh={refetch}
         renderItem={renderCard}
-        keyExtractor={item => item.id}
+        keyExtractor={item => item._id}
         contentContainerStyle={adminStyles.listContent}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           <View style={adminStyles.emptyContainer}>
-            <Text style={adminStyles.emptyText}>No {filter.toLowerCase()} bookings</Text>
+            {isLoading ? (
+              <ActivityIndicator size="large" color="#000" />
+            ) : (
+              <Text style={adminStyles.emptyText}>No {filter.toLowerCase()} bookings</Text>
+            )}
           </View>
         }
       />
@@ -274,10 +346,7 @@ function AdminBookingsScreen() {
 export default function BookingsLayout() {
   const router = useRouter();
   const pathname = usePathname();
-  const userPhone = useSelector((state: RootState) => state.user.phone);
-
-  const sanitizedPhone = userPhone ? userPhone.replace(/\D/g, '') : '';
-  const isAdmin = sanitizedPhone.endsWith('1234567890');
+  const isAdmin = useSelector((state: RootState) => state.user.user?.accountType === 'Super Admin');
 
   if (isAdmin) {
     return <AdminBookingsScreen />;

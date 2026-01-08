@@ -3,7 +3,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { LinearGradient } from "expo-linear-gradient";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Alert,
   Animated,
@@ -18,8 +18,10 @@ import {
   View,
 } from "react-native";
 
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
+
 import type { RootState } from "../../../store";
+import { useGetBookingsQuery } from "../../../store/api/bookingApi";
 import { useAppDispatch, useAppSelector } from "../../../store/hooks";
 import {
   type Booking,
@@ -30,6 +32,14 @@ import {
 export default function UpcomingServices() {
   const router = useRouter();
   const dispatch = useAppDispatch();
+
+  const { refetch } = useGetBookingsQuery();
+
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch])
+  );
 
   const bookings = useAppSelector((state: RootState) =>
     state.bookings.bookings.filter((b: Booking) => b.status === "upcoming")
@@ -252,6 +262,17 @@ export default function UpcomingServices() {
               <Text style={styles.sessionButtonText}>Review details</Text>
               <Ionicons name="chevron-forward" size={18} color="#FFF" />
             </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.qrIconButton}
+              onPress={() => {
+                setScannerVisible(true);
+                setActiveBooking(item);
+              }}
+              hitSlop={10}
+            >
+              <Ionicons name="qr-code-outline" size={22} color="#000" />
+            </TouchableOpacity>
           </View>
         </LinearGradient>
       </TouchableOpacity>
@@ -303,6 +324,14 @@ export default function UpcomingServices() {
 
           {activeBooking && (
             <>
+              <TouchableOpacity
+                style={styles.qrButton}
+                onPress={() => setScannerVisible(true)}
+              >
+                <Ionicons name="qr-code-outline" size={22} />
+                <Text style={styles.qrText}>Scan QR to Check-In</Text>
+              </TouchableOpacity>
+
               <View style={styles.detailRow}>
                 <Text style={styles.label}>Service</Text>
                 <Text style={styles.value}>{activeBooking.serviceName}</Text>
@@ -374,9 +403,13 @@ export default function UpcomingServices() {
 
               <View style={styles.sheetFooter}>
                 <Text style={styles.price}>₹ {activeBooking.price}</Text>
-                <View style={styles.statusBadge}>
-                  <Text style={styles.statusText}>Confirmed</Text>
-                </View>
+                <TouchableOpacity
+                  style={styles.cancelBtn}
+                  onPress={() => handleDelete(activeBooking.id)}
+                >
+                  <Ionicons name="trash-outline" size={18} />
+                  <Text style={styles.cancelText}>Cancel</Text>
+                </TouchableOpacity>
               </View>
             </>
           )}
@@ -678,16 +711,17 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     color: "#111",
   },
-  statusBadge: {
+  cancelBtn: {
     flexDirection: "row",
     alignItems: "center",
+    gap: 8,
     paddingHorizontal: 16,
     paddingVertical: 10,
-    backgroundColor: "#DCFCE7",
-    borderRadius: 20,
+    backgroundColor: "#FEE2E2",
+    borderRadius: 12,
   },
-  statusText: {
-    color: "#16A34A",
+  cancelText: {
+    color: "#B91C1C",
     fontSize: 14,
     fontWeight: "600",
   },

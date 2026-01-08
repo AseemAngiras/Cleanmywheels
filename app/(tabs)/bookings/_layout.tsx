@@ -104,13 +104,22 @@ function AdminBookingsScreen() {
           onPress: () => {
             // 1. Send WhatsApp to User
             const customerName = selectedBooking?.user?.name || 'Valued Customer';
-            const customerPhone = selectedBooking?.user?.phone || selectedBooking?.phone || '';
+            let customerPhone = selectedBooking?.user?.phone || selectedBooking?.phone || '';
+            // Clean phone number: remove non-numeric chars
+            customerPhone = customerPhone.replace(/\D/g, '');
+            if (customerPhone.length === 10) {
+              customerPhone = '91' + customerPhone;
+            }
 
-            const userMsg = `Hello ${customerName}, your service for ${selectedBooking.car} has been assigned to ${worker.name} (Ph: ${worker.phone}). They will arrive shortly.`;
-            const userUrl = `whatsapp://send?phone=${customerPhone}&text=${encodeURIComponent(userMsg)}`;
+            const serviceString = selectedBooking.serviceName || selectedBooking.washPackage?.name || "Service";
+            const vehicleString = selectedBooking.vehicleType || 'Car';
 
-            Linking.openURL(userUrl).catch(() => {
-              Alert.alert("Error", "Could not open WhatsApp");
+            const userMsg = `Hello ${customerName}, your ${serviceString} for ${vehicleString} (${selectedBooking.vehicleNo || ''}) has been assigned to ${worker.name} (Ph: ${worker.phone}). They will arrive shortly.`;
+            const userUrl = `https://wa.me/${customerPhone}?text=${encodeURIComponent(userMsg)}`;
+
+            Linking.openURL(userUrl).catch((err) => {
+              console.log("WhatsApp Error:", err);
+              Alert.alert("Error", "Could not open WhatsApp. Valid phone number required.");
             });
 
             // 2. Prompt to Send WhatsApp to Worker (Sequential Step)
@@ -123,8 +132,22 @@ function AdminBookingsScreen() {
                   {
                     text: "Send to Worker",
                     onPress: () => {
-                      const workerMsg = `🛠 *New Job Assigned!*\n\n👤 Client: ${customerName}\n🚗 Car: ${selectedBooking.car} (${selectedBooking.plate || '- '})\n📋 Service: ${selectedBooking.serviceName}\n⏰ Time: ${selectedBooking.timeSlot}\n📍 Address: ${selectedBooking.address || 'Address not provided'}\n📞 Phone: ${customerPhone}`;
-                      const workerUrl = `whatsapp://send?phone=${worker.phone}&text=${encodeURIComponent(workerMsg)}`;
+                      const addressString = selectedBooking.address?.fullAddress || selectedBooking.address?.locality || (selectedBooking.locality ? `${selectedBooking.houseOrFlatNo ? selectedBooking.houseOrFlatNo + ', ' : ''}${selectedBooking.locality}, ${selectedBooking.city}` : 'Address not provided');
+                      const serviceString = selectedBooking.serviceName || selectedBooking.washPackage?.name || "Service";
+                      const timeString = selectedBooking.bookingTime ? `${selectedBooking.bookingTime}:00` : 'TBD';
+                      const dateString = new Date(selectedBooking.bookingDate || selectedBooking.date).toLocaleDateString();
+
+                      let workerPhone = worker.phone || '';
+                      workerPhone = workerPhone.replace(/\D/g, '');
+                      if (workerPhone.length === 10) {
+                        workerPhone = '91' + workerPhone;
+                      }
+
+                      const workerMsg = `🛠 *New Job Assigned!*\n\n👤 Client: ${customerName}\n🚗 Car: ${selectedBooking.vehicleType || 'Car'} (${selectedBooking.vehicleNo || '- '})\n📋 Service: ${serviceString}\n⏰ Time: ${timeString} on ${dateString}\n📍 Address: ${addressString}\n📞 Phone: ${customerPhone}`;
+                      const workerUrl = `https://wa.me/${workerPhone}?text=${encodeURIComponent(workerMsg)}`;
+
+                      console.log("Opening WhatsApp for Worker:", workerUrl);
+
                       Linking.openURL(workerUrl).catch(() => Alert.alert("Error", "Could not open WhatsApp for Worker"));
                     }
                   }
@@ -203,7 +226,9 @@ function AdminBookingsScreen() {
         <View style={[adminStyles.detailRow, { marginTop: 12 }]}>
           <Ionicons name="location-outline" size={16} color="#666" style={adminStyles.detailIcon} />
           <Text style={[adminStyles.detailSub, { flex: 1 }]} numberOfLines={2}>
-            {item.address?.fullAddress || item.address?.locality || 'Address not provided'}
+            {item.address?.fullAddress ||
+              item.address?.locality ||
+              (item.locality ? `${item.houseOrFlatNo ? item.houseOrFlatNo + ', ' : ''}${item.locality}, ${item.city}` : 'Address not provided')}
           </Text>
         </View>
       </View>

@@ -315,7 +315,10 @@ export default function UpcomingServices() {
 
               <View style={styles.detailRow}>
                 <Text style={styles.label}>Address</Text>
-                <Text style={styles.value}>{activeBooking.address}</Text>
+                <Text style={styles.value}>
+                  {activeBooking.address ||
+                    (activeBooking.locality ? `${activeBooking.houseOrFlatNo ? activeBooking.houseOrFlatNo + ', ' : ''}${activeBooking.locality}, ${activeBooking.city}` : 'Address not provided')}
+                </Text>
               </View>
 
               <View style={styles.detailRow}>

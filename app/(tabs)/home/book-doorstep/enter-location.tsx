@@ -196,7 +196,18 @@ export default function EnterLocationScreen() {
 
     const fullAddress = `${flatNumber}, ${locality}, ${city}, ${postalCode}`;
 
-    const addressPayload = {
+    // Payload for Backend API (Strict Validation)
+    const apiPayload = {
+      houseOrFlatNo: flatNumber, // Backend expects houseOrFlatNo
+      locality,
+      landmark: landmark || "",
+      city,
+      postalCode,
+      addressType,
+    };
+
+    // Payload for Redux / Local State (UI needs these)
+    const localPayload = {
       flatNumber,
       locality,
       landmark,
@@ -211,10 +222,11 @@ export default function EnterLocationScreen() {
     if (!isLoggedIn) {
       console.log("Guest User: Saving address locally");
       const fallbackId = nanoid();
-      const fallbackAddr = { ...addressPayload, id: fallbackId };
+      const fallbackAddr = { ...localPayload, id: fallbackId };
 
       dispatch(addAddress(fallbackAddr));
       dispatch(setBookingAddress({ addressId: fallbackId }));
+
 
       router.push({
         pathname: "/(tabs)/home/book-doorstep/select-service",
@@ -229,19 +241,32 @@ export default function EnterLocationScreen() {
     }
 
     try {
-      await createAddress(addressPayload).unwrap();
+      // 1. Send STRICT payload to backend
+      await createAddress(apiPayload).unwrap();
 
-      const result = await triggerGetAddresses().unwrap();
+      // 2. Fetch updated list
+      const result = await triggerGetAddresses({ page: 1, perPage: 100 }).unwrap();
       const addressList = result.addressList || [];
 
+      // 3. Find string match to get the new ID
       const newAddress = addressList.find((addr: any) =>
-        addr.fullAddress === fullAddress &&
+        addr.houseOrFlatNo === flatNumber && // Backend returns houseOrFlatNo
+        addr.locality === locality &&
+        addr.postalCode === postalCode &&
         addr.addressType === addressType
       );
 
       if (newAddress) {
-        dispatch(addAddress(newAddress));
-        dispatch(setBookingAddress({ addressId: newAddress.id || newAddress._id }));
+        // Backend returns `houseOrFlatNo`, map it back to `flatNumber` for Redux if needed
+        // But our Redux `addAddress` expects `flatNumber`.
+        // We can just construct a Redux-friendly object merging backend ID with local data
+        const reduxAddress = {
+          ...localPayload,
+          id: newAddress.id || newAddress._id
+        };
+
+        dispatch(addAddress(reduxAddress));
+        dispatch(setBookingAddress({ addressId: reduxAddress.id }));
 
         router.push({
           pathname: "/(tabs)/home/book-doorstep/select-service",
@@ -249,13 +274,13 @@ export default function EnterLocationScreen() {
             address: fullAddress,
             latitude: selectedCoord?.lat,
             longitude: selectedCoord?.long,
-            addressId: newAddress.id || newAddress._id,
+            addressId: reduxAddress.id,
           }
         });
       } else {
         console.warn("New address not found in list, using local fallback");
         const fallbackId = nanoid();
-        const fallbackAddr = { ...addressPayload, id: fallbackId };
+        const fallbackAddr = { ...localPayload, id: fallbackId };
         dispatch(addAddress(fallbackAddr));
         dispatch(setBookingAddress({ addressId: fallbackId }));
 

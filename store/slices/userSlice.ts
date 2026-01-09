@@ -9,6 +9,7 @@ export type Car = {
     image: string,
 }
 
+
 type UserState = {
     user: User | null;
     cars: Car[];
@@ -33,7 +34,7 @@ const userSlice = createSlice({
             }
         },
 
-        addCar(state, action: PayloadAction<Car>){
+        addCar(state, action: PayloadAction<Car>) {
             const existingCar = state.cars.find(
                 car => car.number.toUpperCase() === action.payload.number.toUpperCase()
             );
@@ -46,7 +47,7 @@ const userSlice = createSlice({
             const index = state.cars.findIndex(
                 (car) => car.id === action.payload.id
             );
-            if(index !== -1) {
+            if (index !== -1) {
                 state.cars[index] = action.payload;
             }
         },

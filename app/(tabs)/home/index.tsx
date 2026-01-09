@@ -545,6 +545,7 @@ export default function HomeScreen() {
     } finally {
       setIsLoading(false);
     }
+    return;
   };
 
   const allBookings = bookings;

@@ -77,11 +77,11 @@ export const bookingApi = createApi({
       query: (id) => `/booking/${id}`,
       providesTags: (result, error, id) => [{ type: "Booking", id }],
     }),
-    updateBookingStatus: builder.mutation<any, { id: string; status: string }>({
-      query: ({ id, status }) => ({
+    updateBookingStatus: builder.mutation<any, { id: string; status: string; workerName?: string; workerPhone?: string }>({
+      query: ({ id, status, workerName, workerPhone }) => ({
         url: `/booking/${id}`,
         method: "PUT",
-        body: { status },
+        body: { status, workerName, workerPhone },
       }),
       invalidatesTags: (result, error, { id }) => [
         { type: "Booking", id },

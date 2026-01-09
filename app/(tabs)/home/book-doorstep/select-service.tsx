@@ -517,6 +517,24 @@ export default function SelectServiceScreen() {
                             return;
                         }
 
+                        // Basic Indian Vehicle Number Validation (e.g. KA01AB1234, DL1CA1234)
+                        // Remove spaces/dashes
+                        const cleanNumber = vehicleNumber.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+
+                        if (cleanNumber.length < 6 || cleanNumber.length > 10) {
+                            Alert.alert("Invalid Vehicle Number", "Please enter a valid vehicle number (e.g., KA01AB1234).");
+                            return;
+                        }
+
+                        if (!/^[A-Z]{2}[0-9A-Z]{4,8}$/.test(cleanNumber)) {
+                            Alert.alert("Invalid Vehicle Number", "Please enter a valid vehicle number (e.g., KA01AB1234).");
+                            return;
+                        }
+
+
+
+
+
                         const service = services.find(s => s.id === selectedService);
                         if (!service) {
                             Alert.alert("Error", "Selected service is no longer available.");

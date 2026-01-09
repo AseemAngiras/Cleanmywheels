@@ -69,6 +69,13 @@ export const authApi = createApi({
           : undefined,
       }),
     }),
+    updateProfile: builder.mutation({
+      query: (body) => ({
+        url: "/auth/update-profile",
+        method: "PUT",
+        body,
+      }),
+    }),
   }),
 });
 
@@ -77,4 +84,5 @@ export const {
   useRequestOtpMutation,
   useVerifyLoginOtpMutation,
   useVerifyRegisterOtpMutation,
+  useUpdateProfileMutation,
 } = authApi;

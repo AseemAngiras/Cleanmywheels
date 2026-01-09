@@ -76,11 +76,25 @@ export default function MyCarsScreen() {
       return;
     }
 
+    // Validate Indian vehicle registration number format
+    // Format: 2-3 letters (state) + 2 digits (RTO) + 1-2 letters (series) + 4 digits (number)
+    // Examples: CH01GH4321, PB10QH3210, DL8CAF1234
+    const vehicleNumberPattern = /^[A-Z]{2,3}\d{2}[A-Z]{1,2}\d{4}$/i;
+    const cleanedNumber = number.trim().replace(/\s+/g, '').toUpperCase();
+
+    if (!vehicleNumberPattern.test(cleanedNumber)) {
+      Alert.alert(
+        "Invalid Vehicle Number",
+        "Please enter a valid vehicle number (e.g., CH01GH4321, PB10QH3210)"
+      );
+      return;
+    }
+
     const carPayload: Car = {
       id: editingCarId ?? Date.now().toString(),
       name: name.trim() || type.toUpperCase(),
       type,
-      number,
+      number: cleanedNumber,
       image: image || "",
     };
 

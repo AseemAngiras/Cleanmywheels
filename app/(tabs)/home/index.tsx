@@ -1,5 +1,10 @@
 import { RootState } from "@/store";
-import { useRegisterMutation, useRequestOtpMutation, useVerifyLoginOtpMutation, useVerifyRegisterOtpMutation } from "@/store/api/authApi";
+import {
+  useRegisterMutation,
+  useRequestOtpMutation,
+  useVerifyLoginOtpMutation,
+  useVerifyRegisterOtpMutation,
+} from "@/store/api/authApi";
 import { loginSuccess, logout } from "@/store/slices/authSlice";
 import { Booking } from "@/store/slices/bookingSlice";
 import { setUser } from "@/store/slices/userSlice";
@@ -370,7 +375,7 @@ export default function HomeScreen() {
 
   // Admin Check
   const sanitizedPhone = userPhone ? userPhone.replace(/\D/g, "") : "";
-  const isAdmin = sanitizedPhone.endsWith("1234567890") || sanitizedPhone.endsWith("8969214235");
+  const isAdmin = sanitizedPhone.endsWith("1234567890");
 
   // Login State
   const [isLoginModalVisible, setIsLoginModalVisible] = useState(false);
@@ -379,13 +384,15 @@ export default function HomeScreen() {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [isLoading, setIsLoading] = useState(false);
-  const inputRefs = useRef<Array<TextInput | null>>([]);
+  const inputRefs = useRef<(TextInput | null)[]>([]);
 
   // Auth Mutations
   const [requestOtp, { isLoading: isRequestingOtp }] = useRequestOtpMutation();
-  const [verifyLoginOtp, { isLoading: isVerifyingOtp }] = useVerifyLoginOtpMutation();
+  const [verifyLoginOtp, { isLoading: isVerifyingOtp }] =
+    useVerifyLoginOtpMutation();
   const [register, { isLoading: isRegistering }] = useRegisterMutation();
-  const [verifyRegisterOtp, { isLoading: isVerifyingRegOtp }] = useVerifyRegisterOtpMutation();
+  const [verifyRegisterOtp, { isLoading: isVerifyingRegOtp }] =
+    useVerifyRegisterOtpMutation();
 
   // ... (Login handlers)
   const handleSendOtp = async () => {
@@ -443,18 +450,19 @@ export default function HomeScreen() {
           phone: cleanedPhone,
           countryCode: "+91",
           verifyType: "PHONE",
-          otpType: "LOGIN"
+          otpType: "LOGIN",
         }).unwrap();
       }
 
       Alert.alert("OTP Sent", "Please check your messages.");
       setModalStep("otp");
-
-      Alert.alert("OTP Sent", "Please check your messages.");
-      setModalStep("otp");
     } catch (err: any) {
       console.error("Auth Request Failed", err);
-      Alert.alert("Error", err?.data?.message || "Failed to proceed. Try entering your name to register.");
+      Alert.alert(
+        "Error",
+        err?.data?.message ||
+          "Failed to proceed. Try entering your name to register."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -476,17 +484,30 @@ export default function HomeScreen() {
         phoneToken: otpValue,
       };
 
-      // Strict Login - always verify Login OTP
-      const loginPayload = {
-        countryCode: payload.countryCode,
-        phone: payload.phone,
-        loginToken: payload.phoneToken
-      };
-      const response = await verifyLoginOtp(loginPayload).unwrap();
+      let response;
+      if (name.trim()) {
+        response = await verifyRegisterOtp({
+          ...payload,
+          otpType: "REGISTER",
+        }).unwrap();
+      } else {
+        // BACKEND Joi strictly requires ONLY these 3 keys for login verification
+        const loginPayload = {
+          countryCode: payload.countryCode,
+          phone: payload.phone,
+          loginToken: payload.phoneToken,
+        };
+        response = await verifyLoginOtp(loginPayload).unwrap();
+      }
 
       console.log("✅ Auth verified successfully:", response);
 
-      const token = response?.data?.token || response?.token || (typeof response?.data === 'string' ? response?.data : null);
+      // Assuming response structure. Adjust path as needed based on actual API.
+      // If response is { data: { token: ... } } or just { token: ... }
+      const token =
+        response?.data?.token ||
+        response?.token ||
+        (typeof response?.data === "string" ? response?.data : null);
 
       if (token) {
         console.log("🎟 [HomeScreen] New token received and stored");
@@ -497,7 +518,7 @@ export default function HomeScreen() {
         }
         dispatch(loginSuccess(token));
 
-        const isAdminUser = phoneNumber.trim() === "1234567890" || phoneNumber.trim() === "8969214235";
+        const isAdminUser = phoneNumber.trim() === "1234567890";
 
         // Reset State immediately
         setModalStep("details");
@@ -508,7 +529,6 @@ export default function HomeScreen() {
 
         // Check for Admin Redirect
         if (isAdminUser) {
-          // Small delay to ensure state updates
           setTimeout(() => {
             router.replace("/(tabs)/dashboard");
           }, 100);
@@ -516,10 +536,12 @@ export default function HomeScreen() {
       } else {
         Alert.alert("Login Failed", "No access token received.");
       }
-
     } catch (err: any) {
       console.error("Login Verification Failed", err);
-      Alert.alert("Login Failed", err?.data?.message || "Invalid OTP or Server Error");
+      Alert.alert(
+        "Login Failed",
+        err?.data?.message || "Invalid OTP or Server Error"
+      );
     } finally {
       setIsLoading(false);
     }
@@ -554,9 +576,10 @@ export default function HomeScreen() {
         [
           {
             text: "Start New Booking",
-            onPress: () => router.push("/(tabs)/home/book-doorstep/enter-location")
+            onPress: () =>
+              router.push("/(tabs)/home/book-doorstep/enter-location"),
           },
-          { text: "Cancel", style: "cancel" }
+          { text: "Cancel", style: "cancel" },
         ]
       );
       return;
@@ -590,11 +613,11 @@ export default function HomeScreen() {
         <View style={styles.header}>
           <View>
             <Text style={styles.brandTitle}>Cleanmywheels</Text>
-            {isLoggedIn ? (
+            {/* {isLoggedIn ? (
               <Text style={styles.greeting}>Hi, {userName || "User"}</Text>
             ) : (
               <Text style={styles.greeting}>Welcome</Text>
-            )}
+            )} */}
           </View>
           <View style={styles.headerIcons}>
             {!isLoggedIn && (
@@ -728,6 +751,23 @@ export default function HomeScreen() {
 
             {modalStep === "details" ? (
               <>
+                <View style={styles.inputContainer}>
+                  <Ionicons
+                    name="person-outline"
+                    size={20}
+                    color="#666"
+                    style={{ marginRight: 10 }}
+                  />
+                  <TextInput
+                    style={styles.inputField}
+                    placeholder="Full Name (optional for login)"
+                    placeholderTextColor="#ccc"
+                    value={name}
+                    onChangeText={setName}
+                    autoCapitalize="words"
+                  />
+                </View>
+
                 <View style={styles.phoneContainer}>
                   <View style={styles.countryCode}>
                     <Text style={styles.countryCodeText}>🇮🇳 +91</Text>
@@ -882,14 +922,14 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: "#1a1a1a",
     lineHeight: 38,
-    marginBottom: 12,
+    marginBottom: 2,
   },
   heroSubtitle: {
     fontSize: 14,
     color: "#666",
     textAlign: "center",
     lineHeight: 22,
-    marginBottom: 24,
+    // marginBottom: 4,
   },
   actionButtons: {
     flexDirection: "row",

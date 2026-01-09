@@ -1,6 +1,6 @@
 import { RootState } from '@/store';
 import { Ionicons } from '@expo/vector-icons';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import {
     Alert,
     Image,

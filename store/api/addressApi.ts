@@ -34,11 +34,15 @@ export const addressApi = createApi({
     },
   }),
   endpoints: (builder) => ({
-    getAddresses: builder.query<any, { page?: number; perPage?: number; search?: string } | void>({
-      query: (params) => ({
-        url: "/address",
-        params: params || {},
-      }),
+    getAddresses: builder.query<
+      any,
+      { page?: number; perPage?: number } | void
+    >({
+      query: (params) => {
+        const page = params?.page ?? 1;
+        const perPage = params?.perPage ?? 10;
+        return `/address?page=${page}&perPage=${perPage}`;
+      },
       providesTags: ["Address"],
     }),
     createAddress: builder.mutation<any, any>({
@@ -52,4 +56,8 @@ export const addressApi = createApi({
   }),
 });
 
-export const { useGetAddressesQuery, useCreateAddressMutation, useLazyGetAddressesQuery } = addressApi;
+export const {
+  useGetAddressesQuery,
+  useCreateAddressMutation,
+  useLazyGetAddressesQuery,
+} = addressApi;

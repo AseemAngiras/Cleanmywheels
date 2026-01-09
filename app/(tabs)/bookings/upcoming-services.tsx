@@ -1,7 +1,6 @@
 "use client";
 
 import { Ionicons } from "@expo/vector-icons";
-import { CameraView, useCameraPermissions } from "expo-camera";
 import { LinearGradient } from "expo-linear-gradient";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
@@ -26,7 +25,6 @@ import { useAppDispatch, useAppSelector } from "../../../store/hooks";
 import {
   type Booking,
   cancelBooking,
-  completeBooking,
 } from "../../../store/slices/bookingSlice";
 
 export default function UpcomingServices() {
@@ -47,17 +45,18 @@ export default function UpcomingServices() {
 
   const [activeBooking, setActiveBooking] = useState<Booking | null>(null);
 
-  const [scannerVisible, setScannerVisible] = useState(false);
-  const [permission, requestPermission] = useCameraPermissions();
-  const [torchOn, setTorchOn] = useState(false);
-
   const slideAnim = useRef(new Animated.Value(300)).current;
   const scaleAnim = useRef(new Animated.Value(0.95)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
-  const scanLineAnim = useRef(new Animated.Value(0)).current;
 
   // --- ADMIN & WORKER LOGIC ---
-  const isAdmin = useAppSelector((state: RootState) => state.user.user?.accountType === 'Super Admin');
+  const userPhone = useAppSelector((state: RootState) => state.user.phone);
+
+  // Ensure we handle potential undefined or different formats
+  const isAdmin =
+    userPhone &&
+    (String(userPhone).endsWith("1234567890") ||
+      String(userPhone).includes("1234567890"));
 
   const MOCK_WORKERS = [
     { id: "W1", name: "Amit Sharma", phone: "+919876543210" },
@@ -71,8 +70,9 @@ export default function UpcomingServices() {
   // Send WhatsApp to User ensuring them about the worker
   const sendUserConfirmation = (worker: any, booking: any) => {
     const message = `Hello, your booking for *${booking.serviceName}* is confirmed! 🚗✨\n\n*${worker.name}* will be arriving shortly to service your vehicle.\n\nBooking ID: ${booking.id}\nTime: ${booking.timeSlot}`;
-    const url = `whatsapp://send?phone=${booking.phone
-      }&text=${encodeURIComponent(message)}`;
+    const url = `whatsapp://send?phone=${
+      booking.phone
+    }&text=${encodeURIComponent(message)}`;
 
     Linking.canOpenURL(url).then((supported) => {
       if (supported) {
@@ -85,12 +85,16 @@ export default function UpcomingServices() {
 
   // Send WhatsApp to Worker with job details
   const sendWorkerJobDetails = (worker: any, booking: any) => {
-    const message = `🛠️ *New Job Assigned!*\n\nCustomer: ${booking.user || "Valued Customer"
-      }\nPhone: ${booking.phone}\nAddress: ${booking.address}\n\nService: ${booking.serviceName
-      }\nCar: ${booking.car} (${booking.plate})\nTime: ${booking.timeSlot
-      }\n\nPlease reach on time.`;
-    const url = `whatsapp://send?phone=${worker.phone
-      }&text=${encodeURIComponent(message)}`;
+    const message = `🛠️ *New Job Assigned!*\n\nCustomer: ${
+      booking.user || "Valued Customer"
+    }\nPhone: ${booking.phone}\nAddress: ${booking.address}\n\nService: ${
+      booking.serviceName
+    }\nCar: ${booking.car} (${booking.plate})\nTime: ${
+      booking.timeSlot
+    }\n\nPlease reach on time.`;
+    const url = `whatsapp://send?phone=${
+      worker.phone
+    }&text=${encodeURIComponent(message)}`;
 
     Linking.canOpenURL(url).then((supported) => {
       if (supported) {
@@ -157,27 +161,6 @@ export default function UpcomingServices() {
 
   console.log("active bookings :", activeBooking);
 
-  useEffect(() => {
-    if (scannerVisible) {
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(scanLineAnim, {
-            toValue: 1,
-            duration: 1800,
-            easing: Easing.linear,
-            useNativeDriver: true,
-          }),
-          Animated.timing(scanLineAnim, {
-            toValue: 0,
-            duration: 1800,
-            easing: Easing.linear,
-            useNativeDriver: true,
-          }),
-        ])
-      ).start();
-    }
-  }, [scannerVisible]);
-
   const closeSheet = () => {
     Animated.parallel([
       Animated.timing(slideAnim, {
@@ -198,17 +181,6 @@ export default function UpcomingServices() {
         useNativeDriver: true,
       }),
     ]).start(() => setActiveBooking(null));
-  };
-
-  const handleQrScanned = () => {
-    if (!activeBooking) return;
-
-    dispatch(completeBooking(activeBooking.id));
-
-    setScannerVisible(false);
-    setTorchOn(false);
-    closeSheet();
-    router.push("/(tabs)/bookings/arrival-confirmed");
   };
 
   const handleDelete = (id: string) => {
@@ -262,17 +234,6 @@ export default function UpcomingServices() {
               <Text style={styles.sessionButtonText}>Review details</Text>
               <Ionicons name="chevron-forward" size={18} color="#FFF" />
             </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.qrIconButton}
-              onPress={() => {
-                setScannerVisible(true);
-                setActiveBooking(item);
-              }}
-              hitSlop={10}
-            >
-              <Ionicons name="qr-code-outline" size={22} color="#000" />
-            </TouchableOpacity>
           </View>
         </LinearGradient>
       </TouchableOpacity>
@@ -324,14 +285,6 @@ export default function UpcomingServices() {
 
           {activeBooking && (
             <>
-              <TouchableOpacity
-                style={styles.qrButton}
-                onPress={() => setScannerVisible(true)}
-              >
-                <Ionicons name="qr-code-outline" size={22} />
-                <Text style={styles.qrText}>Scan QR to Check-In</Text>
-              </TouchableOpacity>
-
               <View style={styles.detailRow}>
                 <Text style={styles.label}>Service</Text>
                 <Text style={styles.value}>{activeBooking.serviceName}</Text>
@@ -344,10 +297,7 @@ export default function UpcomingServices() {
 
               <View style={styles.detailRow}>
                 <Text style={styles.label}>Address</Text>
-                <Text style={styles.value}>
-                  {activeBooking.address ||
-                    (activeBooking.locality ? `${activeBooking.houseOrFlatNo ? activeBooking.houseOrFlatNo + ', ' : ''}${activeBooking.locality}, ${activeBooking.city}` : 'Address not provided')}
-                </Text>
+                <Text style={styles.value}>{activeBooking.address}</Text>
               </View>
 
               <View style={styles.detailRow}>
@@ -385,7 +335,7 @@ export default function UpcomingServices() {
               {isAdmin && (
                 <TouchableOpacity
                   style={[
-                    styles.qrButton,
+                    styles.sessionButton,
                     {
                       backgroundColor: "#1a1a1a",
                       borderColor: "#000",
@@ -395,7 +345,7 @@ export default function UpcomingServices() {
                   onPress={() => setWorkerModalVisible(true)}
                 >
                   <Ionicons name="person-add-outline" size={20} color="#FFF" />
-                  <Text style={[styles.qrText, { color: "#FFF" }]}>
+                  <Text style={[styles.sessionButtonText, { color: "#FFF" }]}>
                     Assign Worker
                   </Text>
                 </TouchableOpacity>
@@ -403,86 +353,17 @@ export default function UpcomingServices() {
 
               <View style={styles.sheetFooter}>
                 <Text style={styles.price}>₹ {activeBooking.price}</Text>
-                <TouchableOpacity
+                {/* <TouchableOpacity
                   style={styles.cancelBtn}
                   onPress={() => handleDelete(activeBooking.id)}
                 >
                   <Ionicons name="trash-outline" size={18} />
                   <Text style={styles.cancelText}>Cancel</Text>
-                </TouchableOpacity>
+                </TouchableOpacity> */}
               </View>
             </>
           )}
         </Animated.View>
-      </Modal>
-
-      {/* QR Scanner Modal */}
-      <Modal visible={scannerVisible} animationType="slide">
-        <TouchableOpacity
-          style={styles.scannerCloseButton}
-          onPress={() => setScannerVisible(false)}
-        >
-          <Ionicons name="close" size={28} color="#FFF" />
-        </TouchableOpacity>
-
-        <View style={styles.scannerContainer}>
-          {!permission?.granted ? (
-            <View style={styles.permissionView}>
-              <Text style={styles.permissionText}>
-                Camera permission required
-              </Text>
-              <TouchableOpacity
-                style={styles.allowButton}
-                onPress={requestPermission}
-              >
-                <Text style={styles.allowText}>Allow Camera</Text>
-              </TouchableOpacity>
-            </View>
-          ) : (
-            <>
-              <CameraView
-                style={StyleSheet.absoluteFill}
-                barcodeScannerSettings={{ barcodeTypes: ["qr"] }}
-                onBarcodeScanned={handleQrScanned}
-                enableTorch={torchOn}
-              />
-
-              {/* Overlay with scan box and scan line */}
-              <View style={styles.overlay}>
-                <View style={styles.scanBoxContainer}>
-                  <View style={styles.scanBox}>
-                    <Animated.View
-                      style={[
-                        styles.scanLine,
-                        {
-                          transform: [
-                            {
-                              translateY: scanLineAnim.interpolate({
-                                inputRange: [0, 1],
-                                outputRange: [0, 260],
-                              }),
-                            },
-                          ],
-                        },
-                      ]}
-                    />
-                  </View>
-                </View>
-
-                <Text style={styles.scanHint}>
-                  Align QR code inside the frame
-                </Text>
-
-                <TouchableOpacity
-                  style={styles.flashButton}
-                  onPress={() => setTorchOn(!torchOn)}
-                >
-                  <Ionicons name="flashlight-outline" size={24} color="#FFF" />
-                </TouchableOpacity>
-              </View>
-            </>
-          )}
-        </View>
       </Modal>
 
       {/* Worker Selection Modal */}
@@ -591,20 +472,6 @@ const styles = StyleSheet.create({
     gap: 10,
   },
 
-  qrIconButton: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: "#C8F000",
-    alignItems: "center",
-    justifyContent: "center",
-    elevation: 4,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-  },
-
   sessionButtonText: {
     color: "#FFF",
     fontSize: 16,
@@ -644,24 +511,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "700",
     color: "#111",
-  },
-
-  qrButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 10,
-    backgroundColor: "#C8F000",
-    borderRadius: 16,
-    padding: 12,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: "#BFDBFE",
-  },
-  qrText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#000",
   },
 
   detailRow: {

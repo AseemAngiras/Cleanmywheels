@@ -16,10 +16,6 @@ export interface Booking {
   serviceName: string;
   serviceId?: string;
   status: BookingStatus;
-  houseOrFlatNo?: string;
-  locality?: string;
-  city?: string;
-  postalCode?: string;
 }
 
 export interface Ticket {
@@ -52,7 +48,7 @@ const bookingSlice = createSlice({
         ...action.payload,
         id: nanoid(),
         status: "upcoming",
-      })
+      });
     },
 
     addTicket(state, action: PayloadAction<Omit<Ticket, "id" | "status">>) {

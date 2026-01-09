@@ -1,4 +1,6 @@
+import { Platform } from "react-native";
 import { io, Socket } from "socket.io-client";
+import { MY_PC_IP } from "../store/api/authApi";
 
 class SocketService {
   private socket: Socket | null = null;
@@ -17,15 +19,17 @@ class SocketService {
 
     console.log("Connecting socket for user:", userId);
 
-    // Adjust URL if needed (e.g. from env or hardcoded)
-    // The user previously confirmed backend is on port 5000 for the tunnel, locally it seems to be running on 5000 too based on that.
-    // But usually local dev is direct. Assuming localhost:5000 based on previous context or 7000?
-    // The user said "backend is on 5000".
-    this.socket = io("http://localhost:5000/base", {
+    const socketUrl = `http://${MY_PC_IP}:5000/base`;
+    console.log("Connecting to socket URL:", socketUrl);
+
+    this.socket = io(socketUrl, {
       query: { userId },
-      transports: ["websocket"],
+      transports: ["websocket", "polling"],
       reconnection: true,
       reconnectionAttempts: 5,
+      extraHeaders: {
+        "x-platform": Platform.OS === "ios" ? "ios" : "android",
+      },
     });
 
     this.socket.on("connect", () => {

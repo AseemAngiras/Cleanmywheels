@@ -24,6 +24,8 @@ import { useDispatch, useSelector } from "react-redux";
 import BookingStepper from "../../../../components/BookingStepper";
 import PulseLoader from "../../../../components/PulseLoader";
 
+import socketService from "@/services/socketService";
+
 const VEHICLE_TYPE_MAP: Record<string, string> = {
   sedan: "Sedan",
   suv: "SUV",
@@ -33,6 +35,8 @@ const VEHICLE_TYPE_MAP: Record<string, string> = {
   scooter: "Scooter",
   others: "Car",
 };
+
+// ... [existing imports]
 
 export default function BookingSummaryScreen() {
   const router = useRouter();
@@ -44,10 +48,12 @@ export default function BookingSummaryScreen() {
     useCreateBookingMutation();
   const [updateBookingStatus] = useUpdateBookingStatusMutation();
   const authState = useSelector((state: RootState) => state.auth);
+  const userId = authState?.user?.id;
 
   // Payment state tracking
   const [isVerifyingPayment, setIsVerifyingPayment] = useState(false);
   const currentBookingIdRef = useRef<string | null>(null);
+  const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const [triggerGetBooking] = useLazyGetBookingByIdQuery();
 
@@ -92,13 +98,63 @@ export default function BookingSummaryScreen() {
     });
   }, [navigation]);
 
+  // Socket Listener for instant payment success
+  useEffect(() => {
+    if (userId) {
+      socketService.connect(userId);
+    }
+
+    const handlePaymentSuccess = (data: any) => {
+      console.log("⚡ [Socket] Payment Success Event Received:", data);
+
+      const { bookingId, status } = data;
+
+      // Only act if this is the booking we are currently verifying
+      if (
+        currentBookingIdRef.current &&
+        bookingId === currentBookingIdRef.current &&
+        isVerifyingPayment
+      ) {
+        console.log("✅ [Socket] Matched Booking ID! Redirecting...");
+
+        // Stop Polling
+        if (pollIntervalRef.current) {
+          clearInterval(pollIntervalRef.current);
+          pollIntervalRef.current = null;
+        }
+
+        setIsVerifyingPayment(false);
+        router.push({
+          pathname: "/(tabs)/home/book-doorstep/order-confirmation",
+          params: {
+            ...params,
+            grandTotal,
+            bookingId,
+            paymentMethod: "razorpay",
+          },
+        });
+      }
+    };
+
+    socketService.on("payment_success", handlePaymentSuccess);
+
+    return () => {
+      socketService.off("payment_success");
+      // Don't disconnect socket here if you want to keep it alive for other things,
+      // but if this is the only use, you can. usually better to keep connected.
+    };
+  }, [userId, isVerifyingPayment, params, grandTotal]);
+
   const checkPaymentStatus = async (bookingId: string) => {
     setIsVerifyingPayment(true);
     let attempts = 0;
     const maxAttempts = 10;
 
+    // Clear any existing poll
+    if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+
     // Poll every 3 seconds for 30 seconds total
-    const pollInterval = setInterval(async () => {
+    pollIntervalRef.current = setInterval(async () => {
       attempts++;
       try {
         console.log(
@@ -116,7 +172,11 @@ export default function BookingSummaryScreen() {
         ) {
           console.log("✅ [Payment] SUCCESS! Status is:", status);
           console.log("✅ [Payment] Redirecting to Order Confirmation...");
-          clearInterval(pollInterval);
+
+          if (pollIntervalRef.current) {
+            clearInterval(pollIntervalRef.current);
+            pollIntervalRef.current = null;
+          }
           setIsVerifyingPayment(false);
           router.push({
             pathname: "/(tabs)/home/book-doorstep/order-confirmation",
@@ -128,11 +188,11 @@ export default function BookingSummaryScreen() {
             },
           });
         } else if (status === "cancelled" || status === "failed") {
-          clearInterval(pollInterval);
+          if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
           setIsVerifyingPayment(false);
           Alert.alert("Payment Failed", "The payment was cancelled or failed.");
         } else if (attempts >= maxAttempts) {
-          clearInterval(pollInterval);
+          if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
           setIsVerifyingPayment(false);
           Alert.alert(
             "Payment Verification Failed",
@@ -208,8 +268,6 @@ export default function BookingSummaryScreen() {
           ? (selectedDate as string)
           : new Date().toISOString().split("T")[0],
         bookingTime: Number(hour),
-        address: params.addressId as string,
-        serviceName: (serviceName as string) || "Premium Wash",
       };
 
       console.log(
@@ -224,7 +282,7 @@ export default function BookingSummaryScreen() {
         dispatch(
           addAddress({
             id: `addr-${Date.now()}`,
-            flatNumber: String(houseNumClean),
+            houseOrFlatNo: String(houseNumClean),
             locality: String(addressParts[1] || "Locality"),
             landmark: String(addressParts[2] || ""),
             city: String(cityPart),
@@ -397,7 +455,7 @@ export default function BookingSummaryScreen() {
               <Text style={styles.value}>
                 {vehicleType
                   ? (vehicleType as string).charAt(0).toUpperCase() +
-                  (vehicleType as string).slice(1)
+                    (vehicleType as string).slice(1)
                   : "Same"}{" "}
                 - {vehicleNumber || "N/A"}
               </Text>
@@ -415,9 +473,9 @@ export default function BookingSummaryScreen() {
               <Text style={styles.value}>
                 {selectedDate
                   ? new Date(selectedDate as string).toLocaleDateString(
-                    undefined,
-                    { weekday: "short", day: "numeric", month: "short" }
-                  )
+                      undefined,
+                      { weekday: "short", day: "numeric", month: "short" }
+                    )
                   : "Date"}
                 , {selectedTime || "Time"}
               </Text>

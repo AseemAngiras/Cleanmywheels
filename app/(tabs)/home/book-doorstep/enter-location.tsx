@@ -1,11 +1,14 @@
 import { RootState } from "@/store";
-import { useCreateAddressMutation, useLazyGetAddressesQuery } from "@/store/api/addressApi";
+import {
+  useCreateAddressMutation,
+  useLazyGetAddressesQuery,
+} from "@/store/api/addressApi";
 import { setBookingAddress } from "@/store/slices/bookingSlice";
 import { addAddress, Address } from "@/store/slices/profileSlice";
 import { Ionicons } from "@expo/vector-icons";
 import { nanoid } from "@reduxjs/toolkit";
 import * as Location from "expo-location";
-import { useNavigation, useRouter } from "expo-router";
+import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
@@ -19,7 +22,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
 import MapView, { Marker, Region } from "react-native-maps";
 import { useDispatch, useSelector } from "react-redux";
@@ -30,6 +33,8 @@ export default function EnterLocationScreen() {
   const dispatch = useDispatch();
   const router = useRouter();
   const navigation = useNavigation();
+  const params = useLocalSearchParams();
+  const isFromProfile = params.source === "profile";
 
   const [createAddress, { isLoading: isCreating }] = useCreateAddressMutation();
   const [triggerGetAddresses] = useLazyGetAddressesQuery();
@@ -49,6 +54,36 @@ export default function EnterLocationScreen() {
   const [selectedSavedAddressId, setSelectedSavedAddressId] = useState<
     string | null
   >(null);
+
+  const [isAddressDropdownOpen, setIsAddressDropdownOpen] = useState(false);
+  const defaultAddressId = useSelector(
+    (state: RootState) => state.profile.defaultAddressId
+  );
+
+  // Sync default address on mount
+  React.useEffect(() => {
+    if (savedAddresses.length > 0 && !selectedSavedAddressId) {
+      // If we have a default preference, use it
+      if (defaultAddressId) {
+        const def = savedAddresses.find((a) => a.id === defaultAddressId);
+        if (def) {
+          setSelectedSavedAddressId(def.id);
+          fillAddressInputs(def);
+          return;
+        }
+      }
+      // Fallback to first if needed? Or keep null.
+      // User asked "default address in profile should be default selected".
+      // If no default is set in profile, we might leave it or pick first.
+      // Let's stick to only selecting if defaultAddressId exists to be safe,
+      // but typically we might want to select *something*.
+      // For now, consistent with "profile" logic which falls back to [0].
+      if (!defaultAddressId && savedAddresses[0]) {
+        setSelectedSavedAddressId(savedAddresses[0].id);
+        fillAddressInputs(savedAddresses[0]);
+      }
+    }
+  }, [defaultAddressId, savedAddresses, selectedSavedAddressId]);
 
   const [flatNumber, setFlatNumber] = useState("");
   const [locality, setLocality] = useState("");
@@ -73,7 +108,7 @@ export default function EnterLocationScreen() {
   } | null>(null);
 
   const fillAddressInputs = (addr: Address) => {
-    setFlatNumber(addr.flatNumber);
+    setFlatNumber(addr.houseOrFlatNo);
     setLocality(addr.locality);
     setLandmark(addr.landmark || "");
     setCity(addr.city);
@@ -165,17 +200,20 @@ export default function EnterLocationScreen() {
       setErrorMsg("Please enter Locality / Area");
       return;
     }
+
     if (!city.trim()) {
       setErrorMsg("Please enter City");
       return;
     }
     if (!postalCode.trim() || postalCode.length < 6) {
-      setErrorMsg("Please enter a valid 6-digit Pincode");
+      setErrorMsg("Please enter a valid 6-digit Postal Code");
       return;
     }
 
     if (selectedSavedAddressId) {
-      const savedAddr = savedAddresses.find(a => a.id === selectedSavedAddressId);
+      const savedAddr = savedAddresses.find(
+        (a) => a.id === selectedSavedAddressId
+      );
       dispatch(
         setBookingAddress({
           addressId: selectedSavedAddressId,
@@ -189,44 +227,40 @@ export default function EnterLocationScreen() {
           latitude: savedAddr?.latitude,
           longitude: savedAddr?.longitude,
           addressId: selectedSavedAddressId,
-        }
+        },
       });
       return;
     }
 
     const fullAddress = `${flatNumber}, ${locality}, ${city}, ${postalCode}`;
 
-    // Payload for Backend API (Strict Validation)
-    const apiPayload = {
-      houseOrFlatNo: flatNumber, // Backend expects houseOrFlatNo
+    const addressPayload = {
+      houseOrFlatNo: flatNumber,
       locality,
-      landmark: landmark || "",
+      landmark: landmark.trim() ? landmark : `Near ${locality}`,
       city,
       postalCode,
       addressType,
-    };
-
-    // Payload for Redux / Local State (UI needs these)
-    const localPayload = {
-      flatNumber,
-      locality,
-      landmark,
-      city,
-      postalCode,
-      addressType,
-      fullAddress,
-      latitude: selectedCoord?.lat,
-      longitude: selectedCoord?.long,
     };
 
     if (!isLoggedIn) {
       console.log("Guest User: Saving address locally");
       const fallbackId = nanoid();
-      const fallbackAddr = { ...localPayload, id: fallbackId };
+      const fallbackAddr = {
+        ...addressPayload,
+        fullAddress,
+        latitude: selectedCoord?.lat,
+        longitude: selectedCoord?.long,
+        id: fallbackId,
+      };
 
       dispatch(addAddress(fallbackAddr));
       dispatch(setBookingAddress({ addressId: fallbackId }));
 
+      if (isFromProfile) {
+        router.back();
+        return;
+      }
 
       router.push({
         pathname: "/(tabs)/home/book-doorstep/select-service",
@@ -235,38 +269,32 @@ export default function EnterLocationScreen() {
           latitude: selectedCoord?.lat,
           longitude: selectedCoord?.long,
           addressId: fallbackId,
-        }
+        },
       });
       return;
     }
 
     try {
-      // 1. Send STRICT payload to backend
-      await createAddress(apiPayload).unwrap();
+      await createAddress(addressPayload).unwrap();
 
-      // 2. Fetch updated list
-      const result = await triggerGetAddresses({ page: 1, perPage: 100 }).unwrap();
+      const result = await triggerGetAddresses().unwrap();
       const addressList = result.addressList || [];
 
-      // 3. Find string match to get the new ID
-      const newAddress = addressList.find((addr: any) =>
-        addr.houseOrFlatNo === flatNumber && // Backend returns houseOrFlatNo
-        addr.locality === locality &&
-        addr.postalCode === postalCode &&
-        addr.addressType === addressType
+      const newAddress = addressList.find(
+        (addr: any) =>
+          addr.fullAddress === fullAddress && addr.addressType === addressType
       );
 
       if (newAddress) {
-        // Backend returns `houseOrFlatNo`, map it back to `flatNumber` for Redux if needed
-        // But our Redux `addAddress` expects `flatNumber`.
-        // We can just construct a Redux-friendly object merging backend ID with local data
-        const reduxAddress = {
-          ...localPayload,
-          id: newAddress.id || newAddress._id
-        };
+        dispatch(addAddress(newAddress));
+        dispatch(
+          setBookingAddress({ addressId: newAddress.id || newAddress._id })
+        );
 
-        dispatch(addAddress(reduxAddress));
-        dispatch(setBookingAddress({ addressId: reduxAddress.id }));
+        if (isFromProfile) {
+          router.back();
+          return;
+        }
 
         router.push({
           pathname: "/(tabs)/home/book-doorstep/select-service",
@@ -274,15 +302,26 @@ export default function EnterLocationScreen() {
             address: fullAddress,
             latitude: selectedCoord?.lat,
             longitude: selectedCoord?.long,
-            addressId: reduxAddress.id,
-          }
+            addressId: newAddress.id || newAddress._id,
+          },
         });
       } else {
         console.warn("New address not found in list, using local fallback");
         const fallbackId = nanoid();
-        const fallbackAddr = { ...localPayload, id: fallbackId };
+        const fallbackAddr = {
+          ...addressPayload,
+          fullAddress,
+          latitude: selectedCoord?.lat,
+          longitude: selectedCoord?.long,
+          id: fallbackId,
+        };
         dispatch(addAddress(fallbackAddr));
         dispatch(setBookingAddress({ addressId: fallbackId }));
+
+        if (isFromProfile) {
+          router.back();
+          return;
+        }
 
         router.push({
           pathname: "/(tabs)/home/book-doorstep/select-service",
@@ -291,10 +330,9 @@ export default function EnterLocationScreen() {
             latitude: selectedCoord?.lat,
             longitude: selectedCoord?.long,
             addressId: fallbackId,
-          }
+          },
         });
       }
-
     } catch (err) {
       console.error("Failed to create address", err);
       setErrorMsg("Failed to save address. Please try again.");
@@ -351,52 +389,131 @@ export default function EnterLocationScreen() {
             <>
               <Text style={styles.sectionHeader}>SAVED ADDRESSES</Text>
 
-              {savedAddresses.map((addr) => {
-                const isSelected = selectedSavedAddressId === addr.id;
+              <View
+                style={{
+                  borderRadius: 12,
+                  overflow: "hidden",
+                  borderWidth: 1,
+                  borderColor: "#f0f0f0",
+                  marginBottom: 20,
+                }}
+              >
+                {/* Dropdown Trigger */}
+                <TouchableOpacity
+                  style={[
+                    styles.addressRow,
+                    { borderBottomWidth: isAddressDropdownOpen ? 1 : 0 },
+                  ]}
+                  onPress={() =>
+                    setIsAddressDropdownOpen(!isAddressDropdownOpen)
+                  }
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.iconBox}>
+                    <Ionicons name="location" size={18} color="#1a1a1a" />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.rowTitle}>
+                      {savedAddresses.find(
+                        (a) => a.id === selectedSavedAddressId
+                      )?.addressType || "Select Address"}
+                    </Text>
+                    <Text style={styles.rowSubtitle} numberOfLines={1}>
+                      {savedAddresses.find(
+                        (a) => a.id === selectedSavedAddressId
+                      )?.fullAddress || "Choose from saved addresses"}
+                    </Text>
+                  </View>
+                  <Ionicons
+                    name={isAddressDropdownOpen ? "chevron-up" : "chevron-down"}
+                    size={20}
+                    color="#666"
+                  />
+                </TouchableOpacity>
 
-                return (
-                  <TouchableOpacity
-                    key={addr.id}
-                    style={[
-                      styles.savedAddressCard,
-                      isSelected && styles.savedAddressSelected,
-                    ]}
-                    onPress={() => {
-                      setSelectedSavedAddressId(addr.id);
-                      setErrorMsg("");
-                      fillAddressInputs(addr);
-                    }}
-                    activeOpacity={0.8}
-                  >
-                    <View style={{ flex: 1 }}>
-                      <View style={styles.savedAddressHeader}>
-                        <Ionicons
-                          name={
-                            addr.addressType === "Home" ? "home" : "briefcase"
-                          }
-                          size={16}
-                          color={isSelected ? "#1a1a1a" : "#666"}
-                        />
-                        <Text style={styles.savedAddressType}>
-                          {addr.addressType}
-                        </Text>
-                      </View>
+                {/* Dropdown List */}
+                {isAddressDropdownOpen && (
+                  <View style={{ backgroundColor: "#F9F9F9" }}>
+                    {savedAddresses.map((addr: any, idx: number) => {
+                      const isSelected = selectedSavedAddressId === addr.id;
+                      const isDefault = defaultAddressId === addr.id;
 
-                      <Text style={styles.savedAddressText}>
-                        {addr.fullAddress}
-                      </Text>
-                    </View>
+                      return (
+                        <TouchableOpacity
+                          key={addr.id || idx}
+                          style={[
+                            styles.addressRow,
+                            {
+                              paddingLeft: 24,
+                              backgroundColor: isSelected
+                                ? "#F0FDF4"
+                                : "#F9F9F9",
+                            },
+                          ]}
+                          onPress={() => {
+                            setSelectedSavedAddressId(addr.id);
+                            // Also fill inputs logic
+                            fillAddressInputs(addr);
+                            setErrorMsg("");
 
-                    {isSelected && (
-                      <Ionicons
-                        name="checkmark-circle"
-                        size={22}
-                        color="#1a1a1a"
-                      />
-                    )}
-                  </TouchableOpacity>
-                );
-              })}
+                            setIsAddressDropdownOpen(false);
+                          }}
+                        >
+                          <View
+                            style={[
+                              styles.iconBox,
+                              {
+                                backgroundColor: isSelected
+                                  ? "#DCFCE7"
+                                  : "#EEEEEE",
+                              },
+                            ]}
+                          >
+                            <Ionicons
+                              name={
+                                isSelected
+                                  ? "checkmark"
+                                  : isDefault
+                                  ? "star"
+                                  : "location-outline"
+                              }
+                              size={16}
+                              color={
+                                isSelected
+                                  ? "#166534"
+                                  : isDefault
+                                  ? "#EAB308"
+                                  : "#666"
+                              }
+                            />
+                          </View>
+                          <View style={{ flex: 1 }}>
+                            <Text
+                              style={[
+                                styles.rowTitle,
+                                isSelected && { color: "#166534" },
+                              ]}
+                            >
+                              {addr.addressType || "Home"}{" "}
+                              {isDefault && !isSelected && (
+                                <Text
+                                  style={{ fontSize: 10, color: "#EAB308" }}
+                                >
+                                  (Default)
+                                </Text>
+                              )}
+                            </Text>
+                            <Text style={styles.rowSubtitle} numberOfLines={1}>
+                              {addr.fullAddress ||
+                                `${addr.flatNumber}, ${addr.locality}, ${addr.city}`}
+                            </Text>
+                          </View>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                )}
+              </View>
 
               <View style={styles.divider} />
             </>
@@ -405,30 +522,35 @@ export default function EnterLocationScreen() {
           <Text style={styles.sectionHeader}>ADDRESS DETAILS</Text>
 
           {/* Inputs */}
-          <TextInput
-            style={[
-              styles.input,
-              !flatNumber.trim() &&
-              errorMsg.includes("House") &&
-              styles.inputError,
-            ]}
-            placeholder="House / Flat Number"
-            placeholderTextColor="#ccc"
-            value={flatNumber}
-            onChangeText={handleInputChange(setFlatNumber)}
-          />
-          <TextInput
-            style={[
-              styles.input,
-              !locality.trim() &&
-              errorMsg.includes("Locality") &&
-              styles.inputError,
-            ]}
-            placeholder="Locality / Area"
-            placeholderTextColor="#ccc"
-            value={locality}
-            onChangeText={handleInputChange(setLocality)}
-          />
+          <View style={{ flexDirection: "row", gap: 10 }}>
+            <TextInput
+              style={[
+                styles.input,
+                { flex: 1 },
+                !flatNumber.trim() &&
+                  errorMsg.includes("House") &&
+                  styles.inputError,
+              ]}
+              placeholder="House / Flat No."
+              placeholderTextColor="#ccc"
+              value={flatNumber}
+              onChangeText={handleInputChange(setFlatNumber)}
+            />
+            <TextInput
+              style={[
+                styles.input,
+                { flex: 1 },
+                !locality.trim() &&
+                  errorMsg.includes("Locality") &&
+                  styles.inputError,
+              ]}
+              placeholder="Locality / Area"
+              placeholderTextColor="#ccc"
+              value={locality}
+              onChangeText={handleInputChange(setLocality)}
+            />
+          </View>
+
           <TextInput
             style={styles.input}
             placeholder="Landmark (Optional)"
@@ -453,10 +575,10 @@ export default function EnterLocationScreen() {
                 styles.input,
                 { flex: 1 },
                 (!postalCode.trim() || postalCode.length < 6) &&
-                errorMsg.includes("Pincode") &&
-                styles.inputError,
+                  errorMsg.includes("Postal Code") &&
+                  styles.inputError,
               ]}
-              placeholder="Pincode"
+              placeholder="Postal Code"
               placeholderTextColor="#ccc"
               keyboardType="number-pad"
               maxLength={6}
@@ -596,14 +718,15 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 20,
-    paddingVertical: 15,
+    paddingHorizontal: 20,
+    paddingVertical: 12, // Reduced from 15
     backgroundColor: "#fff",
   },
   backButton: {
-    width: 40,
-    height: 40,
+    width: 36, // Reduced slightly
+    height: 36,
     backgroundColor: "#f5f5f5",
-    borderRadius: 20,
+    borderRadius: 18,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -614,60 +737,61 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingBottom: 100,
+    paddingBottom: 90, // Reduced from 100
   },
 
   currentLocationRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: 10, // Reduced from 20
   },
   locationIconBg: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 36, // Reduced from 40
+    height: 36,
+    borderRadius: 18,
     backgroundColor: "#FFF9C4",
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 15,
+    marginRight: 12,
   },
-  clTitle: { fontSize: 15, fontWeight: "bold", color: "#1a1a1a" },
-  clSubtitle: { fontSize: 13, color: "#888" },
+  clTitle: { fontSize: 14, fontWeight: "bold", color: "#1a1a1a" },
+  clSubtitle: { fontSize: 12, color: "#888" },
   divider: {
     height: 1,
     backgroundColor: "#f0f0f0",
-    marginBottom: 25,
+    marginBottom: 15, // Reduced from 25
+    marginTop: 10,
   },
   sectionHeader: {
-    fontSize: 13,
+    fontSize: 12,
     color: "#666",
     fontWeight: "bold",
-    marginBottom: 20,
+    marginBottom: 12, // Reduced from 20
     letterSpacing: 0.5,
     textTransform: "uppercase",
   },
   input: {
     backgroundColor: "#f5f5f5",
-    borderRadius: 15,
-    paddingHorizontal: 20,
-    paddingVertical: 18,
-    fontSize: 15,
+    borderRadius: 12, // Reduced radius slightly
+    paddingHorizontal: 15, // Reduced padding
+    paddingVertical: 14, // Reduced height
+    fontSize: 14,
     color: "#1a1a1a",
-    marginBottom: 15,
+    marginBottom: 12, // Reduced from 15
   },
   tagRow: {
     flexDirection: "row",
-    marginTop: 10,
-    marginBottom: 30,
+    marginTop: 5, // Reduced from 10
+    marginBottom: 20, // Reduced from 30
   },
   tag: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 25,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
     backgroundColor: "#f5f5f5",
-    marginRight: 15,
+    marginRight: 12,
   },
   tagSelected: {
     backgroundColor: "#fff",
@@ -675,7 +799,7 @@ const styles = StyleSheet.create({
     borderColor: "#e0e0e0",
     elevation: 1,
   },
-  tagText: { fontSize: 14, fontWeight: "600", color: "#666" },
+  tagText: { fontSize: 13, fontWeight: "600", color: "#666" },
   tagTextSelected: { color: "#1a1a1a" },
   footer: {
     position: "absolute",
@@ -790,5 +914,35 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#111",
     lineHeight: 20,
+  },
+
+  // Dropdown Styles from Profile
+  addressRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f9f9f9",
+    backgroundColor: "#fff",
+  },
+  iconBox: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: "#F3F4F7",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+  },
+  rowTitle: {
+    fontSize: 15,
+    fontWeight: "500",
+    color: "#1a1a1a",
+  },
+  rowSubtitle: {
+    fontSize: 12,
+    color: "#777",
+    marginTop: 2,
   },
 });

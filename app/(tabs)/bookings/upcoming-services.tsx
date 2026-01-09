@@ -14,7 +14,7 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 
 import { useFocusEffect, useRouter } from "expo-router";
@@ -27,11 +27,27 @@ import {
   cancelBooking,
 } from "../../../store/slices/bookingSlice";
 
+// Helper to map backend booking to display format
+const mapBackendBooking = (booking: any): Booking => ({
+  id: booking._id,
+  center: booking.washPackage?.name || 'Car Wash Service',
+  date: new Date(booking.bookingDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+  timeSlot: booking.bookingTime ? `${booking.bookingTime > 12 ? booking.bookingTime - 12 : booking.bookingTime}:00 ${booking.bookingTime >= 12 ? 'PM' : 'AM'}` : 'N/A',
+  car: booking.vehicleType || booking.vehicle?.type || 'Car',
+  carImage: 'https://cdn-icons-png.flaticon.com/512/743/743007.png',
+  status: booking.status?.toLowerCase() === 'completed' ? 'completed' : 'upcoming',
+  serviceName: booking.serviceName || booking.washPackage?.name || 'Car Wash',
+  price: booking.price || 0,
+  plate: booking.vehicleNo || booking.vehicle?.number || 'N/A',
+  address: booking.locality ? `${booking.houseOrFlatNo || ''}, ${booking.locality}, ${booking.city || ''}`.replace(/^, /, '') : 'Address not provided',
+  phone: booking.user?.phone || '',
+});
+
 export default function UpcomingServices() {
   const router = useRouter();
   const dispatch = useAppDispatch();
 
-  const { refetch } = useGetBookingsQuery();
+  const { data: bookingsResponse, isLoading, refetch } = useGetBookingsQuery({ page: 1, perPage: 100 });
 
   useFocusEffect(
     useCallback(() => {
@@ -39,9 +55,11 @@ export default function UpcomingServices() {
     }, [refetch])
   );
 
-  const bookings = useAppSelector((state: RootState) =>
-    state.bookings.bookings.filter((b: Booking) => b.status === "upcoming")
-  );
+  // Filter for upcoming bookings (not completed/cancelled)
+  const bookingList = bookingsResponse?.data?.bookingList || [];
+  const bookings = bookingList
+    .filter((b: any) => !['Completed', 'Cancelled'].includes(b.status))
+    .map(mapBackendBooking);
 
   const [activeBooking, setActiveBooking] = useState<Booking | null>(null);
 

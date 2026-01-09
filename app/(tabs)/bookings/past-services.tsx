@@ -3,7 +3,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from "expo-linear-gradient";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Alert,
   Animated,
@@ -19,35 +19,46 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 
-import { useAppDispatch, useAppSelector } from "../../../store/hooks";
+import { useFocusEffect } from "expo-router";
+import { useGetBookingsQuery } from "../../../store/api/bookingApi";
+import { useAppDispatch } from "../../../store/hooks";
 import { addTicket } from "../../../store/slices/bookingSlice";
+
+// Helper to map backend booking to display format
+const mapBackendBooking = (booking: any) => ({
+  id: booking._id,
+  center: booking.washPackage?.name || 'Car Wash Service',
+  date: new Date(booking.bookingDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+  timeSlot: booking.bookingTime ? `${booking.bookingTime > 12 ? booking.bookingTime - 12 : booking.bookingTime}:00 ${booking.bookingTime >= 12 ? 'PM' : 'AM'}` : 'N/A',
+  car: booking.vehicleType || booking.vehicle?.type || 'Car',
+  carImage: 'https://cdn-icons-png.flaticon.com/512/743/743007.png',
+  status: booking.status?.toLowerCase() === 'cancelled' ? 'cancelled' : 'completed',
+  serviceName: booking.serviceName || booking.washPackage?.name || 'Car Wash',
+  price: booking.price || 0,
+  plate: booking.vehicleNo || booking.vehicle?.number || 'N/A',
+  address: booking.locality ? `${booking.houseOrFlatNo || ''}, ${booking.locality}, ${booking.city || ''}`.replace(/^, /, '') : 'Address not provided',
+  phone: booking.user?.phone || '',
+});
 
 export default function PastServices() {
   const dispatch = useAppDispatch();
-  const reduxBookings = useAppSelector((state) =>
-    state.bookings.bookings.filter(
-      (b) => b.status === "completed" || b.status === "cancelled"
-    )
+
+  const { data: bookingsResponse, isLoading, refetch } = useGetBookingsQuery({ page: 1, perPage: 100 });
+
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch])
   );
 
-  const bookings = reduxBookings.length > 0 ? reduxBookings : [
-    {
-      id: "dummy-1",
-      center: "Tech Zone Car Spa",
-      date: "Oct 12, 2023",
-      timeSlot: "10:30 AM",
-      car: "Hyundai Creta",
-      carImage: "https://cdn-icons-png.flaticon.com/512/743/743007.png",
-      status: "completed",
-      serviceName: "Premium Foam Wash",
-      price: 649,
-      plate: "KA 05 AB 1234",
-      address: "123, Main Street, Bangalore"
-    }
-  ];
+  // Filter for past bookings (completed or cancelled)
+  const bookingList = bookingsResponse?.data?.bookingList || [];
+  const bookings = bookingList
+    .filter((b: any) => ['Completed', 'Cancelled'].includes(b.status))
+    .map(mapBackendBooking);
 
   const [activeBooking, setActiveBooking] = useState<any | null>(null);
 

@@ -1,45 +1,56 @@
 import { RootState } from "@/store";
+import { useGetBookingsQuery, useUpdateBookingStatusMutation } from "@/store/api/bookingApi";
 import { Ionicons } from "@expo/vector-icons";
 import { Slot, usePathname, useRouter } from "expo-router";
 import { useState } from "react";
-import { Alert, FlatList, Image, Linking, Modal, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, FlatList, Image, Linking, Modal, RefreshControl, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useSelector } from "react-redux";
 
-// --- MOCK DATA FOR ADMIN BOOKINGS ---
-
-const ADMIN_BOOKINGS = [
-  {
-    id: '1',
-    customerName: 'Alex Johnson',
-    time: '09:00 AM',
-    status: 'CONFIRMED',
-    car: 'Tesla Model 3 (Grey)',
-    license: 'ABC-1234',
-    service: 'Full Exterior Wash',
-    avatar: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80',
-    phone: '919876543210',
-    address: 'Block A, Sector 14, Gurgaon, Haryana'
-  },
-  {
-    id: '2',
-    customerName: 'Sarah Miller',
-    time: '10:30 AM',
-    status: 'IN-PROGRESS',
-    car: 'BMW X5 (Black)',
-    license: 'BMW-9988',
-    service: 'Interior Detailing',
-    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80',
-    phone: '919876543211',
-    address: 'Flat 402, Sunshine Apartments, Delhi'
-  }
-];
-
+// --- MOCK WORKERS (Keep for now, could be a separate API later) ---
 const MOCK_WORKERS = [
   { id: 'W1', name: 'Amit Sharma', phone: '+919876543210' },
   { id: 'W2', name: 'Rahul Verma', phone: '+918765432109' },
   { id: 'W3', name: 'Suresh Singh', phone: '+917654321098' },
   { id: 'W4', name: 'Vikram Yadav', phone: '+916543210987' },
 ];
+
+// --- Helper to format booking time ---
+const formatTime = (hour: number): string => {
+  if (hour === 0) return '12:00 AM';
+  if (hour === 12) return '12:00 PM';
+  if (hour < 12) return `${hour}:00 AM`;
+  return `${hour - 12}:00 PM`;
+};
+
+// --- Helper to map backend booking to UI format ---
+const mapBookingToUI = (booking: any) => {
+  // Debug: Log raw booking data
+  console.log('[AdminBookings] Raw booking:', JSON.stringify(booking, null, 2));
+
+  // Try multiple sources for service name
+  const serviceName =
+    booking.serviceName ||
+    booking.washPackage?.name ||
+    (typeof booking.washPackage === 'string' ? null : booking.washPackage?.name) ||
+    'Unknown Service';
+
+  return {
+    id: booking._id,
+    customerName: booking.user?.name || 'Customer',
+    time: formatTime(booking.bookingTime),
+    status: booking.status?.toUpperCase() || 'PENDING',
+    car: `${booking.vehicleType || booking.vehicle?.type || 'Car'} (${booking.vehicleNo || booking.vehicle?.number || 'N/A'})`,
+    license: booking.vehicleNo || booking.vehicle?.number || 'N/A',
+    service: serviceName,
+    avatar: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80',
+    phone: booking.user?.phone ? `91${booking.user.phone}` : '',
+    address: booking.locality
+      ? `${booking.houseOrFlatNo || ''}, ${booking.locality}, ${booking.city || ''}`.replace(/^, /, '')
+      : (booking.address?.locality ? `${booking.address.houseOrFlatNo || ''}, ${booking.address.locality}` : 'Address not provided'),
+    price: booking.price,
+    bookingDate: booking.bookingDate,
+  };
+};
 
 // --- DYNAMIC DATES GENERATOR ---
 const getNextSevenDays = () => {
@@ -65,7 +76,22 @@ function AdminBookingsScreen() {
   const [workerModalVisible, setWorkerModalVisible] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
 
-  const handleAssignWorker = (worker: any) => {
+  // Fetch real bookings from API
+  const { data: bookingsResponse, isLoading, error, refetch } = useGetBookingsQuery({ page: 1, perPage: 100 });
+  const [updateBookingStatus, { isLoading: isUpdatingStatus }] = useUpdateBookingStatusMutation();
+
+  // Map backend data to UI format
+  const bookingList = bookingsResponse?.data?.bookingList || [];
+  const bookings = bookingList.map((booking: any) => mapBookingToUI(booking));
+
+  // Filter bookings based on selected filter
+  const filteredBookings = bookings.filter((booking: ReturnType<typeof mapBookingToUI>) => {
+    if (filter === 'Pending') return booking.status === 'PENDING' || booking.status === 'IN-PROGRESS';
+    if (filter === 'Completed') return booking.status === 'COMPLETED';
+    return true; // 'All'
+  });
+
+  const handleAssignWorker = async (worker: any) => {
     setWorkerModalVisible(false);
 
     Alert.alert(
@@ -75,33 +101,67 @@ function AdminBookingsScreen() {
         { text: "Cancel", style: "cancel" },
         {
           text: "Confirm & Notify",
-          onPress: () => {
-            // 1. Send WhatsApp to User
-            const userMsg = `Hello ${selectedBooking.customerName}, your service for ${selectedBooking.car} has been assigned to ${worker.name} (Ph: ${worker.phone}). They will arrive shortly.`;
-            const userUrl = `whatsapp://send?phone=${selectedBooking.phone}&text=${encodeURIComponent(userMsg)}`;
+          onPress: async () => {
+            try {
+              // Update booking status to PENDING (in-progress)
+              await updateBookingStatus({ id: selectedBooking.id, status: 'Pending' }).unwrap();
 
-            Linking.openURL(userUrl).catch(() => {
-              Alert.alert("Error", "Could not open WhatsApp");
-            });
+              // 1. Send WhatsApp to User
+              const userMsg = `Hello ${selectedBooking.customerName}, your service for ${selectedBooking.car} has been assigned to ${worker.name} (Ph: ${worker.phone}). They will arrive shortly.`;
+              const userUrl = `https://wa.me/${selectedBooking.phone}?text=${encodeURIComponent(userMsg)}`;
 
-            // 2. Prompt to Send WhatsApp to Worker (Sequential Step)
-            setTimeout(() => {
-              Alert.alert(
-                "Notify Worker",
-                "Send job details to the worker now?",
-                [
-                  { text: "Skip", style: "cancel" },
-                  {
-                    text: "Send to Worker",
-                    onPress: () => {
-                      const workerMsg = `🛠 *New Job Assigned!*\n\n👤 Client: ${selectedBooking.customerName}\n🚗 Car: ${selectedBooking.car} (${selectedBooking.license})\n📋 Service: ${selectedBooking.service}\n⏰ Time: ${selectedBooking.time}\n📍 Address: ${selectedBooking.address}\n📞 Phone: ${selectedBooking.phone}`;
-                      const workerUrl = `whatsapp://send?phone=${worker.phone}&text=${encodeURIComponent(workerMsg)}`;
-                      Linking.openURL(workerUrl).catch(() => Alert.alert("Error", "Could not open WhatsApp for Worker"));
+              Linking.openURL(userUrl).catch(() => {
+                Alert.alert("Error", "Could not open WhatsApp");
+              });
+
+              // 2. Prompt to Send WhatsApp to Worker (Sequential Step)
+              setTimeout(() => {
+                Alert.alert(
+                  "Notify Worker",
+                  "Send job details to the worker now?",
+                  [
+                    { text: "Skip", style: "cancel", onPress: () => refetch() },
+                    {
+                      text: "Send to Worker",
+                      onPress: () => {
+                        const workerPhone = worker.phone.replace(/[^0-9]/g, '');
+                        const workerMsg = `🛠 *New Job Assigned!*\n\n👤 Client: ${selectedBooking.customerName}\n🚗 Car: ${selectedBooking.car} (${selectedBooking.license})\n📋 Service: ${selectedBooking.service}\n⏰ Time: ${selectedBooking.time}\n📍 Address: ${selectedBooking.address}\n📞 Phone: ${selectedBooking.phone}`;
+                        const workerUrl = `https://wa.me/${workerPhone}?text=${encodeURIComponent(workerMsg)}`;
+                        Linking.openURL(workerUrl).catch(() => Alert.alert("Error", "Could not open WhatsApp for Worker"));
+                        refetch();
+                      }
                     }
-                  }
-                ]
-              );
-            }, 1000); // Small delay to allow app interaction
+                  ]
+                );
+              }, 1000);
+            } catch (err) {
+              console.error('Failed to update booking status:', err);
+              Alert.alert('Error', 'Failed to assign worker. Please try again.');
+            }
+          }
+        }
+      ]
+    );
+  };
+
+  // Handle marking a booking as complete
+  const handleMarkComplete = async (booking: ReturnType<typeof mapBookingToUI>) => {
+    Alert.alert(
+      "Mark as Complete",
+      `Mark this booking for ${booking.customerName} as completed?`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Complete",
+          onPress: async () => {
+            try {
+              await updateBookingStatus({ id: booking.id, status: 'Completed' }).unwrap();
+              Alert.alert('Success', 'Booking marked as completed!');
+              refetch();
+            } catch (err) {
+              console.error('Failed to mark complete:', err);
+              Alert.alert('Error', 'Failed to update booking status.');
+            }
           }
         }
       ]
@@ -132,54 +192,108 @@ function AdminBookingsScreen() {
     );
   };
 
-  const renderCard = ({ item }: { item: typeof ADMIN_BOOKINGS[0] }) => (
-    <View style={adminStyles.card}>
-      {/* ... (Keep existing card render logic) ... */}
-      <View style={adminStyles.cardHeader}>
-        <View style={adminStyles.userInfo}>
-          <Image source={{ uri: item.avatar }} style={adminStyles.avatar} />
-          <View>
-            <Text style={adminStyles.userName}>{item.customerName}</Text>
-            <View style={adminStyles.timeRow}>
-              <Ionicons name="time" size={12} color="#007BFF" />
-              <Text style={adminStyles.timeText}>{item.time}</Text>
+  // Helper to get status badge style
+  const getStatusBadgeStyle = (status: string) => {
+    switch (status) {
+      case 'COMPLETED': return { backgroundColor: '#dcfce7', borderColor: '#86efac' };
+      case 'PENDING':
+      case 'IN-PROGRESS': return { backgroundColor: '#fef9c3', borderColor: '#fde047' };
+      default: return { backgroundColor: '#e8f5e9', borderColor: '#a5d6a7' }; // CONFIRMED
+    }
+  };
+
+  const renderCard = ({ item }: { item: ReturnType<typeof mapBookingToUI> }) => {
+    const isAssigned = item.status === 'PENDING' || item.status === 'IN-PROGRESS';
+    const isCompleted = item.status === 'COMPLETED';
+
+    return (
+      <View style={adminStyles.card}>
+        <View style={adminStyles.cardHeader}>
+          <View style={adminStyles.userInfo}>
+            <Image source={{ uri: item.avatar }} style={adminStyles.avatar} />
+            <View>
+              <Text style={adminStyles.userName}>{item.customerName}</Text>
+              <View style={adminStyles.timeRow}>
+                <Ionicons name="time" size={12} color="#007BFF" />
+                <Text style={adminStyles.timeText}>{item.time}</Text>
+              </View>
             </View>
           </View>
-        </View>
-        <View style={[adminStyles.statusBadge, item.status === 'CONFIRMED' ? adminStyles.badgeConfirmed : adminStyles.badgeProgress]}>
-          <View style={adminStyles.statusDot} />
-          <Text style={adminStyles.statusText}>{item.status}</Text>
-        </View>
-      </View>
-
-      {/* Details */}
-      <View style={adminStyles.detailsContainer}>
-        <View style={adminStyles.detailRow}>
-          <Ionicons name="car-sport-outline" size={16} color="#666" style={adminStyles.detailIcon} />
-          <View>
-            <Text style={adminStyles.detailTitle}>{item.car}</Text>
-            <Text style={adminStyles.detailSub}>{item.license}</Text>
+          <View style={[adminStyles.statusBadge, getStatusBadgeStyle(item.status)]}>
+            <View style={[adminStyles.statusDot, isCompleted && { backgroundColor: '#22c55e' }, isAssigned && { backgroundColor: '#eab308' }]} />
+            <Text style={adminStyles.statusText}>{item.status}</Text>
           </View>
         </View>
-        <View style={[adminStyles.detailRow, { marginTop: 12 }]}>
-          <Ionicons name="water-outline" size={16} color="#666" style={adminStyles.detailIcon} />
-          <Text style={adminStyles.detailTitle}>{item.service}</Text>
-        </View>
-      </View>
 
-      {/* Action Button */}
-      <TouchableOpacity
-        style={[adminStyles.whatsappButton, { backgroundColor: '#1a1a1a' }]}
-        onPress={() => {
-          setSelectedBooking(item);
-          setWorkerModalVisible(true);
-        }}
-      >
-        <Ionicons name="person-add" size={18} color="#fff" />
-        <Text style={adminStyles.whatsappButtonText}>Assign Worker</Text>
-      </TouchableOpacity>
-    </View>
-  );
+        {/* Details */}
+        <View style={adminStyles.detailsContainer}>
+          <View style={adminStyles.detailRow}>
+            <Ionicons name="car-sport-outline" size={16} color="#666" style={adminStyles.detailIcon} />
+            <View>
+              <Text style={adminStyles.detailTitle}>{item.car}</Text>
+              <Text style={adminStyles.detailSub}>{item.license}</Text>
+            </View>
+          </View>
+          <View style={[adminStyles.detailRow, { marginTop: 12 }]}>
+            <Ionicons name="water-outline" size={16} color="#666" style={adminStyles.detailIcon} />
+            <Text style={adminStyles.detailTitle}>{item.service}</Text>
+          </View>
+          {/* Address */}
+          <View style={[adminStyles.detailRow, { marginTop: 12 }]}>
+            <Ionicons name="location-outline" size={16} color="#666" style={adminStyles.detailIcon} />
+            <Text style={[adminStyles.detailTitle, { flex: 1 }]} numberOfLines={2}>{item.address}</Text>
+          </View>
+          {/* Phone */}
+          {item.phone && (
+            <TouchableOpacity
+              style={[adminStyles.detailRow, { marginTop: 12 }]}
+              onPress={() => {
+                const phoneUrl = `tel:+${item.phone}`;
+                Linking.openURL(phoneUrl).catch(() => Alert.alert('Error', 'Could not open dialer'));
+              }}
+            >
+              <Ionicons name="call-outline" size={16} color="#007BFF" style={adminStyles.detailIcon} />
+              <Text style={[adminStyles.detailTitle, { color: '#007BFF' }]}>+{item.phone}</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {/* Action Buttons - Conditional based on status */}
+        {!isAssigned && !isCompleted && (
+          <TouchableOpacity
+            style={[adminStyles.whatsappButton, { backgroundColor: '#1a1a1a' }]}
+            onPress={() => {
+              setSelectedBooking(item);
+              setWorkerModalVisible(true);
+            }}
+          >
+            <Ionicons name="person-add" size={18} color="#fff" />
+            <Text style={adminStyles.whatsappButtonText}>Assign Worker</Text>
+          </TouchableOpacity>
+        )}
+
+        {isAssigned && (
+          <TouchableOpacity
+            style={[adminStyles.whatsappButton, { backgroundColor: '#22c55e' }]}
+            onPress={() => handleMarkComplete(item)}
+            disabled={isUpdatingStatus}
+          >
+            <Ionicons name="checkmark-circle" size={18} color="#fff" />
+            <Text style={adminStyles.whatsappButtonText}>
+              {isUpdatingStatus ? 'Updating...' : 'Mark Complete'}
+            </Text>
+          </TouchableOpacity>
+        )}
+
+        {isCompleted && (
+          <View style={[adminStyles.whatsappButton, { backgroundColor: '#e5e7eb' }]}>
+            <Ionicons name="checkmark-done" size={18} color="#6b7280" />
+            <Text style={[adminStyles.whatsappButtonText, { color: '#6b7280' }]}>Completed</Text>
+          </View>
+        )}
+      </View>
+    );
+  };
 
   return (
     <SafeAreaView style={adminStyles.container}>
@@ -214,19 +328,37 @@ function AdminBookingsScreen() {
         ))}
       </View>
 
-      {/* List */}
-      <FlatList
-        data={filter === 'All' ? ADMIN_BOOKINGS : []}
-        renderItem={renderCard}
-        keyExtractor={item => item.id}
-        contentContainerStyle={adminStyles.listContent}
-        showsVerticalScrollIndicator={false}
-        ListEmptyComponent={
-          <View style={adminStyles.emptyContainer}>
-            <Text style={adminStyles.emptyText}>No {filter.toLowerCase()} bookings</Text>
-          </View>
-        }
-      />
+      {/* Loading State */}
+      {isLoading ? (
+        <View style={adminStyles.emptyContainer}>
+          <ActivityIndicator size="large" color="#1a1a1a" />
+          <Text style={[adminStyles.emptyText, { marginTop: 10 }]}>Loading bookings...</Text>
+        </View>
+      ) : error ? (
+        <View style={adminStyles.emptyContainer}>
+          <Ionicons name="alert-circle-outline" size={40} color="#ff6b6b" />
+          <Text style={[adminStyles.emptyText, { marginTop: 10, color: '#ff6b6b' }]}>Failed to load bookings</Text>
+          <TouchableOpacity onPress={() => refetch()} style={{ marginTop: 10, paddingVertical: 8, paddingHorizontal: 16, backgroundColor: '#1a1a1a', borderRadius: 8 }}>
+            <Text style={{ color: '#fff', fontWeight: '600' }}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        /* List */
+        <FlatList
+          data={filteredBookings}
+          renderItem={renderCard}
+          keyExtractor={item => item.id}
+          contentContainerStyle={adminStyles.listContent}
+          showsVerticalScrollIndicator={false}
+          refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refetch} />}
+          ListEmptyComponent={
+            <View style={adminStyles.emptyContainer}>
+              <Ionicons name="calendar-outline" size={40} color="#ccc" />
+              <Text style={[adminStyles.emptyText, { marginTop: 10 }]}>No {filter.toLowerCase()} bookings</Text>
+            </View>
+          }
+        />
+      )}
 
       {/* WORKER SELECTION MODAL */}
       <Modal

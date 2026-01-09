@@ -751,23 +751,6 @@ export default function HomeScreen() {
 
             {modalStep === "details" ? (
               <>
-                <View style={styles.inputContainer}>
-                  <Ionicons
-                    name="person-outline"
-                    size={20}
-                    color="#666"
-                    style={{ marginRight: 10 }}
-                  />
-                  <TextInput
-                    style={styles.inputField}
-                    placeholder="Full Name (optional for login)"
-                    placeholderTextColor="#ccc"
-                    value={name}
-                    onChangeText={setName}
-                    autoCapitalize="words"
-                  />
-                </View>
-
                 <View style={styles.phoneContainer}>
                   <View style={styles.countryCode}>
                     <Text style={styles.countryCodeText}>🇮🇳 +91</Text>

@@ -8,7 +8,10 @@ const TIMEZONE = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
 export interface BookingsResponse {
   success: boolean;
-  data: Booking[];
+  data: {
+    count: number;
+    bookingList: Booking[];
+  };
 }
 
 export const bookingApi = createApi({

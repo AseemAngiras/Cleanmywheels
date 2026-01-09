@@ -103,8 +103,13 @@ function AdminBookingsScreen() {
           text: "Confirm & Notify",
           onPress: async () => {
             try {
-              // Update booking status to PENDING (in-progress)
-              await updateBookingStatus({ id: selectedBooking.id, status: 'Pending' }).unwrap();
+              // Update booking status to PENDING (in-progress) and save worker details
+              await updateBookingStatus({
+                id: selectedBooking.id,
+                status: 'Pending',
+                workerName: worker.name,
+                workerPhone: worker.phone
+              }).unwrap();
 
               // 1. Send WhatsApp to User
               const userMsg = `Hello ${selectedBooking.customerName}, your service for ${selectedBooking.car} has been assigned to ${worker.name} (Ph: ${worker.phone}). They will arrive shortly.`;

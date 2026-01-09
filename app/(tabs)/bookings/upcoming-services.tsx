@@ -41,6 +41,8 @@ const mapBackendBooking = (booking: any): Booking => ({
   plate: booking.vehicleNo || booking.vehicle?.number || 'N/A',
   address: booking.locality ? `${booking.houseOrFlatNo || ''}, ${booking.locality}, ${booking.city || ''}`.replace(/^, /, '') : 'Address not provided',
   phone: booking.user?.phone || '',
+  workerName: booking.workerName,
+  workerPhone: booking.workerPhone,
 });
 
 export default function UpcomingServices() {
@@ -317,6 +319,25 @@ export default function UpcomingServices() {
                 <Text style={styles.label}>Time</Text>
                 <Text style={styles.value}>{activeBooking.timeSlot}</Text>
               </View>
+
+              {/* Worker Info */}
+              {activeBooking.workerName && (
+                <View style={styles.detailRow}>
+                  <Text style={styles.label}>Valet</Text>
+                  <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start' }}>
+                    <Text style={[styles.value, { marginRight: 10 }]}>{activeBooking.workerName}</Text>
+                    {activeBooking.workerPhone && (
+                      <TouchableOpacity
+                        style={{ backgroundColor: '#16a34a', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, flexDirection: "row", alignItems: "center", gap: 4 }}
+                        onPress={() => Linking.openURL(`tel:${activeBooking.workerPhone}`)}
+                      >
+                        <Ionicons name="call" size={12} color="#fff" />
+                        <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}>Call</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                </View>
+              )}
 
               {/* Car */}
               <View style={styles.detailRow}>

@@ -288,10 +288,10 @@ export default function SelectSlotScreen() {
         userName: userName || name,
         userPhone: userPhone || phoneNumber,
         selectedDate: dateOnly,
-        selectedTime: timeSlots.find((s) => s.id === selectedSlot)?.time,
+        selectedTime: timeSlots.find((s: TimeSlot) => s.id === selectedSlot)?.time,
         selectedTimeSlotId: selectedSlot,
-        servicePrice: params.basePrice,
-        totalPrice: params.totalPrice || params.basePrice,
+        servicePrice: params.basePrice as string,
+        totalPrice: (params.totalPrice || params.basePrice) as string,
       },
     });
   };
@@ -393,8 +393,8 @@ export default function SelectSlotScreen() {
                 slot.id === "2"
                   ? "5% OFF"
                   : slot.id === "3" || slot.id === "4"
-                  ? "10% OFF"
-                  : null;
+                    ? "10% OFF"
+                    : null;
 
               return (
                 <TouchableOpacity
@@ -859,18 +859,18 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     marginBottom: 20,
-    // paddingHorizontal: 20,
+    paddingHorizontal: 10, // Reduced padding to give more space
   },
   otpBox: {
-    width: 45,
-    height: 50,
+    width: 45, // Reduced from 60
+    height: 55, // Reduced from 60
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#e0e0e0",
-    borderRadius: 10,
-    textAlign: "center",
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#1a1a1a",
-    backgroundColor: "#f9f9f9",
+    borderColor: '#f0f0f0',
+    fontSize: 20, // Slightly smaller font
+    fontWeight: 'bold',
+    color: '#1a1a1a',
+    backgroundColor: '#f9f9f9',
+    textAlign: 'center'
   },
 });

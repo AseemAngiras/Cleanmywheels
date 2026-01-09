@@ -2,17 +2,21 @@ import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useEffect, useRef } from "react";
 import {
+  Alert,
   Animated,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 
+// import { updateUserProfile } from "../../../app/services/api"; // Legacy
+import { useUpdateProfileMutation } from "../../../store/api/authApi";
 import { useAppDispatch, useAppSelector } from "../../../store/hooks";
 import { updateProfile } from "../../../store/slices/profileSlice";
+import { updateUser } from "../../../store/slices/userSlice"; // Added updateUser from userSlice
 
 
 export default function EditProfile() {
@@ -56,15 +60,45 @@ export default function EditProfile() {
     }).start();
   }, [fullName, mobile, email, profile, user, saveAnim]);
 
- const handleSave = () => {
-  // Update profile slice
-  dispatch(updateProfile({ key: "name", value: fullName }));
-  dispatch(updateProfile({ key: "phone", value: mobile }));
-  dispatch(updateProfile({ key: "email", value: email }));
+  const [updateUserProfileAPI, { isLoading: isUpdating }] = useUpdateProfileMutation();
+  const token = useAppSelector((state) => state.auth.token);
 
-  setFocusedInput(null);
-  router.back();
-};
+  const handleSave = async () => {
+    if (!token) {
+      Alert.alert("Error", "You must be logged in to update your profile.");
+      return;
+    }
+
+    try {
+      await updateUserProfileAPI({
+        name: fullName,
+        email: email,
+      }).unwrap();
+
+      // Update both slices to keep them in sync
+      dispatch(updateUser({
+        name: fullName,
+        email: email,
+        // Phone is usually not updated via basic profile update without OTP, 
+        // but if backend supports it and we sent it (endpoint logic in AuthService only takes name/email)
+        // mobile: mobile 
+      }));
+
+      // Profile Slice
+      dispatch(updateProfile({ key: "name", value: fullName }));
+      // dispatch(updateProfile({ key: "phone", value: mobile })); // Only if backend updated it
+      dispatch(updateProfile({ key: "email", value: email }));
+
+      setFocusedInput(null);
+      Alert.alert("Success", "Profile updated successfully!");
+      router.back();
+    } catch (error: any) {
+      console.error("Update Profile Error", error);
+      Alert.alert("Error", error?.data?.message || "Failed to update profile");
+    }
+  };
+
+
 
 
 

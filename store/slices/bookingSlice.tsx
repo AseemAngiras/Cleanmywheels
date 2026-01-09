@@ -16,6 +16,8 @@ export interface Booking {
   serviceName: string;
   serviceId?: string;
   status: BookingStatus;
+  workerName?: string;
+  workerPhone?: string;
 }
 
 export interface Ticket {

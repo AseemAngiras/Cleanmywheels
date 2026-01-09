@@ -369,8 +369,24 @@ export default function SelectServiceScreen() {
                             Alert.alert("Selection Required", "Please select a service to proceed.");
                             return;
                         }
-                        if (!vehicleNumber.trim()) {
-                            Alert.alert("Missing Detail", "Please enter your vehicle number to proceed.");
+                        // Basic Indian Vehicle Number Validation (e.g. KA01AB1234, DL1CA1234)
+                        // Remove spaces/dashes
+                        const cleanNumber = vehicleNumber.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+
+                        if (cleanNumber.length < 6 || cleanNumber.length > 11) {
+                            Alert.alert("Invalid Vehicle Number", "Please enter a valid vehicle number (e.g., KA01AB1234).");
+                            return;
+                        }
+
+                        // Regex: 
+                        // ^[A-Z]{2}        : State Code (e.g. KA, DL)
+                        // [0-9]{1,2}       : District Code (e.g. 01, 1)
+                        // [A-Z]{0,3}       : Series (e.g. AB, A, or empty)
+                        // [0-9]{4}         : Unique Number (e.g. 1234)
+                        const vehicleRegex = /^[A-Z]{2}[0-9]{1,2}[A-Z]{0,3}[0-9]{4}$/;
+
+                        if (!vehicleRegex.test(cleanNumber)) {
+                            Alert.alert("Invalid Vehicle Number", "Please enter a valid vehicle number format (e.g., KA01AB1234).");
                             return;
                         }
                         const service = services.find(s => s.id === selectedService);

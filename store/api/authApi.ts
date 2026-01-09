@@ -4,7 +4,7 @@ import { Platform } from "react-native";
 
 export const MY_PC_IP = "192.168.1.3";
 
-export const API_BASE_URL = __DEV__
+export const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL ? process.env.EXPO_PUBLIC_API_URL : __DEV__
   ? `http://${MY_PC_IP}:3000/api`
   : "https://your-production-api.com/api";
 

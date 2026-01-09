@@ -374,8 +374,8 @@ export default function HomeScreen() {
   }, [token, dispatch]);
 
   // Admin Check
-  const sanitizedPhone = userPhone ? userPhone.replace(/\D/g, "") : "";
-  const isAdmin = sanitizedPhone.endsWith("1234567890");
+  const user = useSelector((state: RootState) => state.user.user);
+  const isAdmin = user?.accountType === 'Super Admin';
 
   // Login State
   const [isLoginModalVisible, setIsLoginModalVisible] = useState(false);
@@ -431,7 +431,7 @@ export default function HomeScreen() {
           name: trimmedName,
           countryCode: "+91",
           phone: trimmedPhone,
-          accountType: trimmedPhone === "1234567890" ? "SuperAdmin" : "Seeker",
+          accountType: trimmedPhone === "1234567890" ? "Super Admin" : "Seeker",
         }).unwrap();
 
         // Store initial token from register response (needed for verify-otp)
@@ -461,7 +461,7 @@ export default function HomeScreen() {
       Alert.alert(
         "Error",
         err?.data?.message ||
-          "Failed to proceed. Try entering your name to register."
+        "Failed to proceed. Try entering your name to register."
       );
     } finally {
       setIsLoading(false);
@@ -518,7 +518,7 @@ export default function HomeScreen() {
         }
         dispatch(loginSuccess(token));
 
-        const isAdminUser = phoneNumber.trim() === "1234567890";
+        const isAdminUser = backendUser?.accountType === "Super Admin";
 
         // Reset State immediately
         setModalStep("details");
@@ -751,23 +751,6 @@ export default function HomeScreen() {
 
             {modalStep === "details" ? (
               <>
-                <View style={styles.inputContainer}>
-                  <Ionicons
-                    name="person-outline"
-                    size={20}
-                    color="#666"
-                    style={{ marginRight: 10 }}
-                  />
-                  <TextInput
-                    style={styles.inputField}
-                    placeholder="Full Name (optional for login)"
-                    placeholderTextColor="#ccc"
-                    value={name}
-                    onChangeText={setName}
-                    autoCapitalize="words"
-                  />
-                </View>
-
                 <View style={styles.phoneContainer}>
                   <View style={styles.countryCode}>
                     <Text style={styles.countryCodeText}>🇮🇳 +91</Text>

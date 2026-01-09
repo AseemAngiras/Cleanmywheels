@@ -221,8 +221,15 @@ export default function ShopsListScreen() {
         }
 
         dispatch(setUser({
+            _id: `guest_${Date.now()}`,
             name: name.trim(),
             phone: phoneNumber.trim(),
+            countryCode: '+91',
+            formattedPhone: `+91 ${phoneNumber.trim()}`,
+            accountType: 'Seeker',
+            status: 'Active',
+            authTokenIssuedAt: Date.now(),
+            isMobileVerified: true,
         }))
 
         // Validation logic here
@@ -262,7 +269,7 @@ export default function ShopsListScreen() {
                         style={styles.selectButton}
                         onPress={() => {
                             setSelectedShop(item);
-                            if (user?.name && user?.phone) {
+                            if (user?.user?.name && user?.user?.phone) {
                                 setShowSlotPicker(true);
                             } else {
                                 setIsLoginModalVisible(true);

@@ -14,7 +14,7 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 
 import { useFocusEffect, useRouter } from "expo-router";
@@ -27,11 +27,27 @@ import {
   cancelBooking,
 } from "../../../store/slices/bookingSlice";
 
+// Helper to map backend booking to display format
+const mapBackendBooking = (booking: any): Booking => ({
+  id: booking._id,
+  center: booking.washPackage?.name || 'Car Wash Service',
+  date: new Date(booking.bookingDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+  timeSlot: booking.bookingTime ? `${booking.bookingTime > 12 ? booking.bookingTime - 12 : booking.bookingTime}:00 ${booking.bookingTime >= 12 ? 'PM' : 'AM'}` : 'N/A',
+  car: booking.vehicleType || booking.vehicle?.type || 'Car',
+  carImage: 'https://cdn-icons-png.flaticon.com/512/743/743007.png',
+  status: booking.status?.toLowerCase() === 'completed' ? 'completed' : 'upcoming',
+  serviceName: booking.serviceName || booking.washPackage?.name || 'Car Wash',
+  price: booking.price || 0,
+  plate: booking.vehicleNo || booking.vehicle?.number || 'N/A',
+  address: booking.locality ? `${booking.houseOrFlatNo || ''}, ${booking.locality}, ${booking.city || ''}`.replace(/^, /, '') : 'Address not provided',
+  phone: booking.user?.phone || '',
+});
+
 export default function UpcomingServices() {
   const router = useRouter();
   const dispatch = useAppDispatch();
 
-  const { refetch } = useGetBookingsQuery();
+  const { data: bookingsResponse, isLoading, refetch } = useGetBookingsQuery({ page: 1, perPage: 100 });
 
   useFocusEffect(
     useCallback(() => {
@@ -39,9 +55,11 @@ export default function UpcomingServices() {
     }, [refetch])
   );
 
-  const bookings = useAppSelector((state: RootState) =>
-    state.bookings.bookings.filter((b: Booking) => b.status === "upcoming")
-  );
+  // Filter for upcoming bookings (not completed/cancelled)
+  const bookingList = bookingsResponse?.data?.bookingList || [];
+  const bookings = bookingList
+    .filter((b: any) => !['Completed', 'Cancelled'].includes(b.status))
+    .map(mapBackendBooking);
 
   const [activeBooking, setActiveBooking] = useState<Booking | null>(null);
 
@@ -50,13 +68,8 @@ export default function UpcomingServices() {
   const opacityAnim = useRef(new Animated.Value(0)).current;
 
   // --- ADMIN & WORKER LOGIC ---
-  const userPhone = useAppSelector((state: RootState) => state.user.phone);
-
-  // Ensure we handle potential undefined or different formats
-  const isAdmin =
-    userPhone &&
-    (String(userPhone).endsWith("1234567890") ||
-      String(userPhone).includes("1234567890"));
+  const user = useAppSelector((state: RootState) => state.user.user);
+  const isAdmin = user?.accountType === 'Super Admin';
 
   const MOCK_WORKERS = [
     { id: "W1", name: "Amit Sharma", phone: "+919876543210" },
@@ -70,9 +83,8 @@ export default function UpcomingServices() {
   // Send WhatsApp to User ensuring them about the worker
   const sendUserConfirmation = (worker: any, booking: any) => {
     const message = `Hello, your booking for *${booking.serviceName}* is confirmed! 🚗✨\n\n*${worker.name}* will be arriving shortly to service your vehicle.\n\nBooking ID: ${booking.id}\nTime: ${booking.timeSlot}`;
-    const url = `whatsapp://send?phone=${
-      booking.phone
-    }&text=${encodeURIComponent(message)}`;
+    const url = `whatsapp://send?phone=${booking.phone
+      }&text=${encodeURIComponent(message)}`;
 
     Linking.canOpenURL(url).then((supported) => {
       if (supported) {
@@ -85,16 +97,12 @@ export default function UpcomingServices() {
 
   // Send WhatsApp to Worker with job details
   const sendWorkerJobDetails = (worker: any, booking: any) => {
-    const message = `🛠️ *New Job Assigned!*\n\nCustomer: ${
-      booking.user || "Valued Customer"
-    }\nPhone: ${booking.phone}\nAddress: ${booking.address}\n\nService: ${
-      booking.serviceName
-    }\nCar: ${booking.car} (${booking.plate})\nTime: ${
-      booking.timeSlot
-    }\n\nPlease reach on time.`;
-    const url = `whatsapp://send?phone=${
-      worker.phone
-    }&text=${encodeURIComponent(message)}`;
+    const message = `🛠️ *New Job Assigned!*\n\nCustomer: ${booking.user || "Valued Customer"
+      }\nPhone: ${booking.phone}\nAddress: ${booking.address}\n\nService: ${booking.serviceName
+      }\nCar: ${booking.car} (${booking.plate})\nTime: ${booking.timeSlot
+      }\n\nPlease reach on time.`;
+    const url = `whatsapp://send?phone=${worker.phone
+      }&text=${encodeURIComponent(message)}`;
 
     Linking.canOpenURL(url).then((supported) => {
       if (supported) {

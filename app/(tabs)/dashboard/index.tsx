@@ -61,7 +61,7 @@ const INITIAL_WORKERS = [
 ];
 
 export default function DashboardScreen() {
-    const userName = useSelector((state: RootState) => state.user.name);
+    const userName = useSelector((state: RootState) => state.user.user?.name);
     const [workers, setWorkers] = useState(INITIAL_WORKERS);
     const [modalVisible, setModalVisible] = useState(false);
     const [complaintsModalVisible, setComplaintsModalVisible] = useState(false);

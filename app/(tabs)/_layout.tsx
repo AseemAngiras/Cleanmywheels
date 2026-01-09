@@ -9,10 +9,8 @@ export default function TabsLayout() {
 
   // Check if we are in a sub-flow that should hide tabs
   const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
-  const userPhone = useSelector((state: RootState) => state.user.phone);
-  // Ensure we compare raw numbers only
-  const sanitizedPhone = userPhone ? userPhone.replace(/\D/g, '') : '';
-  const isAdmin = sanitizedPhone.endsWith('1234567890');
+  const user = useSelector((state: RootState) => state.user.user);
+  const isAdmin = user?.accountType === 'Super Admin';
 
   const segmentString = JSON.stringify(segments);
   const hideTabs = segmentString.includes('book-service') || segmentString.includes('book-doorstep') || !isLoggedIn;

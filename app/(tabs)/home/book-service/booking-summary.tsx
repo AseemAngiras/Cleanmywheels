@@ -1,4 +1,5 @@
 import { RootState } from '@/store';
+import { useCreateBookingMutation } from '@/store/api/bookingApi';
 import { addBooking } from '@/store/slices/bookingSlice';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
@@ -35,6 +36,9 @@ export default function BookingSummaryScreen() {
 
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string | null>('upi');
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+
+  // API Mutation
+  const [createBooking, { isLoading }] = useCreateBookingMutation();
 
   // Set default payment method if available (optional)
   useEffect(() => {
@@ -129,7 +133,7 @@ export default function BookingSummaryScreen() {
             </View>
             <View style={styles.rowContent}>
               <Text style={styles.label}>Contact Number</Text>
-              <Text style={styles.value}>+91 {user?.phone}</Text>
+              <Text style={styles.value}>+91 {user.user?.phone}</Text>
             </View>
           </View>
         </View>
@@ -190,30 +194,61 @@ export default function BookingSummaryScreen() {
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.payButton, !selectedPaymentMethod && styles.payButtonDisabled]}
-          disabled={!selectedPaymentMethod}
-          onPress={() => {
+          style={[styles.payButton, (!selectedPaymentMethod || isLoading) && styles.payButtonDisabled]}
+          disabled={!selectedPaymentMethod || isLoading}
+          onPress={async () => {
             if (!selectedPaymentMethod) {
               Alert.alert('Payment Required', 'Please select a payment option');
               return;
             }
 
-            dispatch(
-              addBooking({
+            try {
+              const bookingPayload = {
                 center: shop.name,
                 address: shop.address,
-                phone: user.phone,
-                serviceName: service.name,
+                phone: user.user?.phone || '',
+                serviceName: service.name, // Ensure this is passed!
                 price: grandTotal,
                 date: new Date(slot.date).toDateString(),
                 timeSlot: slot.time,
                 car: `${vehicle.type} - ${vehicle.number}`,
                 plate: vehicle.number,
                 carImage: shop.image,
-              })
-            );
+                status: 'upcoming',
+                shopId: shop.id,
+                userId: user.user?._id || 'guest',
+                paymentMethod: selectedPaymentMethod,
+                isPaid: selectedPaymentMethod !== 'cash',
+              };
 
-            router.replace('/(tabs)/home/book-service/order-confirmation');
+              console.log('Creating Shop Booking:', bookingPayload);
+
+              // 1. Create Booking in Backend
+              await createBooking(bookingPayload).unwrap();
+
+              // 2. Update Redux (Optional, for local cache if needed)
+              dispatch(addBooking(bookingPayload));
+
+              // 3. Navigate with Display Params
+              router.replace({
+                pathname: '/(tabs)/home/book-service/order-confirmation',
+                params: {
+                  shopName: shop.name,
+                  shopAddress: shop.address,
+                  shopImage: shop.image,
+                  shopRating: shop.rating,
+                  date: new Date(slot.date).toDateString(),
+                  time: slot.time,
+                  shopLat: shop.location?.lat,
+                  shopLong: shop.location?.long,
+                  serviceName: service.name,
+                }
+              });
+
+            } catch (err: any) {
+              console.error('Booking Failed:', err);
+              Alert.alert('Error', err?.data?.message || 'Failed to create booking. Please try again.');
+            }
           }}
         >
           <View style={styles.payButtonContent}>
@@ -222,8 +257,8 @@ export default function BookingSummaryScreen() {
               <Text style={styles.payButtonTotalLabel}>TOTAL</Text>
             </View>
             <View style={styles.payButtonActionContainer}>
-              <Text style={styles.payButtonActionText}>Pay Now</Text>
-              <Ionicons name="caret-forward" size={16} color="#1a1a1a" style={{ marginLeft: 4 }} />
+              <Text style={styles.payButtonActionText}>{isLoading ? 'Processing...' : 'Pay Now'}</Text>
+              {!isLoading && <Ionicons name="caret-forward" size={16} color="#1a1a1a" style={{ marginLeft: 4 }} />}
             </View>
           </View>
         </TouchableOpacity>

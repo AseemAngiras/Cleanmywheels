@@ -274,10 +274,8 @@ function AdminBookingsScreen() {
 export default function BookingsLayout() {
   const router = useRouter();
   const pathname = usePathname();
-  const userPhone = useSelector((state: RootState) => state.user.phone);
-
-  const sanitizedPhone = userPhone ? userPhone.replace(/\D/g, '') : '';
-  const isAdmin = sanitizedPhone.endsWith('1234567890');
+  const user = useSelector((state: RootState) => state.user.user);
+  const isAdmin = user?.accountType === 'Super Admin';
 
   if (isAdmin) {
     return <AdminBookingsScreen />;

@@ -8,10 +8,7 @@ const TIMEZONE = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
 export interface BookingsResponse {
   success: boolean;
-  data: {
-    count: number;
-    bookingList: Booking[];
-  };
+  data: Booking[];
 }
 
 export const bookingApi = createApi({
@@ -44,10 +41,13 @@ export const bookingApi = createApi({
   }),
   tagTypes: ["Booking"],
   endpoints: (builder) => ({
-    getBookings: builder.query<BookingsResponse, { page?: number; perPage?: number } | void>({
+    getBookings: builder.query<
+      BookingsResponse,
+      { page?: number; perPage?: number } | void
+    >({
       query: (params) => {
-        const page = params && params.page ? params.page : 1;
-        const perPage = params && params.perPage ? params.perPage : 100;
+        const page = params?.page ?? 1;
+        const perPage = params?.perPage ?? 10;
         return `/booking?page=${page}&perPage=${perPage}`;
       },
       providesTags: ["Booking"],

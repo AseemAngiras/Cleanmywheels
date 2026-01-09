@@ -3,7 +3,7 @@ import { RootState } from '@/store';
 import { setUser } from '@/store/slices/userSlice';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
-import { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { ActivityIndicator, FlatList, Image, Keyboard, KeyboardAvoidingView, Modal, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import BookingStepper from '../../../../components/BookingStepper';

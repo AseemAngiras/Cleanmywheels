@@ -23,10 +23,12 @@ export default function RootLayout() {
     <Provider store={store}>
       <PersistGate loading={<LoadingView />} persistor={persistor}>
         <SocketManager />
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="index" />
-          <Stack.Screen name="(tabs)" />
-        </Stack>
+        <View style={{ flex: 1, paddingTop: 40 }}>
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="index" />
+            <Stack.Screen name="(tabs)" />
+          </Stack>
+        </View>
       </PersistGate>
     </Provider>
   );

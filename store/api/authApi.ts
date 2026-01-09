@@ -2,10 +2,10 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import Constants from "expo-constants";
 import { Platform } from "react-native";
 
-export const MY_PC_IP = "192.168.1.3";
+export const MY_PC_IP = "192.168.1.6";
 
 export const API_BASE_URL = __DEV__
-  ? `http://${MY_PC_IP}:3000/api`
+  ? `http://${MY_PC_IP}:5000/api`
   : "https://your-production-api.com/api";
 
 export const APP_VERSION = Constants.expoConfig?.version ?? "1.0.0";

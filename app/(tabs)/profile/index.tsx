@@ -18,6 +18,7 @@ import { RootState } from "@/store";
 import { useSelector } from "react-redux";
 import { useAppDispatch, useAppSelector } from "../../../store/hooks";
 import { logout } from "../../../store/slices/authSlice";
+import { setDefaultAddress } from "../../../store/slices/profileSlice";
 
 const { height } = Dimensions.get("window");
 
@@ -32,13 +33,20 @@ export default function ProfileHome() {
   // Get user info from Redux
   const userState = useSelector((state: RootState) => state.user);
   const userData = userState.user;
-  
+
   // Get saved addresses from profile Redux slice
   const profileState = useSelector((state: RootState) => state.profile);
   const savedAddresses = profileState?.addresses || [];
 
   console.log(" [Profile] User Data:", userData);
   console.log(" [Profile] Saved Addresses:", savedAddresses);
+
+  const [isAddressDropdownOpen, setIsAddressDropdownOpen] = useState(false);
+
+  // Find the selected default address
+  const defaultAddress =
+    savedAddresses.find((a: any) => a.id === profileState.defaultAddressId) ||
+    savedAddresses[0]; // Fallback to first if none matched (though slice handles this)
 
   useEffect(() => {
     if (showLogout) {
@@ -73,7 +81,7 @@ export default function ProfileHome() {
       }),
     ]).start(() => {
       setShowLogout(false);
-      if (typeof callback === 'function') {
+      if (typeof callback === "function") {
         callback();
       }
     });
@@ -97,7 +105,10 @@ export default function ProfileHome() {
     >
       {/* HEADER */}
       <View style={styles.headerRow}>
-        <TouchableOpacity style={styles.moreButton} onPress={() => router.back()}>
+        <TouchableOpacity
+          style={styles.moreButton}
+          onPress={() => router.back()}
+        >
           <Ionicons name="chevron-back" size={20} color="#111" />
         </TouchableOpacity>
         <Text style={styles.header}>Your Profile</Text>
@@ -118,10 +129,10 @@ export default function ProfileHome() {
             <Text style={styles.profileSubtitle}>
               {profileState?.phone || userData?.phone || "Phone number"}
             </Text>
-            {(profileState?.email || userData?.email) ? (
-                <Text style={styles.profileSubtitle}>
+            {profileState?.email || userData?.email ? (
+              <Text style={styles.profileSubtitle}>
                 {profileState?.email || userData?.email}
-                </Text>
+              </Text>
             ) : null}
           </View>
         </View>
@@ -129,27 +140,122 @@ export default function ProfileHome() {
 
       {/* SAVED ADDRESSES */}
       <View style={styles.card}>
-        <View style={{ paddingHorizontal: 16, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#f0f0f0' }}>
-           <Text style={{ fontSize: 16, fontWeight: '600' }}>Saved Addresses</Text>
+        <View
+          style={{
+            paddingHorizontal: 16,
+            paddingVertical: 10,
+            borderBottomWidth: 1,
+            borderBottomColor: "#f0f0f0",
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <Text style={{ fontSize: 16, fontWeight: "600" }}>
+            Saved Addresses
+          </Text>
+          <TouchableOpacity
+            style={{ flexDirection: "row", alignItems: "center", gap: 4 }}
+            onPress={() =>
+              router.push({
+                pathname: "/(tabs)/home/book-doorstep/enter-location",
+                params: { source: "profile" },
+              })
+            }
+          >
+            <Ionicons name="add-circle" size={18} color="#84c95c" />
+            <Text style={{ color: "#84c95c", fontWeight: "600" }}>Add</Text>
+          </TouchableOpacity>
         </View>
         {savedAddresses.length === 0 ? (
-           <View style={{ padding: 16 }}>
-               <Text style={{ color: '#888' }}>No addresses saved yet.</Text>
-           </View>
+          <View style={{ padding: 16 }}>
+            <Text style={{ color: "#888" }}>No addresses saved yet.</Text>
+          </View>
         ) : (
-            savedAddresses.map((addr: any, idx: number) => (
-                <View key={addr.id || idx} style={styles.addressRow}>
-                    <View style={styles.iconBox}>
-                        <Ionicons name="location-outline" size={18} color="#555" />
-                    </View>
-                    <View style={{ flex: 1 }}>
-                        <Text style={styles.rowTitle}>{addr.addressType || "Home"}</Text>
-                        <Text style={styles.rowSubtitle} numberOfLines={1}>
-                            {addr.fullAddress || `${addr.flatNumber}, ${addr.locality}, ${addr.city}`}
+          <View>
+            {/* Dropdown Trigger (Selected Address) */}
+            <TouchableOpacity
+              style={[
+                styles.addressRow,
+                { borderBottomWidth: isAddressDropdownOpen ? 1 : 0 },
+              ]}
+              onPress={() => setIsAddressDropdownOpen(!isAddressDropdownOpen)}
+              activeOpacity={0.7}
+            >
+              <View style={styles.iconBox}>
+                <Ionicons name="location" size={18} color="#1a1a1a" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.rowTitle}>
+                  {defaultAddress?.addressType || "Select Address"}
+                </Text>
+                <Text style={styles.rowSubtitle} numberOfLines={1}>
+                  {defaultAddress?.fullAddress ||
+                    defaultAddress?.city ||
+                    "No default address selected"}
+                </Text>
+              </View>
+              <Ionicons
+                name={isAddressDropdownOpen ? "chevron-up" : "chevron-down"}
+                size={20}
+                color="#666"
+              />
+            </TouchableOpacity>
+
+            {/* Dropdown List */}
+            {isAddressDropdownOpen && (
+              <View style={{ backgroundColor: "#F9F9F9" }}>
+                {savedAddresses.map((addr: any, idx: number) => {
+                  const isDefault = profileState.defaultAddressId === addr.id;
+                  return (
+                    <TouchableOpacity
+                      key={addr.id || idx}
+                      style={[
+                        styles.addressRow,
+                        {
+                          paddingLeft: 24,
+                          backgroundColor: isDefault ? "#F0FDF4" : "#F9F9F9",
+                        },
+                      ]}
+                      onPress={() => {
+                        dispatch(setDefaultAddress(addr.id));
+                        setIsAddressDropdownOpen(false);
+                      }}
+                    >
+                      <View
+                        style={[
+                          styles.iconBox,
+                          {
+                            backgroundColor: isDefault ? "#DCFCE7" : "#EEEEEE",
+                          },
+                        ]}
+                      >
+                        <Ionicons
+                          name={isDefault ? "checkmark" : "location-outline"}
+                          size={16}
+                          color={isDefault ? "#166534" : "#666"}
+                        />
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text
+                          style={[
+                            styles.rowTitle,
+                            isDefault && { color: "#166534" },
+                          ]}
+                        >
+                          {addr.addressType || "Home"}
                         </Text>
-                    </View>
-                </View>
-            ))
+                        <Text style={styles.rowSubtitle} numberOfLines={1}>
+                          {addr.fullAddress ||
+                            `${addr.flatNumber}, ${addr.locality}, ${addr.city}`}
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            )}
+          </View>
         )}
       </View>
 
@@ -174,7 +280,6 @@ export default function ProfileHome() {
         />
         <Row icon="settings-outline" title="Settings" />
       </View>
-
 
       {/* SUPPORT CARD */}
       <View style={styles.card}>
@@ -213,7 +318,10 @@ export default function ProfileHome() {
           </Text>
 
           <View style={styles.logoutActions}>
-            <TouchableOpacity style={styles.cancelBtn} onPress={() => closeSheet()}>
+            <TouchableOpacity
+              style={styles.cancelBtn}
+              onPress={() => closeSheet()}
+            >
               <Text style={styles.cancelText}>Cancel</Text>
             </TouchableOpacity>
 
@@ -265,7 +373,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F3F4F7",
     paddingHorizontal: 16,
-    paddingTop: 60,
+    // paddingTop: 30,
     marginTop: 30,
   },
   headerRow: {

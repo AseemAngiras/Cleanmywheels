@@ -1,0 +1,67 @@
+{
+    "cli": {
+        "version": ">= 16.26.0",
+        "appVersionSource": "remote"
+    },
+    "build": {
+        "development": {
+            "developmentClient": true,
+            "distribution": "internal",
+            "channel": "development",
+            "android": {
+                "buildType": "apk" // faster to install on device/emulator
+            },
+            "ios": {
+                "simulator": true // builds for iOS simulator (no Apple account required)
+            },
+            "env": {
+                "APP_ENV": "development",
+                "EXPO_PUBLIC_API_URL": "http://festive-glade-85038.pktriot.xyz/api"
+            }
+        },
+        "testing": {
+            "distribution": "internal",
+            "channel": "testing",
+            "android": {
+                "buildType": "app-bundle" // use .aab for testing installs
+            },
+            "ios": {
+                "simulator": false
+            },
+            "env": {
+                "APP_ENV": "testing",
+                "EXPO_PUBLIC_API_URL": "http://festive-glade-85038.pktriot.xyz/api"
+            }
+        },
+        "preview": {
+            "distribution": "internal",
+            "channel": "preview",
+            "android": {
+                "buildType": "apk"
+            },
+            "env": {
+                "APP_ENV": "preview",
+                "EXPO_PUBLIC_API_URL": "http://festive-glade-85038.pktriot.xyz/api"
+            }
+        },
+        "production": {
+            "autoIncrement": true,
+            "channel": "production",
+            "env": {
+                "APP_ENV": "production",
+                "EXPO_PUBLIC_API_URL": "http://festive-glade-85038.pktriot.xyz/api"
+            }
+        }
+    },
+    "submit": {
+        "production": {
+            // "android": {
+            //   "serviceAccountKeyPath": "./credentials/google-service-account.json"
+            // },
+            // "ios": {
+            //   "appleId": "your-apple-id@example.com",
+            //   "ascAppId": "1234567890"
+            // }
+        }
+    }
+}

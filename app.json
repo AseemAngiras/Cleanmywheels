@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "CleanMyWheels",
-    "slug": "CleanMyWheels",
+    "slug": "clean-my-wheels",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -62,6 +62,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "ba82a2e9-123a-4d31-9281-c3913e8611d7"
+      }
     }
   }
 }

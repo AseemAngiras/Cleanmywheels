@@ -47,13 +47,13 @@ export default function BookingSummaryScreen() {
   const [createBooking, { isLoading: isCreatingBooking }] =
     useCreateBookingMutation();
   const [updateBookingStatus] = useUpdateBookingStatusMutation();
-  const authState = useSelector((state: RootState) => state.auth);
-  const userId = authState?.user?.id;
+  const userState = useSelector((state: RootState) => state.user);
+  const userId = userState?.user?._id;
 
   // Payment state tracking
   const [isVerifyingPayment, setIsVerifyingPayment] = useState(false);
   const currentBookingIdRef = useRef<string | null>(null);
-  const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const pollIntervalRef = useRef<any | null>(null);
 
   const [triggerGetBooking] = useLazyGetBookingByIdQuery();
 
@@ -455,7 +455,7 @@ export default function BookingSummaryScreen() {
               <Text style={styles.value}>
                 {vehicleType
                   ? (vehicleType as string).charAt(0).toUpperCase() +
-                    (vehicleType as string).slice(1)
+                  (vehicleType as string).slice(1)
                   : "Same"}{" "}
                 - {vehicleNumber || "N/A"}
               </Text>
@@ -473,9 +473,9 @@ export default function BookingSummaryScreen() {
               <Text style={styles.value}>
                 {selectedDate
                   ? new Date(selectedDate as string).toLocaleDateString(
-                      undefined,
-                      { weekday: "short", day: "numeric", month: "short" }
-                    )
+                    undefined,
+                    { weekday: "short", day: "numeric", month: "short" }
+                  )
                   : "Date"}
                 , {selectedTime || "Time"}
               </Text>

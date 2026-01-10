@@ -474,16 +474,16 @@ export default function EnterLocationScreen() {
                                 isSelected
                                   ? "checkmark"
                                   : isDefault
-                                  ? "star"
-                                  : "location-outline"
+                                    ? "star"
+                                    : "location-outline"
                               }
                               size={16}
                               color={
                                 isSelected
                                   ? "#166534"
                                   : isDefault
-                                  ? "#EAB308"
-                                  : "#666"
+                                    ? "#EAB308"
+                                    : "#666"
                               }
                             />
                           </View>
@@ -528,8 +528,8 @@ export default function EnterLocationScreen() {
                 styles.input,
                 { flex: 1 },
                 !flatNumber.trim() &&
-                  errorMsg.includes("House") &&
-                  styles.inputError,
+                errorMsg.includes("House") &&
+                styles.inputError,
               ]}
               placeholder="House / Flat No."
               placeholderTextColor="#ccc"
@@ -541,8 +541,8 @@ export default function EnterLocationScreen() {
                 styles.input,
                 { flex: 1 },
                 !locality.trim() &&
-                  errorMsg.includes("Locality") &&
-                  styles.inputError,
+                errorMsg.includes("Locality") &&
+                styles.inputError,
               ]}
               placeholder="Locality / Area"
               placeholderTextColor="#ccc"
@@ -575,8 +575,8 @@ export default function EnterLocationScreen() {
                 styles.input,
                 { flex: 1 },
                 (!postalCode.trim() || postalCode.length < 6) &&
-                  errorMsg.includes("Postal Code") &&
-                  styles.inputError,
+                errorMsg.includes("Postal Code") &&
+                styles.inputError,
               ]}
               placeholder="Postal Code"
               placeholderTextColor="#ccc"
@@ -717,7 +717,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 20,
     paddingHorizontal: 20,
     paddingVertical: 12, // Reduced from 15
     backgroundColor: "#fff",

@@ -1,5 +1,5 @@
 // User Account Types
-export type UserAccountType = 'Seeker' | 'Provider' | 'Admin' | 'SuperAdmin';
+export type UserAccountType = 'Seeker' | 'Provider' | 'Admin' | 'Super Admin';
 
 // User Status
 export type Status = 'Active' | 'Inactive' | 'Suspended' | 'Pending';

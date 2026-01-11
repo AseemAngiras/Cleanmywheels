@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
+  Alert,
   Animated,
   Dimensions,
   Easing,
@@ -18,7 +19,10 @@ import { RootState } from "@/store";
 import { useSelector } from "react-redux";
 import { useAppDispatch, useAppSelector } from "../../../store/hooks";
 import { logout } from "../../../store/slices/authSlice";
-import { setDefaultAddress } from "../../../store/slices/profileSlice";
+import {
+  removeAddresses,
+  setDefaultAddress,
+} from "../../../store/slices/profileSlice";
 
 const { height } = Dimensions.get("window");
 
@@ -30,11 +34,9 @@ export default function ProfileHome() {
   const translateY = useRef(new Animated.Value(height)).current;
   const overlayOpacity = useRef(new Animated.Value(0)).current;
 
-  // Get user info from Redux
   const userState = useSelector((state: RootState) => state.user);
   const userData = userState.user;
 
-  // Get saved addresses from profile Redux slice
   const profileState = useSelector((state: RootState) => state.profile);
   const savedAddresses = profileState?.addresses || [];
 
@@ -42,11 +44,13 @@ export default function ProfileHome() {
   console.log(" [Profile] Saved Addresses:", savedAddresses);
 
   const [isAddressDropdownOpen, setIsAddressDropdownOpen] = useState(false);
+  const [expandedAddressId, setExpandedAddressId] = useState<string | null>(
+    null
+  );
 
-  // Find the selected default address
   const defaultAddress =
     savedAddresses.find((a: any) => a.id === profileState.defaultAddressId) ||
-    savedAddresses[0]; // Fallback to first if none matched (though slice handles this)
+    savedAddresses[0];
 
   useEffect(() => {
     if (showLogout) {
@@ -89,7 +93,6 @@ export default function ProfileHome() {
 
   const handleLogout = () => {
     closeSheet(() => {
-      // Small delay to ensure state update has propagated (optional but safe)
       setTimeout(() => {
         dispatch(logout());
         router.replace("/(tabs)/home");
@@ -207,50 +210,150 @@ export default function ProfileHome() {
               <View style={{ backgroundColor: "#F9F9F9" }}>
                 {savedAddresses.map((addr: any, idx: number) => {
                   const isDefault = profileState.defaultAddressId === addr.id;
+                  const isExpanded = expandedAddressId === addr.id;
+
                   return (
-                    <TouchableOpacity
-                      key={addr.id || idx}
-                      style={[
-                        styles.addressRow,
-                        {
-                          paddingLeft: 24,
-                          backgroundColor: isDefault ? "#F0FDF4" : "#F9F9F9",
-                        },
-                      ]}
-                      onPress={() => {
-                        dispatch(setDefaultAddress(addr.id));
-                        setIsAddressDropdownOpen(false);
-                      }}
-                    >
-                      <View
+                    <View key={addr.id || idx}>
+                      <TouchableOpacity
                         style={[
-                          styles.iconBox,
+                          styles.addressRow,
                           {
-                            backgroundColor: isDefault ? "#DCFCE7" : "#EEEEEE",
+                            paddingLeft: 24,
+                            backgroundColor: isDefault ? "#F0FDF4" : "#F9F9F9",
+                            borderBottomWidth: isExpanded ? 0 : 1,
                           },
                         ]}
+                        activeOpacity={0.7}
+                        onPress={() => {
+                          setExpandedAddressId(isExpanded ? null : addr.id);
+                        }}
                       >
-                        <Ionicons
-                          name={isDefault ? "checkmark" : "location-outline"}
-                          size={16}
-                          color={isDefault ? "#166534" : "#666"}
-                        />
-                      </View>
-                      <View style={{ flex: 1 }}>
-                        <Text
+                        <View
                           style={[
-                            styles.rowTitle,
-                            isDefault && { color: "#166534" },
+                            styles.iconBox,
+                            {
+                              backgroundColor: isDefault
+                                ? "#DCFCE7"
+                                : "#EEEEEE",
+                            },
                           ]}
                         >
-                          {addr.addressType || "Home"}
-                        </Text>
-                        <Text style={styles.rowSubtitle} numberOfLines={1}>
-                          {addr.fullAddress ||
-                            `${addr.flatNumber}, ${addr.locality}, ${addr.city}`}
-                        </Text>
-                      </View>
-                    </TouchableOpacity>
+                          <Ionicons
+                            name={isDefault ? "checkmark" : "location-outline"}
+                            size={16}
+                            color={isDefault ? "#166534" : "#666"}
+                          />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <Text
+                            style={[
+                              styles.rowTitle,
+                              isDefault && { color: "#166534" },
+                            ]}
+                          >
+                            {addr.addressType || "Home"}
+                          </Text>
+                          <Text style={styles.rowSubtitle} numberOfLines={1}>
+                            {addr.fullAddress ||
+                              `${addr.flatNumber}, ${addr.locality}, ${addr.city}`}
+                          </Text>
+                        </View>
+
+                        {/* Dropdown arrow to indicate expandability */}
+                        <Ionicons
+                          name={isExpanded ? "chevron-up" : "chevron-down"}
+                          size={16}
+                          color="#999"
+                        />
+                      </TouchableOpacity>
+
+                      {/* ACTIONS ROW (Visible if expanded) */}
+                      {isExpanded && (
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            alignItems: "center",
+                            backgroundColor: isDefault ? "#F0FDF4" : "#F9F9F9",
+                            paddingLeft: 60, 
+                            paddingBottom: 12,
+                            paddingRight: 16,
+                            gap: 16,
+                            borderBottomWidth: 1,
+                            borderBottomColor: "#f0f0f0",
+                          }}
+                        >
+                          {!isDefault && (
+                            <TouchableOpacity
+                              style={{
+                                flexDirection: "row",
+                                alignItems: "center",
+                                gap: 6,
+                              }}
+                              onPress={() => {
+                                dispatch(setDefaultAddress(addr.id));
+                                setExpandedAddressId(null);
+                                setIsAddressDropdownOpen(false);
+                              }}
+                            >
+                              <Ionicons
+                                name="checkmark-circle-outline"
+                                size={18}
+                                color="#166534"
+                              />
+                              <Text
+                                style={{
+                                  fontSize: 14,
+                                  color: "#166534",
+                                  fontWeight: "500",
+                                }}
+                              >
+                                Make Default
+                              </Text>
+                            </TouchableOpacity>
+                          )}
+
+                          <TouchableOpacity
+                            style={{
+                              flexDirection: "row",
+                              alignItems: "center",
+                              gap: 6,
+                            }}
+                            onPress={() => {
+                              Alert.alert(
+                                "Delete Address",
+                                "Are you sure you want to remove this address?",
+                                [
+                                  { text: "Cancel", style: "cancel" },
+                                  {
+                                    text: "Delete",
+                                    style: "destructive",
+                                    onPress: () => {
+                                      dispatch(removeAddresses(addr.id));
+                                      setExpandedAddressId(null);
+                                    },
+                                  },
+                                ]
+                              );
+                            }}
+                          >
+                            <Ionicons
+                              name="trash-outline"
+                              size={18}
+                              color="#EF4444"
+                            />
+                            <Text
+                              style={{
+                                fontSize: 14,
+                                color: "#EF4444",
+                                fontWeight: "500",
+                              }}
+                            >
+                              Delete
+                            </Text>
+                          </TouchableOpacity>
+                        </View>
+                      )}
+                    </View>
                   );
                 })}
               </View>

@@ -21,6 +21,7 @@ import { useAppDispatch, useAppSelector } from "../../../store/hooks";
 import { logout } from "../../../store/slices/authSlice";
 import {
   removeAddresses,
+  setAvatar,
   setDefaultAddress,
 } from "../../../store/slices/profileSlice";
 
@@ -31,8 +32,12 @@ export default function ProfileHome() {
   const profile = useAppSelector((state) => state.profile);
 
   const [showLogout, setShowLogout] = useState(false);
+  const [showAvatarModal, setShowAvatarModal] = useState(false);
   const translateY = useRef(new Animated.Value(height)).current;
   const overlayOpacity = useRef(new Animated.Value(0)).current;
+
+  const avatarTranslateY = useRef(new Animated.Value(height)).current;
+  const avatarOverlayOpacity = useRef(new Animated.Value(0)).current;
 
   const userState = useSelector((state: RootState) => state.user);
   const userData = userState.user;
@@ -70,6 +75,24 @@ export default function ProfileHome() {
     }
   }, [showLogout]);
 
+  useEffect(() => {
+    if (showAvatarModal) {
+      Animated.parallel([
+        Animated.timing(avatarTranslateY, {
+          toValue: 0,
+          duration: 350,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.timing(avatarOverlayOpacity, {
+          toValue: 1,
+          duration: 250,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [showAvatarModal, avatarTranslateY, avatarOverlayOpacity]);
+
   const closeSheet = (callback?: () => void) => {
     Animated.parallel([
       Animated.timing(translateY, {
@@ -85,6 +108,27 @@ export default function ProfileHome() {
       }),
     ]).start(() => {
       setShowLogout(false);
+      if (typeof callback === "function") {
+        callback();
+      }
+    });
+  };
+
+  const closeAvatarSheet = (callback?: () => void) => {
+    Animated.parallel([
+      Animated.timing(avatarTranslateY, {
+        toValue: height,
+        duration: 280,
+        easing: Easing.in(Easing.cubic),
+        useNativeDriver: true,
+      }),
+      Animated.timing(avatarOverlayOpacity, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      setShowAvatarModal(false);
       if (typeof callback === "function") {
         callback();
       }
@@ -121,10 +165,30 @@ export default function ProfileHome() {
       {/* PROFILE CARD */}
       <View style={styles.profileCard}>
         <View style={styles.profileLeft}>
-          <Image
-            source={{ uri: "https://i.pravatar.cc/150?img=12" }}
-            style={styles.avatar}
-          />
+          <TouchableOpacity
+            onPress={() => setShowAvatarModal(true)}
+            activeOpacity={0.8}
+          >
+            <Image
+              source={{
+                uri: profileState?.avatar || "https://i.pravatar.cc/150?img=12",
+              }}
+              style={styles.avatar}
+            />
+            {/* Edit badge */}
+            <View
+              style={{
+                position: "absolute",
+                bottom: -2,
+                right: 8,
+                backgroundColor: "#fff",
+                borderRadius: 10,
+                padding: 2,
+              }}
+            >
+              <Ionicons name="pencil-sharp" size={12} color="#111" />
+            </View>
+          </TouchableOpacity>
           <View>
             <Text style={styles.profileName}>
               {profileState?.name || userData?.name || "Your Name"}
@@ -176,7 +240,6 @@ export default function ProfileHome() {
           </View>
         ) : (
           <View>
-            {/* Dropdown Trigger (Selected Address) */}
             <TouchableOpacity
               style={[
                 styles.addressRow,
@@ -274,7 +337,7 @@ export default function ProfileHome() {
                             flexDirection: "row",
                             alignItems: "center",
                             backgroundColor: isDefault ? "#F0FDF4" : "#F9F9F9",
-                            paddingLeft: 60, 
+                            paddingLeft: 60,
                             paddingBottom: 12,
                             paddingRight: 16,
                             gap: 16,
@@ -432,6 +495,74 @@ export default function ProfileHome() {
               <Text style={styles.logoutText}>Yes, Logout</Text>
             </TouchableOpacity>
           </View>
+        </Animated.View>
+      </Modal>
+
+      {/* AVATAR SELECTION MODAL */}
+      <Modal transparent visible={showAvatarModal} animationType="none">
+        <Animated.View
+          style={[styles.modalOverlay, { opacity: avatarOverlayOpacity }]}
+        >
+          <TouchableOpacity
+            style={StyleSheet.absoluteFill}
+            onPress={() => closeAvatarSheet()}
+          />
+        </Animated.View>
+
+        <Animated.View
+          style={[
+            styles.bottomSheet,
+            { transform: [{ translateY: avatarTranslateY }] },
+          ]}
+        >
+          <View style={styles.sheetHeader}>
+            <Text style={styles.sheetTitle}>Choose Avatar</Text>
+            <Text style={styles.sheetSubtitle}>
+              Select a persona for your profile
+            </Text>
+          </View>
+
+          <View style={styles.avatarGrid}>
+            {[
+              "https://i.pravatar.cc/150?img=12",
+              "https://i.pravatar.cc/150?img=5",
+              "https://i.pravatar.cc/150?img=3",
+              "https://i.pravatar.cc/150?img=9",
+              "https://i.pravatar.cc/150?img=60",
+              "https://i.pravatar.cc/150?img=68",
+            ].map((uri, idx) => {
+              const isSelected = profileState?.avatar === uri;
+              return (
+                <TouchableOpacity
+                  key={idx}
+                  onPress={() => {
+                    closeAvatarSheet(() => {
+                      dispatch(setAvatar(uri));
+                    });
+                  }}
+                  activeOpacity={0.8}
+                  style={[
+                    styles.avatarOption,
+                    isSelected && styles.avatarOptionSelected,
+                  ]}
+                >
+                  <Image source={{ uri }} style={styles.avatarImage} />
+                  {isSelected && (
+                    <View style={styles.checkmarkBadge}>
+                      <Ionicons name="checkmark" size={12} color="#FFF" />
+                    </View>
+                  )}
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+
+          <TouchableOpacity
+            style={styles.closeBtn}
+            onPress={() => closeAvatarSheet()}
+          >
+            <Text style={styles.closeBtnText}>Cancel</Text>
+          </TouchableOpacity>
         </Animated.View>
       </Modal>
     </ScrollView>
@@ -621,5 +752,65 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     marginRight: 12,
+  },
+  sheetHeader: {
+    alignItems: "center",
+    marginBottom: 24,
+  },
+  sheetTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#111",
+    marginBottom: 4,
+  },
+  sheetSubtitle: {
+    fontSize: 14,
+    color: "#888",
+  },
+  avatarGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
+    gap: 20,
+    marginBottom: 30,
+  },
+  avatarOption: {
+    padding: 3,
+    borderRadius: 40,
+    borderWidth: 2,
+    borderColor: "transparent",
+  },
+  avatarOptionSelected: {
+    borderColor: "#84c95c",
+  },
+  avatarImage: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: "#f0f0f0",
+  },
+  checkmarkBadge: {
+    position: "absolute",
+    bottom: 0,
+    right: 0,
+    backgroundColor: "#84c95c",
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 2,
+    borderColor: "#fff",
+  },
+  closeBtn: {
+    backgroundColor: "#F3F4F7",
+    paddingVertical: 14,
+    borderRadius: 30,
+    alignItems: "center",
+  },
+  closeBtnText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#333",
   },
 });

@@ -68,6 +68,7 @@ export default function UpcomingServices() {
   const {
     data: bookingsResponse,
     isLoading,
+    isFetching,
     refetch,
   } = useGetBookingsQuery({ page: 1, perPage: 100 });
 
@@ -280,6 +281,8 @@ export default function UpcomingServices() {
         data={bookings}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
+        onRefresh={refetch}
+        refreshing={isFetching}
         ListEmptyComponent={() => (
           <View style={{ alignItems: "center", marginTop: 80 }}>
             <Ionicons name="calendar-outline" size={60} color="#CBD5E1" />

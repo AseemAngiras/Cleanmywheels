@@ -1,3 +1,4 @@
+import { RootState } from "@/store";
 import {
   useGetWashPackagesQuery,
   useUpdateWashPackageMutation,
@@ -34,8 +35,6 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import BookingStepper from "../../../../components/BookingStepper";
 import { ListSkeleton } from "../../../../components/SkeletonLoader";
-import { RootState } from "@/store";
-
 
 const SERVICE_ADDONS: Record<
   string,
@@ -135,7 +134,7 @@ export default function SelectServiceScreen() {
   const dispatch = useDispatch();
 
   const user = useSelector((state: RootState) => state.user.user);
-      const isAdmin = user?.accountType === 'Super Admin';
+  const isAdmin = user?.accountType === "Super Admin";
 
   const cars = useAppSelector((state) => {
     return state.user.cars;
@@ -230,6 +229,21 @@ export default function SelectServiceScreen() {
   const [vehicleType, setVehicleType] = useState("sedan");
   const [vehicleNumber, setVehicleNumber] = useState("");
   const [selectedCarId, setSelectedCarId] = useState<string | null>(null);
+
+  // Auto-fill form updates when selectedCarId changes
+  useEffect(() => {
+    if (selectedCarId) {
+      const selectedCar = cars.find((c) => c.id === selectedCarId);
+      if (selectedCar) {
+        // If type matches one of our presets, use it, otherwise 'others' or custom logic
+        const matchedType = vehicleTypes.find(
+          (vt) => vt.id.toLowerCase() === selectedCar.type.toLowerCase()
+        );
+        setVehicleType(matchedType ? matchedType.id : "others");
+        setVehicleNumber(selectedCar.number);
+      }
+    }
+  }, [selectedCarId, cars]);
 
   const vehicleTypes = [
     { id: "hatchback", name: "Hatchback", icon: "car-hatchback" },
@@ -361,12 +375,6 @@ export default function SelectServiceScreen() {
     });
 
     return servicePrice + addonTotal;
-  };
-
-  const handleSelectExistingCar = (car: any) => {
-    setSelectedCarId(car.id);
-    setVehicleType(car.type);
-    setVehicleNumber(car.number);
   };
 
   return (
@@ -617,15 +625,11 @@ export default function SelectServiceScreen() {
               </View>
             )}
 
-            {/* Saved Cars Section */}
+            {/* MY SAVED CARS SECTION */}
             {cars.length > 0 && (
-              <View style={{ marginBottom: 10 }}>
-                <Text style={styles.sectionTitle}>Saved Cars</Text>
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={{ paddingHorizontal: 20 }}
-                >
+              <View style={{ marginBottom: 24 }}>
+                <Text style={styles.sectionTitle}>My Saved Vehicles</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                   {cars.map((car) => {
                     const isSelected = selectedCarId === car.id;
                     return (
@@ -635,12 +639,13 @@ export default function SelectServiceScreen() {
                           styles.savedCarCard,
                           isSelected && styles.savedCarCardSelected,
                         ]}
-                        onPress={() => handleSelectExistingCar(car)}
+                        onPress={() => setSelectedCarId(car.id)}
                       >
-                        <MaterialCommunityIcons
-                          name="car"
+                        <Ionicons
+                          name="car-sport"
                           size={24}
-                          color={isSelected ? "#fff" : "#1a1a1a"}
+                          color={isSelected ? "#D1F803" : "#666"}
+                          style={{ marginBottom: 8 }}
                         />
                         <Text
                           style={[
@@ -653,11 +658,20 @@ export default function SelectServiceScreen() {
                         <Text
                           style={[
                             styles.savedCarType,
-                            isSelected && { color: "#fff" },
+                            isSelected && { color: "#rgba(255,255,255,0.7)" },
                           ]}
                         >
-                          {car.type.toUpperCase()}
+                          {car.type}
                         </Text>
+                        {isSelected && (
+                          <View style={styles.selectedCheck}>
+                            <Ionicons
+                              name="checkmark-circle"
+                              size={20}
+                              color="#D1F803"
+                            />
+                          </View>
+                        )}
                       </TouchableOpacity>
                     );
                   })}
@@ -678,7 +692,7 @@ export default function SelectServiceScreen() {
                       isSelected && styles.vehicleIconBtnSelected,
                     ]}
                     onPress={() => {
-                      setSelectedCarId(null); 
+                      setSelectedCarId(null);
                       setVehicleType(type.id);
                     }}
                   >
@@ -1019,6 +1033,36 @@ const styles = StyleSheet.create({
     backgroundColor: "#1a1a1a",
     borderColor: "#1a1a1a",
   },
+  savedCarCard: {
+    backgroundColor: "#f9f9f9",
+    borderRadius: 16,
+    padding: 16,
+    marginRight: 12,
+    borderWidth: 1,
+    borderColor: "#eee",
+    minWidth: 120,
+    alignItems: "flex-start",
+  },
+  savedCarCardSelected: {
+    backgroundColor: "#1a1a1a",
+    borderColor: "#D1F803",
+  },
+  savedCarNumber: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#333",
+    marginBottom: 4,
+  },
+  savedCarType: {
+    fontSize: 12,
+    color: "#666",
+    textTransform: "uppercase",
+  },
+  selectedCheck: {
+    position: "absolute",
+    top: 8,
+    right: 8,
+  },
   vehicleTypeName: {
     fontSize: 10,
     fontWeight: "500",
@@ -1076,26 +1120,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   nextButtonText: { fontSize: 16, fontWeight: "bold", color: "#1a1a1a" },
-
-  savedCarCard: {
-    width: 120,
-    height: 100,
-    borderRadius: 14,
-    backgroundColor: "#fff",
-    marginRight: 12,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: "#eee",
-  },
-  savedCarCardSelected: { backgroundColor: "#1a1a1a", borderColor: "#1a1a1a" },
-  savedCarNumber: {
-    marginTop: 6,
-    fontSize: 13,
-    fontWeight: "bold",
-    color: "#1a1a1a",
-  },
-  savedCarType: { fontSize: 11, color: "#666", marginTop: 2 },
 
   // Modal Styles
   modalOverlay: {

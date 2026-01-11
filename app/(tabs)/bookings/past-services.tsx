@@ -64,6 +64,7 @@ export default function PastServices() {
   const {
     data: bookingsResponse,
     isLoading,
+    isFetching,
     refetch,
   } = useGetBookingsQuery({ page: 1, perPage: 100 });
 
@@ -262,6 +263,8 @@ export default function PastServices() {
         renderItem={renderItem}
         contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
         showsVerticalScrollIndicator={false}
+        onRefresh={refetch}
+        refreshing={isFetching}
         ListEmptyComponent={
           <View style={{ marginTop: 80, alignItems: "center" }}>
             <Ionicons name="time-outline" size={48} color="#CBD5E1" />
@@ -585,25 +588,25 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: "#000", 
+    backgroundColor: "#000",
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
-    padding: 16, 
+    padding: 16,
     maxHeight: "60%",
     elevation: 0,
-    overflow: "hidden", 
+    overflow: "hidden",
     paddingBottom: 40,
   },
 
   limeCard: {
-    backgroundColor: "#D1F803", 
-    borderRadius: 20, 
-    padding: 12, 
-    marginBottom: 8, 
+    backgroundColor: "#D1F803",
+    borderRadius: 20,
+    padding: 12,
+    marginBottom: 8,
     zIndex: 2,
   },
   limeAvatar: {
-    width: 80, 
+    width: 80,
     height: 80,
     borderRadius: 30,
     borderWidth: 2,
@@ -615,7 +618,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   limeIconBtn: {
-    width: 32, 
+    width: 32,
     height: 32,
     borderRadius: 16,
     backgroundColor: "rgba(0,0,0,0.08)",
@@ -624,17 +627,17 @@ const styles = StyleSheet.create({
     marginRight: 7,
   },
   limeName: {
-    fontSize: 18, 
+    fontSize: 18,
     fontWeight: "700",
     color: "#1a1a1a",
-    marginBottom: 0, 
+    marginBottom: 0,
     letterSpacing: -0.5,
   },
   limeTagsRow: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 6,
-    marginBottom: 8, 
+    marginBottom: 8,
     marginTop: 4,
   },
   limeTag: {
@@ -658,14 +661,14 @@ const styles = StyleSheet.create({
     marginBottom: 0,
   },
   limeServiceTitle: {
-    fontSize: 18, 
+    fontSize: 18,
     fontWeight: "800",
     color: "#1a1a1a",
     letterSpacing: -0.5,
     marginBottom: 0,
   },
   limePrice: {
-    fontSize: 20, 
+    fontSize: 20,
     fontWeight: "800",
     color: "#1a1a1a",
     letterSpacing: -0.5,
@@ -694,7 +697,7 @@ const styles = StyleSheet.create({
     color: "#e2e8f0",
   },
   darkDate: {
-    fontSize: 18, 
+    fontSize: 18,
     fontWeight: "700",
     color: "#fff",
     marginBottom: 12,
@@ -708,7 +711,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "#e4e4e7",
     lineHeight: 16,
-    marginBottom: 12, 
+    marginBottom: 12,
   },
   darkStatsRow: {
     flexDirection: "row",

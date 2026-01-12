@@ -11,19 +11,23 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
 
 import { RootState } from "@/store";
 import { useSelector } from "react-redux";
+import { useUpdateProfileMutation } from "../../../store/api/authApi";
 import { useAppDispatch, useAppSelector } from "../../../store/hooks";
 import { logout } from "../../../store/slices/authSlice";
 import {
   removeAddresses,
   setAvatar,
   setDefaultAddress,
+  updateProfile,
 } from "../../../store/slices/profileSlice";
+import { updateUser } from "../../../store/slices/userSlice";
 
 const { height } = Dimensions.get("window");
 
@@ -38,6 +42,14 @@ export default function ProfileHome() {
 
   const avatarTranslateY = useRef(new Animated.Value(height)).current;
   const avatarOverlayOpacity = useRef(new Animated.Value(0)).current;
+
+  // Edit Profile Animations
+  const [showEditProfileModal, setShowEditProfileModal] = useState(false);
+  const [tempName, setTempName] = useState("");
+  const editProfileTranslateY = useRef(new Animated.Value(height)).current;
+  const editProfileOverlayOpacity = useRef(new Animated.Value(0)).current;
+
+  const [updateUserProfileAPI] = useUpdateProfileMutation();
 
   const userState = useSelector((state: RootState) => state.user);
   const userData = userState.user;
@@ -92,6 +104,68 @@ export default function ProfileHome() {
       ]).start();
     }
   }, [showAvatarModal, avatarTranslateY, avatarOverlayOpacity]);
+
+  useEffect(() => {
+    if (showEditProfileModal) {
+      setTempName(profileState.name || userData?.name || "");
+      Animated.parallel([
+        Animated.timing(editProfileTranslateY, {
+          toValue: 0,
+          duration: 350,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.timing(editProfileOverlayOpacity, {
+          toValue: 1,
+          duration: 250,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [
+    showEditProfileModal,
+    editProfileTranslateY,
+    editProfileOverlayOpacity,
+    profileState.name,
+    userData?.name,
+  ]);
+
+  const closeEditProfileSheet = (callback?: () => void) => {
+    Animated.parallel([
+      Animated.timing(editProfileTranslateY, {
+        toValue: height,
+        duration: 280,
+        easing: Easing.in(Easing.cubic),
+        useNativeDriver: true,
+      }),
+      Animated.timing(editProfileOverlayOpacity, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      setShowEditProfileModal(false);
+      if (typeof callback === "function") {
+        callback();
+      }
+    });
+  };
+
+  const handleSaveProfile = async () => {
+    try {
+      await updateUserProfileAPI({
+        name: tempName,
+      }).unwrap();
+
+      dispatch(updateUser({ name: tempName }));
+      dispatch(updateProfile({ key: "name", value: tempName }));
+
+      Alert.alert("Success", "Profile updated successfully");
+      closeEditProfileSheet();
+    } catch (error: any) {
+      Alert.alert("Error", error?.data?.message || "Failed to update profile");
+    }
+  };
 
   const closeSheet = (callback?: () => void) => {
     Animated.parallel([
@@ -190,9 +264,17 @@ export default function ProfileHome() {
             </View>
           </TouchableOpacity>
           <View>
-            <Text style={styles.profileName}>
-              {profileState?.name || userData?.name || "Your Name"}
-            </Text>
+            <TouchableOpacity onPress={() => setShowEditProfileModal(true)}>
+              <Text style={styles.profileName}>
+                {profileState?.name || userData?.name || "Your Name"}
+                <Ionicons
+                  name="create-outline"
+                  size={16}
+                  color="#777"
+                  style={{ marginLeft: 6 }}
+                />
+              </Text>
+            </TouchableOpacity>
             <Text style={styles.profileSubtitle}>
               {profileState?.phone || userData?.phone || "Phone number"}
             </Text>
@@ -428,12 +510,6 @@ export default function ProfileHome() {
       {/* ACCOUNT CARD */}
       <View style={styles.card}>
         <Row
-          icon="person-outline"
-          title="Account Details"
-          subtitle="Manage your Account Details"
-          onPress={() => router.push("/profile/edit-profile")}
-        />
-        <Row
           icon="wallet-outline"
           title="Payment Methods"
           subtitle="View your added payments methods"
@@ -563,6 +639,112 @@ export default function ProfileHome() {
           >
             <Text style={styles.closeBtnText}>Cancel</Text>
           </TouchableOpacity>
+        </Animated.View>
+      </Modal>
+
+      {/* EDIT PROFILE MODAL */}
+      <Modal transparent visible={showEditProfileModal} animationType="none">
+        <Animated.View
+          style={[styles.modalOverlay, { opacity: editProfileOverlayOpacity }]}
+        >
+          <TouchableOpacity
+            style={StyleSheet.absoluteFill}
+            onPress={() => closeEditProfileSheet()}
+          />
+        </Animated.View>
+
+        <Animated.View
+          style={[
+            styles.bottomSheet,
+            { transform: [{ translateY: editProfileTranslateY }] },
+          ]}
+        >
+          <View style={styles.sheetHeader}>
+            <Text style={styles.sheetTitle}>Edit Profile</Text>
+            <Text style={styles.sheetSubtitle}>
+              Update your personal details
+            </Text>
+          </View>
+
+          <View style={{ alignItems: "center", marginBottom: 24 }}>
+            <TouchableOpacity
+              onPress={() => {
+                setShowAvatarModal(true);
+              }}
+              style={{ position: "relative" }}
+            >
+              <Image
+                source={{
+                  uri:
+                    profileState?.avatar || "https://i.pravatar.cc/150?img=12",
+                }}
+                style={{ width: 80, height: 80, borderRadius: 40 }}
+              />
+              <View
+                style={{
+                  position: "absolute",
+                  bottom: 0,
+                  right: 0,
+                  backgroundColor: "#84c95c",
+                  padding: 6,
+                  borderRadius: 20,
+                  borderWidth: 2,
+                  borderColor: "#FFF",
+                }}
+              >
+                <Ionicons name="camera" size={14} color="#FFF" />
+              </View>
+            </TouchableOpacity>
+          </View>
+
+          <View style={{ marginBottom: 16 }}>
+            <Text style={styles.inputLabel}>Full Name</Text>
+            <TextInput
+              style={styles.textInput}
+              value={tempName}
+              onChangeText={setTempName}
+              placeholder="Enter your name"
+            />
+          </View>
+
+          <View style={{ marginBottom: 24 }}>
+            <Text style={styles.inputLabel}>Mobile Number</Text>
+            <View
+              style={[
+                styles.textInput,
+                { backgroundColor: "#f0f0f0", justifyContent: "center" },
+              ]}
+            >
+              <Text style={{ color: "#888" }}>
+                {profileState?.phone ||
+                  userData?.phone ||
+                  userState?.user?.phone ||
+                  "N/A"}
+              </Text>
+              <Ionicons
+                name="lock-closed"
+                size={16}
+                color="#aaa"
+                style={{ position: "absolute", right: 12 }}
+              />
+            </View>
+          </View>
+
+          <View style={styles.logoutActions}>
+            <TouchableOpacity
+              style={styles.cancelBtn}
+              onPress={() => closeEditProfileSheet()}
+            >
+              <Text style={styles.cancelText}>Cancel</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.logoutBtn} 
+              onPress={handleSaveProfile}
+            >
+              <Text style={styles.logoutText}>Save Changes</Text>
+            </TouchableOpacity>
+          </View>
         </Animated.View>
       </Modal>
     </ScrollView>
@@ -812,5 +994,22 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     color: "#333",
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#666",
+    marginBottom: 6,
+    marginLeft: 4,
+  },
+  textInput: {
+    backgroundColor: "#F9F9F9",
+    borderWidth: 1,
+    borderColor: "#E5E5E5",
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: "#111",
   },
 });

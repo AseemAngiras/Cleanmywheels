@@ -526,12 +526,11 @@ export default function ProfileHome() {
       {/* SUPPORT CARD */}
       <View style={styles.card}>
         <Row
-          icon="shield-checkmark-outline"
-          title="Privacy Policy"
-          onPress={() => router.push("/profile/privacy-settings")}
+          icon="help-circle-outline"
+          title="FAQs"
+          onPress={() => router.push("/profile/FAQs")}
         />
         <Row icon="call-outline" title="Contact Us" />
-        <Row icon="help-circle-outline" title="Get Help" />
         <Row
           icon="log-out-outline"
           title="Log out"
@@ -739,7 +738,7 @@ export default function ProfileHome() {
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={styles.logoutBtn} 
+              style={styles.logoutBtn}
               onPress={handleSaveProfile}
             >
               <Text style={styles.logoutText}>Save Changes</Text>

@@ -132,7 +132,8 @@ function AdminBookingsScreen() {
           booking.status === "CONFIRMED"
         );
       if (filter === "Completed") return booking.status === "COMPLETED";
-      return true; 
+      return true;
+    }
   );
 
   const handleAssignWorker = async (worker: any) => {

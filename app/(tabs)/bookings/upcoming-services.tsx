@@ -78,10 +78,12 @@ export default function UpcomingServices() {
     }, [refetch])
   );
 
-  // Filter for upcoming bookings (not completed/cancelled)
   const bookingList = bookingsResponse?.data?.bookingList || [];
   const bookings = bookingList
-    .filter((b: any) => !["Completed", "Cancelled"].includes(b.status))
+    .filter((b: any) => {
+      const status = b.status?.toLowerCase();
+      return !["completed", "cancelled", "pending", "failed"].includes(status);
+    })
     .map(mapBackendBooking);
 
   const [activeBooking, setActiveBooking] = useState<Booking | null>(null);

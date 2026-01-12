@@ -7,8 +7,10 @@ import {
   Dimensions,
   Easing,
   Image,
+  Linking,
   Modal,
   ScrollView,
+  Share,
   StyleSheet,
   Text,
   TextInput,
@@ -520,7 +522,17 @@ export default function ProfileHome() {
           title="Manage Notifications"
           onPress={() => router.push("/profile/notifications")}
         />
-        <Row icon="settings-outline" title="Settings" />
+        <Row
+          icon="gift-outline"
+          title="Refer & Earn"
+          subtitle="Invite friends and earn rewards"
+          onPress={() => {
+            Share.share({
+              message:
+                "Check out CleanMyWheels! The best car wash service at your doorstep. Download now: https://cleanmywheels.com",
+            });
+          }}
+        />
       </View>
 
       {/* SUPPORT CARD */}
@@ -530,7 +542,18 @@ export default function ProfileHome() {
           title="FAQs"
           onPress={() => router.push("/profile/FAQs")}
         />
-        <Row icon="call-outline" title="Contact Us" />
+        <Row
+          icon="call-outline"
+          title="Contact Us"
+          onPress={() => {
+            const adminPhone = "+919876543210";
+            const text = "Hello, I need help with CleanMyWheels.";
+            const url = `whatsapp://send?text=${text}&phone=${adminPhone}`;
+            Linking.openURL(url).catch(() => {
+              Linking.openURL(`https://wa.me/${adminPhone.replace("+", "")}`);
+            });
+          }}
+        />
         <Row
           icon="log-out-outline"
           title="Log out"

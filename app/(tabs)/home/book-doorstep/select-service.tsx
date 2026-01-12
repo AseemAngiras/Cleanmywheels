@@ -977,7 +977,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: "bold",
-    marginTop: 15,
+    // marginTop: 5,
     marginBottom: 10,
     color: "#1a1a1a",
     paddingHorizontal: 20,
@@ -1007,7 +1007,7 @@ const styles = StyleSheet.create({
   subSectionTitle: {
     fontSize: 16,
     fontWeight: "bold",
-    marginTop: 5,
+    // marginTop: 5,
     marginBottom: 10,
     color: "#1a1a1a",
     paddingHorizontal: 20,
@@ -1030,14 +1030,15 @@ const styles = StyleSheet.create({
     borderColor: "#eee",
   },
   vehicleIconBtnSelected: {
-    backgroundColor: "#1a1a1a",
+    backgroundColor: "#1a1a1aff",
     borderColor: "#1a1a1a",
   },
   savedCarCard: {
     backgroundColor: "#f9f9f9",
     borderRadius: 16,
-    padding: 16,
+    padding: 8,
     marginRight: 12,
+    marginLeft: 12,
     borderWidth: 1,
     borderColor: "#eee",
     minWidth: 120,
@@ -1045,7 +1046,7 @@ const styles = StyleSheet.create({
   },
   savedCarCardSelected: {
     backgroundColor: "#1a1a1a",
-    borderColor: "#D1F803",
+    marginLeft: 15,
   },
   savedCarNumber: {
     fontSize: 16,

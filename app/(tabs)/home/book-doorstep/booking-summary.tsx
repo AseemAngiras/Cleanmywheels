@@ -36,8 +36,6 @@ const VEHICLE_TYPE_MAP: Record<string, string> = {
   others: "Car",
 };
 
-// ... [existing imports]
-
 export default function BookingSummaryScreen() {
   const router = useRouter();
   const navigation = useNavigation();
@@ -50,7 +48,6 @@ export default function BookingSummaryScreen() {
   const userState = useSelector((state: RootState) => state.user);
   const userId = userState?.user?._id;
 
-  // Payment state tracking
   const [isVerifyingPayment, setIsVerifyingPayment] = useState(false);
   const currentBookingIdRef = useRef<string | null>(null);
   const pollIntervalRef = useRef<any | null>(null);
@@ -64,14 +61,8 @@ export default function BookingSummaryScreen() {
     vehicleType,
     vehicleNumber,
     shopName,
-    shopLat,
-    shopLong,
     selectedDate,
     selectedTime,
-
-    userPhone,
-    userName,
-
     address,
     latitude,
     longitude,
@@ -80,17 +71,17 @@ export default function BookingSummaryScreen() {
     serviceId,
   } = params;
 
-  const lat = parseFloat(latitude as string) || 37.7749;
-  const long = parseFloat(longitude as string) || -122.4194;
+  // const lat = parseFloat(latitude as string) || 37.7749;
+  // const long = parseFloat(longitude as string) || -122.4194;
 
-  const isDoorstep = shopName === "Your Location";
+  // const isDoorstep = shopName === "Your Location";
 
   const itemTotal = parseFloat(totalPrice as string) || 0;
-  const taxAmount = Math.round(itemTotal * 0.18);
-  const grandTotal = itemTotal + taxAmount;
+
+  const grandTotal = itemTotal;
 
   const parsedAddons = addons ? JSON.parse(addons as string) : {};
-  const addonNames = Object.keys(parsedAddons).filter((k) => parsedAddons[k]);
+  // const addonNames = Object.keys(parsedAddons).filter((k) => parsedAddons[k]);
 
   useEffect(() => {
     navigation.getParent()?.setOptions({
@@ -98,7 +89,6 @@ export default function BookingSummaryScreen() {
     });
   }, [navigation]);
 
-  // Socket Listener for instant payment success
   useEffect(() => {
     if (userId) {
       socketService.connect(userId);
@@ -109,7 +99,6 @@ export default function BookingSummaryScreen() {
 
       const { bookingId, status } = data;
 
-      // Only act if this is the booking we are currently verifying
       if (
         currentBookingIdRef.current &&
         bookingId === currentBookingIdRef.current &&
@@ -117,7 +106,6 @@ export default function BookingSummaryScreen() {
       ) {
         console.log("✅ [Socket] Matched Booking ID! Redirecting...");
 
-        // Stop Polling
         if (pollIntervalRef.current) {
           clearInterval(pollIntervalRef.current);
           pollIntervalRef.current = null;
@@ -140,20 +128,16 @@ export default function BookingSummaryScreen() {
 
     return () => {
       socketService.off("payment_success");
-      // Don't disconnect socket here if you want to keep it alive for other things,
-      // but if this is the only use, you can. usually better to keep connected.
     };
-  }, [userId, isVerifyingPayment, params, grandTotal]);
+  }, [userId, isVerifyingPayment, params, grandTotal, router]);
 
   const checkPaymentStatus = async (bookingId: string) => {
     setIsVerifyingPayment(true);
     let attempts = 0;
     const maxAttempts = 10;
 
-    // Clear any existing poll
     if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
 
-    // Poll every 3 seconds for 30 seconds total
     pollIntervalRef.current = setInterval(async () => {
       attempts++;
       try {
@@ -277,7 +261,6 @@ export default function BookingSummaryScreen() {
       const response = await createBooking(bookingPayload).unwrap();
       console.log("[BookingSummary] TRACE - Response:", response);
 
-      // Save address to Redux profile
       if (address) {
         dispatch(
           addAddress({
@@ -293,7 +276,6 @@ export default function BookingSummaryScreen() {
         );
       }
 
-      // Save vehicle to Redux user cars
       if (vehicleNumber) {
         dispatch(
           addCar({
@@ -344,7 +326,6 @@ export default function BookingSummaryScreen() {
 
       currentBookingIdRef.current = bookingId;
 
-      // 2. Open AuthSession & Wait for Return
       let result = { type: "cancel" };
       if (paymentUrl) {
         console.log(
@@ -352,7 +333,6 @@ export default function BookingSummaryScreen() {
           paymentUrl
         );
         try {
-          // @ts-ignore
           result = await WebBrowser.openAuthSessionAsync(
             paymentUrl,
             "cleanmywheels://payment-success"
@@ -455,7 +435,7 @@ export default function BookingSummaryScreen() {
               <Text style={styles.value}>
                 {vehicleType
                   ? (vehicleType as string).charAt(0).toUpperCase() +
-                  (vehicleType as string).slice(1)
+                    (vehicleType as string).slice(1)
                   : "Same"}{" "}
                 - {vehicleNumber || "N/A"}
               </Text>
@@ -473,9 +453,9 @@ export default function BookingSummaryScreen() {
               <Text style={styles.value}>
                 {selectedDate
                   ? new Date(selectedDate as string).toLocaleDateString(
-                    undefined,
-                    { weekday: "short", day: "numeric", month: "short" }
-                  )
+                      undefined,
+                      { weekday: "short", day: "numeric", month: "short" }
+                    )
                   : "Date"}
                 , {selectedTime || "Time"}
               </Text>
@@ -502,11 +482,6 @@ export default function BookingSummaryScreen() {
 
           <View style={styles.totalDivider} />
 
-          <View style={styles.paymentRow}>
-            <Text style={styles.totalTextLabel}>Tax (18% GST)</Text>
-            <Text style={styles.totalTextValue}>₹{taxAmount}</Text>
-          </View>
-          <View style={styles.totalDivider} />
           <View style={styles.paymentRow}>
             <Text style={styles.totalTextLabel}>Grand Total</Text>
             <Text style={styles.totalTextValue}>₹{grandTotal}</Text>

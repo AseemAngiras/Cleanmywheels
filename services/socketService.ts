@@ -1,6 +1,6 @@
 import { Platform } from "react-native";
 import { io, Socket } from "socket.io-client";
-import { MY_PC_IP } from "../store/api/authApi";
+import { APP_VERSION, MY_PC_IP } from "../store/api/authApi";
 
 class SocketService {
   private socket: Socket | null = null;
@@ -29,6 +29,9 @@ class SocketService {
       reconnectionAttempts: 5,
       extraHeaders: {
         "x-platform": Platform.OS === "ios" ? "ios" : "android",
+        "x-version": APP_VERSION,
+        "x-time-zone": "330",
+        "Accept-Language": "en",
       },
     });
 

@@ -19,6 +19,7 @@ interface ProfileState {
   email?: string;
   addresses: Address[];
   defaultAddressId?: string;
+  avatar?: string;
 }
 
 const initialState: ProfileState = {
@@ -27,6 +28,7 @@ const initialState: ProfileState = {
   email: "",
   addresses: [],
   defaultAddressId: undefined,
+  avatar: "https://i.pravatar.cc/150?img=12", // Default avatar
 };
 
 const profileSlice = createSlice({
@@ -38,6 +40,10 @@ const profileSlice = createSlice({
       action: PayloadAction<{ key: K; value: ProfileState[K] }>
     ) {
       state[action.payload.key] = action.payload.value;
+    },
+
+    setAvatar(state, action: PayloadAction<string>) {
+      state.avatar = action.payload;
     },
 
     addAddress(state, action: PayloadAction<Address>) {
@@ -80,5 +86,6 @@ export const {
   addAddress,
   removeAddresses,
   setDefaultAddress,
+  setAvatar,
 } = profileSlice.actions;
 export default profileSlice.reducer;

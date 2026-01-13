@@ -375,7 +375,7 @@ export default function HomeScreen() {
 
   // Admin Check
   const user = useSelector((state: RootState) => state.user.user);
-  const isAdmin = user?.accountType === 'Super Admin';
+  const isAdmin = user?.accountType === "Super Admin";
 
   // Login State
   const [isLoginModalVisible, setIsLoginModalVisible] = useState(false);
@@ -461,7 +461,7 @@ export default function HomeScreen() {
       Alert.alert(
         "Error",
         err?.data?.message ||
-        "Failed to proceed. Try entering your name to register."
+          "Failed to proceed. Try entering your name to register."
       );
     } finally {
       setIsLoading(false);

@@ -163,16 +163,16 @@ export default function SelectSlotScreen() {
     const trimmedName = name.trim();
 
     try {
-      console.log("Calling REGISTER API with:", {
-        name: trimmedName,
-        phone: trimmedPhone,
-      });
-      const result = await register({
+      const payload = {
         name: trimmedName,
         countryCode: "+91",
         phone: trimmedPhone,
         accountType: "Seeker",
-      }).unwrap();
+      };
+
+      console.log("Calling REGISTER API with FULL PAYLOAD:", JSON.stringify(payload, null, 2));
+
+      const result = await register(payload).unwrap();
 
       console.log("REGISTER API Response:", JSON.stringify(result, null, 2));
 

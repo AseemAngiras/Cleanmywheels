@@ -38,11 +38,10 @@ const mapBackendBooking = (booking: any): Booking => ({
     year: "numeric",
   }),
   timeSlot: booking.bookingTime
-    ? `${
-        booking.bookingTime > 12
-          ? booking.bookingTime - 12
-          : booking.bookingTime
-      }:00 ${booking.bookingTime >= 12 ? "PM" : "AM"}`
+    ? `${booking.bookingTime > 12
+      ? booking.bookingTime - 12
+      : booking.bookingTime
+    }:00 ${booking.bookingTime >= 12 ? "PM" : "AM"}`
     : "N/A",
   car: booking.vehicleType || booking.vehicle?.type || "Car",
   carImage: "https://cdn-icons-png.flaticon.com/512/743/743007.png",
@@ -52,8 +51,7 @@ const mapBackendBooking = (booking: any): Booking => ({
   price: booking.price || 0,
   plate: booking.vehicleNo || booking.vehicle?.number || "N/A",
   address: booking.locality
-    ? `${booking.houseOrFlatNo || ""}, ${booking.locality}, ${
-        booking.city || ""
+    ? `${booking.houseOrFlatNo || ""}, ${booking.locality}, ${booking.city || ""
       }`.replace(/^, /, "")
     : "Address not provided",
   phone: booking.user?.phone || "",
@@ -108,9 +106,8 @@ export default function UpcomingServices() {
   // Send WhatsApp to User ensuring them about the worker
   const sendUserConfirmation = (worker: any, booking: any) => {
     const message = `Hello, your booking for *${booking.serviceName}* is confirmed! 🚗✨\n\n*${worker.name}* will be arriving shortly to service your vehicle.\n\nBooking ID: ${booking.id}\nTime: ${booking.timeSlot}`;
-    const url = `whatsapp://send?phone=${
-      booking.phone
-    }&text=${encodeURIComponent(message)}`;
+    const url = `whatsapp://send?phone=${booking.phone
+      }&text=${encodeURIComponent(message)}`;
 
     Linking.canOpenURL(url).then((supported) => {
       if (supported) {
@@ -123,16 +120,12 @@ export default function UpcomingServices() {
 
   // Send WhatsApp to Worker with job details
   const sendWorkerJobDetails = (worker: any, booking: any) => {
-    const message = `🛠️ *New Job Assigned!*\n\nCustomer: ${
-      booking.user || "Valued Customer"
-    }\nPhone: ${booking.phone}\nAddress: ${booking.address}\n\nService: ${
-      booking.serviceName
-    }\nCar: ${booking.car} (${booking.plate})\nTime: ${
-      booking.timeSlot
-    }\n\nPlease reach on time.`;
-    const url = `whatsapp://send?phone=${
-      worker.phone
-    }&text=${encodeURIComponent(message)}`;
+    const message = `🛠️ *New Job Assigned!*\n\nCustomer: ${booking.user || "Valued Customer"
+      }\nPhone: ${booking.phone}\nAddress: ${booking.address}\n\nService: ${booking.serviceName
+      }\nCar: ${booking.car} (${booking.plate})\nTime: ${booking.timeSlot
+      }\n\nPlease reach on time.`;
+    const url = `whatsapp://send?phone=${worker.phone
+      }&text=${encodeURIComponent(message)}`;
 
     Linking.canOpenURL(url).then((supported) => {
       if (supported) {
@@ -379,7 +372,7 @@ export default function UpcomingServices() {
                             <TouchableOpacity
                               style={styles.limeIconBtn}
                               onPress={() =>
-                                handleCall(activeBooking.workerPhone)
+                                handleCall(activeBooking.workerPhone || "")
                               }
                             >
                               <Ionicons name="call" size={20} color="#1a1a1a" />
@@ -497,7 +490,7 @@ export default function UpcomingServices() {
             )}
           />
         </View>
-      </Modal>
+      </Modal >
     </>
   );
 }

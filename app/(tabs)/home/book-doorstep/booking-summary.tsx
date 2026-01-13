@@ -10,9 +10,11 @@ import { addCar } from "@/store/slices/userSlice";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
+import { WebView } from "react-native-webview";
 import { useEffect, useRef, useState } from "react";
 import {
   Alert,
+  Modal,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -49,6 +51,8 @@ export default function BookingSummaryScreen() {
   const userId = userState?.user?._id;
 
   const [isVerifyingPayment, setIsVerifyingPayment] = useState(false);
+  const [showGateway, setShowGateway] = useState(false);
+  const [paymentUrl, setPaymentUrl] = useState("");
   const currentBookingIdRef = useRef<string | null>(null);
   const pollIntervalRef = useRef<any | null>(null);
 
@@ -112,6 +116,7 @@ export default function BookingSummaryScreen() {
         }
 
         setIsVerifyingPayment(false);
+        setShowGateway(false);
         router.push({
           pathname: "/(tabs)/home/book-doorstep/order-confirmation",
           params: {
@@ -328,21 +333,9 @@ export default function BookingSummaryScreen() {
 
       let result = { type: "cancel" };
       if (paymentUrl) {
-        console.log(
-          "[BookingSummary] Opening Razorpay AuthSession:",
-          paymentUrl
-        );
-        try {
-          result = await WebBrowser.openAuthSessionAsync(
-            paymentUrl,
-            "cleanmywheels://payment-success"
-          );
-        } catch (e) {
-          console.log("Browser Error", e);
-        }
-      }
-
-      if (result.type === "success") {
+        console.log("[BookingSummary] Opening Razorpay WebView:", paymentUrl);
+        setPaymentUrl(paymentUrl);
+        setShowGateway(true);
         checkPaymentStatus(bookingId);
       } else {
         checkPaymentStatus(bookingId);
@@ -533,6 +526,63 @@ export default function BookingSummaryScreen() {
           </View>
         </View>
       )}
+
+      {/* Payment Gateway Modal */}
+      <Modal
+        visible={showGateway}
+        onRequestClose={() => {
+          setShowGateway(false);
+          if (currentBookingIdRef.current)
+            checkPaymentStatus(currentBookingIdRef.current);
+        }}
+        animationType="slide"
+        presentationStyle="pageSheet"
+      >
+        <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              padding: 15,
+              borderBottomWidth: 1,
+              borderBottomColor: "#eee",
+            }}
+          >
+            <Text style={{ fontSize: 18, fontWeight: "bold" }}>Payment</Text>
+            <TouchableOpacity
+              onPress={() => {
+                setShowGateway(false);
+                if (currentBookingIdRef.current)
+                  checkPaymentStatus(currentBookingIdRef.current);
+              }}
+              style={{ padding: 5 }}
+            >
+              <Ionicons name="close" size={24} color="#000" />
+            </TouchableOpacity>
+          </View>
+          {paymentUrl ? (
+            <WebView
+              source={{ uri: paymentUrl }}
+              style={{ flex: 1 }}
+              onNavigationStateChange={(navState) => {
+              }}
+              startInLoadingState={true}
+              renderLoading={() => <PulseLoader size={40} color="#C8F000" />}
+            />
+          ) : (
+            <View
+              style={{
+                flex: 1,
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <Text>Loading Payment...</Text>
+            </View>
+          )}
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   );
 }

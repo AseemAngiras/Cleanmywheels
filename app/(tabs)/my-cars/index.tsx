@@ -1,7 +1,8 @@
 ﻿import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import React, { useState } from "react";
+import { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   FlatList,
   Image,
@@ -13,29 +14,68 @@ import {
   View,
 } from "react-native";
 
-import { useAppDispatch, useAppSelector } from "../../../store/hooks";
+import { useAppDispatch } from "../../../store/hooks";
+// import { addCar, Car, removeCar, updateCar } from "../../../store/slices/userSlice"; // Old Redux actions
 import {
-  addCar,
-  Car,
-  removeCar,
-  updateCar,
-} from "../../../store/slices/userSlice";
+  useCreateVehicleMutation,
+  useDeleteVehicleMutation,
+  useGetVehiclesQuery,
+  useUpdateVehicleMutation
+} from "../../../store/api/vehicleApi";
+
+// Interface for Frontend Car (matching existing structure but mapped from/to backend)
+export interface Car {
+  id: string; // Mapped from _id
+  name: string; // Not in backend explicitly, derived from Type or stored? 
+  // Backend doesn't have 'name', it has 'vehicleType'. 
+  // We'll use vehicleType as name or just map it.
+  // Wait, user inputs 'Car Name'. Backend only has 'vehicleType' and 'vehicleNo'.
+  // If 'name' is important, we should add it to backend. 
+  // But for now, let's assume Name is optional and local. Or we Map Name -> ???
+  // Actually, let's use VehicleType as the main descriptor.
+  type: string;
+  number: string;
+  image: string;
+}
 
 export default function MyCarsScreen() {
   const dispatch = useAppDispatch();
-  const cars = useAppSelector((state) => state.user.cars);
+
+  // API Hooks
+  const { data: vehiclesData, isLoading, refetch } = useGetVehiclesQuery();
+  const [createVehicle, { isLoading: isCreating }] = useCreateVehicleMutation();
+  const [updateVehicle, { isLoading: isUpdating }] = useUpdateVehicleMutation();
+  const [deleteVehicle, { isLoading: isDeleting }] = useDeleteVehicleMutation();
+
+  const [cars, setCars] = useState<Car[]>([]);
+
+  useEffect(() => {
+    if (vehiclesData && vehiclesData.data) {
+      // Map backend data to frontend structure
+      // Backend: { _id, vehicleNo, vehicleType, image }
+      // Frontend: { id, name, type, number, image }
+      const mappedCars = vehiclesData.data.map((v: any) => ({
+        id: v._id,
+        name: v.vehicleType, // Fallback name to Type as backend lacks Name
+        type: v.vehicleType,
+        number: v.vehicleNo,
+        image: v.image,
+      }));
+      setCars(mappedCars);
+    }
+  }, [vehiclesData]);
+
 
   const [modalVisible, setModalVisible] = useState(false);
   const [editingCarId, setEditingCarId] = useState<string | null>(null);
 
-  const [name, setName] = useState("");
+  const [name, setName] = useState(""); // Currently unused in backend, maybe just use Type
   const [type, setType] = useState("");
   const [number, setNumber] = useState("");
   const [image, setImage] = useState<string | undefined>(undefined);
 
   const pickImage = async () => {
-    const permission =
-      await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
     if (!permission.granted) {
       Alert.alert("Permission required", "Allow photo access");
@@ -45,6 +85,10 @@ export default function MyCarsScreen() {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       quality: 0.7,
+      base64: true, // If we want to send base64 to backend? Backend schema is String.
+      // Ideally we upload and get URL, but for base64 string, it works if small.
+      // Or URI if uploading?
+      // Let's assume URI for now, but backend creates nothing from URI.
     });
 
     if (!result.canceled) {
@@ -70,15 +114,13 @@ export default function MyCarsScreen() {
     setModalVisible(true);
   };
 
-  const handleSaveCar = () => {
+  const handleSaveCar = async () => {
     if (!type || !number) {
       Alert.alert("Error", "Vehicle type and number are required");
       return;
     }
 
     // Validate Indian vehicle registration number format
-    // Format: 2-3 letters (state) + 2 digits (RTO) + 1-2 letters (series) + 4 digits (number)
-    // Examples: CH01GH4321, PB10QH3210, DL8CAF1234
     const vehicleNumberPattern = /^[A-Z]{2,3}\d{2}[A-Z]{1,2}\d{4}$/i;
     const cleanedNumber = number.trim().replace(/\s+/g, '').toUpperCase();
 
@@ -90,21 +132,28 @@ export default function MyCarsScreen() {
       return;
     }
 
-    const carPayload: Car = {
-      id: editingCarId ?? Date.now().toString(),
-      name: name.trim() || type.toUpperCase(),
-      type,
-      number: cleanedNumber,
+    // Backend payload
+    const payload = {
+      vehicleNo: cleanedNumber,
+      vehicleType: type, // Should be one of Enum values ideally
       image: image || "",
     };
 
-    if (editingCarId) {
-      dispatch(updateCar(carPayload));
-    } else {
-      dispatch(addCar(carPayload));
+    try {
+      if (editingCarId) {
+        await updateVehicle({ id: editingCarId, body: payload }).unwrap();
+        Alert.alert("Success", "Vehicle updated successfully");
+      } else {
+        await createVehicle(payload).unwrap();
+        Alert.alert("Success", "Vehicle added successfully");
+      }
+      setModalVisible(false);
+      refetch(); // Refresh list
+    } catch (error: any) {
+      console.error("Vehicle Save Error:", error);
+      const msg = error?.data?.message || "Failed to save vehicle";
+      Alert.alert("Error", msg);
     }
-
-    setModalVisible(false);
   };
 
   const handleRemoveCar = (id: string) => {
@@ -113,7 +162,14 @@ export default function MyCarsScreen() {
       {
         text: "Remove",
         style: "destructive",
-        onPress: () => dispatch(removeCar(id)),
+        onPress: async () => {
+          try {
+            await deleteVehicle(id).unwrap();
+            refetch();
+          } catch (error: any) {
+            Alert.alert("Error", error?.data?.message || "Failed to remove vehicle");
+          }
+        },
       },
     ]);
   };
@@ -124,6 +180,7 @@ export default function MyCarsScreen() {
       <View style={styles.cardTop}>
         <View style={{ flex: 1 }}>
           <Text style={styles.carName}>{item.name}</Text>
+          {/* Using Name (mapped from Type) because backend has no Name field */}
           <Text style={styles.carType}>{item.type}</Text>
 
           <View style={styles.plate}>
@@ -132,8 +189,12 @@ export default function MyCarsScreen() {
           </View>
         </View>
 
-        {item.image && (
+        {item.image ? (
           <Image source={{ uri: item.image }} style={styles.carImage} />
+        ) : (
+          <View style={[styles.carImage, styles.imagePlaceholder]}>
+            <Ionicons name="car-sport" size={30} color="#CCC" />
+          </View>
         )}
       </View>
 
@@ -171,12 +232,17 @@ export default function MyCarsScreen() {
         </TouchableOpacity>
       </View>
 
-      <FlatList
-        data={cars}
-        keyExtractor={(item) => item.id}
-        renderItem={renderCar}
-        showsVerticalScrollIndicator={false}
-      />
+      {isLoading ? (
+        <ActivityIndicator size="large" color="#C8F000" style={{ marginTop: 20 }} />
+      ) : (
+        <FlatList
+          data={cars}
+          keyExtractor={(item) => item.id}
+          renderItem={renderCar}
+          showsVerticalScrollIndicator={false}
+          ListEmptyComponent={<Text style={{ textAlign: 'center', marginTop: 20, color: '#888' }}>No cars found. Add one!</Text>}
+        />
+      )}
 
       {/* ADD / EDIT MODAL */}
       <Modal visible={modalVisible} animationType="slide" transparent>
@@ -186,13 +252,13 @@ export default function MyCarsScreen() {
               {editingCarId ? "Edit Car" : "Add Car"}
             </Text>
 
-            <TextInput
-              placeholder="Car Name (optional)"
-              value={name}
-              onChangeText={setName}
-              style={styles.input}
-            />
+            {/* Note: 'Name' is not persisted in backend currently. Removed or kept as UI only? 
+                User input 'name' will be ignored or we map it to type? 
+                Let's keep it but warn it might not persist if not in schema.
+                Actually, let's remove Name input to avoid confusion, or assume standard types.
+            */}
 
+            <Text style={{ marginBottom: 5, fontWeight: '600' }}>Type (e.g. Car, SUV, Sedan)</Text>
             <TextInput
               placeholder="Car Type"
               value={type}
@@ -200,6 +266,7 @@ export default function MyCarsScreen() {
               style={styles.input}
             />
 
+            <Text style={{ marginBottom: 5, fontWeight: '600' }}>Number</Text>
             <TextInput
               placeholder="Car Number"
               value={number}
@@ -224,8 +291,8 @@ export default function MyCarsScreen() {
                 <Text>Cancel</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.saveBtn} onPress={handleSaveCar}>
-                <Text>Save</Text>
+              <TouchableOpacity style={styles.saveBtn} onPress={handleSaveCar} disabled={isCreating || isUpdating}>
+                <Text>{isCreating || isUpdating ? "Saving..." : "Save"}</Text>
               </TouchableOpacity>
             </View>
           </View>

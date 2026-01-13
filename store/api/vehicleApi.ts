@@ -13,7 +13,7 @@ export const vehicleApi = createApi({
 
       const state = getState() as any;
       const token = state.auth?.token;
-      
+
       if (token) {
         headers.set("Authorization", `${token}`);
         headers.set("x-auth-token", `${token}`);
@@ -40,7 +40,22 @@ export const vehicleApi = createApi({
       }),
       invalidatesTags: ["Vehicle"],
     }),
+    updateVehicle: builder.mutation<any, { id: string; body: any }>({
+      query: ({ id, body }) => ({
+        url: `/vehicle/${id}`,
+        method: "PUT",
+        body,
+      }),
+      invalidatesTags: ["Vehicle"],
+    }),
+    deleteVehicle: builder.mutation<any, string>({
+      query: (id) => ({
+        url: `/vehicle/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Vehicle"],
+    }),
   }),
 });
 
-export const { useGetVehiclesQuery, useCreateVehicleMutation } = vehicleApi;
+export const { useGetVehiclesQuery, useCreateVehicleMutation, useUpdateVehicleMutation, useDeleteVehicleMutation } = vehicleApi;

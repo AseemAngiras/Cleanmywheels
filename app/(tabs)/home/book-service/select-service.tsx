@@ -1,10 +1,10 @@
-
 import { useAppSelector } from '@/store/hooks';
 import { addCar } from '@/store/slices/userSlice';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFocusEffect, useNavigation, useRouter } from 'expo-router';
-import React, { useCallback, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Alert, Image, Keyboard, KeyboardAvoidingView, LayoutAnimation, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, UIManager, View } from 'react-native';
+// import { useDispatch } from 'react-redux'; // Dispatch likely not needed for car creation anymore, but keeping if other things use it
 import { useDispatch } from 'react-redux';
 import BookingStepper from '../../../../components/BookingStepper';
 

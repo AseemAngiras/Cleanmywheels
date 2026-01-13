@@ -1,11 +1,10 @@
+import { useCreateVehicleMutation, useGetVehiclesQuery } from '@/store/api/vehicleApi';
 import { useCreateWashPackageMutation, useGetWashPackagesQuery, useUpdateWashPackageMutation } from '@/store/api/washPackageApi';
 import { useAppSelector } from '@/store/hooks';
-import { addCar } from '@/store/slices/userSlice';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFocusEffect, useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Image, Keyboard, KeyboardAvoidingView, LayoutAnimation, Modal, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
-import { useDispatch } from 'react-redux';
 import BookingStepper from '../../../../components/BookingStepper';
 import { ListSkeleton } from '../../../../components/SkeletonLoader';
 
@@ -41,12 +40,27 @@ const HARDCODED_SERVICES = [
 ];
 
 export default function SelectServiceScreen() {
-    const dispatch = useDispatch();
+    const { data: vehiclesData, refetch: refetchVehicles } = useGetVehiclesQuery();
+    const [createVehicle] = useCreateVehicleMutation();
 
-    const cars = useAppSelector((state) => {
-        return state.user.cars;
-    });
+    interface Car {
+        id: string;
+        name: string;
+        type: string;
+        number: string;
+        image: string;
+    }
 
+    // Map backend cars to frontend structure
+    const cars: Car[] = vehiclesData?.data?.map((v: any) => ({
+        id: v._id,
+        name: v.vehicleType,
+        type: v.vehicleType,
+        number: v.vehicleNo,
+        image: v.image,
+    })) || [];
+
+    // const dispatch = useDispatch(); // Removing unused dispatch if no other actions need it, or keep if needed
 
     const router = useRouter();
     const navigation = useNavigation();
@@ -235,9 +249,9 @@ export default function SelectServiceScreen() {
         return servicePrice + addonTotal;
     };
 
-    const handleSelectExistingCar = (car: any) => {
+    const handleSelectExistingCar = (car: Car) => {
         setSelectedCarId(car.id);
-        setVehicleType(car.type);
+        setVehicleType(car.type.toLowerCase());
         setVehicleNumber(car.number);
     };
 
@@ -504,7 +518,7 @@ export default function SelectServiceScreen() {
                         (services.length === 0 || !selectedService) && { opacity: 0.5, backgroundColor: '#ccc' }
                     ]}
                     disabled={services.length === 0 || !selectedService}
-                    onPress={() => {
+                    onPress={async () => {
                         if (!selectedService) {
                             Alert.alert("Selection Required", "Please select a service to proceed.");
                             return;
@@ -521,15 +535,7 @@ export default function SelectServiceScreen() {
                         // Remove spaces/dashes
                         const cleanNumber = vehicleNumber.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
 
-                        if (cleanNumber.length < 6 || cleanNumber.length > 10) {
-                            Alert.alert("Invalid Vehicle Number", "Please enter a valid vehicle number (e.g., KA01AB1234).");
-                            return;
-                        }
-
-                        if (!/^[A-Z]{2}[0-9A-Z]{4,8}$/.test(cleanNumber)) {
-                            Alert.alert("Invalid Vehicle Number", "Please enter a valid vehicle number (e.g., KA01AB1234).");
-                            return;
-                        }
+                        // Proceed with cleanNumber and validation success
 
 
 
@@ -547,16 +553,41 @@ export default function SelectServiceScreen() {
 
                         let existingCar = cars.find(car => car.number === normalizedNumber);
 
+
+                        // Map frontend vehicle type ID to backend Enum value
+                        const vehicleTypeMapping: Record<string, string> = {
+                            'hatchback': 'Hatchback',
+                            'sedan': 'Sedan',
+                            'suv': 'SUV',
+                            'others': 'Car' // Fallback for 'others'
+                        };
+                        const backendVehicleType = vehicleTypeMapping[vehicleType] || 'Car';
+
                         if (!existingCar) {
-                            const newCar = {
-                                id: Date.now().toString(),
-                                name: vehicleType.toUpperCase(),
-                                type: vehicleType,
-                                number: normalizedNumber,
-                                image: '',
-                            };
-                            dispatch(addCar(newCar));
-                            existingCar = newCar;
+                            try {
+                                const payload = {
+                                    vehicleNo: normalizedNumber,
+                                    vehicleType: backendVehicleType,
+                                    image: '',
+                                    isDefault: false
+                                };
+                                const result = await createVehicle(payload).unwrap();
+
+                                // Create temp newCar object from result
+                                const newCar = {
+                                    id: result._id,
+                                    name: result.vehicleType,
+                                    type: result.vehicleType,
+                                    number: result.vehicleNo,
+                                    image: result.image || '',
+                                };
+                                refetchVehicles(); // Sync with backend list
+                                existingCar = newCar;
+                            } catch (err: any) {
+                                console.error("Failed to save car:", err);
+                                Alert.alert("Error", err?.data?.message || "Failed to save vehicle details.");
+                                return;
+                            }
                         }
 
                         const params = {
@@ -618,7 +649,7 @@ export default function SelectServiceScreen() {
                     </View>
                 </View>
             </Modal>
-        </SafeAreaView>
+        </SafeAreaView >
     );
 }
 

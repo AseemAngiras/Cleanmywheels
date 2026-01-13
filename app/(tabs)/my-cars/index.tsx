@@ -345,44 +345,43 @@ export default function MyCarsScreen() {
 
                                 {/* Removed Name Input */}
 
-                                <View style={styles.row}>
-                                    <View style={{ flex: 1, marginRight: 8 }}>
-                                        <Text style={styles.fieldLabel}>Type</Text>
+                                <Text style={styles.fieldLabel}>Vehicle Type</Text>
+                                <ScrollView
+                                    horizontal
+                                    showsHorizontalScrollIndicator={false}
+                                    contentContainerStyle={{ gap: 10, paddingBottom: 16 }}
+                                >
+                                    {VEHICLE_TYPES.map((t) => (
                                         <TouchableOpacity
-                                            style={styles.darkInput}
-                                            onPress={() => setIsTypePickerVisible(true)}
+                                            key={t}
+                                            style={[
+                                                styles.typeChip,
+                                                type === t && styles.typeChipSelected
+                                            ]}
+                                            onPress={() => setType(t)}
                                         >
-                                            <View
-                                                style={{
-                                                    flexDirection: "row",
-                                                    justifyContent: "space-between",
-                                                    alignItems: "center",
-                                                }}
-                                            >
-                                                <Text
-                                                    style={{
-                                                        color: type ? "#fff" : "#666",
-                                                        fontSize: 16,
-                                                    }}
-                                                >
-                                                    {type || "Select Type"}
-                                                </Text>
-                                                <Ionicons name="chevron-down" size={20} color="#666" />
-                                            </View>
+                                            <Text style={[
+                                                styles.typeChipText,
+                                                type === t && styles.typeChipTextSelected
+                                            ]}>
+                                                {t}
+                                            </Text>
+                                            {type === t && (
+                                                <Ionicons name="checkmark-circle" size={16} color="#1a1a1a" style={{ marginLeft: 4 }} />
+                                            )}
                                         </TouchableOpacity>
-                                    </View>
-                                    <View style={{ flex: 1, marginLeft: 8 }}>
-                                        <Text style={styles.fieldLabel}>Reg. Number</Text>
-                                        <TextInput
-                                            placeholder="DL10AB1234"
-                                            placeholderTextColor="#666"
-                                            value={number}
-                                            onChangeText={setNumber}
-                                            style={styles.darkInput}
-                                            autoCapitalize="characters"
-                                        />
-                                    </View>
-                                </View>
+                                    ))}
+                                </ScrollView>
+
+                                <Text style={styles.fieldLabel}>Registration Number</Text>
+                                <TextInput
+                                    placeholder="DL10AB1234"
+                                    placeholderTextColor="#666"
+                                    value={number}
+                                    onChangeText={setNumber}
+                                    style={styles.darkInput}
+                                    autoCapitalize="characters"
+                                />
 
                                 <Text style={styles.fieldLabel}>Vehicle Image</Text>
                                 <TouchableOpacity
@@ -795,6 +794,29 @@ const styles = StyleSheet.create({
         color: "#4B5563",
     },
     pickerItemTextSelected: {
+        color: "#1a1a1a",
+        fontWeight: "700",
+    },
+    typeChip: {
+        paddingHorizontal: 16,
+        paddingVertical: 10,
+        borderRadius: 20,
+        backgroundColor: "#27272a",
+        borderWidth: 1,
+        borderColor: "#3f3f46",
+        flexDirection: "row",
+        alignItems: "center",
+    },
+    typeChipSelected: {
+        backgroundColor: "#D1F803",
+        borderColor: "#D1F803",
+    },
+    typeChipText: {
+        color: "#A1A1AA",
+        fontSize: 14,
+        fontWeight: "600",
+    },
+    typeChipTextSelected: {
         color: "#1a1a1a",
         fontWeight: "700",
     },

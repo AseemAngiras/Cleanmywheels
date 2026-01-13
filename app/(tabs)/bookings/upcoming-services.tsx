@@ -320,45 +320,21 @@ export default function UpcomingServices() {
                 <Text style={styles.value}>{activeBooking.timeSlot}</Text>
               </View>
 
+              {/* DELETE: Bottom call button removed as requested */}
+
               {/* Worker Info */}
               {activeBooking.workerName && (
                 <View style={styles.detailRow}>
                   <Text style={styles.label}>Valet</Text>
-                  <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start' }}>
-                    <Text style={[styles.value, { marginRight: 10 }]}>{activeBooking.workerName}</Text>
+                  <View style={{ flex: 1, alignItems: 'flex-end' }}>
+                    <Text style={styles.value}>{activeBooking.workerName}</Text>
                     {activeBooking.workerPhone && (
-                      <TouchableOpacity
-                        style={{ backgroundColor: '#16a34a', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, flexDirection: "row", alignItems: "center", gap: 4 }}
-                        onPress={() => Linking.openURL(`tel:${activeBooking.workerPhone}`)}
-                      >
-                        <Ionicons name="call" size={12} color="#fff" />
-                        <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}>Call</Text>
-                      </TouchableOpacity>
+                      <Text style={{ fontSize: 13, color: '#666', marginTop: 2 }}>
+                        {activeBooking.workerPhone}
+                      </Text>
                     )}
                   </View>
                 </View>
-              )}
-
-              {/* Car */}
-              <View style={styles.detailRow}>
-                <Text style={styles.label}>Car</Text>
-                <Text style={styles.value}>{activeBooking.car}</Text>
-              </View>
-
-              {/* Plate */}
-              <View style={styles.detailRow}>
-                <Text style={styles.label}>Plate No.</Text>
-                <Text style={styles.value}>{activeBooking.plate}</Text>
-              </View>
-
-              {!isAdmin && (
-                <TouchableOpacity
-                  style={styles.callBtn}
-                  onPress={() => handleCall(activeBooking.phone)}
-                >
-                  <Ionicons name="call-outline" size={18} />
-                  <Text style={styles.callText}>{activeBooking.phone}</Text>
-                </TouchableOpacity>
               )}
 
               {isAdmin && (

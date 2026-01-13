@@ -11,10 +11,11 @@ import {
   Image,
   Linking,
   Modal,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
 
 import { useFocusEffect, useRouter } from "expo-router";
@@ -30,17 +31,30 @@ import {
 // Helper to map backend booking to display format
 const mapBackendBooking = (booking: any): Booking => ({
   id: booking._id,
-  center: booking.washPackage?.name || 'Car Wash Service',
-  date: new Date(booking.bookingDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-  timeSlot: booking.bookingTime ? `${booking.bookingTime > 12 ? booking.bookingTime - 12 : booking.bookingTime}:00 ${booking.bookingTime >= 12 ? 'PM' : 'AM'}` : 'N/A',
-  car: booking.vehicleType || booking.vehicle?.type || 'Car',
-  carImage: 'https://cdn-icons-png.flaticon.com/512/743/743007.png',
-  status: booking.status?.toLowerCase() === 'completed' ? 'completed' : 'upcoming',
-  serviceName: booking.serviceName || booking.washPackage?.name || 'Car Wash',
+  center: booking.washPackage?.name || "Car Wash Service",
+  date: new Date(booking.bookingDate).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }),
+  timeSlot: booking.bookingTime
+    ? `${booking.bookingTime > 12
+      ? booking.bookingTime - 12
+      : booking.bookingTime
+    }:00 ${booking.bookingTime >= 12 ? "PM" : "AM"}`
+    : "N/A",
+  car: booking.vehicleType || booking.vehicle?.type || "Car",
+  carImage: "https://cdn-icons-png.flaticon.com/512/743/743007.png",
+  status:
+    booking.status?.toLowerCase() === "completed" ? "completed" : "upcoming",
+  serviceName: booking.serviceName || booking.washPackage?.name || "Car Wash",
   price: booking.price || 0,
-  plate: booking.vehicleNo || booking.vehicle?.number || 'N/A',
-  address: booking.locality ? `${booking.houseOrFlatNo || ''}, ${booking.locality}, ${booking.city || ''}`.replace(/^, /, '') : 'Address not provided',
-  phone: booking.user?.phone || '',
+  plate: booking.vehicleNo || booking.vehicle?.number || "N/A",
+  address: booking.locality
+    ? `${booking.houseOrFlatNo || ""}, ${booking.locality}, ${booking.city || ""
+      }`.replace(/^, /, "")
+    : "Address not provided",
+  phone: booking.user?.phone || "",
   workerName: booking.workerName,
   workerPhone: booking.workerPhone,
 });
@@ -49,7 +63,12 @@ export default function UpcomingServices() {
   const router = useRouter();
   const dispatch = useAppDispatch();
 
-  const { data: bookingsResponse, isLoading, refetch } = useGetBookingsQuery({ page: 1, perPage: 100 });
+  const {
+    data: bookingsResponse,
+    isLoading,
+    isFetching,
+    refetch,
+  } = useGetBookingsQuery({ page: 1, perPage: 100 });
 
   useFocusEffect(
     useCallback(() => {
@@ -57,10 +76,12 @@ export default function UpcomingServices() {
     }, [refetch])
   );
 
-  // Filter for upcoming bookings (not completed/cancelled)
   const bookingList = bookingsResponse?.data?.bookingList || [];
   const bookings = bookingList
-    .filter((b: any) => !['Completed', 'Cancelled'].includes(b.status))
+    .filter((b: any) => {
+      const status = b.status?.toLowerCase();
+      return !["completed", "cancelled", "pending", "failed"].includes(status);
+    })
     .map(mapBackendBooking);
 
   const [activeBooking, setActiveBooking] = useState<Booking | null>(null);
@@ -71,7 +92,7 @@ export default function UpcomingServices() {
 
   // --- ADMIN & WORKER LOGIC ---
   const user = useAppSelector((state: RootState) => state.user.user);
-  const isAdmin = user?.accountType === 'Super Admin';
+  const isAdmin = user?.accountType === "Super Admin";
 
   const MOCK_WORKERS = [
     { id: "W1", name: "Amit Sharma", phone: "+919876543210" },
@@ -127,8 +148,7 @@ export default function UpcomingServices() {
             // 1. Send to User
             sendUserConfirmation(worker, activeBooking);
 
-            // 2. Send to Worker (slight delay or just open - linking might conflict if too fast, but usually valid)
-            // Ideally we'd wait for user to return, but for simple flow we try:
+            // 2. Send to Worker
             setTimeout(() => {
               sendWorkerJobDetails(worker, activeBooking);
             }, 1500);
@@ -256,6 +276,8 @@ export default function UpcomingServices() {
         data={bookings}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
+        onRefresh={refetch}
+        refreshing={isFetching}
         ListEmptyComponent={() => (
           <View style={{ alignItems: "center", marginTop: 80 }}>
             <Ionicons name="calendar-outline" size={60} color="#CBD5E1" />
@@ -286,87 +308,147 @@ export default function UpcomingServices() {
             },
           ]}
         >
-          <View style={styles.sheetHeader}>
-            <Text style={styles.sheetTitle}>Booking Details</Text>
-            <TouchableOpacity onPress={closeSheet}>
-              <Ionicons name="close" size={28} />
-            </TouchableOpacity>
-          </View>
-
           {activeBooking && (
-            <>
-              <View style={styles.detailRow}>
-                <Text style={styles.label}>Service</Text>
-                <Text style={styles.value}>{activeBooking.serviceName}</Text>
-              </View>
+            <View style={{ flex: 1, overflow: "hidden" }}>
+              <ScrollView
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ paddingBottom: 20 }}
+              >
+                <View style={styles.limeCard}>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <View
+                      style={{
+                        flex: 1,
+                        paddingRight: 12,
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <View>
+                        <Text style={styles.limeName}>
+                          {activeBooking.workerName || "Valet Assigning..."}
+                        </Text>
 
-              <View style={styles.detailRow}>
-                <Text style={styles.label}>Center</Text>
-                <Text style={styles.value}>{activeBooking.center}</Text>
-              </View>
+                        <View style={styles.limeTagsRow}>
+                          <View style={styles.limeTag}>
+                            <Ionicons
+                              name="location"
+                              size={12}
+                              color="#1a1a1a"
+                            />
+                            <Text style={styles.limeTagText}>
+                              {activeBooking.address.split(",")[0]}
+                            </Text>
+                          </View>
+                          <View style={styles.limeTag}>
+                            <Ionicons name="time" size={12} color="#1a1a1a" />
+                            <Text style={styles.limeTagText}>
+                              {activeBooking.status}
+                            </Text>
+                          </View>
+                        </View>
+                      </View>
 
-              <View style={styles.detailRow}>
-                <Text style={styles.label}>Address</Text>
-                <Text style={styles.value}>{activeBooking.address}</Text>
-              </View>
+                      <View>
+                        <Text style={styles.limeRoleText}>Service Type</Text>
+                        <Text style={styles.limeServiceTitle}>
+                          {activeBooking.serviceName}
+                        </Text>
+                        <Text style={styles.limePrice}>
+                          ₹{activeBooking.price}
+                        </Text>
+                      </View>
+                    </View>
 
-              <View style={styles.detailRow}>
-                <Text style={styles.label}>Date</Text>
-                <Text style={styles.value}>{activeBooking.date}</Text>
-              </View>
+                    <View style={{ alignItems: "flex-end" }}>
+                      <View style={styles.limeHeaderActions}>
+                        {!isAdmin &&
+                          activeBooking.workerName &&
+                          activeBooking.workerPhone && (
+                            <TouchableOpacity
+                              style={styles.limeIconBtn}
+                              onPress={() =>
+                                handleCall(activeBooking.workerPhone || "")
+                              }
+                            >
+                              <Ionicons name="call" size={20} color="#1a1a1a" />
+                            </TouchableOpacity>
+                          )}
+                        <TouchableOpacity
+                          style={styles.limeIconBtn}
+                          onPress={closeSheet}
+                        >
+                          <Ionicons name="close" size={20} color="#1a1a1a" />
+                        </TouchableOpacity>
+                      </View>
 
-              <View style={styles.detailRow}>
-                <Text style={styles.label}>Time</Text>
-                <Text style={styles.value}>{activeBooking.timeSlot}</Text>
-              </View>
+                      <Image
+                        source={{ uri: activeBooking.carImage }}
+                        style={[styles.limeAvatar, { marginTop: 12 }]}
+                      />
+                    </View>
+                  </View>
 
-              {/* DELETE: Bottom call button removed as requested */}
-
-              {/* Worker Info */}
-              {activeBooking.workerName && (
-                <View style={styles.detailRow}>
-                  <Text style={styles.label}>Valet</Text>
-                  <View style={{ flex: 1, alignItems: 'flex-end' }}>
-                    <Text style={styles.value}>{activeBooking.workerName}</Text>
-                    {activeBooking.workerPhone && (
-                      <Text style={{ fontSize: 13, color: '#666', marginTop: 2 }}>
-                        {activeBooking.workerPhone}
+                  {isAdmin && (
+                    <TouchableOpacity
+                      style={styles.limeActionBtn}
+                      onPress={() => setWorkerModalVisible(true)}
+                    >
+                      <Text style={styles.limeActionBtnText}>
+                        {activeBooking.workerName
+                          ? "Reassign Worker"
+                          : "Assign Worker"}
                       </Text>
-                    )}
+                    </TouchableOpacity>
+                  )}
+                </View>
+
+                <View style={styles.darkCard}>
+                  <View style={styles.darkHeader}>
+                    <Text style={styles.darkTitle}>Service Schedule</Text>
+                    <Ionicons name="calendar" size={20} color="#a78bfa" />
+                  </View>
+
+                  <Text style={styles.darkDate}>
+                    {activeBooking.date} — {activeBooking.timeSlot}
+                  </Text>
+
+                  <Text style={styles.darkDescLabel}>Location</Text>
+                  <Text style={styles.darkDesc} numberOfLines={2}>
+                    {activeBooking.address}
+                  </Text>
+
+                  <View style={styles.darkStatsRow}>
+                    <View style={styles.darkStatItem}>
+                      <Text style={styles.darkStatLabel}>Vehicle</Text>
+                      <View style={styles.darkStatValueRow}>
+                        <Text style={styles.darkStatValue}>
+                          {activeBooking.car}
+                        </Text>
+                      </View>
+                    </View>
+
+                    <View style={styles.darkStatItem}>
+                      <Text style={styles.darkStatLabel}>Plate No.</Text>
+                      <Text style={styles.darkStatValue}>
+                        {activeBooking.plate}
+                      </Text>
+                    </View>
+
+                    <View style={styles.darkStatItem}>
+                      <Text style={styles.darkStatLabel}>Booking ID</Text>
+                      <Text style={styles.darkStatValue}>
+                        #{activeBooking.id.slice(-4)}
+                      </Text>
+                    </View>
                   </View>
                 </View>
-              )}
-
-              {isAdmin && (
-                <TouchableOpacity
-                  style={[
-                    styles.sessionButton,
-                    {
-                      backgroundColor: "#1a1a1a",
-                      borderColor: "#000",
-                      marginTop: 10,
-                    },
-                  ]}
-                  onPress={() => setWorkerModalVisible(true)}
-                >
-                  <Ionicons name="person-add-outline" size={20} color="#FFF" />
-                  <Text style={[styles.sessionButtonText, { color: "#FFF" }]}>
-                    Assign Worker
-                  </Text>
-                </TouchableOpacity>
-              )}
-
-              <View style={styles.sheetFooter}>
-                <Text style={styles.price}>₹ {activeBooking.price}</Text>
-                {/* <TouchableOpacity
-                  style={styles.cancelBtn}
-                  onPress={() => handleDelete(activeBooking.id)}
-                >
-                  <Ionicons name="trash-outline" size={18} />
-                  <Text style={styles.cancelText}>Cancel</Text>
-                </TouchableOpacity> */}
-              </View>
-            </>
+              </ScrollView>
+            </View>
           )}
         </Animated.View>
       </Modal>
@@ -408,7 +490,7 @@ export default function UpcomingServices() {
             )}
           />
         </View>
-      </Modal>
+      </Modal >
     </>
   );
 }
@@ -424,8 +506,9 @@ const styles = StyleSheet.create({
   },
   sessionCard: {
     borderRadius: 20,
-    paddingBottom: 90,
+    paddingBottom: 80,
     padding: 20,
+    margin: 12,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
@@ -437,7 +520,7 @@ const styles = StyleSheet.create({
   },
 
   sessionTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: "700",
     color: "#111",
   },
@@ -457,9 +540,9 @@ const styles = StyleSheet.create({
 
   sessionActionRow: {
     position: "absolute",
-    bottom: 20,
-    left: 20,
-    right: 20,
+    bottom: 16,
+    left: 16,
+    right: 16,
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
@@ -491,20 +574,180 @@ const styles = StyleSheet.create({
 
   bottomSheet: {
     position: "absolute",
-    paddingBottom: 30,
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#000",
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
     padding: 16,
-    maxHeight: "80%",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 15,
+    maxHeight: "60%",
+    elevation: 0,
+    overflow: "hidden",
+    paddingBottom: 40,
+  },
+
+  // --- LIME CARD STYLES ---
+  limeCard: {
+    backgroundColor: "#D1F803",
+    borderRadius: 20,
+    padding: 12,
+    marginBottom: 8,
+    zIndex: 2,
+  },
+  limeHeaderRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    marginBottom: 0,
+  },
+  limeAvatar: {
+    width: 80,
+    height: 80,
+    borderRadius: 30,
+    borderWidth: 2,
+    borderColor: "rgba(0,0,0,0.1)",
+    marginRight: 7,
+  },
+  limeHeaderActions: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  limeIconBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "rgba(0,0,0,0.08)",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 7,
+  },
+  limeName: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#1a1a1a",
+    marginBottom: 0,
+    letterSpacing: -0.5,
+  },
+  limeTagsRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 6,
+    marginBottom: 8,
+    marginTop: 4,
+  },
+  limeTag: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.06)",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 16,
+    gap: 4,
+  },
+  limeTagText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#1a1a1a",
+  },
+  limeRoleText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "rgba(0,0,0,0.6)",
+    marginBottom: 0,
+  },
+  limeServiceTitle: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#1a1a1a",
+    letterSpacing: -0.5,
+    marginBottom: 0,
+  },
+  limePrice: {
+    fontSize: 20,
+    fontWeight: "800",
+    color: "#1a1a1a",
+    letterSpacing: -0.5,
+  },
+  limePerMonth: {
+    fontSize: 12,
+    fontWeight: "500",
+    color: "rgba(0,0,0,0.6)",
+  },
+  limeActionBtn: {
+    position: "absolute",
+    bottom: 16,
+    right: 16,
+    backgroundColor: "#1a1a1a",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  limeActionBtnText: {
+    color: "#D1F803",
+    fontWeight: "600",
+    fontSize: 14,
+  },
+
+  // --- DARK CARD STYLES ---
+  darkCard: {
+    backgroundColor: "#27272a",
+    borderRadius: 24,
+    padding: 16,
+    paddingBottom: 20,
+  },
+  darkHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  darkTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#e2e8f0",
+  },
+  darkDate: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#fff",
+    marginBottom: 12,
+  },
+  darkDescLabel: {
+    fontSize: 12,
+    color: "#a1a1aa",
+    marginBottom: 2,
+  },
+  darkDesc: {
+    fontSize: 13,
+    color: "#e4e4e7",
+    lineHeight: 16,
+    marginBottom: 12,
+  },
+  darkStatsRow: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  darkStatItem: {
+    flex: 1,
+    backgroundColor: "#3f3f46",
+    borderRadius: 12,
+    padding: 10,
+  },
+  darkStatLabel: {
+    fontSize: 11,
+    color: "#94a3b8",
+    marginBottom: 4,
+  },
+  darkStatValueRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  darkStatValue: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#fff",
   },
   sheetHeader: {
     flexDirection: "row",

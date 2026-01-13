@@ -62,7 +62,11 @@ export default function EnterLocationScreen() {
 
   // Sync default address on mount
   React.useEffect(() => {
-    if (savedAddresses.length > 0 && !selectedSavedAddressId) {
+    if (
+      savedAddresses.length > 0 &&
+      !selectedSavedAddressId &&
+      !isFromProfile
+    ) {
       // If we have a default preference, use it
       if (defaultAddressId) {
         const def = savedAddresses.find((a) => a.id === defaultAddressId);
@@ -83,7 +87,7 @@ export default function EnterLocationScreen() {
         fillAddressInputs(savedAddresses[0]);
       }
     }
-  }, [defaultAddressId, savedAddresses, selectedSavedAddressId]);
+  }, [defaultAddressId, savedAddresses, selectedSavedAddressId, isFromProfile]);
 
   const [flatNumber, setFlatNumber] = useState("");
   const [locality, setLocality] = useState("");
@@ -219,6 +223,11 @@ export default function EnterLocationScreen() {
           addressId: selectedSavedAddressId,
         })
       );
+
+      if (isFromProfile) {
+        router.back();
+        return;
+      }
 
       router.push({
         pathname: "/(tabs)/home/book-doorstep/select-service",
@@ -474,16 +483,16 @@ export default function EnterLocationScreen() {
                                 isSelected
                                   ? "checkmark"
                                   : isDefault
-                                    ? "star"
-                                    : "location-outline"
+                                  ? "star"
+                                  : "location-outline"
                               }
                               size={16}
                               color={
                                 isSelected
                                   ? "#166534"
                                   : isDefault
-                                    ? "#EAB308"
-                                    : "#666"
+                                  ? "#EAB308"
+                                  : "#666"
                               }
                             />
                           </View>
@@ -528,8 +537,8 @@ export default function EnterLocationScreen() {
                 styles.input,
                 { flex: 1 },
                 !flatNumber.trim() &&
-                errorMsg.includes("House") &&
-                styles.inputError,
+                  errorMsg.includes("House") &&
+                  styles.inputError,
               ]}
               placeholder="House / Flat No."
               placeholderTextColor="#ccc"
@@ -541,8 +550,8 @@ export default function EnterLocationScreen() {
                 styles.input,
                 { flex: 1 },
                 !locality.trim() &&
-                errorMsg.includes("Locality") &&
-                styles.inputError,
+                  errorMsg.includes("Locality") &&
+                  styles.inputError,
               ]}
               placeholder="Locality / Area"
               placeholderTextColor="#ccc"
@@ -575,8 +584,8 @@ export default function EnterLocationScreen() {
                 styles.input,
                 { flex: 1 },
                 (!postalCode.trim() || postalCode.length < 6) &&
-                errorMsg.includes("Postal Code") &&
-                styles.inputError,
+                  errorMsg.includes("Postal Code") &&
+                  styles.inputError,
               ]}
               placeholder="Postal Code"
               placeholderTextColor="#ccc"

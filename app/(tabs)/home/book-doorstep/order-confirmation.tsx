@@ -1,9 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import {
   Dimensions,
-  Image,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -30,15 +29,9 @@ export default function OrderConfirmationScreen() {
     grandTotal,
   } = params;
 
-  const [status, setStatus] = useState("Confirmed");
-  const [statusMessage, setStatusMessage] = useState(
-    "Your booking has been confirmed."
-  );
-
   const dispatch = useDispatch();
 
   useEffect(() => {
-    // Add booking to Redux store now that payment/confirmation is reached
     dispatch(
       addBooking({
         center: (params.shopName as string) || "Your Location",
@@ -56,21 +49,6 @@ export default function OrderConfirmationScreen() {
         serviceId: params.serviceId as string,
       })
     );
-
-    const timer1 = setTimeout(() => {
-      setStatus("Assigning Professional");
-      setStatusMessage("We are looking for a nearby professional.");
-    }, 3000);
-
-    const timer2 = setTimeout(() => {
-      setStatus("On the Way");
-      setStatusMessage("Professional Vijay is on the way to your location.");
-    }, 8000);
-
-    return () => {
-      clearTimeout(timer1);
-      clearTimeout(timer2);
-    };
   }, []);
 
   return (
@@ -82,73 +60,50 @@ export default function OrderConfirmationScreen() {
         {/* Status Header */}
         <View style={styles.statusHeader}>
           <View style={styles.successIcon}>
-            <Ionicons name="checkmark" size={40} color="#fff" />
+            <Ionicons name="checkmark" size={50} color="#1a1a1a" />
           </View>
           <Text style={styles.statusTitle}>Booking Confirmed!</Text>
-          <Text style={styles.statusSubtitle}>
+          {/* <Text style={styles.statusSubtitle}>
             Ticket #CMW-{Math.floor(Math.random() * 10000)}
-          </Text>
+          </Text> */}
         </View>
 
-        {/* Status Timeline / Updates */}
-        <View style={styles.trackingContainer}>
-          <Text style={styles.sectionTitle}>Live Status</Text>
-
-          {/* Driver Info Card - Standard view now */}
-          {status === "On the Way" && (
-            <View style={styles.driverInfoCard}>
-              <Image
-                source={{
-                  uri: "https://randomuser.me/api/portraits/men/32.jpg",
-                }}
-                style={styles.driverAvatar}
-              />
-              <View style={{ flex: 1 }}>
-                <Text style={styles.driverName}>Vijay Kumar</Text>
-                <View style={{ flexDirection: "row", alignItems: "center" }}>
-                  <Ionicons name="star" size={12} color="#FBC02D" />
-                  <Text style={styles.driverRating}>4.8</Text>
-                </View>
+        {/* What Happens Next Section */}
+        <View style={styles.nextStepsContainer}>
+          <Text style={styles.sectionTitle}>What happens next?</Text>
+          <View style={styles.stepsRow}>
+            <View style={styles.stepItem}>
+              <View style={styles.stepIconBox}>
+                <Ionicons name="briefcase-outline" size={24} color="#1a1a1a" />
               </View>
-              <View style={styles.driverActions}>
-                <TouchableOpacity style={styles.callButton}>
-                  <Ionicons name="call" size={20} color="#fff" />
-                </TouchableOpacity>
-              </View>
+              <Text style={styles.stepText}>Assigning Professional</Text>
             </View>
-          )}
-
-          <View style={styles.timelineContainer}>
-            <View style={styles.timelineItem}>
-              <View style={[styles.timelineDot, styles.dotActive]} />
-              <View style={styles.timelineContent}>
-                <Text style={styles.timelineTitle}>{status}</Text>
-                <Text style={styles.timelineDesc}>{statusMessage}</Text>
+            <View style={styles.stepLine} />
+            <View style={styles.stepItem}>
+              <View style={styles.stepIconBox}>
+                <Ionicons name="navigate-outline" size={24} color="#1a1a1a" />
               </View>
+              <Text style={styles.stepText}>On the Way</Text>
             </View>
-            {/* Next steps placeholders */}
-            <View style={styles.timelineItem}>
-              <View style={[styles.timelineDot, styles.dotInactive]} />
-              <View style={styles.timelineContent}>
-                <Text style={[styles.timelineTitle, { color: "#999" }]}>
-                  Service In Progress
-                </Text>
+            <View style={styles.stepLine} />
+            <View style={styles.stepItem}>
+              <View style={styles.stepIconBox}>
+                <Ionicons name="list-outline" size={24} color="#1a1a1a" />
               </View>
-            </View>
-            <View style={styles.timelineItem}>
-              <View style={[styles.timelineDot, styles.dotInactive]} />
-              <View style={styles.timelineContent}>
-                <Text style={[styles.timelineTitle, { color: "#999" }]}>
-                  Completed
-                </Text>
-              </View>
+              <Text style={styles.stepText}>Your Service </Text>
             </View>
           </View>
         </View>
 
         {/* Booking Details Summary */}
         <View style={styles.detailsCard}>
-          <Text style={styles.sectionTitle}>Booking Details</Text>
+          <View style={styles.receiptTop}>
+            <View style={styles.receiptHole} />
+            <View
+              style={[styles.receiptHole, { right: -10, left: undefined }]}
+            />
+          </View>
+          <Text style={styles.sectionTitle}>Receipt</Text>
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Service</Text>
             <Text style={styles.detailValue}>
@@ -165,9 +120,15 @@ export default function OrderConfirmationScreen() {
             </Text>
           </View>
           <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Address</Text>
+            <Text style={styles.detailValueVisible}>
+              {params.address || "No address provided"}
+            </Text>
+          </View>
+          <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Payment Method</Text>
             <Text style={styles.detailValueVisible}>
-              {paymentMethod ? (paymentMethod as string).toUpperCase() : "CASH"}
+              {paymentMethod as string}
             </Text>
           </View>
           <View style={styles.totalRow}>
@@ -193,11 +154,11 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fff" },
   statusHeader: {
     alignItems: "center",
-    paddingVertical: 40,
+    paddingVertical: 30,
     backgroundColor: "#f9f9f9",
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
-    marginBottom: 20,
+    // marginBottom: 10,
   },
   successIcon: {
     width: 80,
@@ -221,7 +182,6 @@ const styles = StyleSheet.create({
   },
   statusSubtitle: { fontSize: 14, color: "#888" },
 
-  trackingContainer: { paddingHorizontal: 20, marginBottom: 20 },
   sectionTitle: {
     fontSize: 18,
     fontWeight: "bold",
@@ -229,93 +189,107 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
 
-  // Driver Card - Updated for relative positioning
-  driverInfoCard: {
-    backgroundColor: "#fff",
-    borderRadius: 15,
-    padding: 12,
+  nextStepsContainer: {
+    marginHorizontal: 20,
+    marginBottom: 25,
+  },
+  stepsRow: {
     flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+  },
+  stepItem: {
     alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 5,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: "#f0f0f0",
+    width: 80,
   },
-  driverAvatar: { width: 40, height: 40, borderRadius: 20, marginRight: 10 },
-  driverName: { fontSize: 14, fontWeight: "bold", color: "#1a1a1a" },
-  driverRating: {
-    fontSize: 12,
-    fontWeight: "bold",
-    color: "#555",
-    marginLeft: 4,
-  },
-  driverActions: { marginLeft: "auto" },
-  callButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#4CAF50",
+  stepIconBox: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: "#F5F5F5",
     alignItems: "center",
     justifyContent: "center",
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: "#E0E0E0",
   },
-
-  timelineContainer: { paddingLeft: 10 },
-  timelineItem: {
-    flexDirection: "row",
-    paddingBottom: 20,
-    borderLeftWidth: 2,
-    borderLeftColor: "#f0f0f0",
-    paddingLeft: 20,
-    position: "relative",
+  stepText: {
+    fontSize: 10,
+    color: "#666",
+    textAlign: "center",
+    fontWeight: "600",
+    lineHeight: 14,
   },
-  timelineDot: {
-    position: "absolute",
-    left: -7,
-    top: 0,
-    width: 12,
-    height: 12,
-    borderRadius: 6,
+  stepLine: {
+    flex: 1,
+    height: 2,
+    backgroundColor: "#EEE",
+    marginTop: 24,
+    marginHorizontal: 5,
   },
-  dotActive: {
-    backgroundColor: "#4CAF50",
-    borderColor: "#fff",
-    borderWidth: 2,
-  },
-  dotInactive: { backgroundColor: "#ccc", borderColor: "#fff", borderWidth: 2 },
-  timelineContent: { top: -4 },
-  timelineTitle: {
-    fontSize: 14,
-    fontWeight: "bold",
-    color: "#1a1a1a",
-    marginBottom: 2,
-  },
-  timelineDesc: { fontSize: 12, color: "#666" },
 
   detailsCard: {
     marginHorizontal: 20,
+    backgroundColor: "#fff",
+    borderRadius: 0,
+    padding: 24,
+    paddingTop: 30,
+    marginBottom: 20,
+    position: "relative",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 5,
+  },
+  receiptTop: {
+    position: "absolute",
+    top: -10,
+    left: 0,
+    right: 0,
+    height: 20,
+    overflow: "hidden",
+  },
+  receiptHole: {
+    position: "absolute",
+    top: 0,
+    left: -10,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
     backgroundColor: "#f9f9f9",
-    borderRadius: 20,
-    padding: 20,
   },
   detailRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 12,
+    alignItems: "flex-start",
+    paddingBottom: 8,
+    marginBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f3f3f3",
   },
-  detailLabel: { fontSize: 14, color: "#666" },
-  detailValue: { fontSize: 14, fontWeight: "600", color: "#1a1a1a" },
-  detailValueVisible: { fontSize: 14, fontWeight: "600", color: "#1a1a1a" },
+  detailLabel: { fontSize: 14, color: "#666", width: "30%" },
+  detailValue: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#1a1a1a",
+    flex: 1,
+    flexShrink: 1,
+    textAlign: "right",
+  },
+  detailValueVisible: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#1a1a1a",
+    flex: 1,
+    flexShrink: 1,
+    textAlign: "right",
+  },
   totalRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     marginTop: 10,
     paddingTop: 10,
-    borderTopWidth: 1,
-    borderTopColor: "#eee",
   },
   totalLabel: { fontSize: 16, fontWeight: "bold", color: "#1a1a1a" },
   totalValue: { fontSize: 18, fontWeight: "bold", color: "#4CAF50" },

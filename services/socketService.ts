@@ -6,7 +6,7 @@ class SocketService {
   private socket: Socket | null = null;
   private userId: string | null = null;
 
-  connect(userId: string) {
+  connect(userId: string, token: string) {
     if (this.userId === userId && this.socket?.connected) {
       return;
     }
@@ -24,10 +24,12 @@ class SocketService {
 
     this.socket = io(socketUrl, {
       query: { userId },
-      transports: ["websocket", "polling"],
+      transports: ["websocket", "polling"], // Ensure websocket is first or default
       reconnection: true,
       reconnectionAttempts: 5,
       extraHeaders: {
+        Authorization: token,
+        "x-auth-token": token,
         "x-platform": Platform.OS === "ios" ? "ios" : "android",
         "x-version": APP_VERSION,
         "x-time-zone": "330",

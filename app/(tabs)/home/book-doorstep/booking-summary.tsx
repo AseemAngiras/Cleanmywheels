@@ -48,6 +48,7 @@ export default function BookingSummaryScreen() {
     useCreateBookingMutation();
   const [updateBookingStatus] = useUpdateBookingStatusMutation();
   const userState = useSelector((state: RootState) => state.user);
+  const token = useSelector((state: RootState) => state.auth.token);
   const userId = userState?.user?._id;
 
   const [isVerifyingPayment, setIsVerifyingPayment] = useState(false);
@@ -94,8 +95,8 @@ export default function BookingSummaryScreen() {
   }, [navigation]);
 
   useEffect(() => {
-    if (userId) {
-      socketService.connect(userId);
+    if (userId && token) {
+      socketService.connect(userId, token);
     }
 
     const handlePaymentSuccess = (data: any) => {
@@ -134,7 +135,7 @@ export default function BookingSummaryScreen() {
     return () => {
       socketService.off("payment_success");
     };
-  }, [userId, isVerifyingPayment, params, grandTotal, router]);
+  }, [userId, token, isVerifyingPayment, params, grandTotal, router]);
 
   const checkPaymentStatus = async (bookingId: string) => {
     setIsVerifyingPayment(true);
@@ -142,7 +143,6 @@ export default function BookingSummaryScreen() {
     const maxAttempts = 10;
 
     if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
-
     pollIntervalRef.current = setInterval(async () => {
       attempts++;
       try {
@@ -185,7 +185,7 @@ export default function BookingSummaryScreen() {
           setIsVerifyingPayment(false);
           Alert.alert(
             "Payment Verification Failed",
-            "We couldn't confirm your payment status yet. Please check 'My Bookings'.",
+            "We couldn't confirmrm your payment status yet. Please check 'My Bookings'.",
             [
               {
                 text: "Check Bookings",
@@ -198,7 +198,7 @@ export default function BookingSummaryScreen() {
       } catch (err) {
         console.error("Polling error", err);
       }
-    }, 3000);
+    }, 5000);
   };
 
   const handlePay = async () => {
@@ -565,8 +565,7 @@ export default function BookingSummaryScreen() {
             <WebView
               source={{ uri: paymentUrl }}
               style={{ flex: 1 }}
-              onNavigationStateChange={(navState) => {
-              }}
+              onNavigationStateChange={(navState) => {}}
               startInLoadingState={true}
               renderLoading={() => <PulseLoader size={40} color="#C8F000" />}
             />

@@ -6,11 +6,12 @@ import { User } from "../types/user";
 
 const SocketManager = () => {
   const user = useAppSelector((state) => state.user.user as User | null);
+  const token = useAppSelector((state) => state.auth.token);
   const dispatch = useAppDispatch();
 
   useEffect(() => {
-    if (user?._id) {
-      socketService.connect(user._id);
+    if (user?._id && token) {
+      socketService.connect(user._id, token);
 
       socketService.on(
         "payment_success",
@@ -40,7 +41,7 @@ const SocketManager = () => {
     } else {
       socketService.disconnect();
     }
-  }, [user?._id, dispatch]);
+  }, [user?._id, token, dispatch]);
 
   return null;
 };

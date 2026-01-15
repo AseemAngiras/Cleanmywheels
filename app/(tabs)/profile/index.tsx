@@ -31,11 +31,14 @@ import {
 } from "../../../store/slices/profileSlice";
 import { updateUser } from "../../../store/slices/userSlice";
 
+import { useGetMySubscriptionQuery } from "../../../store/api/subscriptionApi";
+
 const { height } = Dimensions.get("window");
 
 export default function ProfileHome() {
   const dispatch = useAppDispatch();
   const profile = useAppSelector((state) => state.profile);
+  const { data: subscription } = useGetMySubscriptionQuery(undefined);
 
   const [showLogout, setShowLogout] = useState(false);
   const [showAvatarModal, setShowAvatarModal] = useState(false);
@@ -267,15 +270,38 @@ export default function ProfileHome() {
           </TouchableOpacity>
           <View>
             <TouchableOpacity onPress={() => setShowEditProfileModal(true)}>
-              <Text style={styles.profileName}>
-                {profileState?.name || userData?.name || "Your Name"}
-                <Ionicons
-                  name="create-outline"
-                  size={16}
-                  color="#777"
-                  style={{ marginLeft: 6 }}
-                />
-              </Text>
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <Text style={styles.profileName}>
+                  {profileState?.name || userData?.name || "Your Name"}
+                  <Ionicons
+                    name="create-outline"
+                    size={16}
+                    color="#777"
+                    style={{ marginLeft: 6 }}
+                  />
+                </Text>
+                {subscription?.status === "active" && (
+                  <View
+                    style={{
+                      backgroundColor: "#FFD700",
+                      paddingHorizontal: 8,
+                      paddingVertical: 2,
+                      borderRadius: 12,
+                      marginLeft: 10,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color: "#1a1a1a",
+                        fontSize: 10,
+                        fontWeight: "bold",
+                      }}
+                    >
+                      PREMIUM
+                    </Text>
+                  </View>
+                )}
+              </View>
             </TouchableOpacity>
             <Text style={styles.profileSubtitle}>
               {profileState?.phone || userData?.phone || "Phone number"}
@@ -572,6 +598,13 @@ export default function ProfileHome() {
               subtitle="View your added payments methods"
               onPress={() => router.push("/profile/payment-methods")}
             />
+            <Row
+              icon="star-outline"
+              title="My Subscription"
+              subtitle="Manage your premium plan"
+              onPress={() => router.push("/subscription/plans")}
+            />
+
             <Row
               icon="notifications-outline"
               title="Manage Notifications"

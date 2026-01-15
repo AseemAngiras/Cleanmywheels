@@ -45,6 +45,12 @@ class SocketService {
       console.log("Socket disconnected");
     });
 
+    // Custom Heartbeat
+    this.socket.on("ping", () => {
+      // console.log("Received ping from server");
+      this.socket?.emit("pong");
+    });
+
     this.socket.on("connect_error", (err) => {
       console.log("Socket connection error:", err);
     });

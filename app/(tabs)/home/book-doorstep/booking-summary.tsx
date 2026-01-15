@@ -4,6 +4,7 @@ import {
   useLazyGetBookingByIdQuery,
   useUpdateBookingStatusMutation,
 } from "@/store/api/bookingApi";
+import { useGetMySubscriptionQuery } from "@/store/api/subscriptionApi";
 import { logout } from "@/store/slices/authSlice";
 import { addAddress } from "@/store/slices/profileSlice";
 import { addCar } from "@/store/slices/userSlice";
@@ -87,6 +88,23 @@ export default function BookingSummaryScreen() {
 
   const parsedAddons = addons ? JSON.parse(addons as string) : {};
   // const addonNames = Object.keys(parsedAddons).filter((k) => parsedAddons[k]);
+
+  // Subscription Check
+  const { data: subscription } = useGetMySubscriptionQuery();
+  const isPremium = subscription?.status === "active";
+
+  // Re-calculate based on Premium
+  const displayServicePrice = isPremium
+    ? 0
+    : parseFloat(servicePrice as string) || 0;
+  const addonsTotal = Array.isArray(parsedAddons)
+    ? parsedAddons.reduce(
+        (acc: number, curr: any) => acc + (parseFloat(curr.price) || 0),
+        0
+      )
+    : 0;
+
+  const displayGrandTotal = displayServicePrice + addonsTotal; // Override passed total
 
   useEffect(() => {
     navigation.getParent()?.setOptions({
@@ -462,7 +480,25 @@ export default function BookingSummaryScreen() {
 
           <View style={styles.paymentRow}>
             <Text style={styles.paymentLabel}>{serviceName || "Service"}</Text>
-            <Text style={styles.paymentValue}>₹{servicePrice || 0}</Text>
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              {isPremium && (
+                <Text
+                  style={[
+                    styles.paymentValue,
+                    {
+                      textDecorationLine: "line-through",
+                      color: "#999",
+                      marginRight: 5,
+                    },
+                  ]}
+                >
+                  ₹{servicePrice}
+                </Text>
+              )}
+              <Text style={styles.paymentValue}>
+                {isPremium ? "FREE (Premium)" : `₹${servicePrice || 0}`}
+              </Text>
+            </View>
           </View>
 
           {Array.isArray(parsedAddons) &&
@@ -477,7 +513,7 @@ export default function BookingSummaryScreen() {
 
           <View style={styles.paymentRow}>
             <Text style={styles.totalTextLabel}>Grand Total</Text>
-            <Text style={styles.totalTextValue}>₹{grandTotal}</Text>
+            <Text style={styles.totalTextValue}>₹{displayGrandTotal}</Text>
           </View>
         </View>
       </ScrollView>
@@ -494,7 +530,9 @@ export default function BookingSummaryScreen() {
         >
           <View style={styles.payButtonContent}>
             <View style={styles.payButtonPriceContainer}>
-              <Text style={styles.payButtonPriceText}>₹{grandTotal}</Text>
+              <Text style={styles.payButtonPriceText}>
+                ₹{displayGrandTotal}
+              </Text>
               <Text style={styles.payButtonTotalLabel}>TOTAL</Text>
             </View>
             <View style={styles.payButtonActionContainer}>

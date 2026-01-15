@@ -8,6 +8,7 @@ import {
 import { loginSuccess, logout } from "@/store/slices/authSlice";
 import { Booking } from "@/store/slices/bookingSlice";
 import { setUser } from "@/store/slices/userSlice";
+import { useGetMySubscriptionQuery } from "@/store/api/subscriptionApi";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useNavigation, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -365,6 +366,10 @@ export default function HomeScreen() {
   const userPhone = useSelector((state: RootState) => state.user.user?.phone);
   const dispatch = useDispatch();
   const token = useSelector((state: RootState) => state.auth.token);
+  const { data: subscription } = useGetMySubscriptionQuery(undefined, {
+    skip: !isLoggedIn,
+  });
+  const isPremium = subscription?.status === "active";
 
   // Force logout if using old dummy token
   useEffect(() => {
@@ -619,6 +624,27 @@ export default function HomeScreen() {
             ) : (
               <Text style={styles.greeting}>Welcome</Text>
             )} */}
+            {isPremium && (
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  marginTop: 4,
+                }}
+              >
+                <Ionicons name="star" size={14} color="#FFD700" />
+                <Text
+                  style={{
+                    marginLeft: 4,
+                    color: "#FFD700",
+                    fontWeight: "bold",
+                    fontSize: 12,
+                  }}
+                >
+                  PREMIUM MEMBER
+                </Text>
+              </View>
+            )}
           </View>
           <View style={styles.headerIcons}>
             {!isLoggedIn && (
@@ -659,21 +685,80 @@ export default function HomeScreen() {
             </Text>
 
             <View style={styles.actionButtons}>
-              <TouchableOpacity
-                style={styles.bookDoorstepButton}
-                activeOpacity={0.8}
-                onPress={() =>
-                  router.push("/(tabs)/home/book-doorstep/enter-location")
-                }
-              >
-                <Ionicons
-                  name="home"
-                  size={22}
-                  color="#1a1a1a"
-                  style={{ marginRight: 10 }}
-                />
-                <Text style={styles.bookDoorstepButtonText}>Book Doorstep</Text>
-              </TouchableOpacity>
+              {isPremium ? (
+                <View
+                  style={{
+                    flexDirection: "row",
+                    gap: 12,
+                    width: "100%",
+                    paddingHorizontal: 20,
+                  }}
+                >
+                  <TouchableOpacity
+                    style={[
+                      styles.bookDoorstepButton,
+                      {
+                        flex: 1,
+                        backgroundColor: "#fff",
+                        borderWidth: 1,
+                        borderColor: "#e0e0e0",
+                        paddingHorizontal: 10,
+                      },
+                    ]}
+                    activeOpacity={0.8}
+                    onPress={() =>
+                      router.push("/(tabs)/home/book-doorstep/enter-location")
+                    }
+                  >
+                    <Text
+                      style={[
+                        styles.bookDoorstepButtonText,
+                        { color: "#1a1a1a", fontSize: 14 },
+                      ]}
+                    >
+                      Book Service
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[
+                      styles.bookDoorstepButton,
+                      { flex: 1, paddingHorizontal: 10 },
+                    ]}
+                    activeOpacity={0.8}
+                    onPress={() => router.push("/subscription/addons")}
+                  >
+                    <Ionicons
+                      name="add-circle-outline"
+                      size={20}
+                      color="#1a1a1a"
+                      style={{ marginRight: 6 }}
+                    />
+                    <Text
+                      style={[styles.bookDoorstepButtonText, { fontSize: 14 }]}
+                    >
+                      Add-ons
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <TouchableOpacity
+                  style={styles.bookDoorstepButton}
+                  activeOpacity={0.8}
+                  onPress={() =>
+                    router.push("/(tabs)/home/book-doorstep/enter-location")
+                  }
+                >
+                  <Ionicons
+                    name="home"
+                    size={22}
+                    color="#1a1a1a"
+                    style={{ marginRight: 10 }}
+                  />
+                  <Text style={styles.bookDoorstepButtonText}>
+                    Book Doorstep
+                  </Text>
+                </TouchableOpacity>
+              )}
             </View>
           </View>
         </View>

@@ -36,10 +36,19 @@ import { useDispatch, useSelector } from "react-redux";
 import BookingStepper from "../../../../components/BookingStepper";
 import { ListSkeleton } from "../../../../components/SkeletonLoader";
 
+import { useGetMySubscriptionQuery } from "@/store/api/subscriptionApi";
+
 const SERVICE_ADDONS: Record<
   string,
   { id: string; name: string; price: number }[]
 > = {};
+
+const MOCK_PREMIUM_ADDONS = [
+  { id: "addon-1", name: "Interior Vacuum", price: 50 },
+  { id: "addon-2", name: "Tire Polish", price: 30 },
+  { id: "addon-3", name: "Mat Cleaning", price: 20 },
+  { id: "addon-4", name: "Perfume Spray", price: 10 },
+];
 
 // Animated expandable component for smooth transitions
 const ExpandableDetails = ({
@@ -260,7 +269,12 @@ export default function SelectServiceScreen() {
     }, [navigation])
   );
 
-  const currentAddons = selectedService
+  const { data: subscription } = useGetMySubscriptionQuery();
+  const isPremium = subscription?.status === "active";
+
+  const currentAddons = isPremium
+    ? MOCK_PREMIUM_ADDONS
+    : selectedService
     ? SERVICE_ADDONS[selectedService] || []
     : [];
 
@@ -364,8 +378,11 @@ export default function SelectServiceScreen() {
   };
 
   const calculateTotal = () => {
-    const servicePrice =
+    let servicePrice =
       services.find((s) => s.id === selectedService)?.price || 0;
+
+    if (isPremium) servicePrice = 0;
+
     let addonTotal = 0;
 
     currentAddons.forEach((addon) => {
@@ -386,7 +403,9 @@ export default function SelectServiceScreen() {
         >
           <Ionicons name="chevron-back" size={24} color="#000" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Select Service</Text>
+        <Text style={styles.headerTitle}>
+          {isPremium ? "Select Daily Wash" : "Select Service"}
+        </Text>
         <View style={{ width: 24 }} />
       </View>
 
@@ -455,9 +474,20 @@ export default function SelectServiceScreen() {
                                     alignItems: "center",
                                   }}
                                 >
-                                  <Text style={styles.expandedPrice}>
-                                    ₹{service.price}
-                                  </Text>
+                                  {isPremium ? (
+                                    <Text
+                                      style={[
+                                        styles.expandedPrice,
+                                        { color: "#84c95c" },
+                                      ]}
+                                    >
+                                      INCLUDED
+                                    </Text>
+                                  ) : (
+                                    <Text style={styles.expandedPrice}>
+                                      ₹{service.price}
+                                    </Text>
+                                  )}
                                   {isAdmin && (
                                     <TouchableOpacity
                                       onPress={(e) => {
@@ -581,7 +611,7 @@ export default function SelectServiceScreen() {
             {/* Dynamic Add-ons Section */}
             {selectedService && currentAddons.length > 0 && (
               <View>
-                <Text style={styles.sectionTitle}>Make it Shine (Add-ons)</Text>
+                <Text style={styles.sectionTitle}>{isPremium ? "Daily Wash Add-ons" : "Make it Shine (Add-ons)"}</Text>
                 <View style={styles.addonsContainer}>
                   {currentAddons.map((addon) => {
                     const isSelected = !!addons[addon.id];

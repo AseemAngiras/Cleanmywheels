@@ -71,7 +71,7 @@ export default function PastServices() {
   useFocusEffect(
     useCallback(() => {
       refetch();
-    }, [refetch])
+    }, [refetch]),
   );
 
   const bookingList = bookingsResponse?.data?.bookingList || [];
@@ -177,12 +177,12 @@ export default function PastServices() {
         description: complaintText,
         date: new Date().toLocaleDateString(),
         refundRequested: refundRequested,
-      })
+      }),
     );
 
     Alert.alert(
       "Complaint Received",
-      `Your ticket #${ticketId} has been created. Our support team will review it shortly.`
+      `Your ticket #${ticketId} has been created. Our support team will review it shortly.`,
     );
     closeComplaintModal();
   };

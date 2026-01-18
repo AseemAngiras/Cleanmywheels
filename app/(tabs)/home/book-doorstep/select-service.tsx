@@ -3,8 +3,10 @@ import {
   useGetWashPackagesQuery,
   useUpdateWashPackageMutation,
 } from "@/store/api/washPackageApi";
-import { useAppSelector } from "@/store/hooks";
-import { addCar } from "@/store/slices/userSlice";
+import {
+  useGetVehiclesQuery,
+  useCreateVehicleMutation,
+} from "@/store/api/vehicleApi";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import {
   useFocusEffect,
@@ -32,7 +34,7 @@ import {
   TouchableWithoutFeedback,
   View,
 } from "react-native";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import BookingStepper from "../../../../components/BookingStepper";
 import { ListSkeleton } from "../../../../components/SkeletonLoader";
 
@@ -42,13 +44,6 @@ const SERVICE_ADDONS: Record<
   string,
   { id: string; name: string; price: number }[]
 > = {};
-
-const MOCK_PREMIUM_ADDONS = [
-  { id: "addon-1", name: "Interior Vacuum", price: 50 },
-  { id: "addon-2", name: "Tire Polish", price: 30 },
-  { id: "addon-3", name: "Mat Cleaning", price: 20 },
-  { id: "addon-4", name: "Perfume Spray", price: 10 },
-];
 
 // Animated expandable component for smooth transitions
 const ExpandableDetails = ({
@@ -140,14 +135,29 @@ const expandableStyles = StyleSheet.create({
 });
 
 export default function SelectServiceScreen() {
-  const dispatch = useDispatch();
-
   const user = useSelector((state: RootState) => state.user.user);
+  const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
   const isAdmin = user?.accountType === "Super Admin";
 
-  const cars = useAppSelector((state) => {
-    return state.user.cars;
+  const { data: allCars = [] } = useGetVehiclesQuery();
+  const { data: subscriptions } = useGetMySubscriptionQuery();
+
+  // Filter out subscribed vehicle from the list
+  const cars = allCars.filter((car) => {
+    // If no subscriptions or not an array, return all cars
+    if (!subscriptions || !Array.isArray(subscriptions)) return true;
+
+    // Check if this car is in any active subscription
+    const isSubscribed = subscriptions.some((sub: any) => {
+      if (sub.status !== "active" || !sub.vehicle) return false;
+      const subCarId = sub.vehicle._id || sub.vehicle;
+      return (car._id || car.id) === subCarId;
+    });
+
+    return !isSubscribed;
   });
+
+  const [createVehicle] = useCreateVehicleMutation();
 
   const router = useRouter();
   const navigation = useNavigation();
@@ -181,28 +191,28 @@ export default function SelectServiceScreen() {
     if (washPackagesData) {
       console.log(
         "🔍 [SelectService] RAW API RESPONSE:",
-        JSON.stringify(washPackagesData, null, 2)
+        JSON.stringify(washPackagesData, null, 2),
       );
     }
 
     if (loadError) {
       console.error(
         "❌ [SelectService] API LOAD ERROR:",
-        JSON.stringify(loadError, null, 2)
+        JSON.stringify(loadError, null, 2),
       );
     }
 
     if (servicesFromApi.length > 0) {
       console.log(
         "📦 [SelectService] API packages found:",
-        servicesFromApi.length
+        servicesFromApi.length,
       );
       servicesFromApi.forEach((pkg) =>
-        console.log(`   - ${pkg.name}: ${pkg._id}`)
+        console.log(`   - ${pkg.name}: ${pkg._id}`),
       );
     } else if (!isLoadingPackages && !loadError) {
       console.warn(
-        "⚠️ [SelectService] No packages found in API database! (washPackageList is empty)"
+        "⚠️ [SelectService] No packages found in API database! (washPackageList is empty)",
       );
     }
   }, [washPackagesData, servicesFromApi, isLoadingPackages, loadError]);
@@ -212,7 +222,7 @@ export default function SelectServiceScreen() {
   }
 
   const [detailsExpanded, setDetailsExpanded] = useState<Set<string>>(
-    new Set()
+    new Set(),
   );
   const [editingService, setEditingService] = useState<{
     id: string;
@@ -235,30 +245,35 @@ export default function SelectServiceScreen() {
     });
   };
 
-  const [vehicleType, setVehicleType] = useState("sedan");
+  const [vehicleType, setVehicleType] = useState("Sedan");
   const [vehicleNumber, setVehicleNumber] = useState("");
   const [selectedCarId, setSelectedCarId] = useState<string | null>(null);
 
   // Auto-fill form updates when selectedCarId changes
   useEffect(() => {
     if (selectedCarId) {
-      const selectedCar = cars.find((c) => c.id === selectedCarId);
+      const selectedCar = cars.find(
+        (c: any) => (c._id || c.id) === selectedCarId,
+      );
       if (selectedCar) {
-        // If type matches one of our presets, use it, otherwise 'others' or custom logic
+        // Match against our supported types
         const matchedType = vehicleTypes.find(
-          (vt) => vt.id.toLowerCase() === selectedCar.type.toLowerCase()
+          (vt) =>
+            vt.id.toLowerCase() ===
+            (selectedCar.vehicleType || selectedCar.type || "").toLowerCase(),
         );
-        setVehicleType(matchedType ? matchedType.id : "others");
-        setVehicleNumber(selectedCar.number);
+        // Default to "Other" if no match found (e.g. if it was a Bike/Scooter previously)
+        setVehicleType(matchedType ? matchedType.id : "Other");
+        setVehicleNumber(selectedCar.vehicleNo || selectedCar.number || "");
       }
     }
   }, [selectedCarId, cars]);
 
   const vehicleTypes = [
-    { id: "hatchback", name: "Hatchback", icon: "car-hatchback" },
-    { id: "sedan", name: "Sedan", icon: "car" },
-    { id: "suv", name: "SUV", icon: "car-estate" },
-    { id: "others", name: "Others", icon: "truck-delivery" },
+    { id: "Hatchback", name: "Hatchback", icon: "car-hatchback" },
+    { id: "Sedan", name: "Sedan", icon: "car" },
+    { id: "SUV", name: "SUV", icon: "car-estate" },
+    { id: "Other", name: "Others", icon: "truck-delivery" },
   ];
 
   useFocusEffect(
@@ -266,15 +281,10 @@ export default function SelectServiceScreen() {
       navigation.getParent()?.setOptions({
         tabBarStyle: { display: "none" },
       });
-    }, [navigation])
+    }, [navigation]),
   );
 
-  const { data: subscription } = useGetMySubscriptionQuery();
-  const isPremium = subscription?.status === "active";
-
-  const currentAddons = isPremium
-    ? MOCK_PREMIUM_ADDONS
-    : selectedService
+  const currentAddons = selectedService
     ? SERVICE_ADDONS[selectedService] || []
     : [];
 
@@ -283,7 +293,7 @@ export default function SelectServiceScreen() {
   };
 
   const validateVehicleNumber = (
-    number: string
+    number: string,
   ): { isValid: boolean; message: string } => {
     if (!number || !number.trim()) {
       return { isValid: false, message: "Please enter your vehicle number." };
@@ -381,8 +391,6 @@ export default function SelectServiceScreen() {
     let servicePrice =
       services.find((s) => s.id === selectedService)?.price || 0;
 
-    if (isPremium) servicePrice = 0;
-
     let addonTotal = 0;
 
     currentAddons.forEach((addon) => {
@@ -403,9 +411,7 @@ export default function SelectServiceScreen() {
         >
           <Ionicons name="chevron-back" size={24} color="#000" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>
-          {isPremium ? "Select Daily Wash" : "Select Service"}
-        </Text>
+        <Text style={styles.headerTitle}>Select Service</Text>
         <View style={{ width: 24 }} />
       </View>
 
@@ -474,20 +480,9 @@ export default function SelectServiceScreen() {
                                     alignItems: "center",
                                   }}
                                 >
-                                  {isPremium ? (
-                                    <Text
-                                      style={[
-                                        styles.expandedPrice,
-                                        { color: "#84c95c" },
-                                      ]}
-                                    >
-                                      INCLUDED
-                                    </Text>
-                                  ) : (
-                                    <Text style={styles.expandedPrice}>
-                                      ₹{service.price}
-                                    </Text>
-                                  )}
+                                  <Text style={styles.expandedPrice}>
+                                    ₹{service.price}
+                                  </Text>
                                   {isAdmin && (
                                     <TouchableOpacity
                                       onPress={(e) => {
@@ -611,7 +606,7 @@ export default function SelectServiceScreen() {
             {/* Dynamic Add-ons Section */}
             {selectedService && currentAddons.length > 0 && (
               <View>
-                <Text style={styles.sectionTitle}>{isPremium ? "Daily Wash Add-ons" : "Make it Shine (Add-ons)"}</Text>
+                <Text style={styles.sectionTitle}>Make it Shine (Add-ons)</Text>
                 <View style={styles.addonsContainer}>
                   {currentAddons.map((addon) => {
                     const isSelected = !!addons[addon.id];
@@ -660,16 +655,16 @@ export default function SelectServiceScreen() {
               <View style={{ marginBottom: 24 }}>
                 <Text style={styles.sectionTitle}>My Saved Vehicles</Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                  {cars.map((car) => {
-                    const isSelected = selectedCarId === car.id;
+                  {cars.map((car: any) => {
+                    const isSelected = selectedCarId === (car._id || car.id);
                     return (
                       <TouchableOpacity
-                        key={car.id}
+                        key={car._id || car.id}
                         style={[
                           styles.savedCarCard,
                           isSelected && styles.savedCarCardSelected,
                         ]}
-                        onPress={() => setSelectedCarId(car.id)}
+                        onPress={() => setSelectedCarId(car._id || car.id)}
                       >
                         <Ionicons
                           name="car-sport"
@@ -683,7 +678,7 @@ export default function SelectServiceScreen() {
                             isSelected && { color: "#fff" },
                           ]}
                         >
-                          {car.number}
+                          {car.vehicleNo || car.number}
                         </Text>
                         <Text
                           style={[
@@ -691,7 +686,7 @@ export default function SelectServiceScreen() {
                             isSelected && { color: "#rgba(255,255,255,0.7)" },
                           ]}
                         >
-                          {car.type}
+                          {car.vehicleType || car.type}
                         </Text>
                         {isSelected && (
                           <View style={styles.selectedCheck}>
@@ -723,6 +718,7 @@ export default function SelectServiceScreen() {
                     ]}
                     onPress={() => {
                       setSelectedCarId(null);
+                      setVehicleNumber("");
                       setVehicleType(type.id);
                     }}
                   >
@@ -773,11 +769,11 @@ export default function SelectServiceScreen() {
             },
           ]}
           disabled={services.length === 0 || !selectedService}
-          onPress={() => {
+          onPress={async () => {
             if (!selectedService) {
               Alert.alert(
                 "Selection Required",
-                "Please select a service to proceed."
+                "Please select a service to proceed.",
               );
               return;
             }
@@ -795,7 +791,7 @@ export default function SelectServiceScreen() {
             if (cleanNumber.length < 6 || cleanNumber.length > 10) {
               Alert.alert(
                 "Invalid Vehicle Number",
-                "Please enter a valid vehicle number (e.g., KA01AB1234)."
+                "Please enter a valid vehicle number (e.g., KA01AB1234).",
               );
               return;
             }
@@ -803,9 +799,33 @@ export default function SelectServiceScreen() {
             if (!/^[A-Z]{2}[0-9A-Z]{4,8}$/.test(cleanNumber)) {
               Alert.alert(
                 "Invalid Vehicle Number",
-                "Please enter a valid vehicle number (e.g., KA01AB1234)."
+                "Please enter a valid vehicle number (e.g., KA01AB1234).",
               );
               return;
+            }
+
+            // Check if this vehicle number is already subscribed
+            if (subscriptions && Array.isArray(subscriptions)) {
+              const duplicate = subscriptions.find((sub: any) => {
+                if (sub.status !== "active" || !sub.vehicle) return false;
+                // Normalize and compare (assuming sub.vehicle.vehicleNo exists)
+                const subNo = (
+                  sub.vehicle.vehicleNo ||
+                  sub.vehicle.number ||
+                  ""
+                )
+                  .replace(/[^a-zA-Z0-9]/g, "")
+                  .toUpperCase();
+                return subNo === cleanNumber;
+              });
+
+              if (duplicate) {
+                Alert.alert(
+                  "Already Subscribed",
+                  "You already have an active subscription for this vehicle. Please use the Add-on service to modify your booking or choose a different vehicle.",
+                );
+                return;
+              }
             }
 
             const service = services.find((s) => s.id === selectedService);
@@ -815,7 +835,7 @@ export default function SelectServiceScreen() {
             }
 
             const selectedAddons = currentAddons.filter(
-              (addon) => addons[addon.id]
+              (addon) => addons[addon.id],
             );
 
             const normalizedNumber = vehicleNumber
@@ -823,19 +843,31 @@ export default function SelectServiceScreen() {
               .toUpperCase();
 
             let existingCar = cars.find(
-              (car) => car.number === normalizedNumber
+              (car: any) => (car.vehicleNo || car.number) === normalizedNumber,
             );
 
             if (!existingCar) {
-              const newCar = {
-                id: Date.now().toString(),
-                name: vehicleType.toUpperCase(),
-                type: vehicleType,
-                number: normalizedNumber,
-                image: "",
-              };
-              dispatch(addCar(newCar));
-              existingCar = newCar;
+              // Only save to backend if user is logged in
+              if (isLoggedIn) {
+                try {
+                  const response = await createVehicle({
+                    vehicleType,
+                    vehicleNo: normalizedNumber,
+                    isDefault: false,
+                  }).unwrap();
+
+                  if (response?.data) {
+                    existingCar = response.data;
+                    setSelectedCarId(existingCar._id);
+                  }
+                } catch (err) {
+                  console.error("Vehicle Creation Failed", err);
+                  Alert.alert(
+                    "Note",
+                    "Could not save vehicle to your profile, but you can proceed with booking.",
+                  );
+                }
+              }
             }
 
             const params = {
@@ -849,7 +881,7 @@ export default function SelectServiceScreen() {
               latitude,
               longitude,
               addressId,
-              vehicleId: selectedCarId,
+              vehicleId: existingCar?._id || selectedCarId,
             };
 
             router.push({

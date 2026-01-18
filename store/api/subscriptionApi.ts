@@ -16,7 +16,6 @@ export const subscriptionApi = createApi({
         headers.set("x-auth-token", token);
       }
 
-      // Required System Headers
       headers.set("x-platform", Platform.OS === "ios" ? "ios" : "android");
       headers.set("x-version", APP_VERSION || "1.0.0");
       headers.set("x-time-zone", "330");
@@ -34,10 +33,22 @@ export const subscriptionApi = createApi({
       providesTags: ["Plans"],
     }),
 
-    getMySubscription: builder.query<UserSubscription | null, void>({
+    getMySubscription: builder.query<UserSubscription[], void>({
       query: () => "/my-subscription",
-      transformResponse: (response: { data: UserSubscription | null }) =>
+      transformResponse: (response: { data: UserSubscription[] }) =>
         response.data,
+      providesTags: ["Subscription"],
+    }),
+
+    getAllSubscriptions: builder.query<
+      { subscriptions: UserSubscription[]; total: number; page: number },
+      { page: number; perPage: number; status?: string }
+    >({
+      query: (params) => ({
+        url: "/admin/all",
+        params,
+      }),
+      transformResponse: (response: { data: any }) => response.data,
       providesTags: ["Subscription"],
     }),
 
@@ -60,10 +71,79 @@ export const subscriptionApi = createApi({
         razorpay_order_id: string;
         razorpay_signature: string;
         planId: string;
+        vehicleId: string;
+        timeSlot: string;
+        startDate: string;
       }
     >({
       query: (body) => ({
         url: "/verify",
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["Subscription"],
+    }),
+
+    assignSubscriptionWorker: builder.mutation<
+      any,
+      { subscriptionId: string; workerId: string }
+    >({
+      query: (body) => ({
+        url: "/assignment",
+        method: "PUT",
+        body,
+      }),
+      invalidatesTags: ["Subscription"],
+    }),
+
+    markSubscriptionDailyDone: builder.mutation<
+      any,
+      { subscriptionId: string }
+    >({
+      query: (body) => ({
+        url: "/mark-daily-done",
+        method: "PUT",
+        body,
+      }),
+      invalidatesTags: ["Subscription"],
+    }),
+
+    getAddons: builder.query<any[], void>({
+      query: () => "/addons",
+      transformResponse: (response: { data: any[] }) => response.data,
+    }),
+
+    createAddonOrder: builder.mutation<
+      { paymentLinkUrl: string; subscriptionId: string; referenceId: string },
+      {
+        amount: number;
+        subscriptionId: string;
+        addons: any[];
+        serviceDate: string;
+      }
+    >({
+      query: (body) => ({
+        url: "/addons/create-order",
+        method: "POST",
+        body,
+      }),
+      transformResponse: (response: { data: any }) => response.data,
+    }),
+
+    verifyAddonPayment: builder.mutation<
+      any,
+      {
+        razorpay_payment_id: string;
+        razorpay_order_id: string;
+        razorpay_payment_link_id?: string;
+        razorpay_payment_link_status?: string;
+        razorpay_signature: string;
+        subscriptionId: string;
+        addons: any[];
+      }
+    >({
+      query: (body) => ({
+        url: "/addons/verify",
         method: "POST",
         body,
       }),
@@ -77,4 +157,10 @@ export const {
   useGetMySubscriptionQuery,
   useCreateSubscriptionMutation,
   useVerifySubscriptionMutation,
+  useAssignSubscriptionWorkerMutation,
+  useMarkSubscriptionDailyDoneMutation,
+  useGetAddonsQuery,
+  useCreateAddonOrderMutation,
+  useVerifyAddonPaymentMutation,
+  useGetAllSubscriptionsQuery,
 } = subscriptionApi;

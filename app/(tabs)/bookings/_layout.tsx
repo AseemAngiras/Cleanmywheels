@@ -23,7 +23,7 @@ import {
 } from "react-native";
 import { useSelector } from "react-redux";
 
-// --- MOCK WORKERS (Keep for now, could be a separate API later) ---
+// --- MOCK WORKERS (will add separate API later) ---
 const MOCK_WORKERS = [
   { id: "W1", name: "Amit Sharma", phone: "+919876543210" },
   { id: "W2", name: "Rahul Verma", phone: "+918765432109" },
@@ -31,7 +31,6 @@ const MOCK_WORKERS = [
   { id: "W4", name: "Vikram Yadav", phone: "+916543210987" },
 ];
 
-// --- Helper to format booking time ---
 const formatTime = (hour: number): string => {
   if (hour === 0) return "12:00 AM";
   if (hour === 12) return "12:00 PM";
@@ -39,12 +38,7 @@ const formatTime = (hour: number): string => {
   return `${hour - 12}:00 PM`;
 };
 
-// --- Helper to map backend booking to UI format ---
 const mapBookingToUI = (booking: any) => {
-  // Debug: Log raw booking data
-  console.log("[AdminBookings] Raw booking:", JSON.stringify(booking, null, 2));
-
-  // Try multiple sources for service name
   const serviceName =
     booking.serviceName ||
     booking.washPackage?.name ||
@@ -71,14 +65,13 @@ const mapBookingToUI = (booking: any) => {
           booking.city || ""
         }`.replace(/^, /, "")
       : booking.address?.locality
-      ? `${booking.address.houseOrFlatNo || ""}, ${booking.address.locality}`
-      : "Address not provided",
+        ? `${booking.address.houseOrFlatNo || ""}, ${booking.address.locality}`
+        : "Address not provided",
     price: booking.price,
     bookingDate: booking.bookingDate,
   };
 };
 
-// --- DYNAMIC DATES GENERATOR ---
 const getNextSevenDays = () => {
   const dates = [];
   const today = new Date();
@@ -90,7 +83,7 @@ const getNextSevenDays = () => {
       day: d.toLocaleDateString("en-US", { weekday: "short" }),
       date: d.getDate().toString(),
       fullDate: d,
-      active: i === 0, // Make today active by default
+      active: i === 0,
     });
   }
   return dates;
@@ -102,7 +95,6 @@ function AdminBookingsScreen() {
   const [workerModalVisible, setWorkerModalVisible] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
 
-  // Fetch real bookings from API
   const {
     data: bookingsResponse,
     isLoading,
@@ -112,17 +104,14 @@ function AdminBookingsScreen() {
   const [updateBookingStatus, { isLoading: isUpdatingStatus }] =
     useUpdateBookingStatusMutation();
 
-  // Map backend data to UI format
   const bookingList = bookingsResponse?.data?.bookingList || [];
   const bookings = bookingList
     .filter((booking: any) => {
       const status = booking.status?.toLowerCase();
-      // Only show bookings that are Confirmed (Paid)
       return !["pending", "failed"].includes(status);
     })
     .map((booking: any) => mapBookingToUI(booking));
 
-  // Filter bookings based on selected filter
   const filteredBookings = bookings.filter(
     (booking: ReturnType<typeof mapBookingToUI>) => {
       if (filter === "Pending")
@@ -133,7 +122,7 @@ function AdminBookingsScreen() {
         );
       if (filter === "Completed") return booking.status === "COMPLETED";
       return true;
-    }
+    },
   );
 
   const handleAssignWorker = async (worker: any) => {
@@ -148,7 +137,6 @@ function AdminBookingsScreen() {
           text: "Confirm & Notify",
           onPress: async () => {
             try {
-              // Update booking status to PENDING (in-progress) and save worker details
               await updateBookingStatus({
                 id: selectedBooking.id,
                 status: "Pending",
@@ -156,7 +144,6 @@ function AdminBookingsScreen() {
                 workerPhone: worker.phone,
               }).unwrap();
 
-              // 1. Send WhatsApp to User
               const userMsg = `Hello ${selectedBooking.customerName}, your service for ${selectedBooking.car} has been assigned to ${worker.name} (Ph: ${worker.phone}). They will arrive shortly.`;
               const userUrl = `https://wa.me/${
                 selectedBooking.phone
@@ -166,7 +153,6 @@ function AdminBookingsScreen() {
                 Alert.alert("Error", "Could not open WhatsApp");
               });
 
-              // 2. Prompt to Send WhatsApp to Worker (Sequential Step)
               setTimeout(() => {
                 Alert.alert(
                   "Notify Worker",
@@ -179,36 +165,35 @@ function AdminBookingsScreen() {
                         const workerPhone = worker.phone.replace(/[^0-9]/g, "");
                         const workerMsg = `🛠 *New Job Assigned!*\n\n👤 Client: ${selectedBooking.customerName}\n🚗 Car: ${selectedBooking.car} (${selectedBooking.license})\n📋 Service: ${selectedBooking.service}\n⏰ Time: ${selectedBooking.time}\n📍 Address: ${selectedBooking.address}\n📞 Phone: ${selectedBooking.phone}`;
                         const workerUrl = `https://wa.me/${workerPhone}?text=${encodeURIComponent(
-                          workerMsg
+                          workerMsg,
                         )}`;
                         Linking.openURL(workerUrl).catch(() =>
                           Alert.alert(
                             "Error",
-                            "Could not open WhatsApp for Worker"
-                          )
+                            "Could not open WhatsApp for Worker",
+                          ),
                         );
                         refetch();
                       },
                     },
-                  ]
+                  ],
                 );
               }, 1000);
             } catch (err) {
               console.error("Failed to update booking status:", err);
               Alert.alert(
                 "Error",
-                "Failed to assign worker. Please try again."
+                "Failed to assign worker. Please try again.",
               );
             }
           },
         },
-      ]
+      ],
     );
   };
 
-  // Handle marking a booking as complete
   const handleMarkComplete = async (
-    booking: ReturnType<typeof mapBookingToUI>
+    booking: ReturnType<typeof mapBookingToUI>,
   ) => {
     Alert.alert(
       "Mark as Complete",
@@ -231,11 +216,10 @@ function AdminBookingsScreen() {
             }
           },
         },
-      ]
+      ],
     );
   };
 
-  // Format current month and year (e.g., "December 2025")
   const currentMonthYear = new Date().toLocaleDateString("en-US", {
     month: "long",
     year: "numeric",
@@ -257,11 +241,10 @@ function AdminBookingsScreen() {
             Linking.openURL(url).catch(() => alert("WhatsApp not installed"));
           },
         },
-      ]
+      ],
     );
   };
 
-  // Helper to get status badge style
   const getStatusBadgeStyle = (status: string) => {
     switch (status) {
       case "COMPLETED":
@@ -355,7 +338,7 @@ function AdminBookingsScreen() {
               onPress={() => {
                 const phoneUrl = `tel:+${item.phone}`;
                 Linking.openURL(phoneUrl).catch(() =>
-                  Alert.alert("Error", "Could not open dialer")
+                  Alert.alert("Error", "Could not open dialer"),
                 );
               }}
             >
@@ -934,7 +917,7 @@ const adminStyles = StyleSheet.create({
     marginTop: 2,
   },
   whatsappButton: {
-    backgroundColor: "#25D366", // WhatsApp Green
+    backgroundColor: "#25D366",
     paddingVertical: 14,
     borderRadius: 30,
     flexDirection: "row",

@@ -38,7 +38,15 @@ const { height } = Dimensions.get("window");
 export default function ProfileHome() {
   const dispatch = useAppDispatch();
   const profile = useAppSelector((state) => state.profile);
-  const { data: subscription } = useGetMySubscriptionQuery(undefined);
+  const { data: subscriptions } = useGetMySubscriptionQuery(undefined);
+
+  const activeSub = Array.isArray(subscriptions)
+    ? subscriptions.find((s: any) => s.status === "active")
+    : (subscriptions as any)?.status === "active"
+      ? subscriptions
+      : null;
+
+  const isPremiumUser = !!activeSub;
 
   const [showLogout, setShowLogout] = useState(false);
   const [showAvatarModal, setShowAvatarModal] = useState(false);
@@ -68,7 +76,7 @@ export default function ProfileHome() {
 
   const [isAddressDropdownOpen, setIsAddressDropdownOpen] = useState(false);
   const [expandedAddressId, setExpandedAddressId] = useState<string | null>(
-    null
+    null,
   );
 
   const defaultAddress =
@@ -280,10 +288,11 @@ export default function ProfileHome() {
                     style={{ marginLeft: 6 }}
                   />
                 </Text>
-                {subscription?.status === "active" && (
+                {/* Premium Badge */}
+                {isPremiumUser && (
                   <View
                     style={{
-                      backgroundColor: "#FFD700",
+                      backgroundColor: "#D1F803",
                       paddingHorizontal: 8,
                       paddingVertical: 2,
                       borderRadius: 12,
@@ -335,13 +344,19 @@ export default function ProfileHome() {
             onPress={() => router.push("/(tabs)/bookings")}
           />
           <Row
+            icon="alert-circle-outline"
+            title="Complaints & Refunds"
+            subtitle="View user tickets and refund requests"
+            onPress={() => router.push("/(tabs)/home")}
+          />
+          <Row
             icon="people-outline"
             title="Manage Users"
             subtitle="View registered users"
             onPress={() =>
               Alert.alert(
                 "Coming Soon",
-                "User management is under development."
+                "User management is under development.",
               )
             }
           />
@@ -560,7 +575,7 @@ export default function ProfileHome() {
                                           setExpandedAddressId(null);
                                         },
                                       },
-                                    ]
+                                    ],
                                   );
                                 }}
                               >
@@ -642,7 +657,7 @@ export default function ProfileHome() {
                 const url = `whatsapp://send?text=${text}&phone=${adminPhone}`;
                 Linking.openURL(url).catch(() => {
                   Linking.openURL(
-                    `https://wa.me/${adminPhone.replace("+", "")}`
+                    `https://wa.me/${adminPhone.replace("+", "")}`,
                   );
                 });
               }}

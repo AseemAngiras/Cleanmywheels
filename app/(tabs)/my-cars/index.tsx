@@ -23,13 +23,17 @@ import {
   View,
 } from "react-native";
 
-import { useAppDispatch, useAppSelector } from "../../../store/hooks";
 import {
-  addCar,
-  Car,
-  removeCar,
-  updateCar,
-} from "../../../store/slices/userSlice";
+  useCreateVehicleMutation,
+  useDeleteVehicleMutation,
+  useGetVehiclesQuery,
+  useUpdateVehicleMutation,
+} from "../../../store/api/vehicleApi";
+import { useGetMySubscriptionQuery } from "../../../store/api/subscriptionApi";
+
+import { RootState } from "@/store";
+import { useSelector } from "react-redux";
+import AdminSubscriptionsScreen from "../admin/subscriptions";
 
 if (
   Platform.OS === "android" &&
@@ -41,12 +45,27 @@ if (
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 export default function MyCarsScreen() {
-  const dispatch = useAppDispatch();
-  const cars = useAppSelector((state) => state.user.cars);
+  const user = useSelector((state: RootState) => state.user.user);
+  const isAdmin = user?.accountType === "Super Admin";
+
+  const { data: cars = [], isLoading } = useGetVehiclesQuery(undefined, {
+    skip: isAdmin,
+  });
+  const { data: subscriptions } = useGetMySubscriptionQuery(undefined, {
+    skip: isAdmin,
+  });
+
+  const [createVehicle] = useCreateVehicleMutation();
+  const [updateVehicle] = useUpdateVehicleMutation();
+  const [deleteVehicle] = useDeleteVehicleMutation();
 
   const [modalVisible, setModalVisible] = useState(false);
   const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  if (isAdmin) {
+    return <AdminSubscriptionsScreen />;
+  }
 
   const [editingCarId, setEditingCarId] = useState<string | null>(null);
   const [type, setType] = useState("");
@@ -78,7 +97,7 @@ export default function MyCarsScreen() {
     }
   };
 
-  const openModal = (car?: Car) => {
+  const openModal = (car?: any) => {
     if (car) {
       setEditingCarId(car.id);
       setType(car.type);
@@ -124,7 +143,7 @@ export default function MyCarsScreen() {
     ]).start(() => setModalVisible(false));
   };
 
-  const handleSaveCar = () => {
+  const handleSaveCar = async () => {
     if (!type || !number) {
       Alert.alert("Error", "Vehicle type and number are required");
       return;
@@ -136,26 +155,29 @@ export default function MyCarsScreen() {
     if (!vehicleNumberPattern.test(cleanedNumber)) {
       Alert.alert(
         "Invalid Vehicle Number",
-        "Please enter a valid vehicle number (e.g., CH01GH4321, PB10QH3210)"
+        "Please enter a valid vehicle number (e.g., CH01GH4321, PB10QH3210)",
       );
       return;
     }
 
-    const carPayload: Car = {
-      id: editingCarId ?? Date.now().toString(),
-      name: type.toUpperCase(),
-      type,
-      number: cleanedNumber,
-      image: image || "",
+    const payload = {
+      vehicleType: type,
+      vehicleNo: cleanedNumber,
+      isDefault: false,
     };
 
-    if (editingCarId) {
-      dispatch(updateCar(carPayload));
-    } else {
-      dispatch(addCar(carPayload));
+    try {
+      if (editingCarId) {
+        await updateVehicle({ id: editingCarId, data: payload }).unwrap();
+        Alert.alert("Success", "Vehicle updated");
+      } else {
+        await createVehicle(payload).unwrap();
+        Alert.alert("Success", "Vehicle added");
+      }
+      closeModal();
+    } catch (err: any) {
+      Alert.alert("Error", err?.data?.message || "Failed to save vehicle");
     }
-
-    closeModal();
   };
 
   const handleRemoveCar = (id: string) => {
@@ -164,11 +186,22 @@ export default function MyCarsScreen() {
       {
         text: "Remove",
         style: "destructive",
-        onPress: () => dispatch(removeCar(id)),
+        onPress: async () => {
+          try {
+            await deleteVehicle(id).unwrap();
+          } catch (e: any) {
+            console.log("Delete failed", e);
+            Alert.alert(
+              "Cannot Remove",
+              e?.data?.message || "Failed to remove vehicle",
+            );
+          }
+        },
       },
     ]);
   };
 
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   const [isTypePickerVisible, setIsTypePickerVisible] = useState(false);
   const VEHICLE_TYPES = ["Sedan", "SUV", "Hatchback", "Other"];
 
@@ -179,15 +212,26 @@ export default function MyCarsScreen() {
     }
     Keyboard.dismiss();
   };
+  const isVehicleSubscribed = (carId: string) => {
+    if (!subscriptions || !Array.isArray(subscriptions)) return false;
+    return subscriptions.some((sub: any) => {
+      if (!["active", "ongoing"].includes(sub.status) || !sub.vehicle)
+        return false;
+      const subCarId = sub.vehicle._id || sub.vehicle;
+      return carId === subCarId;
+    });
+  };
 
-  const renderCar = ({ item }: { item: Car }) => {
-    const isExpanded = expandedCarId === item.id;
+  const renderCar = ({ item }: { item: any }) => {
+    const isExpanded = expandedCarId === (item._id || item.id);
+    const id = item._id || item.id;
+    const isSubscribed = isVehicleSubscribed(id);
 
     return (
       <TouchableOpacity
         style={[styles.card, isExpanded && styles.cardExpanded]}
         activeOpacity={0.9}
-        onPress={() => toggleCard(item.id)}
+        onPress={() => toggleCard(id)}
       >
         <LinearGradient
           colors={["#f7fee7", "#ffffff"]}
@@ -197,8 +241,17 @@ export default function MyCarsScreen() {
         >
           <View style={styles.cardHeader}>
             <View style={styles.carInfo}>
-              <Text style={styles.carName}>{item.name}</Text>
-              <Text style={styles.carType}>{item.type}</Text>
+              <View
+                style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
+              >
+                <Text style={styles.carName}>{item.vehicleType}</Text>
+                {isSubscribed && (
+                  <View style={styles.premiumBadge}>
+                    <Text style={styles.premiumText}>SUBSCRIPTION</Text>
+                  </View>
+                )}
+              </View>
+              <Text style={styles.carType}>{item.vehicleType}</Text>
             </View>
           </View>
 
@@ -207,16 +260,12 @@ export default function MyCarsScreen() {
               <View style={styles.plateInd}>
                 <Text style={styles.plateIndText}>IND</Text>
               </View>
-              <Text style={styles.plateNumber}>{item.number}</Text>
+              <Text style={styles.plateNumber}>{item.vehicleNo}</Text>
             </View>
 
-            {item.image ? (
-              <Image source={{ uri: item.image }} style={styles.carImage} />
-            ) : (
-              <View style={[styles.carImage, styles.imagePlaceholder]}>
-                <Ionicons name="car-sport" size={32} color="#CBD5E1" />
-              </View>
-            )}
+            <View style={[styles.carImage, styles.imagePlaceholder]}>
+              <Ionicons name="car-sport" size={32} color="#CBD5E1" />
+            </View>
           </View>
 
           {isExpanded && (
@@ -231,7 +280,7 @@ export default function MyCarsScreen() {
 
               <TouchableOpacity
                 style={[styles.actionBtn, styles.removeBtn]}
-                onPress={() => handleRemoveCar(item.id)}
+                onPress={() => handleRemoveCar(id)}
               >
                 <Ionicons name="trash-outline" size={16} color="#EF4444" />
                 <Text style={styles.removeText}>Remove</Text>
@@ -261,7 +310,7 @@ export default function MyCarsScreen() {
 
         <FlatList
           data={cars}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => item._id || item.id}
           renderItem={renderCar}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 100 }}
@@ -468,9 +517,7 @@ const styles = StyleSheet.create({
   },
 
   card: {
-    // backgroundColor: "#fff", // Handled by LinearGradient
     borderRadius: 24,
-    // padding: 20, // Handled by LinearGradient
     marginBottom: 16,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
@@ -668,7 +715,7 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   darkInput: {
-    backgroundColor: "#27272a",   
+    backgroundColor: "#27272a",
     borderRadius: 16,
     padding: 16,
     fontSize: 16,
@@ -766,5 +813,17 @@ const styles = StyleSheet.create({
   pickerItemTextSelected: {
     color: "#1a1a1a",
     fontWeight: "700",
+  },
+  premiumBadge: {
+    backgroundColor: "#D1F803",
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 12,
+  },
+  premiumText: {
+    fontSize: 10,
+    fontWeight: "800",
+    color: "#000",
+    letterSpacing: 0.5,
   },
 });

@@ -13,10 +13,16 @@ export const vehicleApi = createApi({
 
       const state = getState() as any;
       const token = state.auth?.token;
-      
+
       if (token) {
+        console.log(
+          "🔒 [vehicleApi] Attaching token:",
+          token.substring(0, 10) + "...",
+        );
         headers.set("Authorization", `${token}`);
         headers.set("x-auth-token", `${token}`);
+      } else {
+        console.warn("⚠️ [vehicleApi] No token found in state.auth.token");
       }
 
       headers.set("x-platform", Platform.OS === "ios" ? "ios" : "android");
@@ -31,6 +37,7 @@ export const vehicleApi = createApi({
     getVehicles: builder.query<any, void>({
       query: () => "/vehicle",
       providesTags: ["Vehicle"],
+      transformResponse: (response: { data: any }) => response.data,
     }),
     createVehicle: builder.mutation<any, any>({
       query: (body) => ({
@@ -40,7 +47,27 @@ export const vehicleApi = createApi({
       }),
       invalidatesTags: ["Vehicle"],
     }),
+    updateVehicle: builder.mutation<any, { id: string; data: any }>({
+      query: ({ id, data }) => ({
+        url: `/vehicle/${id}`,
+        method: "PUT",
+        body: data,
+      }),
+      invalidatesTags: ["Vehicle"],
+    }),
+    deleteVehicle: builder.mutation<any, string>({
+      query: (id) => ({
+        url: `/vehicle/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Vehicle"],
+    }),
   }),
 });
 
-export const { useGetVehiclesQuery, useCreateVehicleMutation } = vehicleApi;
+export const {
+  useGetVehiclesQuery,
+  useCreateVehicleMutation,
+  useUpdateVehicleMutation,
+  useDeleteVehicleMutation,
+} = vehicleApi;

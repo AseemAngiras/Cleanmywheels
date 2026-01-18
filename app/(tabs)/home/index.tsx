@@ -5,10 +5,11 @@ import {
   useVerifyLoginOtpMutation,
   useVerifyRegisterOtpMutation,
 } from "@/store/api/authApi";
+import { useGetMySubscriptionQuery } from "@/store/api/subscriptionApi";
 import { loginSuccess, logout } from "@/store/slices/authSlice";
 import { Booking } from "@/store/slices/bookingSlice";
 import { setUser } from "@/store/slices/userSlice";
-import { useGetMySubscriptionQuery } from "@/store/api/subscriptionApi";
+
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useNavigation, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -326,7 +327,7 @@ function AdminComplaintsScreen() {
                             source={{ uri: img }}
                             style={styles.proofImage}
                           />
-                        )
+                        ),
                       )}
                     </ScrollView>
                   </>
@@ -366,10 +367,6 @@ export default function HomeScreen() {
   const userPhone = useSelector((state: RootState) => state.user.user?.phone);
   const dispatch = useDispatch();
   const token = useSelector((state: RootState) => state.auth.token);
-  const { data: subscription } = useGetMySubscriptionQuery(undefined, {
-    skip: !isLoggedIn,
-  });
-  const isPremium = subscription?.status === "active";
 
   // Force logout if using old dummy token
   useEffect(() => {
@@ -377,6 +374,11 @@ export default function HomeScreen() {
       dispatch(logout());
     }
   }, [token, dispatch]);
+
+  const { data: subscriptions } = useGetMySubscriptionQuery(undefined, {
+    skip: !isLoggedIn,
+  });
+  const hasActiveSubscription = subscriptions && subscriptions.length > 0;
 
   // Admin Check
   const user = useSelector((state: RootState) => state.user.user);
@@ -466,7 +468,7 @@ export default function HomeScreen() {
       Alert.alert(
         "Error",
         err?.data?.message ||
-          "Failed to proceed. Try entering your name to register."
+          "Failed to proceed. Try entering your name to register.",
       );
     } finally {
       setIsLoading(false);
@@ -545,7 +547,7 @@ export default function HomeScreen() {
       console.error("Login Verification Failed", err);
       Alert.alert(
         "Login Failed",
-        err?.data?.message || "Invalid OTP or Server Error"
+        err?.data?.message || "Invalid OTP or Server Error",
       );
     } finally {
       setIsLoading(false);
@@ -571,7 +573,7 @@ export default function HomeScreen() {
           tabBarStyle: { display: "flex" },
         });
       }
-    }, [navigation])
+    }, [navigation]),
   );
 
   const handleRecentServicePress = (booking: Partial<Booking>) => {
@@ -586,7 +588,7 @@ export default function HomeScreen() {
               router.push("/(tabs)/home/book-doorstep/enter-location"),
           },
           { text: "Cancel", style: "cancel" },
-        ]
+        ],
       );
       return;
     }
@@ -624,27 +626,6 @@ export default function HomeScreen() {
             ) : (
               <Text style={styles.greeting}>Welcome</Text>
             )} */}
-            {isPremium && (
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  marginTop: 4,
-                }}
-              >
-                <Ionicons name="star" size={14} color="#FFD700" />
-                <Text
-                  style={{
-                    marginLeft: 4,
-                    color: "#FFD700",
-                    fontWeight: "bold",
-                    fontSize: 12,
-                  }}
-                >
-                  PREMIUM MEMBER
-                </Text>
-              </View>
-            )}
           </View>
           <View style={styles.headerIcons}>
             {!isLoggedIn && (
@@ -684,78 +665,54 @@ export default function HomeScreen() {
               doorstep.
             </Text>
 
-            <View style={styles.actionButtons}>
-              {isPremium ? (
-                <View
-                  style={{
-                    flexDirection: "row",
-                    gap: 12,
-                    width: "100%",
-                    paddingHorizontal: 20,
-                  }}
-                >
-                  <TouchableOpacity
-                    style={[
-                      styles.bookDoorstepButton,
-                      {
-                        flex: 1,
-                        backgroundColor: "#fff",
-                        borderWidth: 1,
-                        borderColor: "#e0e0e0",
-                        paddingHorizontal: 10,
-                      },
-                    ]}
-                    activeOpacity={0.8}
-                    onPress={() =>
-                      router.push("/(tabs)/home/book-doorstep/enter-location")
-                    }
-                  >
-                    <Text
-                      style={[
-                        styles.bookDoorstepButtonText,
-                        { color: "#1a1a1a", fontSize: 14 },
-                      ]}
-                    >
-                      Book Service
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[
-                      styles.bookDoorstepButton,
-                      { flex: 1, paddingHorizontal: 10 },
-                    ]}
-                    activeOpacity={0.8}
-                    onPress={() => router.push("/subscription/addons")}
-                  >
-                    <Ionicons
-                      name="add-circle-outline"
-                      size={20}
-                      color="#1a1a1a"
-                      style={{ marginRight: 6 }}
-                    />
-                    <Text
-                      style={[styles.bookDoorstepButtonText, { fontSize: 14 }]}
-                    >
-                      Add-ons
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              ) : (
+            <View
+              style={[
+                styles.actionButtons,
+                hasActiveSubscription && { flexDirection: "row", gap: 10 },
+              ]}
+            >
+              <TouchableOpacity
+                style={[
+                  styles.bookDoorstepButton,
+                  hasActiveSubscription && { flex: 1, paddingHorizontal: 10 },
+                ]}
+                activeOpacity={0.8}
+                onPress={() =>
+                  router.push("/(tabs)/home/book-doorstep/enter-location")
+                }
+              >
+                <Ionicons
+                  name="home"
+                  size={22}
+                  color="#1a1a1a"
+                  style={{ marginRight: 10 }}
+                />
+                <Text style={styles.bookDoorstepButtonText} numberOfLines={1}>
+                  Book Now
+                </Text>
+              </TouchableOpacity>
+
+              {hasActiveSubscription && (
                 <TouchableOpacity
-                  style={styles.bookDoorstepButton}
+                  style={[
+                    styles.bookDoorstepButton,
+                    {
+                      flex: 1,
+                      backgroundColor: "#FFD700",
+                      paddingHorizontal: 10,
+                    },
+                  ]}
                   activeOpacity={0.8}
-                  onPress={() =>
-                    router.push("/(tabs)/home/book-doorstep/enter-location")
-                  }
+                  onPress={() => router.push("/subscription/addons")}
                 >
                   <Ionicons
-                    name="home"
+                    name="add-circle-outline"
                     size={22}
                     color="#1a1a1a"
                     style={{ marginRight: 10 }}
                   />
-                  <Text style={styles.bookDoorstepButtonText}>
-                    Book Doorstep
+                  <Text style={styles.bookDoorstepButtonText} numberOfLines={1}>
+                    Add-ons
                   </Text>
                 </TouchableOpacity>
               )}

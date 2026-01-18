@@ -77,30 +77,18 @@ export default function BookingSummaryScreen() {
     serviceId,
   } = params;
 
-  // const lat = parseFloat(latitude as string) || 37.7749;
-  // const long = parseFloat(longitude as string) || -122.4194;
-
-  // const isDoorstep = shopName === "Your Location";
-
   const itemTotal = parseFloat(totalPrice as string) || 0;
 
   const grandTotal = itemTotal;
 
   const parsedAddons = addons ? JSON.parse(addons as string) : {};
-  // const addonNames = Object.keys(parsedAddons).filter((k) => parsedAddons[k]);
 
-  // Subscription Check
-  const { data: subscription } = useGetMySubscriptionQuery();
-  const isPremium = subscription?.status === "active";
+  const displayServicePrice = parseFloat(servicePrice as string) || 0;
 
-  // Re-calculate based on Premium
-  const displayServicePrice = isPremium
-    ? 0
-    : parseFloat(servicePrice as string) || 0;
   const addonsTotal = Array.isArray(parsedAddons)
     ? parsedAddons.reduce(
         (acc: number, curr: any) => acc + (parseFloat(curr.price) || 0),
-        0
+        0,
       )
     : 0;
 
@@ -165,7 +153,7 @@ export default function BookingSummaryScreen() {
       attempts++;
       try {
         console.log(
-          `[Payment] Polling status... Attempt ${attempts}/${maxAttempts}`
+          `[Payment] Polling status... Attempt ${attempts}/${maxAttempts}`,
         );
         const result = await triggerGetBooking(bookingId).unwrap();
         const status = result?.data?.status?.toLowerCase();
@@ -210,7 +198,7 @@ export default function BookingSummaryScreen() {
                 onPress: () => router.push("/(tabs)/bookings"),
               },
               { text: "Close", style: "cancel" },
-            ]
+            ],
           );
         }
       } catch (err) {
@@ -246,14 +234,14 @@ export default function BookingSummaryScreen() {
       if (!finalWashPackageId || finalWashPackageId.length !== 24) {
         Alert.alert(
           "Selection Error",
-          "Invalid wash package selected. Please go back and select a service again."
+          "Invalid wash package selected. Please go back and select a service again.",
         );
         return;
       }
 
       const cityPart =
         addressParts.find(
-          (part, index) => index >= 2 && !/^\d{6}$/.test(part)
+          (part, index) => index >= 2 && !/^\d{6}$/.test(part),
         ) ||
         addressParts[2] ||
         "City";
@@ -279,7 +267,7 @@ export default function BookingSummaryScreen() {
 
       console.log(
         "[BookingSummary] TRACE - Payload:",
-        JSON.stringify(bookingPayload, null, 2)
+        JSON.stringify(bookingPayload, null, 2),
       );
       const response = await createBooking(bookingPayload).unwrap();
       console.log("[BookingSummary] TRACE - Response:", response);
@@ -295,7 +283,7 @@ export default function BookingSummaryScreen() {
             postalCode: postalCode,
             addressType: "Home",
             fullAddress: address as string,
-          })
+          }),
         );
       }
 
@@ -309,7 +297,7 @@ export default function BookingSummaryScreen() {
               "Sedan",
             number: vehicleNumber as string,
             image: "https://cdn-icons-png.flaticon.com/512/743/743007.png",
-          })
+          }),
         );
       }
 
@@ -318,12 +306,12 @@ export default function BookingSummaryScreen() {
 
       console.log(
         "[BookingSummary] DEBUG - Raw Response Keys:",
-        Object.keys(response || {})
+        Object.keys(response || {}),
       );
       if (response?.data)
         console.log(
           "[BookingSummary] DEBUG - Response.data Keys:",
-          Object.keys(response.data || {})
+          Object.keys(response.data || {}),
         );
 
       // Try multiple paths for ID
@@ -336,11 +324,11 @@ export default function BookingSummaryScreen() {
       if (!bookingId || bookingId === "temp-id") {
         console.error(
           "[BookingSummary] ❌ CRITICAL: No Booking ID found in response!",
-          response
+          response,
         );
         Alert.alert(
           "Error",
-          "Could not create booking. Please try again. (Missing ID)"
+          "Could not create booking. Please try again. (Missing ID)",
         );
         return;
       }
@@ -361,13 +349,13 @@ export default function BookingSummaryScreen() {
     } catch (err: any) {
       console.error(
         "❌ [BookingSummary] FULL ERROR OBJECT:",
-        JSON.stringify(err, null, 2)
+        JSON.stringify(err, null, 2),
       );
       if (err.status === 401) {
         Alert.alert(
           "Session Expired",
           "Your technical session has expired or is invalid. Please log out and log in again.",
-          [{ text: "OK", onPress: () => dispatch(logout()) }]
+          [{ text: "OK", onPress: () => dispatch(logout()) }],
         );
       } else {
         const errorMsg =
@@ -465,7 +453,7 @@ export default function BookingSummaryScreen() {
                 {selectedDate
                   ? new Date(selectedDate as string).toLocaleDateString(
                       undefined,
-                      { weekday: "short", day: "numeric", month: "short" }
+                      { weekday: "short", day: "numeric", month: "short" },
                     )
                   : "Date"}
                 , {selectedTime || "Time"}
@@ -481,23 +469,7 @@ export default function BookingSummaryScreen() {
           <View style={styles.paymentRow}>
             <Text style={styles.paymentLabel}>{serviceName || "Service"}</Text>
             <View style={{ flexDirection: "row", alignItems: "center" }}>
-              {isPremium && (
-                <Text
-                  style={[
-                    styles.paymentValue,
-                    {
-                      textDecorationLine: "line-through",
-                      color: "#999",
-                      marginRight: 5,
-                    },
-                  ]}
-                >
-                  ₹{servicePrice}
-                </Text>
-              )}
-              <Text style={styles.paymentValue}>
-                {isPremium ? "FREE (Premium)" : `₹${servicePrice || 0}`}
-              </Text>
+              <Text style={styles.paymentValue}>{`₹${servicePrice || 0}`}</Text>
             </View>
           </View>
 

@@ -6,26 +6,63 @@ export interface PlanFeature {
 
 export interface SubscriptionPlan {
   _id: string;
-  name: string; // e.g., "Monthly Premium"
+  name: string;
   price: number;
   currency: string;
   durationDays: number;
   description?: string;
-  features: string[]; // List of features for display
-  razorpayPlanId: string; // Backend Plan ID
+  features: string[];
+  razorpayPlanId: string;
+  isActive: boolean;
+}
+
+export interface Addon {
+  _id: string;
+  name: string;
+  description: string;
+  price: number;
+  icon?: string;
+  durationMinutes: number;
   isActive: boolean;
 }
 
 export interface UserSubscription {
   _id: string;
   userId: string;
-  planId: SubscriptionPlan; // Populated plan details
-  razorpaySubscriptionId: string;
+  plan: SubscriptionPlan;
+  vehicle: {
+    _id: string;
+    vehicleNo: string;
+    brand: string;
+    model: string;
+    color: string;
+    image?: string;
+  };
+  razorpaySubscriptionId?: string;
   status: "active" | "created" | "authenticated" | "expired" | "cancelled";
-  startDate: string; // ISO Date
-  endDate: string; // ISO Date
+  startDate: string;
+  endDate: string;
   autoRenew: boolean;
   paymentMethod?: string;
+  servicesTotal: number;
+  servicesCompleted: number;
+  worker?: {
+    _id: string;
+    name: string;
+    phone: string;
+  };
+  nextServiceAddons?: {
+    addonId: Addon;
+    name: string;
+    price: number;
+    paid: boolean;
+    dateAdded: string;
+  }[];
+  serviceHistory?: {
+    date: string;
+    status: "completed" | "skipped";
+    notes?: string;
+  }[];
 }
 
 export interface RazorpaySubscriptionResponse {

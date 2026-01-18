@@ -22,6 +22,10 @@ import { useFocusEffect, useRouter } from "expo-router";
 
 import type { RootState } from "../../../store";
 import { useGetBookingsQuery } from "../../../store/api/bookingApi";
+import {
+  useAssignSubscriptionWorkerMutation,
+  useGetMySubscriptionQuery,
+} from "../../../store/api/subscriptionApi";
 import { useAppDispatch, useAppSelector } from "../../../store/hooks";
 import {
   type Booking,
@@ -72,10 +76,14 @@ export default function UpcomingServices() {
     refetch,
   } = useGetBookingsQuery({ page: 1, perPage: 100 });
 
+  const { data: subscription, refetch: refetchSubscription } =
+    useGetMySubscriptionQuery();
+
   useFocusEffect(
     useCallback(() => {
       refetch();
-    }, [refetch])
+      refetchSubscription();
+    }, [refetch, refetchSubscription]),
   );
 
   const bookingList = bookingsResponse?.data?.bookingList || [];
@@ -92,22 +100,50 @@ export default function UpcomingServices() {
   const scaleAnim = useRef(new Animated.Value(0.95)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
 
-  // --- ADMIN & WORKER LOGIC ---
   const user = useAppSelector((state: RootState) => state.user.user);
   const isAdmin = user?.accountType === "Super Admin";
 
   const MOCK_WORKERS = [
-    { id: "W1", name: "Amit Sharma", phone: "+919876543210" },
-    { id: "W2", name: "Rahul Verma", phone: "+918765432109" },
-    { id: "W3", name: "Suresh Singh", phone: "+917654321098" },
-    { id: "W4", name: "Vikram Yadav", phone: "+916543210987" },
+    {
+      id: "65a1234567890abcdef12345",
+      name: "Amit Sharma",
+      phone: "+919876543210",
+    },
+    {
+      id: "65a1234567890abcdef12346",
+      name: "Rahul Verma",
+      phone: "+918765432109",
+    },
+    {
+      id: "65a1234567890abcdef12347",
+      name: "Suresh Singh",
+      phone: "+917654321098",
+    },
+    {
+      id: "65a1234567890abcdef12348",
+      name: "Vikram Yadav",
+      phone: "+916543210987",
+    },
   ];
 
   const [workerModalVisible, setWorkerModalVisible] = useState(false);
+  const [assignSubscriptionWorker] = useAssignSubscriptionWorkerMutation();
+  const [isAssigningSubWorker, setIsAssigningSubWorker] = useState(false);
 
-  // Send WhatsApp to User ensuring them about the worker
   const sendUserConfirmation = (worker: any, booking: any) => {
-    const message = `Hello, your booking for *${booking.serviceName}* is confirmed! 🚗✨\n\n*${worker.name}* will be arriving shortly to service your vehicle.\n\nBooking ID: ${booking.id}\nTime: ${booking.timeSlot}`;
+    const isSubscription = !!booking.plan;
+    const serviceName = isSubscription
+      ? booking.plan.name
+      : booking.serviceName;
+    const id = isSubscription ? booking._id : booking.id;
+    const time = isSubscription ? "Daily Service" : booking.timeSlot;
+
+    const message = `Hello, your ${
+      isSubscription ? "subscription" : "booking"
+    } for *${serviceName}* is confirmed! 🚗✨\n\n*${
+      worker.name
+    }* has been assigned as your valet.\n\nID: ${id}\nTime: ${time}`;
+
     const url = `whatsapp://send?phone=${
       booking.phone
     }&text=${encodeURIComponent(message)}`;
@@ -121,7 +157,6 @@ export default function UpcomingServices() {
     });
   };
 
-  // Send WhatsApp to Worker with job details
   const sendWorkerJobDetails = (worker: any, booking: any) => {
     const message = `🛠️ *New Job Assigned!*\n\nCustomer: ${
       booking.user || "Valued Customer"
@@ -141,7 +176,23 @@ export default function UpcomingServices() {
     });
   };
 
-  const handleAssignWorker = (worker: any) => {
+  const handleAssignWorker = async (worker: any) => {
+    if (isAssigningSubWorker && subscription && subscription.length > 0) {
+      try {
+        await assignSubscriptionWorker({
+          subscriptionId: subscription[0]._id,
+          workerId: worker.id,
+        }).unwrap();
+
+        Alert.alert("Success", `Assigned ${worker.name} to subscription!`);
+        setWorkerModalVisible(false);
+        setIsAssigningSubWorker(false);
+      } catch (err) {
+        Alert.alert("Error", "Failed to assign worker");
+      }
+      return;
+    }
+
     if (!activeBooking) return;
 
     Alert.alert(
@@ -152,10 +203,8 @@ export default function UpcomingServices() {
         {
           text: "Assign & Notify",
           onPress: () => {
-            // 1. Send to User
             sendUserConfirmation(worker, activeBooking);
 
-            // 2. Send to Worker
             setTimeout(() => {
               sendWorkerJobDetails(worker, activeBooking);
             }, 1500);
@@ -164,11 +213,11 @@ export default function UpcomingServices() {
             closeSheet();
             Alert.alert(
               "Success",
-              "Worker assigned and notifications initiated!"
+              "Worker assigned and notifications initiated!",
             );
           },
         },
-      ]
+      ],
     );
   };
 
@@ -277,25 +326,488 @@ export default function UpcomingServices() {
     );
   };
 
+  const subsArray = Array.isArray(subscription)
+    ? subscription
+    : subscription
+      ? [subscription]
+      : [];
+  const activeSubs = subsArray.filter((s: any) =>
+    ["active", "ongoing"].includes(s.status),
+  );
+
   return (
     <>
       <FlatList
         data={bookings}
         keyExtractor={(item) => item.id}
+        contentContainerStyle={{ paddingBottom: 120 }}
+        ListHeaderComponent={() => {
+          return (
+            <>
+              {activeSubs.map((sub: any) => (
+                <TouchableOpacity
+                  key={sub._id}
+                  style={{ marginBottom: 24, marginHorizontal: 20 }}
+                  activeOpacity={0.9}
+                  onPress={() =>
+                    router.push(`/subscription/details/${sub._id}` as any)
+                  }
+                >
+                  <View
+                    style={{
+                      backgroundColor: "#fff",
+                      borderRadius: 16,
+                      padding: 16,
+                      shadowColor: "#000",
+                      shadowOffset: { width: 0, height: 4 },
+                      shadowOpacity: 0.05,
+                      shadowRadius: 8,
+                      elevation: 4,
+                      borderWidth: 1,
+                      borderColor: "#F0F0F0",
+                    }}
+                  >
+                    {/* Header */}
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                        marginBottom: 12,
+                      }}
+                    >
+                      <View
+                        style={{
+                          backgroundColor: "#E8F5E9",
+                          paddingHorizontal: 8,
+                          paddingVertical: 3,
+                          borderRadius: 6,
+                        }}
+                      >
+                        <Text
+                          style={{
+                            color: "#2E7D32",
+                            fontSize: 10,
+                            fontWeight: "800",
+                            letterSpacing: 0.5,
+                          }}
+                        >
+                          SUBSCRIPTION
+                        </Text>
+                      </View>
+                      <View
+                        style={{
+                          backgroundColor:
+                            sub.status === "ongoing" ? "#DBEAFE" : "#FFF7ED", // Blue for Ongoing, Orange for Waiting
+                          paddingHorizontal: 8,
+                          paddingVertical: 3,
+                          borderRadius: 6,
+                          flexDirection: "row",
+                          alignItems: "center",
+                          gap: 3,
+                        }}
+                      >
+                        <Ionicons
+                          name={
+                            sub.status === "ongoing"
+                              ? "time"
+                              : "hourglass-outline"
+                          }
+                          size={10}
+                          color={
+                            sub.status === "ongoing" ? "#1E40AF" : "#C2410C"
+                          }
+                        />
+                        <Text
+                          style={{
+                            color:
+                              sub.status === "ongoing" ? "#1E40AF" : "#C2410C",
+                            fontSize: 10,
+                            fontWeight: "700",
+                          }}
+                        >
+                          {sub.status === "ongoing"
+                            ? "ONGOING"
+                            : "WAITING FOR WORKER"}
+                        </Text>
+                      </View>
+                    </View>
+
+                    {/* Worker Info (If Assigned) */}
+                    {(sub.worker && sub.worker.name) || sub.workerName ? (
+                      <View
+                        style={{
+                          marginBottom: 12,
+                          flexDirection: "row",
+                          alignItems: "center",
+                          backgroundColor: "#F0F9FF",
+                          padding: 8,
+                          borderRadius: 8,
+                        }}
+                      >
+                        <Ionicons
+                          name="person-circle"
+                          size={24}
+                          color="#0284C7"
+                        />
+                        <View style={{ marginLeft: 8 }}>
+                          <Text
+                            style={{
+                              fontSize: 13,
+                              fontWeight: "600",
+                              color: "#0F172A",
+                            }}
+                          >
+                            {sub.worker?.name || sub.workerName}
+                          </Text>
+                          <Text style={{ fontSize: 11, color: "#64748B" }}>
+                            Assigned Valet
+                          </Text>
+                        </View>
+                        <TouchableOpacity
+                          onPress={() =>
+                            Linking.openURL(
+                              `tel:${sub.worker?.phone || sub.workerPhone}`,
+                            )
+                          }
+                          style={{
+                            marginLeft: "auto",
+                            backgroundColor: "#fff",
+                            padding: 6,
+                            borderRadius: 20,
+                          }}
+                        >
+                          <Ionicons name="call" size={16} color="#0284C7" />
+                        </TouchableOpacity>
+                      </View>
+                    ) : (
+                      /* Unassigned Warning */
+                      <View
+                        style={{
+                          marginBottom: 12,
+                          flexDirection: "row",
+                          alignItems: "center",
+                          backgroundColor: "#FFF7ED",
+                          padding: 8,
+                          borderRadius: 8,
+                        }}
+                      >
+                        <Ionicons
+                          name="alert-circle"
+                          size={20}
+                          color="#EA580C"
+                        />
+                        <View style={{ marginLeft: 8, flex: 1 }}>
+                          <Text
+                            style={{
+                              fontSize: 12,
+                              fontWeight: "600",
+                              color: "#9A3412",
+                            }}
+                          >
+                            Worker Assignment Pending
+                          </Text>
+                          <Text style={{ fontSize: 11, color: "#C2410C" }}>
+                            You will see the valet details here once assigned.
+                          </Text>
+                        </View>
+                      </View>
+                    )}
+
+                    {/* Vehicle Info */}
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        marginBottom: 12,
+                      }}
+                    >
+                      <View
+                        style={{
+                          width: 44,
+                          height: 44,
+                          borderRadius: 22,
+                          backgroundColor: "#F8F9FA",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          marginRight: 12,
+                          borderWidth: 1,
+                          borderColor: "#eee",
+                        }}
+                      >
+                        <Ionicons name="car-sport" size={22} color="#1a1a1a" />
+                      </View>
+                      <View>
+                        <Text
+                          style={{
+                            fontSize: 16,
+                            fontWeight: "700",
+                            color: "#1a1a1a",
+                            marginBottom: 2,
+                          }}
+                        >
+                          {sub.vehicle?.vehicleType || "Vehicle"}
+                        </Text>
+                        <Text
+                          style={{
+                            fontSize: 13,
+                            color: "#666",
+                            fontWeight: "500",
+                          }}
+                        >
+                          {sub.vehicle?.vehicleNo || "No Number"}
+                        </Text>
+                      </View>
+                    </View>
+
+                    {/* Divider */}
+                    <View
+                      style={{
+                        height: 1,
+                        backgroundColor: "#F0F0F0",
+                        marginBottom: 12,
+                      }}
+                    />
+
+                    {/* Schedule Info */}
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                        marginBottom: 12,
+                      }}
+                    >
+                      <View>
+                        <Text
+                          style={{
+                            fontSize: 11,
+                            color: "#888",
+                            marginBottom: 4,
+                          }}
+                        >
+                          NEXT SERVICE
+                        </Text>
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            alignItems: "center",
+                            gap: 4,
+                          }}
+                        >
+                          <Ionicons
+                            name="calendar-outline"
+                            size={14}
+                            color="#1a1a1a"
+                          />
+                          <Text
+                            style={{
+                              fontSize: 13,
+                              fontWeight: "600",
+                              color: "#1a1a1a",
+                            }}
+                          >
+                            {(() => {
+                              const startDate = new Date(
+                                sub.startDate || new Date(),
+                              );
+                              const completed = sub.servicesCompleted || 0;
+                              const nextServiceDate = new Date(startDate);
+                              nextServiceDate.setDate(
+                                startDate.getDate() + completed,
+                              );
+
+                              return nextServiceDate.toLocaleDateString(
+                                "en-US",
+                                {
+                                  month: "short",
+                                  day: "numeric",
+                                  year: "numeric",
+                                },
+                              );
+                            })()}
+                          </Text>
+                        </View>
+                      </View>
+                      <View>
+                        <Text
+                          style={{
+                            fontSize: 11,
+                            color: "#888",
+                            marginBottom: 4,
+                          }}
+                        >
+                          TIME SLOT
+                        </Text>
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            alignItems: "center",
+                            gap: 4,
+                          }}
+                        >
+                          <Ionicons
+                            name="time-outline"
+                            size={14}
+                            color="#1a1a1a"
+                          />
+                          <Text
+                            style={{
+                              fontSize: 13,
+                              fontWeight: "600",
+                              color: "#1a1a1a",
+                            }}
+                          >
+                            {sub.timeSlot || "09:00 AM"}
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
+
+                    {/* Add-ons Section */}
+                    {sub.nextServiceAddons &&
+                      sub.nextServiceAddons.length > 0 && (
+                        <View
+                          style={{
+                            marginBottom: 12,
+                            backgroundColor: "#FAFAFA",
+                            padding: 8,
+                            borderRadius: 8,
+                            borderWidth: 1,
+                            borderColor: "#EEE",
+                          }}
+                        >
+                          <Text
+                            style={{
+                              fontSize: 10,
+                              color: "#888",
+                              marginBottom: 6,
+                              fontWeight: "700",
+                              letterSpacing: 0.5,
+                            }}
+                          >
+                            ADD-ONS INCLUDED IN NEXT SERVICE
+                          </Text>
+                          <View
+                            style={{
+                              flexDirection: "row",
+                              flexWrap: "wrap",
+                              gap: 4,
+                            }}
+                          >
+                            {(() => {
+                              const startDate = new Date(
+                                sub.startDate || new Date(),
+                              );
+                              const completed = sub.servicesCompleted || 0;
+                              const nextServiceDate = new Date(startDate);
+                              nextServiceDate.setDate(
+                                startDate.getDate() + completed,
+                              );
+
+                              const targetDateStr =
+                                nextServiceDate.toDateString();
+
+                              const displayAddons = (
+                                sub.nextServiceAddons || []
+                              ).filter((a: any) => {
+                                if (!a.serviceDate) return true;
+
+                                return (
+                                  new Date(a.serviceDate).toDateString() ===
+                                  targetDateStr
+                                );
+                              });
+
+                              if (displayAddons.length === 0) return null;
+
+                              return displayAddons.map(
+                                (addon: any, idx: number) => (
+                                  <View
+                                    key={idx}
+                                    style={{
+                                      flexDirection: "row",
+                                      alignItems: "center",
+                                      backgroundColor: "#fff",
+                                      paddingHorizontal: 8,
+                                      paddingVertical: 4,
+                                      borderRadius: 6,
+                                      borderWidth: 1,
+                                      borderColor: "#E0E0E0",
+                                    }}
+                                  >
+                                    <Ionicons
+                                      name="add-circle"
+                                      size={14}
+                                      color="#2E7D32"
+                                      style={{ marginRight: 4 }}
+                                    />
+                                    <Text
+                                      style={{
+                                        fontSize: 12,
+                                        color: "#1a1a1a",
+                                        fontWeight: "600",
+                                      }}
+                                    >
+                                      {addon.name}
+                                    </Text>
+                                  </View>
+                                ),
+                              );
+                            })()}
+                          </View>
+                        </View>
+                      )}
+
+                    {/* Action Button */}
+                    <View
+                      style={{
+                        backgroundColor: "#1a1a1a",
+                        paddingVertical: 10,
+                        borderRadius: 12,
+                        flexDirection: "row",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <Text
+                        style={{
+                          color: "#fff",
+                          fontSize: 13,
+                          fontWeight: "700",
+                          marginRight: 6,
+                        }}
+                      >
+                        View Full Schedule
+                      </Text>
+                      <Ionicons
+                        name="arrow-forward"
+                        size={14}
+                        color="#D1F803"
+                      />
+                    </View>
+                  </View>
+                </TouchableOpacity>
+                /* End Subscription Card */
+              ))}
+            </>
+          );
+        }}
         renderItem={renderItem}
         onRefresh={refetch}
         refreshing={isFetching}
-        ListEmptyComponent={() => (
-          <View style={{ alignItems: "center", marginTop: 80 }}>
-            <Ionicons name="calendar-outline" size={60} color="#CBD5E1" />
-            <Text style={{ fontSize: 18, fontWeight: "600", marginTop: 16 }}>
-              No upcoming bookings
-            </Text>
-            <Text style={{ color: "#64748B", marginTop: 6 }}>
-              Book a service to see it here
-            </Text>
-          </View>
-        )}
+        ListEmptyComponent={() => {
+          if (activeSubs.length > 0) return null;
+          return (
+            <View style={{ alignItems: "center", marginTop: 80 }}>
+              <Ionicons name="calendar-outline" size={60} color="#CBD5E1" />
+              <Text style={{ fontSize: 18, fontWeight: "600", marginTop: 16 }}>
+                No upcoming bookings
+              </Text>
+              <Text style={{ color: "#64748B", marginTop: 6 }}>
+                Book a service to see it here
+              </Text>
+            </View>
+          );
+        }}
       />
 
       {/* Bottom Sheet */}

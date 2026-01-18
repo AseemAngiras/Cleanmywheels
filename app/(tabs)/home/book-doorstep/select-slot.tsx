@@ -54,7 +54,7 @@ export default function SelectSlotScreen() {
       navigation.getParent()?.setOptions({
         tabBarStyle: { display: "none" },
       });
-    }, [navigation])
+    }, [navigation]),
   );
 
   const [name, setName] = useState("");
@@ -137,13 +137,13 @@ export default function SelectSlotScreen() {
   const inputRefs = useRef<Array<TextInput | null>>([]);
 
   const [registrationToken, setRegistrationToken] = useState<string | null>(
-    null
+    null,
   );
   const guestAddresses = useSelector(
-    (state: RootState) => state.profile.addresses
+    (state: RootState) => state.profile.addresses,
   );
   const currentBooking = useSelector(
-    (state: RootState) => state.bookings.currentBooking
+    (state: RootState) => state.bookings.currentBooking,
   );
 
   const handleSendOtp = async () => {
@@ -181,7 +181,7 @@ export default function SelectSlotScreen() {
         setRegistrationToken(token);
         console.log(
           "Registration token saved:",
-          token.substring(0, 20) + "..."
+          token.substring(0, 20) + "...",
         );
       } else {
         console.warn("No token in register response!");
@@ -192,7 +192,7 @@ export default function SelectSlotScreen() {
       console.error("Auth request failed:", JSON.stringify(err, null, 2));
       Alert.alert(
         "Error",
-        err?.data?.message || "Something went wrong. Try adding your name."
+        err?.data?.message || "Something went wrong. Try adding your name.",
       );
     }
   };
@@ -245,12 +245,12 @@ export default function SelectSlotScreen() {
         if (finalToken) {
           console.log(
             " [SelectSlot] Final token stored in Redux:",
-            finalToken.substring(0, 10) + "..."
+            finalToken.substring(0, 10) + "...",
           );
           dispatch(loginSuccess(finalToken));
         } else {
           console.warn(
-            " [SelectSlot] No token found in response or local state!"
+            " [SelectSlot] No token found in response or local state!",
           );
         }
 
@@ -288,7 +288,8 @@ export default function SelectSlotScreen() {
         userName: userName || name,
         userPhone: userPhone || phoneNumber,
         selectedDate: dateOnly,
-        selectedTime: timeSlots.find((s: TimeSlot) => s.id === selectedSlot)?.time,
+        selectedTime: timeSlots.find((s: TimeSlot) => s.id === selectedSlot)
+          ?.time,
         selectedTimeSlotId: selectedSlot,
         servicePrice: params.basePrice as string,
         totalPrice: (params.totalPrice || params.basePrice) as string,
@@ -683,10 +684,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     paddingHorizontal: 20,
-    justifyContent: "space-between", // Changed from gap to space-between
+    justifyContent: "space-between",
   },
   timeGridItem: {
-    width: "31%", // roughly 3 per row
+    width: "31%",
     paddingVertical: 15,
     backgroundColor: "#fff",
     borderRadius: 12,
@@ -754,7 +755,7 @@ const styles = StyleSheet.create({
   placeholderSummary: { fontSize: 14, color: "#ccc", fontStyle: "italic" },
 
   continueButton: {
-    backgroundColor: "#C8F000", // Yellow
+    backgroundColor: "#C8F000",
     paddingVertical: 15,
     paddingHorizontal: 25,
     borderRadius: 30,
@@ -859,18 +860,18 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     marginBottom: 20,
-    paddingHorizontal: 10, // Reduced padding to give more space
+    paddingHorizontal: 10,
   },
   otpBox: {
-    width: 45, // Reduced from 60
-    height: 55, // Reduced from 60
+    width: 45,
+    height: 55,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#f0f0f0',
-    fontSize: 20, // Slightly smaller font
-    fontWeight: 'bold',
-    color: '#1a1a1a',
-    backgroundColor: '#f9f9f9',
-    textAlign: 'center'
+    borderColor: "#f0f0f0",
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#1a1a1a",
+    backgroundColor: "#f9f9f9",
+    textAlign: "center",
   },
 });

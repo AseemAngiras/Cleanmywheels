@@ -24,7 +24,7 @@ class SocketService {
 
     this.socket = io(socketUrl, {
       query: { userId },
-      transports: ["websocket", "polling"], // Ensure websocket is first or default
+      transports: ["websocket", "polling"],
       reconnection: true,
       reconnectionAttempts: 5,
       extraHeaders: {
@@ -45,9 +45,7 @@ class SocketService {
       console.log("Socket disconnected");
     });
 
-    // Custom Heartbeat
     this.socket.on("ping", () => {
-      // console.log("Received ping from server");
       this.socket?.emit("pong");
     });
 

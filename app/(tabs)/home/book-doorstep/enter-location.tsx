@@ -40,7 +40,7 @@ export default function EnterLocationScreen() {
   const [triggerGetAddresses] = useLazyGetAddressesQuery();
 
   const savedAddresses = useSelector(
-    (state: RootState) => state.profile.addresses
+    (state: RootState) => state.profile.addresses,
   );
 
   const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
@@ -57,17 +57,15 @@ export default function EnterLocationScreen() {
 
   const [isAddressDropdownOpen, setIsAddressDropdownOpen] = useState(false);
   const defaultAddressId = useSelector(
-    (state: RootState) => state.profile.defaultAddressId
+    (state: RootState) => state.profile.defaultAddressId,
   );
 
-  // Sync default address on mount
   React.useEffect(() => {
     if (
       savedAddresses.length > 0 &&
       !selectedSavedAddressId &&
       !isFromProfile
     ) {
-      // If we have a default preference, use it
       if (defaultAddressId) {
         const def = savedAddresses.find((a) => a.id === defaultAddressId);
         if (def) {
@@ -76,12 +74,6 @@ export default function EnterLocationScreen() {
           return;
         }
       }
-      // Fallback to first if needed? Or keep null.
-      // User asked "default address in profile should be default selected".
-      // If no default is set in profile, we might leave it or pick first.
-      // Let's stick to only selecting if defaultAddressId exists to be safe,
-      // but typically we might want to select *something*.
-      // For now, consistent with "profile" logic which falls back to [0].
       if (!defaultAddressId && savedAddresses[0]) {
         setSelectedSavedAddressId(savedAddresses[0].id);
         fillAddressInputs(savedAddresses[0]);
@@ -121,7 +113,7 @@ export default function EnterLocationScreen() {
     setSelectedCoord(
       addr.latitude && addr.longitude
         ? { lat: addr.latitude, long: addr.longitude }
-        : null
+        : null,
     );
   };
 
@@ -216,12 +208,12 @@ export default function EnterLocationScreen() {
 
     if (selectedSavedAddressId) {
       const savedAddr = savedAddresses.find(
-        (a) => a.id === selectedSavedAddressId
+        (a) => a.id === selectedSavedAddressId,
       );
       dispatch(
         setBookingAddress({
           addressId: selectedSavedAddressId,
-        })
+        }),
       );
 
       if (isFromProfile) {
@@ -291,13 +283,13 @@ export default function EnterLocationScreen() {
 
       const newAddress = addressList.find(
         (addr: any) =>
-          addr.fullAddress === fullAddress && addr.addressType === addressType
+          addr.fullAddress === fullAddress && addr.addressType === addressType,
       );
 
       if (newAddress) {
         dispatch(addAddress(newAddress));
         dispatch(
-          setBookingAddress({ addressId: newAddress.id || newAddress._id })
+          setBookingAddress({ addressId: newAddress.id || newAddress._id }),
         );
 
         if (isFromProfile) {
@@ -424,12 +416,12 @@ export default function EnterLocationScreen() {
                   <View style={{ flex: 1 }}>
                     <Text style={styles.rowTitle}>
                       {savedAddresses.find(
-                        (a) => a.id === selectedSavedAddressId
+                        (a) => a.id === selectedSavedAddressId,
                       )?.addressType || "Select Address"}
                     </Text>
                     <Text style={styles.rowSubtitle} numberOfLines={1}>
                       {savedAddresses.find(
-                        (a) => a.id === selectedSavedAddressId
+                        (a) => a.id === selectedSavedAddressId,
                       )?.fullAddress || "Choose from saved addresses"}
                     </Text>
                   </View>
@@ -461,7 +453,6 @@ export default function EnterLocationScreen() {
                           ]}
                           onPress={() => {
                             setSelectedSavedAddressId(addr.id);
-                            // Also fill inputs logic
                             fillAddressInputs(addr);
                             setErrorMsg("");
 
@@ -483,16 +474,16 @@ export default function EnterLocationScreen() {
                                 isSelected
                                   ? "checkmark"
                                   : isDefault
-                                  ? "star"
-                                  : "location-outline"
+                                    ? "star"
+                                    : "location-outline"
                               }
                               size={16}
                               color={
                                 isSelected
                                   ? "#166534"
                                   : isDefault
-                                  ? "#EAB308"
-                                  : "#666"
+                                    ? "#EAB308"
+                                    : "#666"
                               }
                             />
                           </View>
@@ -727,11 +718,11 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 20,
-    paddingVertical: 12, // Reduced from 15
+    paddingVertical: 12,
     backgroundColor: "#fff",
   },
   backButton: {
-    width: 36, // Reduced slightly
+    width: 36,
     height: 36,
     backgroundColor: "#f5f5f5",
     borderRadius: 18,
@@ -745,16 +736,16 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingBottom: 90, // Reduced from 100
+    paddingBottom: 90,
   },
 
   currentLocationRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 10, // Reduced from 20
+    marginBottom: 10,
   },
   locationIconBg: {
-    width: 36, // Reduced from 40
+    width: 36,
     height: 36,
     borderRadius: 18,
     backgroundColor: "#FFF9C4",
@@ -767,30 +758,30 @@ const styles = StyleSheet.create({
   divider: {
     height: 1,
     backgroundColor: "#f0f0f0",
-    marginBottom: 15, // Reduced from 25
+    marginBottom: 15,
     marginTop: 10,
   },
   sectionHeader: {
     fontSize: 12,
     color: "#666",
     fontWeight: "bold",
-    marginBottom: 12, // Reduced from 20
+    marginBottom: 12,
     letterSpacing: 0.5,
     textTransform: "uppercase",
   },
   input: {
     backgroundColor: "#f5f5f5",
-    borderRadius: 12, // Reduced radius slightly
-    paddingHorizontal: 15, // Reduced padding
-    paddingVertical: 14, // Reduced height
+    borderRadius: 12,
+    paddingHorizontal: 15,
+    paddingVertical: 14,
     fontSize: 14,
     color: "#1a1a1a",
-    marginBottom: 12, // Reduced from 15
+    marginBottom: 12,
   },
   tagRow: {
     flexDirection: "row",
-    marginTop: 5, // Reduced from 10
-    marginBottom: 20, // Reduced from 30
+    marginTop: 5,
+    marginBottom: 20,
   },
   tag: {
     flexDirection: "row",

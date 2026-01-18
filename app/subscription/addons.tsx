@@ -1,136 +1,185 @@
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   ActivityIndicator,
   Alert,
   Image,
-  Modal,
+  NativeModules,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import RazorpayCheckout from "react-native-razorpay";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
-import { useCreateBookingMutation } from "@/store/api/bookingApi";
-import { useGetWashPackagesQuery } from "@/store/api/washPackageApi";
-import { useGetMySubscriptionQuery } from "@/store/api/subscriptionApi";
+import {
+  useGetAddonsQuery,
+  useCreateAddonOrderMutation,
+  useVerifyAddonPaymentMutation,
+  useGetMySubscriptionQuery,
+} from "@/store/api/subscriptionApi";
 
-const SLOTS = [
-  "09:00 AM - 10:00 AM",
-  "10:00 AM - 11:00 AM",
-  "11:00 AM - 12:00 PM",
-  "12:00 PM - 01:00 PM",
-  "02:00 PM - 03:00 PM",
-  "03:00 PM - 04:00 PM",
-  "04:00 PM - 05:00 PM",
-];
+const RAZORPAY_KEY =
+  process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID ||
+  process.env.RAZORPAY_KEY_ID ||
+  "rzp_test_1DP5mmOlF5G5ag";
+const APP_NAME = "CleanMyWheels";
 
 export default function AddonsScreen() {
   const router = useRouter();
-  const user = useSelector((state: RootState) => state.user.user);
-  const profileAddress = useSelector(
-    (state: RootState) =>
-      state.profile.addresses.find(
-        (a) => a.id === state.profile.defaultAddressId
-      ) || state.profile.addresses[0]
+
+  const { data: subscriptions, isLoading: isSubLoading } =
+    useGetMySubscriptionQuery(undefined);
+
+  const activeSubscriptions = Array.isArray(subscriptions)
+    ? subscriptions.filter((s: any) => s.status === "active")
+    : (subscriptions as any)?.status === "active"
+      ? [subscriptions]
+      : [];
+
+  const { data: addonsList, isLoading: isAddonsLoading } =
+    useGetAddonsQuery(undefined);
+
+  const [createAddonOrder, { isLoading: isCreatingOrder }] =
+    useCreateAddonOrderMutation();
+  const [verifyAddonPayment, { isLoading: isVerifying }] =
+    useVerifyAddonPaymentMutation();
+  const [selectedAddons, setSelectedAddons] = useState<any[]>([]);
+  const [selectedSubId, setSelectedSubId] = useState<string | null>(null);
+  const [serviceDate, setServiceDate] = useState<Date>(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  useEffect(() => {
+    if (activeSubscriptions.length > 0 && !selectedSubId) {
+      setSelectedSubId(activeSubscriptions[0]?._id ?? null);
+    }
+  }, [activeSubscriptions, selectedSubId]);
+
+  const activeSubscription = activeSubscriptions.find(
+    (s: any) => s._id === selectedSubId,
   );
 
-  // Default to first car if available
-  const subscribedCar = user?.cars?.[0]
-    ? `${user.cars[0].brand} ${user.cars[0].model} - ${user.cars[0].number}`
-    : "No Vehicle Selected";
-
-  const { data: subscription, isLoading: isSubLoading } =
-    useGetMySubscriptionQuery();
-  const { data: packagesData, isLoading: isPackagesLoading } =
-    useGetWashPackagesQuery();
-  const [createBooking, { isLoading: isBooking }] = useCreateBookingMutation();
-
-  const [selectedPackage, setSelectedPackage] = useState<any>(null);
-  const [showBookingModal, setShowBookingModal] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
-
-  // Generate next 7 days
-  const dates = Array.from({ length: 7 }, (_, i) => {
-    const d = new Date();
-    d.setDate(d.getDate() + i + 1); // Start from tomorrow? or today? Let's say today + future
-    return d;
-  });
-
-  const handleBookPress = (pkg: any) => {
-    setSelectedPackage(pkg);
-    setShowBookingModal(true);
+  const toggleAddon = (addon: any) => {
+    setSelectedAddons((prev) => {
+      const exists = prev.find((a) => a._id === addon._id);
+      if (exists) {
+        return prev.filter((a) => a._id !== addon._id);
+      } else {
+        return [...prev, addon];
+      }
+    });
   };
 
-  const handleConfirmBooking = async () => {
-    if (!selectedPackage || !selectedSlot) {
-      Alert.alert("Missing Details", "Please select a time slot.");
+  const totalAmount = selectedAddons.reduce(
+    (sum, item) => sum + (item.price || 0),
+    0,
+  );
+
+  const handlePayment = async () => {
+    if (!activeSubscription) {
+      Alert.alert("Error", "No active subscription selected.");
+      return;
+    }
+    if (selectedAddons.length === 0) {
+      Alert.alert("Select Add-ons", "Please select at least one add-on.");
       return;
     }
 
-    if (!profileAddress) {
-      Alert.alert(
-        "Address Needed",
-        "Please add an address in your profile first."
-      );
+    const now = new Date();
+    if (serviceDate < new Date(now.setHours(0, 0, 0, 0))) {
+      Alert.alert("Invalid Date", "Please select a future date or today.");
+      return;
+    }
+    const subEnd = new Date(activeSubscription.endDate);
+    if (serviceDate > subEnd) {
+      Alert.alert("Invalid Date", "Date cannot be after subscription expiry.");
       return;
     }
 
     try {
-      // Prepare Payload
-      const payload = {
-        serviceId: selectedPackage._id,
-        serviceName: selectedPackage.name,
-        price: selectedPackage.price,
-        date: selectedDate.toISOString(),
-        timeSlot: selectedSlot,
-        address: profileAddress,
-        car: subscribedCar,
-        status: "pending",
-        user: user?._id,
+      const orderPayload = {
+        amount: totalAmount,
+        subscriptionId: activeSubscription._id,
+        addons: selectedAddons,
+        serviceDate: serviceDate.toISOString(),
       };
 
-      await createBooking(payload).unwrap();
+      console.log("Creating Addon Order:", orderPayload);
+      const response = await createAddonOrder(orderPayload).unwrap();
+      const { paymentLinkUrl, subscriptionId, referenceId } = response;
+      console.log("Order Created:", response);
 
-      Alert.alert("Success", "Add-on service booked successfully!", [
+      if (paymentLinkUrl) {
+        router.push({
+          pathname: "/(tabs)/home/book-doorstep/payment-webview",
+          params: {
+            url: paymentLinkUrl,
+            bookingId: referenceId,
+            type: "ADDON",
+            subscriptionId: subscriptionId,
+            addons: JSON.stringify(selectedAddons),
+            grandTotal: totalAmount,
+            vehicleType: activeSubscription.vehicle?.brand || "Vehicle",
+            vehicleNumber: activeSubscription.vehicle?.vehicleNo || "",
+            serviceDate: serviceDate.toISOString(),
+            serviceName: "Add-on Services",
+            address: "Your Location",
+          },
+        } as any);
+        return;
+      }
+
+      Alert.alert("Error", "Failed to generate payment link.");
+    } catch (err: any) {
+      console.error("Payment Start Error:", err);
+      Alert.alert("Error", err?.data?.message || "Failed to create order");
+    }
+  };
+
+  const processVerification = async (
+    paymentId: string,
+    orderId: string,
+    signature: string,
+  ) => {
+    try {
+      console.log("Verifying Payment:", { paymentId, orderId, signature });
+      await verifyAddonPayment({
+        razorpay_payment_id: paymentId,
+        razorpay_order_id: orderId,
+        razorpay_signature: signature,
+        subscriptionId: activeSubscription!._id,
+        addons: selectedAddons,
+      }).unwrap();
+
+      Alert.alert("Success!", "Add-ons added to your upcoming service.", [
         {
           text: "OK",
           onPress: () => {
-            setShowBookingModal(false);
+            setSelectedAddons([]);
             router.back();
           },
         },
       ]);
     } catch (err: any) {
+      console.error("Verification Error:", err);
       Alert.alert(
-        "Booking Failed",
-        err?.data?.message || "Something went wrong."
+        "Verification Failed",
+        `Payment verification failed: ${err?.data?.message || "Unknown error"}. Please contact support.`,
       );
     }
   };
 
-  const renderDateItem = (date: Date) => {
-    const isSelected = date.toDateString() === selectedDate.toDateString();
+  if (isSubLoading || isAddonsLoading) {
     return (
-      <TouchableOpacity
-        key={date.toISOString()}
-        style={[styles.dateCard, isSelected && styles.dateCardSelected]}
-        onPress={() => setSelectedDate(date)}
-      >
-        <Text style={[styles.dayText, isSelected && styles.textSelected]}>
-          {date.toLocaleDateString("en-US", { weekday: "short" })}
-        </Text>
-        <Text style={[styles.dateText, isSelected && styles.textSelected]}>
-          {date.getDate()}
-        </Text>
-      </TouchableOpacity>
+      <View style={[styles.container, styles.center]}>
+        <ActivityIndicator size="large" color="#C8F000" />
+      </View>
     );
-  };
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -139,391 +188,377 @@ export default function AddonsScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <Ionicons name="arrow-back" size={24} color="#1a1a1a" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Subscription & Add-ons</Text>
+        <Text style={styles.headerTitle}>Add-ons</Text>
       </View>
 
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Active Subscription Card */}
-        <View style={styles.subscriptionCard}>
-          <View style={styles.subHeader}>
-            <View>
-              <Text style={styles.subTitle}>My Premium Plan</Text>
-              <Text style={styles.subCar}>{subscribedCar}</Text>
-            </View>
-            <View style={styles.statusBadge}>
-              <Text style={styles.statusText}>
-                {subscription?.status === "active" ? "ACTIVE" : "INACTIVE"}
-              </Text>
-            </View>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        {/* Car Selection */}
+        <Text style={styles.sectionTitle}>Select Vehicle</Text>
+        <Text style={styles.sectionSubtitle}>
+          Which car would you like to add services for?
+        </Text>
+
+        {activeSubscriptions.length === 0 ? (
+          <View style={styles.emptyCard}>
+            <Ionicons name="car-sport-outline" size={40} color="#666" />
+            <Text style={styles.emptyText}>No Active Subscriptions Found</Text>
           </View>
-
-          <View style={styles.divider} />
-
-          <View style={styles.subDetails}>
-            <View>
-              <Text style={styles.detailLabel}>Plan</Text>
-              <Text style={styles.detailValue}>
-                {subscription?.plan?.name || "Gold Plan"}
-              </Text>
-            </View>
-            <View>
-              <Text style={styles.detailLabel}>Expires On</Text>
-              <Text style={styles.detailValue}>
-                {subscription?.endDate
-                  ? new Date(subscription.endDate).toLocaleDateString()
-                  : "N/A"}
-              </Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Add-ons List */}
-        <Text style={styles.sectionTitle}>Available Add-ons</Text>
-        <Text style={styles.sectionSubtitle}>Extra care for your ride</Text>
-
-        {isPackagesLoading ? (
-          <ActivityIndicator
-            size="large"
-            color="#C8F000"
-            style={{ marginTop: 20 }}
-          />
         ) : (
-          <View style={styles.packageList}>
-            {packagesData?.data?.washPackageList.map((pkg: any) => (
-              <View key={pkg._id} style={styles.addonCard}>
-                <Image
-                  source={{
-                    uri:
-                      pkg.logo ||
-                      "https://images.unsplash.com/photo-1601362840469-51e4d8d58785?w=200",
-                  }}
-                  style={styles.addonImage}
-                />
-                <View style={styles.addonInfo}>
-                  <Text style={styles.addonName}>{pkg.name}</Text>
-                  <Text style={styles.addonPrice}>₹{pkg.price}</Text>
-                </View>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.carList}
+            contentContainerStyle={{ gap: 12 }}
+          >
+            {activeSubscriptions.map((sub: any) => {
+              const isSelected = sub._id === selectedSubId;
+              const vehicleName = sub.vehicle?.vehicleType || "Vehicle";
+              const vehicleNo = sub.vehicle?.vehicleNo || "No Number";
+
+              return (
                 <TouchableOpacity
-                  style={styles.addButton}
-                  onPress={() => handleBookPress(pkg)}
+                  key={sub._id}
+                  style={[styles.carCard, isSelected && styles.carCardSelected]}
+                  onPress={() => setSelectedSubId(sub._id)}
+                  activeOpacity={0.8}
                 >
-                  <Text style={styles.addButtonText}>Add +</Text>
+                  <View style={styles.iconCircle}>
+                    <Ionicons
+                      name="car"
+                      size={24}
+                      color={isSelected ? "#C8F000" : "#666"}
+                    />
+                  </View>
+                  <View>
+                    <Text
+                      style={[
+                        styles.carName,
+                        isSelected && styles.textSelected,
+                      ]}
+                    >
+                      {vehicleName}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.carNumber,
+                        isSelected && styles.textDetailSelected,
+                      ]}
+                    >
+                      {vehicleNo}
+                    </Text>
+                  </View>
+                  {isSelected && (
+                    <View style={styles.checkBadge}>
+                      <Ionicons name="checkmark" size={12} color="#000" />
+                    </View>
+                  )}
                 </TouchableOpacity>
-              </View>
-            ))}
-          </View>
+              );
+            })}
+          </ScrollView>
         )}
-      </ScrollView>
 
-      {/* Booking Modal */}
-      <Modal
-        visible={showBookingModal}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setShowBookingModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>
-                Book {selectedPackage?.name}
-              </Text>
-              <TouchableOpacity onPress={() => setShowBookingModal(false)}>
-                <Ionicons name="close" size={24} color="#666" />
-              </TouchableOpacity>
-            </View>
-
-            <Text style={styles.modalLabel}>Select Date</Text>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              style={styles.datesScroll}
-            >
-              {dates.map(renderDateItem)}
-            </ScrollView>
-
-            <Text style={styles.modalLabel}>Select Slot</Text>
-            <View style={styles.slotsGrid}>
-              {SLOTS.map((slot) => (
-                <TouchableOpacity
-                  key={slot}
-                  style={[
-                    styles.slotItem,
-                    selectedSlot === slot && styles.slotSelected,
-                  ]}
-                  onPress={() => setSelectedSlot(slot)}
-                >
-                  <Text
-                    style={[
-                      styles.slotText,
-                      selectedSlot === slot && styles.textSelected,
-                    ]}
-                  >
-                    {slot}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
+        {/* Date Selection */}
+        {activeSubscription && (
+          <View style={{ marginTop: 24 }}>
+            <Text style={styles.sectionTitle}>Select Date</Text>
+            <Text style={styles.sectionSubtitle}>
+              When do you want this service?
+            </Text>
 
             <TouchableOpacity
-              style={styles.confirmButton}
-              onPress={handleConfirmBooking}
-              disabled={isBooking}
+              style={styles.dateButton}
+              onPress={() => setShowDatePicker(true)}
             >
-              {isBooking ? (
-                <ActivityIndicator color="#1a1a1a" />
-              ) : (
-                <Text style={styles.confirmButtonText}>
-                  Confirm Booking • ₹{selectedPackage?.price}
-                </Text>
-              )}
+              <Ionicons name="calendar-outline" size={20} color="#1a1a1a" />
+              <Text style={styles.dateText}>{serviceDate.toDateString()}</Text>
+              <Ionicons name="chevron-down" size={16} color="#666" />
             </TouchableOpacity>
+
+            {showDatePicker && (
+              <DateTimePicker
+                value={serviceDate}
+                mode="date"
+                display="default"
+                minimumDate={new Date()}
+                maximumDate={new Date(activeSubscription.endDate)}
+                onChange={(event, date) => {
+                  setShowDatePicker(false);
+                  if (date) setServiceDate(date);
+                }}
+              />
+            )}
           </View>
+        )}
+
+        {/* Add-ons List */}
+        {activeSubscription && (
+          <>
+            <Text style={[styles.sectionTitle, { marginTop: 24 }]}>
+              Select Services
+            </Text>
+            <Text style={styles.sectionSubtitle}>
+              For {activeSubscription.vehicle?.brand || "your vehicle"}
+            </Text>
+
+            <View style={styles.listContainer}>
+              {addonsList?.map((addon: any) => {
+                const isSelected = selectedAddons.some(
+                  (a) => a._id === addon._id,
+                );
+                return (
+                  <TouchableOpacity
+                    key={addon._id}
+                    style={[
+                      styles.addonCard,
+                      isSelected && styles.addonCardSelected,
+                    ]}
+                    onPress={() => toggleAddon(addon)}
+                    activeOpacity={0.8}
+                  >
+                    <Image
+                      source={{
+                        uri:
+                          addon.icon ||
+                          "https://cdn-icons-png.flaticon.com/512/2099/2099192.png",
+                      }}
+                      style={styles.addonIcon}
+                    />
+                    <View style={styles.addonContent}>
+                      <Text
+                        style={[
+                          styles.addonName,
+                          isSelected && styles.textSelected,
+                        ]}
+                      >
+                        {addon.name}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.addonDesc,
+                          isSelected && styles.textDetailSelected,
+                        ]}
+                        numberOfLines={2}
+                      >
+                        {addon.description}
+                      </Text>
+                    </View>
+                    <View style={styles.priceContainer}>
+                      <Text
+                        style={[
+                          styles.addonPrice,
+                          isSelected && styles.textSelected,
+                        ]}
+                      >
+                        ₹{addon.price}
+                      </Text>
+                      {isSelected && (
+                        <Ionicons
+                          name="checkmark-circle"
+                          size={20}
+                          color="#C8F000"
+                          style={{ marginTop: 4 }}
+                        />
+                      )}
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </>
+        )}
+
+        {/* Spacer for bottom bar */}
+        <View style={{ height: 100 }} />
+      </ScrollView>
+
+      {/* Bottom Bar */}
+      {selectedAddons.length > 0 && activeSubscription && (
+        <View style={styles.bottomBar}>
+          <View>
+            <Text style={styles.totalLabel}>Total Amount</Text>
+            <Text style={styles.totalValue}>₹{totalAmount}</Text>
+          </View>
+          <TouchableOpacity
+            style={styles.payButton}
+            onPress={handlePayment}
+            disabled={isCreatingOrder || isVerifying}
+          >
+            {isCreatingOrder || isVerifying ? (
+              <ActivityIndicator color="#1a1a1a" />
+            ) : (
+              <Text style={styles.payButtonText}>Proceed to Pay</Text>
+            )}
+          </TouchableOpacity>
         </View>
-      </Modal>
+      )}
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F9F9F9",
-  },
+  container: { flex: 1, backgroundColor: "#F8F9FA" },
+  center: { justifyContent: "center", alignItems: "center" },
   header: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 20,
+    padding: 16,
     backgroundColor: "#fff",
   },
-  backBtn: {
-    padding: 4,
-  },
+  backBtn: { padding: 4 },
   headerTitle: {
     fontSize: 18,
     fontWeight: "bold",
     marginLeft: 16,
     color: "#1a1a1a",
   },
-  scrollContent: {
-    padding: 20,
-    paddingBottom: 40,
+  scrollContent: { padding: 20 },
+
+  carList: {
+    flexGrow: 0,
+    marginBottom: 10,
   },
-  subscriptionCard: {
-    backgroundColor: "#1a1a1a",
-    borderRadius: 20,
-    padding: 20,
-    marginBottom: 24,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  subHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-  },
-  subTitle: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: 4,
-  },
-  subCar: {
-    color: "#aaa",
-    fontSize: 14,
-  },
-  statusBadge: {
-    backgroundColor: "#C8F000",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  statusText: {
-    fontSize: 10,
-    fontWeight: "bold",
-    color: "#1a1a1a",
-  },
-  divider: {
-    height: 1,
-    backgroundColor: "#333",
-    marginTop: 16,
-    marginBottom: 16,
-  },
-  subDetails: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  detailLabel: {
-    color: "#888",
-    fontSize: 12,
-    marginBottom: 2,
-  },
-  detailValue: {
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: "600",
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#1a1a1a",
-    marginBottom: 4,
-  },
-  sectionSubtitle: {
-    fontSize: 14,
-    color: "#666",
-    marginBottom: 16,
-  },
-  packageList: {
-    gap: 12,
-  },
-  addonCard: {
+  carCard: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#fff",
     padding: 12,
     borderRadius: 16,
+    width: 220,
+    borderWidth: 1,
+    borderColor: "#eee",
+    marginRight: 10,
+  },
+  carCardSelected: {
+    backgroundColor: "#1a1a1a",
+    borderColor: "#1a1a1a",
+  },
+  iconCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#f5f5f5",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+  carName: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: "#1a1a1a",
+  },
+  carNumber: {
+    fontSize: 12,
+    color: "#666",
+  },
+  checkBadge: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    backgroundColor: "#C8F000",
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  emptyCard: {
+    padding: 30,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#fff",
+    borderRadius: 16,
+  },
+  emptyText: {
+    marginTop: 10,
+    color: "#666",
+    fontWeight: "500",
+  },
+
+  sectionTitle: { fontSize: 18, fontWeight: "bold", color: "#1a1a1a" },
+  sectionSubtitle: {
+    fontSize: 14,
+    color: "#666",
+    marginBottom: 16,
+    marginTop: 4,
+  },
+
+  listContainer: { gap: 12 },
+  addonCard: {
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    padding: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#eee",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
   },
-  addonImage: {
-    width: 50,
-    height: 50,
-    borderRadius: 10,
+  addonCardSelected: {
+    backgroundColor: "#1a1a1a",
+    borderColor: "#1a1a1a",
+  },
+  addonIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
     backgroundColor: "#f0f0f0",
   },
-  addonInfo: {
-    flex: 1,
-    marginLeft: 12,
-  },
-  addonName: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: "#1a1a1a",
-    marginBottom: 2,
-  },
-  addonPrice: {
-    fontSize: 14,
-    color: "#84c95c",
-    fontWeight: "bold",
-  },
-  addButton: {
-    backgroundColor: "#1a1a1a",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-  },
-  addButtonText: {
-    color: "#C8F000",
-    fontSize: 12,
-    fontWeight: "bold",
-  },
+  addonContent: { flex: 1, marginLeft: 12 },
+  addonName: { fontSize: 16, fontWeight: "600", color: "#1a1a1a" },
+  addonDesc: { fontSize: 12, color: "#666", marginTop: 2 },
+  textSelected: { color: "#fff" },
+  textDetailSelected: { color: "#ccc" },
 
-  // Modal
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "flex-end",
-  },
-  modalContent: {
-    backgroundColor: "#fff",
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 24,
-    paddingBottom: 40,
-    maxHeight: "80%",
-  },
-  modalHeader: {
+  priceContainer: { alignItems: "flex-end", minWidth: 60 },
+  addonPrice: { fontSize: 16, fontWeight: "bold", color: "#1a1a1a" },
+
+  dateButton: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 20,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#1a1a1a",
-  },
-  modalLabel: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#1a1a1a",
-    marginTop: 16,
-    marginBottom: 12,
-  },
-  datesScroll: {
-    flexGrow: 0,
-    marginBottom: 8,
-  },
-  dateCard: {
-    width: 60,
-    height: 70,
+    backgroundColor: "#fff",
+    padding: 16,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: "#eee",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 10,
-    backgroundColor: "#fafafa",
-  },
-  dateCardSelected: {
-    backgroundColor: "#1a1a1a",
-    borderColor: "#1a1a1a",
-  },
-  dayText: {
-    fontSize: 12,
-    color: "#888",
-    marginBottom: 4,
+    gap: 12,
   },
   dateText: {
+    flex: 1,
     fontSize: 16,
-    fontWeight: "bold",
-    color: "#333",
-  },
-  textSelected: {
-    color: "#C8F000",
+    color: "#1a1a1a",
+    fontWeight: "500",
   },
 
-  slotsGrid: {
+  bottomBar: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: "#fff",
+    padding: 20,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 10,
     flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 10,
-  },
-  slotItem: {
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "#eee",
-    backgroundColor: "#fafafa",
-  },
-  slotSelected: {
-    backgroundColor: "#1a1a1a",
-    borderColor: "#1a1a1a",
-  },
-  slotText: {
-    fontSize: 12,
-    color: "#333",
-  },
-  confirmButton: {
-    backgroundColor: "#C8F000",
-    marginTop: 30,
-    paddingVertical: 16,
-    borderRadius: 30,
+    justifyContent: "space-between",
     alignItems: "center",
   },
-  confirmButtonText: {
-    color: "#1a1a1a",
-    fontWeight: "bold",
-    fontSize: 16,
+  totalLabel: { fontSize: 12, color: "#666" },
+  totalValue: { fontSize: 24, fontWeight: "bold", color: "#1a1a1a" },
+  payButton: {
+    backgroundColor: "#C8F000",
+    paddingHorizontal: 32,
+    paddingVertical: 14,
+    borderRadius: 30,
   },
+  payButtonText: { fontSize: 16, fontWeight: "bold", color: "#1a1a1a" },
 });

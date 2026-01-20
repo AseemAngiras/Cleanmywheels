@@ -37,8 +37,8 @@ export default function AddonsScreen() {
     useGetMySubscriptionQuery(undefined);
 
   const activeSubscriptions = Array.isArray(subscriptions)
-    ? subscriptions.filter((s: any) => s.status === "active")
-    : (subscriptions as any)?.status === "active"
+    ? subscriptions.filter((s: any) => ["active", "ongoing"].includes(s.status))
+    : ["active", "ongoing"].includes((subscriptions as any)?.status)
       ? [subscriptions]
       : [];
 
@@ -284,7 +284,22 @@ export default function AddonsScreen() {
                 maximumDate={new Date(activeSubscription.endDate)}
                 onChange={(event, date) => {
                   setShowDatePicker(false);
-                  if (date) setServiceDate(date);
+                  if (date) {
+                    const isDone = activeSubscription.serviceHistory?.some(
+                      (h: any) =>
+                        new Date(h.date).toDateString() ===
+                          date.toDateString() && h.status === "completed",
+                    );
+
+                    if (isDone) {
+                      Alert.alert(
+                        "Service Completed",
+                        "Service for this date is already marked as done.",
+                      );
+                      return;
+                    }
+                    setServiceDate(date);
+                  }
                 }}
               />
             )}

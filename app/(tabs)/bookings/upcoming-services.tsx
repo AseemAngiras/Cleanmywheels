@@ -663,8 +663,27 @@ export default function UpcomingServices() {
                     </View>
 
                     {/* Add-ons Section */}
-                    {sub.nextServiceAddons &&
-                      sub.nextServiceAddons.length > 0 && (
+                    {(() => {
+                      const startDate = new Date(sub.startDate || new Date());
+                      const completed = sub.servicesCompleted || 0;
+                      const nextServiceDate = new Date(startDate);
+                      nextServiceDate.setDate(startDate.getDate() + completed);
+                      const targetDateStr = nextServiceDate.toDateString();
+
+                      const displayAddons = (
+                        sub.nextServiceAddons || []
+                      ).filter((a: any) => {
+                        if (!a.serviceDate) return false;
+                        return (
+                          new Date(a.serviceDate).toDateString() ===
+                          targetDateStr
+                        );
+                      });
+
+                      if (!displayAddons || displayAddons.length === 0)
+                        return null;
+
+                      return (
                         <View
                           style={{
                             marginBottom: 12,
@@ -693,69 +712,41 @@ export default function UpcomingServices() {
                               gap: 4,
                             }}
                           >
-                            {(() => {
-                              const startDate = new Date(
-                                sub.startDate || new Date(),
-                              );
-                              const completed = sub.servicesCompleted || 0;
-                              const nextServiceDate = new Date(startDate);
-                              nextServiceDate.setDate(
-                                startDate.getDate() + completed,
-                              );
-
-                              const targetDateStr =
-                                nextServiceDate.toDateString();
-
-                              const displayAddons = (
-                                sub.nextServiceAddons || []
-                              ).filter((a: any) => {
-                                if (!a.serviceDate) return true;
-
-                                return (
-                                  new Date(a.serviceDate).toDateString() ===
-                                  targetDateStr
-                                );
-                              });
-
-                              if (displayAddons.length === 0) return null;
-
-                              return displayAddons.map(
-                                (addon: any, idx: number) => (
-                                  <View
-                                    key={idx}
-                                    style={{
-                                      flexDirection: "row",
-                                      alignItems: "center",
-                                      backgroundColor: "#fff",
-                                      paddingHorizontal: 8,
-                                      paddingVertical: 4,
-                                      borderRadius: 6,
-                                      borderWidth: 1,
-                                      borderColor: "#E0E0E0",
-                                    }}
-                                  >
-                                    <Ionicons
-                                      name="add-circle"
-                                      size={14}
-                                      color="#2E7D32"
-                                      style={{ marginRight: 4 }}
-                                    />
-                                    <Text
-                                      style={{
-                                        fontSize: 12,
-                                        color: "#1a1a1a",
-                                        fontWeight: "600",
-                                      }}
-                                    >
-                                      {addon.name}
-                                    </Text>
-                                  </View>
-                                ),
-                              );
-                            })()}
+                            {displayAddons.map((addon: any, idx: number) => (
+                              <View
+                                key={idx}
+                                style={{
+                                  flexDirection: "row",
+                                  alignItems: "center",
+                                  backgroundColor: "#fff",
+                                  paddingHorizontal: 8,
+                                  paddingVertical: 4,
+                                  borderRadius: 6,
+                                  borderWidth: 1,
+                                  borderColor: "#E0E0E0",
+                                }}
+                              >
+                                <Ionicons
+                                  name="add-circle"
+                                  size={14}
+                                  color="#2E7D32"
+                                  style={{ marginRight: 4 }}
+                                />
+                                <Text
+                                  style={{
+                                    fontSize: 12,
+                                    color: "#1a1a1a",
+                                    fontWeight: "600",
+                                  }}
+                                >
+                                  {addon.name}
+                                </Text>
+                              </View>
+                            ))}
                           </View>
                         </View>
-                      )}
+                      );
+                    })()}
 
                     {/* Action Button */}
                     <View

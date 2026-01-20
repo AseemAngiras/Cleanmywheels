@@ -152,7 +152,7 @@ export default function SubscriptionDetailsScreen() {
           </View>
           <View>
             <Text style={styles.vehicleType}>
-              {subscription.vehicle?.vehicleType || "Vehicle"}
+              {subscription.vehicle?.brand || "Vehicle"}
             </Text>
             <Text style={styles.vehicleNo}>
               {subscription.vehicle?.vehicleNo || "No Number"}

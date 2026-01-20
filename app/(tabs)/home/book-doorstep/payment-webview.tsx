@@ -11,15 +11,18 @@ import {
 } from "react-native";
 import { WebView } from "react-native-webview";
 import { Ionicons } from "@expo/vector-icons";
-import { useVerifyAddonPaymentMutation } from "@/store/api/subscriptionApi";
+import {
+  useVerifyAddonPaymentMutation,
+  useVerifySubscriptionMutation,
+} from "@/store/api/subscriptionApi";
 
 export default function PaymentWebViewScreen() {
   const router = useRouter();
   const {
     url,
-    bookingId,
+    bookingId, // This is subscriptionId for subscriptions
     type,
-    subscriptionId,
+    subscriptionId, // This is explicitly passed for addons
     addons,
     grandTotal,
     vehicleType,
@@ -30,6 +33,7 @@ export default function PaymentWebViewScreen() {
   } = useLocalSearchParams();
 
   const [verifyAddonPayment] = useVerifyAddonPaymentMutation();
+  const [verifySubscription] = useVerifySubscriptionMutation();
 
   const [isLoading, setIsLoading] = useState(true);
   const [verifying, setVerifying] = useState(false);
@@ -80,6 +84,34 @@ export default function PaymentWebViewScreen() {
               addons: parsedAddons,
             }).unwrap();
           }
+        } else if (type === "SUBSCRIPTION") {
+          // Logic for Subscription Verification
+          const params = new URLSearchParams(
+            url.includes("?") ? url.split("?")[1] : "",
+          );
+
+          const razorpay_payment_id = params.get("razorpay_payment_id");
+          const razorpay_signature = params.get("razorpay_signature");
+          const razorpay_payment_link_id = params.get(
+            "razorpay_payment_link_id",
+          );
+          const razorpay_payment_link_status = params.get(
+            "razorpay_payment_link_status",
+          );
+          // payment_link_reference_id is usually the order_id for payment links
+          const razorpay_order_id = params.get(
+            "razorpay_payment_link_reference_id",
+          );
+
+          await verifySubscription({
+            razorpay_payment_id: (razorpay_payment_id as string) || "demo_id",
+            razorpay_order_id: (razorpay_order_id as string) || "demo_order",
+            razorpay_payment_link_id: razorpay_payment_link_id as string,
+            razorpay_payment_link_status:
+              razorpay_payment_link_status as string,
+            razorpay_signature: (razorpay_signature as string) || "demo_sig",
+            subscriptionId: bookingId as string, // bookingId is the subscriptionId here
+          }).unwrap();
         }
 
         // Redirect to Order Confirmation

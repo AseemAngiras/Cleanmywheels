@@ -180,7 +180,25 @@ export default function MyCarsScreen() {
     }
   };
 
+  const isVehicleSubscribed = (carId: string) => {
+    if (!subscriptions || !Array.isArray(subscriptions)) return false;
+    return subscriptions.some((sub: any) => {
+      if (!["active", "ongoing"].includes(sub.status) || !sub.vehicle)
+        return false;
+      const subCarId = sub.vehicle._id || sub.vehicle;
+      return carId === subCarId;
+    });
+  };
+
   const handleRemoveCar = (id: string) => {
+    if (isVehicleSubscribed(id)) {
+      Alert.alert(
+        "Cannot Remove",
+        "This vehicle has an active subscription. Please cancel the subscription first to remove it.",
+      );
+      return;
+    }
+
     Alert.alert("Remove Car", "Are you sure?", [
       { text: "Cancel", style: "cancel" },
       {
@@ -211,15 +229,6 @@ export default function MyCarsScreen() {
       setExpandedCarId(null);
     }
     Keyboard.dismiss();
-  };
-  const isVehicleSubscribed = (carId: string) => {
-    if (!subscriptions || !Array.isArray(subscriptions)) return false;
-    return subscriptions.some((sub: any) => {
-      if (!["active", "ongoing"].includes(sub.status) || !sub.vehicle)
-        return false;
-      const subCarId = sub.vehicle._id || sub.vehicle;
-      return carId === subCarId;
-    });
   };
 
   const renderCar = ({ item }: { item: any }) => {
@@ -279,11 +288,32 @@ export default function MyCarsScreen() {
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={[styles.actionBtn, styles.removeBtn]}
-                onPress={() => handleRemoveCar(id)}
+                style={[
+                  styles.actionBtn,
+                  isSubscribed ? styles.disabledBtn : styles.removeBtn,
+                ]}
+                onPress={() => {
+                  if (isSubscribed) {
+                    Alert.alert(
+                      "Cannot Remove",
+                      "This vehicle has an active subscription. Please cancel the subscription first to remove it.",
+                    );
+                    return;
+                  }
+                  handleRemoveCar(id);
+                }}
+                activeOpacity={isSubscribed ? 1 : 0.7}
               >
-                <Ionicons name="trash-outline" size={16} color="#EF4444" />
-                <Text style={styles.removeText}>Remove</Text>
+                <Ionicons
+                  name="trash-outline"
+                  size={16}
+                  color={isSubscribed ? "#aaa" : "#EF4444"}
+                />
+                <Text
+                  style={[styles.removeText, isSubscribed && { color: "#aaa" }]}
+                >
+                  Remove
+                </Text>
               </TouchableOpacity>
             </View>
           )}
@@ -624,6 +654,11 @@ const styles = StyleSheet.create({
     backgroundColor: "#FEF2F2",
     borderWidth: 1,
     borderColor: "#FEE2E2",
+  },
+  disabledBtn: {
+    backgroundColor: "#F3F4F6",
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
   },
   editText: {
     marginLeft: 6,

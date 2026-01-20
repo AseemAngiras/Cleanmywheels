@@ -4,17 +4,17 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-    Keyboard,
-    KeyboardAvoidingView,
-    Platform,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    TouchableWithoutFeedback,
-    View,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
 } from "react-native";
 
 export default function VehicleDetailsScreen() {
@@ -25,7 +25,7 @@ export default function VehicleDetailsScreen() {
   const navigation = useNavigation();
   const params = useLocalSearchParams();
 
-  const [vehicleType, setVehicleType] = useState("sedan");
+  const [vehicleType, setVehicleType] = useState("Sedan");
   const [vehicleNumber, setVehicleNumber] = useState("");
 
   const [selectedCarId, setSelectedCarId] = useState<string | null>(null);
@@ -45,17 +45,17 @@ export default function VehicleDetailsScreen() {
     return unsubscribe;
   }, [navigation]);
 
-//   useEffect(() => {
-//   console.log('CURRENT SCREEN:', 'vehicle-details or my-cars');
-//   console.log('Store instance in this component:', store);
-//   console.log('Cars from selector:', cars);
-// }, []);
+  //   useEffect(() => {
+  //   console.log('CURRENT SCREEN:', 'vehicle-details or my-cars');
+  //   console.log('Store instance in this component:', store);
+  //   console.log('Cars from selector:', cars);
+  // }, []);
 
   const vehicleTypes = [
-    { id: "hatchback", name: "Hatchback", icon: "car-hatchback" },
-    { id: "sedan", name: "Sedan", icon: "car" },
-    { id: "suv", name: "SUV", icon: "car-estate" },
-    { id: "others", name: "Others", icon: "truck-delivery" },
+    { id: "Hatchback", name: "Hatchback", icon: "car-hatchback" },
+    { id: "Sedan", name: "Sedan", icon: "car" },
+    { id: "SUV", name: "SUV", icon: "car-estate" },
+    { id: "Other", name: "Others", icon: "truck-delivery" },
   ];
 
   return (
@@ -208,7 +208,9 @@ export default function VehicleDetailsScreen() {
               <TouchableOpacity
                 style={styles.nextButton}
                 onPress={() => {
-                    console.log("NEXT BUTTON PRESSED — this should always appear first");
+                  console.log(
+                    "NEXT BUTTON PRESSED — this should always appear first"
+                  );
                   let finalCar;
 
                   // Existing car selected
@@ -232,16 +234,15 @@ export default function VehicleDetailsScreen() {
                       image: "",
                     };
 
-                    console.log("creating new car -> will dispatch:", finalCar)
+                    console.log("creating new car -> will dispatch:", finalCar);
                     dispatch(addCar(finalCar));
-                    console.log("Dispatch called! (but state might not update yet)");
-
+                    console.log(
+                      "Dispatch called! (but state might not update yet)"
+                    );
                   }
 
-                  if (!finalCar)
-                    console.log("No final car -> exiting")
-                     return;
-
+                  if (!finalCar) console.log("No final car -> exiting");
+                  return;
                 }}
               >
                 <Text style={styles.nextButtonText}>Next</Text>

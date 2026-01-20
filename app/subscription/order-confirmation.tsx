@@ -10,7 +10,7 @@ import {
   View,
 } from "react-native";
 import { useDispatch } from "react-redux";
-import { addBooking } from "../../../../store/slices/bookingSlice";
+import { addBooking } from "../../store/slices/bookingSlice";
 
 export default function OrderConfirmationScreen() {
   const router = useRouter();
@@ -90,11 +90,68 @@ export default function OrderConfirmationScreen() {
           </View>
           <Text style={styles.sectionTitle}>Receipt</Text>
           <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Service</Text>
             <Text style={styles.detailValue}>
               {params.serviceName || "Premium Wash"}
             </Text>
           </View>
+
+          {/* Add-ons List */}
+          {params.addons && (
+            <View
+              style={{
+                marginBottom: 8,
+                paddingBottom: 8,
+                borderBottomWidth: 1,
+                borderBottomColor: "#f3f3f3",
+              }}
+            >
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  marginBottom: 4,
+                }}
+              >
+                <Text style={styles.detailLabel}>Add-ons</Text>
+                <View style={{ flex: 1 }} />
+              </View>
+              {JSON.parse(params.addons as string).map(
+                (addon: any, idx: number) => (
+                  <View
+                    key={String(idx)}
+                    style={{
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                      paddingLeft: "30%",
+                      marginBottom: 4,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontSize: 13,
+                        color: "#444",
+                        flex: 1,
+                        textAlign: "right",
+                      }}
+                    >
+                      {addon.name}
+                    </Text>
+                    <Text
+                      style={{
+                        fontSize: 13,
+                        fontWeight: "600",
+                        color: "#1a1a1a",
+                        marginLeft: 8,
+                      }}
+                    >
+                      ₹{addon.price}
+                    </Text>
+                  </View>
+                ),
+              )}
+            </View>
+          )}
+
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Date & Time</Text>
             <Text style={styles.detailValue}>

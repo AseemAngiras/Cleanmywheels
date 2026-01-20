@@ -24,12 +24,25 @@ import {
 } from "react-native";
 
 import {
+<<<<<<< HEAD
     useCreateVehicleMutation,
     useDeleteVehicleMutation,
     useGetVehiclesQuery,
     useUpdateVehicleMutation,
 } from "../../../store/api/vehicleApi";
 import { Car } from "../../../store/slices/userSlice";
+=======
+  useCreateVehicleMutation,
+  useDeleteVehicleMutation,
+  useGetVehiclesQuery,
+  useUpdateVehicleMutation,
+} from "../../../store/api/vehicleApi";
+import { useGetMySubscriptionQuery } from "../../../store/api/subscriptionApi";
+
+import { RootState } from "@/store";
+import { useSelector } from "react-redux";
+import AdminSubscriptionsScreen from "../admin/subscriptions";
+>>>>>>> 4b009da67467be33211be9df7cc490163b55d1de
 
 if (
     Platform.OS === "android" &&
@@ -41,10 +54,26 @@ if (
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 export default function MyCarsScreen() {
+<<<<<<< HEAD
     const { data: vehiclesData, isLoading, refetch } = useGetVehiclesQuery();
     const [createVehicle] = useCreateVehicleMutation();
     const [updateVehicle] = useUpdateVehicleMutation();
     const [deleteVehicle] = useDeleteVehicleMutation();
+=======
+  const user = useSelector((state: RootState) => state.user.user);
+  const isAdmin = user?.accountType === "Super Admin";
+
+  const { data: cars = [], isLoading } = useGetVehiclesQuery(undefined, {
+    skip: isAdmin,
+  });
+  const { data: subscriptions } = useGetMySubscriptionQuery(undefined, {
+    skip: isAdmin,
+  });
+
+  const [createVehicle] = useCreateVehicleMutation();
+  const [updateVehicle] = useUpdateVehicleMutation();
+  const [deleteVehicle] = useDeleteVehicleMutation();
+>>>>>>> 4b009da67467be33211be9df7cc490163b55d1de
 
     // Map backend vehicles to frontend Car interface
     const cars: Car[] =
@@ -56,9 +85,20 @@ export default function MyCarsScreen() {
             image: v.image || "",
         })) || [];
 
+<<<<<<< HEAD
     const [modalVisible, setModalVisible] = useState(false);
     const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
     const fadeAnim = useRef(new Animated.Value(0)).current;
+=======
+  if (isAdmin) {
+    return <AdminSubscriptionsScreen />;
+  }
+
+  const [editingCarId, setEditingCarId] = useState<string | null>(null);
+  const [type, setType] = useState("");
+  const [number, setNumber] = useState("");
+  const [image, setImage] = useState<string | undefined>(undefined);
+>>>>>>> 4b009da67467be33211be9df7cc490163b55d1de
 
     const [editingCarId, setEditingCarId] = useState<string | null>(null);
     const [type, setType] = useState("");
@@ -67,6 +107,7 @@ export default function MyCarsScreen() {
 
     const [expandedCarId, setExpandedCarId] = useState<string | null>(null);
 
+<<<<<<< HEAD
     const toggleCard = (id: string) => {
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
         setExpandedCarId(expandedCarId === id ? null : id);
@@ -90,6 +131,151 @@ export default function MyCarsScreen() {
             setImage(result.assets[0].uri);
         }
     };
+=======
+  const pickImage = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (!permission.granted) {
+      Alert.alert("Permission required", "Allow photo access");
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 0.7,
+    });
+
+    if (!result.canceled) {
+      setImage(result.assets[0].uri);
+    }
+  };
+
+  const openModal = (car?: any) => {
+    if (car) {
+      setEditingCarId(car.id);
+      setType(car.type);
+      setNumber(car.number);
+      setImage(car.image);
+    } else {
+      setEditingCarId(null);
+      setType("");
+      setNumber("");
+      setImage(undefined);
+    }
+
+    setModalVisible(true);
+    Animated.parallel([
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 400,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  };
+
+  const closeModal = () => {
+    Keyboard.dismiss();
+    Animated.parallel([
+      Animated.timing(slideAnim, {
+        toValue: SCREEN_HEIGHT,
+        duration: 300,
+        easing: Easing.in(Easing.cubic),
+        useNativeDriver: true,
+      }),
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+    ]).start(() => setModalVisible(false));
+  };
+
+  const handleSaveCar = async () => {
+    if (!type || !number) {
+      Alert.alert("Error", "Vehicle type and number are required");
+      return;
+    }
+
+    const vehicleNumberPattern = /^[A-Z]{2,3}\d{2}[A-Z]{1,2}\d{4}$/i;
+    const cleanedNumber = number.trim().replace(/\s+/g, "").toUpperCase();
+
+    if (!vehicleNumberPattern.test(cleanedNumber)) {
+      Alert.alert(
+        "Invalid Vehicle Number",
+        "Please enter a valid vehicle number (e.g., CH01GH4321, PB10QH3210)",
+      );
+      return;
+    }
+
+    const payload = {
+      vehicleType: type,
+      vehicleNo: cleanedNumber,
+      isDefault: false,
+    };
+
+    try {
+      if (editingCarId) {
+        await updateVehicle({ id: editingCarId, data: payload }).unwrap();
+        Alert.alert("Success", "Vehicle updated");
+      } else {
+        await createVehicle(payload).unwrap();
+        Alert.alert("Success", "Vehicle added");
+      }
+      closeModal();
+    } catch (err: any) {
+      Alert.alert("Error", err?.data?.message || "Failed to save vehicle");
+    }
+  };
+
+  const isVehicleSubscribed = (carId: string) => {
+    if (!subscriptions || !Array.isArray(subscriptions)) return false;
+    return subscriptions.some((sub: any) => {
+      if (!["active", "ongoing"].includes(sub.status) || !sub.vehicle)
+        return false;
+      const subCarId = sub.vehicle._id || sub.vehicle;
+      return carId === subCarId;
+    });
+  };
+
+  const handleRemoveCar = (id: string) => {
+    if (isVehicleSubscribed(id)) {
+      Alert.alert(
+        "Cannot Remove",
+        "This vehicle has an active subscription. Please cancel the subscription first to remove it.",
+      );
+      return;
+    }
+
+    Alert.alert("Remove Car", "Are you sure?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Remove",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await deleteVehicle(id).unwrap();
+          } catch (e: any) {
+            console.log("Delete failed", e);
+            Alert.alert(
+              "Cannot Remove",
+              e?.data?.message || "Failed to remove vehicle",
+            );
+          }
+        },
+      },
+    ]);
+  };
+
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const [isTypePickerVisible, setIsTypePickerVisible] = useState(false);
+  const VEHICLE_TYPES = ["Sedan", "SUV", "Hatchback", "Other"];
+>>>>>>> 4b009da67467be33211be9df7cc490163b55d1de
 
     const openModal = (car?: Car) => {
         if (car) {
@@ -104,6 +290,7 @@ export default function MyCarsScreen() {
             setImage(undefined);
         }
 
+<<<<<<< HEAD
         setModalVisible(true);
         Animated.parallel([
             Animated.timing(slideAnim, {
@@ -280,6 +467,191 @@ export default function MyCarsScreen() {
                         <Text style={styles.headerTitle}>My Garage</Text>
                         <Text style={styles.headerSubtitle}>
                             {cars.length} {cars.length === 1 ? "Vehicle" : "Vehicles"} Managed
+=======
+  const renderCar = ({ item }: { item: any }) => {
+    const isExpanded = expandedCarId === (item._id || item.id);
+    const id = item._id || item.id;
+    const isSubscribed = isVehicleSubscribed(id);
+
+    return (
+      <TouchableOpacity
+        style={[styles.card, isExpanded && styles.cardExpanded]}
+        activeOpacity={0.9}
+        onPress={() => toggleCard(id)}
+      >
+        <LinearGradient
+          colors={["#f7fee7", "#ffffff"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={{ padding: 20 }}
+        >
+          <View style={styles.cardHeader}>
+            <View style={styles.carInfo}>
+              <View
+                style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
+              >
+                <Text style={styles.carName}>{item.vehicleType}</Text>
+                {isSubscribed && (
+                  <View style={styles.premiumBadge}>
+                    <Text style={styles.premiumText}>SUBSCRIPTION</Text>
+                  </View>
+                )}
+              </View>
+              <Text style={styles.carType}>{item.vehicleType}</Text>
+            </View>
+          </View>
+
+          <View style={styles.cardBody}>
+            <View style={styles.plateContainer}>
+              <View style={styles.plateInd}>
+                <Text style={styles.plateIndText}>IND</Text>
+              </View>
+              <Text style={styles.plateNumber}>{item.vehicleNo}</Text>
+            </View>
+
+            <View style={[styles.carImage, styles.imagePlaceholder]}>
+              <Ionicons name="car-sport" size={32} color="#CBD5E1" />
+            </View>
+          </View>
+
+          {isExpanded && (
+            <View style={styles.cardFooter}>
+              <TouchableOpacity
+                style={[styles.actionBtn, styles.editBtn]}
+                onPress={() => openModal(item)}
+              >
+                <Ionicons name="create-outline" size={16} color="#1a1a1a" />
+                <Text style={styles.editText}>Edit Vehicle</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.actionBtn,
+                  isSubscribed ? styles.disabledBtn : styles.removeBtn,
+                ]}
+                onPress={() => {
+                  if (isSubscribed) {
+                    Alert.alert(
+                      "Cannot Remove",
+                      "This vehicle has an active subscription. Please cancel the subscription first to remove it.",
+                    );
+                    return;
+                  }
+                  handleRemoveCar(id);
+                }}
+                activeOpacity={isSubscribed ? 1 : 0.7}
+              >
+                <Ionicons
+                  name="trash-outline"
+                  size={16}
+                  color={isSubscribed ? "#aaa" : "#EF4444"}
+                />
+                <Text
+                  style={[styles.removeText, isSubscribed && { color: "#aaa" }]}
+                >
+                  Remove
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </LinearGradient>
+      </TouchableOpacity>
+    );
+  };
+
+  return (
+    <TouchableWithoutFeedback onPress={handleDismiss} accessible={false}>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.headerTitle}>My Garage</Text>
+            <Text style={styles.headerSubtitle}>
+              {cars.length} {cars.length === 1 ? "Vehicle" : "Vehicles"} Managed
+            </Text>
+          </View>
+
+          <TouchableOpacity style={styles.addBtn} onPress={() => openModal()}>
+            <Ionicons name="add" size={24} color="#000" />
+          </TouchableOpacity>
+        </View>
+
+        <FlatList
+          data={cars}
+          keyExtractor={(item) => item._id || item.id}
+          renderItem={renderCar}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 100 }}
+          onScrollBeginDrag={handleDismiss}
+          ListEmptyComponent={
+            <View style={styles.emptyState}>
+              <Ionicons name="car-sport-outline" size={64} color="#E2E8F0" />
+              <Text style={styles.emptyText}>No cars added yet</Text>
+              <TouchableOpacity onPress={() => openModal()}>
+                <Text style={styles.emptyAction}>Add your first vehicle</Text>
+              </TouchableOpacity>
+            </View>
+          }
+        />
+
+        {/* ADD/EDIT MODAL */}
+        <Modal visible={modalVisible} transparent animationType="none">
+          <View style={styles.modalContainer}>
+            <Animated.View style={[styles.backdrop, { opacity: fadeAnim }]}>
+              <TouchableOpacity
+                style={StyleSheet.absoluteFill}
+                onPress={closeModal}
+              />
+            </Animated.View>
+
+            <Animated.View
+              style={[
+                styles.bottomSheet,
+                { transform: [{ translateY: slideAnim }] },
+              ]}
+            >
+              <View style={styles.sheetHeader}>
+                <Text style={styles.sheetTitle}>
+                  {editingCarId ? "Edit Vehicle" : "Add Vehicle"}
+                </Text>
+                <TouchableOpacity onPress={closeModal} style={styles.closeBtn}>
+                  <Ionicons name="close" size={20} color="#fff" />
+                </TouchableOpacity>
+              </View>
+
+              <ScrollView contentContainerStyle={styles.formScroll}>
+                <View style={styles.limeAccentBox}>
+                  <Ionicons name="car-sport" size={24} color="#1a1a1a" />
+                  <Text style={styles.limeBoxText}>
+                    {editingCarId
+                      ? "Update your vehicle details"
+                      : "Enter details for your new ride"}
+                  </Text>
+                </View>
+
+                {/* Removed Name Input */}
+
+                <View style={styles.row}>
+                  <View style={{ flex: 1, marginRight: 8 }}>
+                    <Text style={styles.fieldLabel}>Type</Text>
+                    <TouchableOpacity
+                      style={styles.darkInput}
+                      onPress={() => setIsTypePickerVisible(true)}
+                    >
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                        }}
+                      >
+                        <Text
+                          style={{
+                            color: type ? "#fff" : "#666",
+                            fontSize: 16,
+                          }}
+                        >
+                          {type || "Select Type"}
+>>>>>>> 4b009da67467be33211be9df7cc490163b55d1de
                         </Text>
                     </View>
 
@@ -497,6 +869,7 @@ const styles = StyleSheet.create({
         elevation: 4,
     },
 
+<<<<<<< HEAD
     card: {
         // backgroundColor: "#fff", // Handled by LinearGradient
         borderRadius: 24,
@@ -620,6 +993,134 @@ const styles = StyleSheet.create({
         fontWeight: "600",
         color: "#EF4444",
     },
+=======
+  card: {
+    borderRadius: 24,
+    marginBottom: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: "#F1F5F9",
+    overflow: "hidden",
+  },
+  cardExpanded: {
+    borderColor: "#D1F803",
+    borderWidth: 1.5,
+  },
+  cardHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    marginBottom: 16,
+  },
+  carInfo: { flex: 1 },
+  carName: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#1E293B",
+    marginBottom: 2,
+  },
+  carType: {
+    fontSize: 13,
+    color: "#64748B",
+    fontWeight: "600",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  cardBody: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 0,
+  },
+  plateContainer: {
+    flexDirection: "row",
+    backgroundColor: "#fff",
+    borderWidth: 2,
+    borderColor: "#000",
+    borderRadius: 6,
+    overflow: "hidden",
+    alignItems: "center",
+    height: 36,
+  },
+  plateInd: {
+    backgroundColor: "#003399",
+    height: "100%",
+    justifyContent: "center",
+    paddingHorizontal: 4,
+  },
+  plateIndText: {
+    color: "#fff",
+    fontSize: 8,
+    fontWeight: "bold",
+  },
+  plateNumber: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#000",
+    paddingHorizontal: 8,
+    letterSpacing: 1,
+  },
+  carImage: {
+    width: 80,
+    height: 50,
+    borderRadius: 8,
+    resizeMode: "cover",
+  },
+  imagePlaceholder: {
+    backgroundColor: "#F1F5F9",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  cardFooter: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-start",
+    marginTop: 20,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: "#F1F5F9",
+    gap: 12,
+  },
+  actionBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+  },
+  editBtn: {
+    backgroundColor: "#F0FDF4",
+    borderWidth: 1,
+    borderColor: "#DCFCE7",
+  },
+  removeBtn: {
+    backgroundColor: "#FEF2F2",
+    borderWidth: 1,
+    borderColor: "#FEE2E2",
+  },
+  disabledBtn: {
+    backgroundColor: "#F3F4F6",
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+  },
+  editText: {
+    marginLeft: 6,
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#1a1a1a",
+  },
+  removeText: {
+    marginLeft: 6,
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#EF4444",
+  },
+>>>>>>> 4b009da67467be33211be9df7cc490163b55d1de
 
     emptyState: {
         alignItems: "center",
@@ -640,6 +1141,7 @@ const styles = StyleSheet.create({
         textDecorationLine: "underline",
     },
 
+<<<<<<< HEAD
     modalContainer: {
         flex: 1,
         justifyContent: "flex-end",
@@ -821,3 +1323,175 @@ const styles = StyleSheet.create({
         fontWeight: "700",
     },
 });
+=======
+  modalContainer: {
+    flex: 1,
+    justifyContent: "flex-end",
+  },
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.6)",
+  },
+  bottomSheet: {
+    backgroundColor: "#000",
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    padding: 24,
+    paddingBottom: 40,
+    height: "72%",
+  },
+  sheetHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  sheetTitle: {
+    fontSize: 24,
+    fontWeight: "700",
+    color: "#fff",
+  },
+  closeBtn: {
+    padding: 4,
+    backgroundColor: "rgba(255,255,255,0.1)",
+    borderRadius: 20,
+  },
+  formScroll: {
+    paddingBottom: 20,
+  },
+  limeAccentBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#D1F803",
+    padding: 16,
+    borderRadius: 20,
+    marginBottom: 24,
+  },
+  limeBoxText: {
+    marginLeft: 12,
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#1a1a1a",
+    flex: 1,
+  },
+  fieldLabel: {
+    fontSize: 13,
+    color: "#A1A1AA",
+    marginBottom: 8,
+    marginLeft: 4,
+    fontWeight: "500",
+  },
+  darkInput: {
+    backgroundColor: "#27272a",
+    borderRadius: 16,
+    padding: 16,
+    fontSize: 16,
+    color: "#fff",
+    marginBottom: 16,
+  },
+  row: {
+    flexDirection: "row",
+  },
+  darkImagePicker: {
+    height: 140,
+    backgroundColor: "#27272a",
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: "#3f3f46",
+    borderStyle: "dashed",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 24,
+    overflow: "hidden",
+  },
+  uploadPlaceholder: {
+    alignItems: "center",
+  },
+  uploadTextDark: {
+    marginTop: 8,
+    color: "#71717A",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  preview: {
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
+  },
+  saveBtn: {
+    backgroundColor: "#D1F803",
+    borderRadius: 20,
+    paddingVertical: 18,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#D1F803",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 4,
+    gap: 10,
+  },
+  saveBtnText: {
+    color: "#1a1a1a",
+    fontSize: 16,
+    fontWeight: "800",
+    letterSpacing: 0.5,
+  },
+  pickerOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 24,
+  },
+  pickerContainer: {
+    backgroundColor: "#fff",
+    width: "100%",
+    borderRadius: 24,
+    padding: 20,
+    maxHeight: "60%",
+  },
+  pickerTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#1a1a1a",
+    marginBottom: 16,
+    textAlign: "center",
+  },
+  pickerItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F1F5F9",
+  },
+  pickerItemSelected: {
+    backgroundColor: "#F0FDF4",
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    borderBottomWidth: 0,
+  },
+  pickerItemText: {
+    fontSize: 16,
+    color: "#4B5563",
+  },
+  pickerItemTextSelected: {
+    color: "#1a1a1a",
+    fontWeight: "700",
+  },
+  premiumBadge: {
+    backgroundColor: "#D1F803",
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 12,
+  },
+  premiumText: {
+    fontSize: 10,
+    fontWeight: "800",
+    color: "#000",
+    letterSpacing: 0.5,
+  },
+});
+>>>>>>> 4b009da67467be33211be9df7cc490163b55d1de

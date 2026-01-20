@@ -9,15 +9,13 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
 
-// import { updateUserProfile } from "../../../app/services/api"; // Legacy
 import { useUpdateProfileMutation } from "../../../store/api/authApi";
 import { useAppDispatch, useAppSelector } from "../../../store/hooks";
 import { updateProfile } from "../../../store/slices/profileSlice";
-import { updateUser } from "../../../store/slices/userSlice"; // Added updateUser from userSlice
-
+import { updateUser } from "../../../store/slices/userSlice";
 
 export default function EditProfile() {
   const dispatch = useAppDispatch();
@@ -31,10 +29,8 @@ export default function EditProfile() {
   const [focusedInput, setFocusedInput] = React.useState<string | null>(null);
   const [hasChanges, setHasChanges] = React.useState(false);
 
-  // Animation value for save button (translateX + opacity)
   const saveAnim = useRef(new Animated.Value(0)).current;
 
-  // Initialize from user.user (the nested user object)
   useEffect(() => {
     const userName = user?.user?.name || profile?.name || "";
     const userPhone = user?.user?.phone || profile?.phone || "";
@@ -52,7 +48,6 @@ export default function EditProfile() {
 
     setHasChanges(changes);
 
-    //  save button in/out animations
     Animated.timing(saveAnim, {
       toValue: changes ? 1 : 0,
       duration: 300,
@@ -60,7 +55,8 @@ export default function EditProfile() {
     }).start();
   }, [fullName, mobile, email, profile, user, saveAnim]);
 
-  const [updateUserProfileAPI, { isLoading: isUpdating }] = useUpdateProfileMutation();
+  const [updateUserProfileAPI, { isLoading: isUpdating }] =
+    useUpdateProfileMutation();
   const token = useAppSelector((state) => state.auth.token);
 
   const handleSave = async () => {
@@ -75,18 +71,14 @@ export default function EditProfile() {
         email: email,
       }).unwrap();
 
-      // Update both slices to keep them in sync
-      dispatch(updateUser({
-        name: fullName,
-        email: email,
-        // Phone is usually not updated via basic profile update without OTP, 
-        // but if backend supports it and we sent it (endpoint logic in AuthService only takes name/email)
-        // mobile: mobile 
-      }));
+      dispatch(
+        updateUser({
+          name: fullName,
+          email: email,
+        }),
+      );
 
-      // Profile Slice
       dispatch(updateProfile({ key: "name", value: fullName }));
-      // dispatch(updateProfile({ key: "phone", value: mobile })); // Only if backend updated it
       dispatch(updateProfile({ key: "email", value: email }));
 
       setFocusedInput(null);
@@ -98,10 +90,6 @@ export default function EditProfile() {
     }
   };
 
-
-
-
-
   const getInputStyle = (inputName: string) => [
     styles.input,
     focusedInput === inputName && styles.inputFocused,
@@ -109,7 +97,7 @@ export default function EditProfile() {
 
   const saveButtonTranslateX = saveAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [100, 0], // slides in from right
+    outputRange: [100, 0],
   });
 
   const saveButtonOpacity = saveAnim.interpolate({
@@ -121,7 +109,10 @@ export default function EditProfile() {
     <View style={styles.container}>
       {/* Fixed Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => router.back()}
+        >
           <Ionicons name="chevron-back" size={24} color="#111" />
         </TouchableOpacity>
 

@@ -65,7 +65,6 @@ export const notificationApi = createApi({
       providesTags: ["Notification"],
     }),
     
-    // Get unseen count only (useful for showing badge on notification icon)
     getUnseenCount: builder.query<number, void>({
       query: () => `/notification?page=1&perPage=1`,
       transformResponse: (response: NotificationResponse) => response.data.unSeenCount,

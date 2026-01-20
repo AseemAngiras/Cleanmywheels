@@ -6,7 +6,7 @@ class SocketService {
   private socket: Socket | null = null;
   private userId: string | null = null;
 
-  connect(userId: string) {
+  connect(userId: string, token: string) {
     if (this.userId === userId && this.socket?.connected) {
       return;
     }
@@ -28,6 +28,8 @@ class SocketService {
       reconnection: true,
       reconnectionAttempts: 5,
       extraHeaders: {
+        Authorization: token,
+        "x-auth-token": token,
         "x-platform": Platform.OS === "ios" ? "ios" : "android",
         "x-version": APP_VERSION,
         "x-time-zone": "330",
@@ -41,6 +43,10 @@ class SocketService {
 
     this.socket.on("disconnect", () => {
       console.log("Socket disconnected");
+    });
+
+    this.socket.on("ping", () => {
+      this.socket?.emit("pong");
     });
 
     this.socket.on("connect_error", (err) => {

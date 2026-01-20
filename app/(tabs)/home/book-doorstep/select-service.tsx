@@ -4,10 +4,16 @@ import {
     useUpdateWashPackageMutation,
 } from "@/store/api/washPackageApi";
 import {
+<<<<<<< HEAD
     useGetVehiclesQuery,
     useCreateVehicleMutation
 } from "@/store/api/vehicleApi";
 import { useAppSelector } from "@/store/hooks";
+=======
+  useGetVehiclesQuery,
+  useCreateVehicleMutation,
+} from "@/store/api/vehicleApi";
+>>>>>>> 4b009da67467be33211be9df7cc490163b55d1de
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import {
     useFocusEffect,
@@ -35,9 +41,11 @@ import {
     TouchableWithoutFeedback,
     View,
 } from "react-native";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import BookingStepper from "../../../../components/BookingStepper";
 import { ListSkeleton } from "../../../../components/SkeletonLoader";
+
+import { useGetMySubscriptionQuery } from "@/store/api/subscriptionApi";
 
 const SERVICE_ADDONS: Record<
     string,
@@ -134,6 +142,7 @@ const expandableStyles = StyleSheet.create({
 });
 
 export default function SelectServiceScreen() {
+<<<<<<< HEAD
     const dispatch = useDispatch();
 
     const user = useSelector((state: RootState) => state.user.user);
@@ -153,6 +162,37 @@ export default function SelectServiceScreen() {
             number: v.vehicleNo,
             image: v.image || "",
         })) || [];
+=======
+  const user = useSelector((state: RootState) => state.user.user);
+  const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
+  const isAdmin = user?.accountType === "Super Admin";
+
+  const { data: allCars = [] } = useGetVehiclesQuery();
+  const { data: subscriptions } = useGetMySubscriptionQuery();
+
+  // Filter out subscribed vehicle from the list
+  const cars = allCars.filter((car) => {
+    // If no subscriptions or not an array, return all cars
+    if (!subscriptions || !Array.isArray(subscriptions)) return true;
+
+    // Check if this car is in any active subscription
+    const isSubscribed = subscriptions.some((sub: any) => {
+      if (sub.status !== "active" || !sub.vehicle) return false;
+      const subCarId = sub.vehicle._id || sub.vehicle;
+      return (car._id || car.id) === subCarId;
+    });
+
+    return !isSubscribed;
+  });
+
+  const [createVehicle] = useCreateVehicleMutation();
+
+  const router = useRouter();
+  const navigation = useNavigation();
+  const { address, latitude, longitude, addressId } = useLocalSearchParams();
+  const [selectedService, setSelectedService] = useState<string | null>(null);
+  const [addons, setAddons] = useState<Record<string, boolean>>({});
+>>>>>>> 4b009da67467be33211be9df7cc490163b55d1de
 
     const router = useRouter();
     const navigation = useNavigation();
@@ -169,6 +209,7 @@ export default function SelectServiceScreen() {
         useUpdateWashPackageMutation();
     const servicesFromApi = washPackagesData?.data?.washPackageList || [];
 
+<<<<<<< HEAD
     const services = servicesFromApi.map((pkg: any) => ({
         id: pkg._id,
         name: pkg.name,
@@ -239,11 +280,43 @@ export default function SelectServiceScreen() {
             return next;
         });
     };
+=======
+  useEffect(() => {
+    if (washPackagesData) {
+      console.log(
+        "🔍 [SelectService] RAW API RESPONSE:",
+        JSON.stringify(washPackagesData, null, 2),
+      );
+    }
+
+    if (loadError) {
+      console.error(
+        "❌ [SelectService] API LOAD ERROR:",
+        JSON.stringify(loadError, null, 2),
+      );
+    }
+
+    if (servicesFromApi.length > 0) {
+      console.log(
+        "📦 [SelectService] API packages found:",
+        servicesFromApi.length,
+      );
+      servicesFromApi.forEach((pkg) =>
+        console.log(`   - ${pkg.name}: ${pkg._id}`),
+      );
+    } else if (!isLoadingPackages && !loadError) {
+      console.warn(
+        "⚠️ [SelectService] No packages found in API database! (washPackageList is empty)",
+      );
+    }
+  }, [washPackagesData, servicesFromApi, isLoadingPackages, loadError]);
+>>>>>>> 4b009da67467be33211be9df7cc490163b55d1de
 
     const [vehicleType, setVehicleType] = useState("sedan");
     const [vehicleNumber, setVehicleNumber] = useState("");
     const [selectedCarId, setSelectedCarId] = useState<string | null>(null);
 
+<<<<<<< HEAD
     // Auto-fill form updates when selectedCarId changes
     useEffect(() => {
         if (selectedCarId) {
@@ -255,6 +328,563 @@ export default function SelectServiceScreen() {
                 );
                 setVehicleType(matchedType ? matchedType.id : "others");
                 setVehicleNumber(selectedCar.number);
+=======
+  const [detailsExpanded, setDetailsExpanded] = useState<Set<string>>(
+    new Set(),
+  );
+  const [editingService, setEditingService] = useState<{
+    id: string;
+    name: string;
+    price: number;
+  } | null>(null);
+  const [newPrice, setNewPrice] = useState("");
+
+  const toggleDetails = (id: string, e: any) => {
+    e.stopPropagation();
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setDetailsExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const [vehicleType, setVehicleType] = useState("Sedan");
+  const [vehicleNumber, setVehicleNumber] = useState("");
+  const [selectedCarId, setSelectedCarId] = useState<string | null>(null);
+
+  // Auto-fill form updates when selectedCarId changes
+  useEffect(() => {
+    if (selectedCarId) {
+      const selectedCar = cars.find(
+        (c: any) => (c._id || c.id) === selectedCarId,
+      );
+      if (selectedCar) {
+        // Match against our supported types
+        const matchedType = vehicleTypes.find(
+          (vt) =>
+            vt.id.toLowerCase() ===
+            (selectedCar.vehicleType || selectedCar.type || "").toLowerCase(),
+        );
+        // Default to "Other" if no match found (e.g. if it was a Bike/Scooter previously)
+        setVehicleType(matchedType ? matchedType.id : "Other");
+        setVehicleNumber(selectedCar.vehicleNo || selectedCar.number || "");
+      }
+    }
+  }, [selectedCarId, cars]);
+
+  const vehicleTypes = [
+    { id: "Hatchback", name: "Hatchback", icon: "car-hatchback" },
+    { id: "Sedan", name: "Sedan", icon: "car" },
+    { id: "SUV", name: "SUV", icon: "car-estate" },
+    { id: "Other", name: "Others", icon: "truck-delivery" },
+  ];
+
+  useFocusEffect(
+    useCallback(() => {
+      navigation.getParent()?.setOptions({
+        tabBarStyle: { display: "none" },
+      });
+    }, [navigation]),
+  );
+
+  const currentAddons = selectedService
+    ? SERVICE_ADDONS[selectedService] || []
+    : [];
+
+  const toggleAddon = (id: string) => {
+    setAddons((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const validateVehicleNumber = (
+    number: string,
+  ): { isValid: boolean; message: string } => {
+    if (!number || !number.trim()) {
+      return { isValid: false, message: "Please enter your vehicle number." };
+    }
+
+    const cleaned = number.replace(/[\s-]/g, "").toUpperCase();
+
+    const indianVehicleRegex = /^[A-Z]{2}[0-9]{1,2}[A-Z]{1,3}[0-9]{1,4}$/;
+
+    const alternateRegex = /^[A-Z]{2}[0-9]{2}[A-Z]{1,2}[0-9]{4}$/;
+
+    if (!indianVehicleRegex.test(cleaned) && !alternateRegex.test(cleaned)) {
+      return {
+        isValid: false,
+        message:
+          "Please enter a valid vehicle number.\n\nExamples:\n• MH01AB1234\n• DL12CA5678\n• KA09MA1234",
+      };
+    }
+
+    const validStateCodes = [
+      "AN",
+      "AP",
+      "AR",
+      "AS",
+      "BH",
+      "BR",
+      "CG",
+      "CH",
+      "DD",
+      "DL",
+      "GA",
+      "GJ",
+      "HP",
+      "HR",
+      "JH",
+      "JK",
+      "KA",
+      "KL",
+      "LA",
+      "LD",
+      "MH",
+      "ML",
+      "MN",
+      "MP",
+      "MZ",
+      "NL",
+      "OD",
+      "OR",
+      "PB",
+      "PY",
+      "RJ",
+      "SK",
+      "TN",
+      "TR",
+      "TS",
+      "UK",
+      "UP",
+      "WB",
+    ];
+    const stateCode = cleaned.substring(0, 2);
+    if (!validStateCodes.includes(stateCode)) {
+      return {
+        isValid: false,
+        message: `'${stateCode}' is not a valid Indian state code.`,
+      };
+    }
+
+    return { isValid: true, message: "" };
+  };
+
+  const handleServiceSelect = (id: string) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setSelectedService(id);
+    setAddons({});
+  };
+
+  const handleUpdatePrice = async () => {
+    if (!editingService || !newPrice) return;
+
+    try {
+      await updateWashPackage({
+        id: editingService.id,
+        body: { price: Number(newPrice) },
+      }).unwrap();
+      Alert.alert("Success", "Price updated successfully");
+      setEditingService(null);
+      setNewPrice("");
+    } catch (err: any) {
+      console.error("Update failed:", err);
+      Alert.alert("Error", err?.data?.message || "Failed to update price");
+    }
+  };
+
+  const calculateTotal = () => {
+    let servicePrice =
+      services.find((s) => s.id === selectedService)?.price || 0;
+
+    let addonTotal = 0;
+
+    currentAddons.forEach((addon) => {
+      if (addons[addon.id]) {
+        addonTotal += addon.price;
+      }
+    });
+
+    return servicePrice + addonTotal;
+  };
+
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.header}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={styles.backButton}
+        >
+          <Ionicons name="chevron-back" size={24} color="#000" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Select Service</Text>
+        <View style={{ width: 24 }} />
+      </View>
+
+      <BookingStepper currentStep={1} />
+
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
+      >
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <ScrollView contentContainerStyle={styles.container}>
+            {/* Services - Vertical Accordion */}
+            <View style={styles.servicesContainer}>
+              {isLoadingPackages ? (
+                <ListSkeleton type="service" count={3} />
+              ) : services.length === 0 ? (
+                <Text
+                  style={{ textAlign: "center", marginTop: 20, color: "#888" }}
+                >
+                  No wash packages available
+                </Text>
+              ) : (
+                services.map((service) => {
+                  const isSelected = selectedService === service.id;
+                  const isServiceExpanded = isSelected;
+
+                  return (
+                    <TouchableOpacity
+                      key={service.id}
+                      style={[
+                        styles.serviceCard,
+                        isServiceExpanded
+                          ? styles.serviceCardExpandedLayout
+                          : styles.serviceCardCollapsedLayout,
+                        isSelected
+                          ? styles.serviceCardSelectedBorder
+                          : styles.serviceCardUnselectedBorder,
+                      ]}
+                      onPress={() => handleServiceSelect(service.id)}
+                      activeOpacity={0.9}
+                    >
+                      {isServiceExpanded ? (
+                        <View>
+                          <View style={styles.expandedHeader}>
+                            <View style={styles.expandedImageContainer}>
+                              <Image
+                                source={{ uri: service.image }}
+                                style={styles.expandedImage}
+                              />
+                              {service.isBestseller && (
+                                <View style={styles.bestsellerBadge}>
+                                  <Text style={styles.bestsellerText}>
+                                    BESTSELLER
+                                  </Text>
+                                </View>
+                              )}
+                            </View>
+                            <View style={styles.expandedContent}>
+                              <View style={{ flex: 1, marginRight: 10 }}>
+                                <Text style={styles.expandedName}>
+                                  {service.name}
+                                </Text>
+                                <View
+                                  style={{
+                                    flexDirection: "row",
+                                    alignItems: "center",
+                                  }}
+                                >
+                                  <Text style={styles.expandedPrice}>
+                                    ₹{service.price}
+                                  </Text>
+                                  {isAdmin && (
+                                    <TouchableOpacity
+                                      onPress={(e) => {
+                                        e.stopPropagation();
+                                        setEditingService({
+                                          id: service.id,
+                                          name: service.name,
+                                          price: service.price,
+                                        });
+                                        setNewPrice(service.price.toString());
+                                      }}
+                                      style={{ marginLeft: 10, padding: 5 }}
+                                    >
+                                      <Ionicons
+                                        name="pencil"
+                                        size={16}
+                                        color="#84c95c"
+                                      />
+                                    </TouchableOpacity>
+                                  )}
+                                </View>
+                                <Text style={styles.expandedDesc}>
+                                  {service.description}
+                                </Text>
+                              </View>
+
+                              <View
+                                style={{
+                                  alignItems: "flex-end",
+                                  justifyContent: "space-between",
+                                }}
+                              >
+                                {isSelected ? (
+                                  <Ionicons
+                                    name="radio-button-on"
+                                    size={24}
+                                    color="#84c95c"
+                                  />
+                                ) : (
+                                  <Ionicons
+                                    name="radio-button-off"
+                                    size={24}
+                                    color="#ccc"
+                                  />
+                                )}
+                                <TouchableOpacity
+                                  onPress={(e) => toggleDetails(service.id, e)}
+                                  style={{ padding: 5, marginTop: 15 }}
+                                >
+                                  <Ionicons
+                                    name={
+                                      detailsExpanded.has(service.id)
+                                        ? "chevron-up"
+                                        : "chevron-down"
+                                    }
+                                    size={24}
+                                    color="#84c95c"
+                                  />
+                                </TouchableOpacity>
+                              </View>
+                            </View>
+                          </View>
+
+                          <ExpandableDetails
+                            isExpanded={detailsExpanded.has(service.id)}
+                            features={
+                              service.features ||
+                              service.details?.split(", ") ||
+                              []
+                            }
+                          />
+                        </View>
+                      ) : (
+                        <View style={styles.collapsedRow}>
+                          <View
+                            style={{
+                              flexDirection: "row",
+                              alignItems: "center",
+                            }}
+                          >
+                            <Ionicons
+                              name={
+                                isSelected
+                                  ? "radio-button-on"
+                                  : "radio-button-off"
+                              }
+                              size={20}
+                              color={isSelected ? "#84c95c" : "#ccc"}
+                              style={{ marginRight: 12 }}
+                            />
+                            <Text style={styles.collapsedName}>
+                              {service.name}
+                            </Text>
+                            {service.isBestseller && (
+                              <View
+                                style={[
+                                  styles.bestsellerBadge,
+                                  {
+                                    marginLeft: 8,
+                                    position: "relative",
+                                    top: 0,
+                                    left: 0,
+                                  },
+                                ]}
+                              >
+                                <Text style={styles.bestsellerText}>BEST</Text>
+                              </View>
+                            )}
+                          </View>
+                          <Text style={styles.collapsedPrice}>
+                            ₹{service.price}
+                          </Text>
+                        </View>
+                      )}
+                    </TouchableOpacity>
+                  );
+                })
+              )}
+            </View>
+
+            {/* Dynamic Add-ons Section */}
+            {selectedService && currentAddons.length > 0 && (
+              <View>
+                <Text style={styles.sectionTitle}>Make it Shine (Add-ons)</Text>
+                <View style={styles.addonsContainer}>
+                  {currentAddons.map((addon) => {
+                    const isSelected = !!addons[addon.id];
+                    return (
+                      <TouchableOpacity
+                        key={addon.id}
+                        style={[
+                          styles.addonChip,
+                          isSelected && styles.addonChipSelected,
+                        ]}
+                        onPress={() => toggleAddon(addon.id)}
+                      >
+                        <Text
+                          style={[
+                            styles.addonName,
+                            isSelected && { color: "#fff" },
+                          ]}
+                        >
+                          {addon.name}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.addonPrice,
+                            isSelected && { color: "#fff" },
+                          ]}
+                        >
+                          +₹{addon.price}
+                        </Text>
+                        {isSelected && (
+                          <Ionicons
+                            name="checkmark-circle"
+                            size={16}
+                            color="#fff"
+                            style={{ marginLeft: 5 }}
+                          />
+                        )}
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+            )}
+
+            {/* MY SAVED CARS SECTION */}
+            {cars.length > 0 && (
+              <View style={{ marginBottom: 24 }}>
+                <Text style={styles.sectionTitle}>My Saved Vehicles</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                  {cars.map((car: any) => {
+                    const isSelected = selectedCarId === (car._id || car.id);
+                    return (
+                      <TouchableOpacity
+                        key={car._id || car.id}
+                        style={[
+                          styles.savedCarCard,
+                          isSelected && styles.savedCarCardSelected,
+                        ]}
+                        onPress={() => setSelectedCarId(car._id || car.id)}
+                      >
+                        <Ionicons
+                          name="car-sport"
+                          size={24}
+                          color={isSelected ? "#D1F803" : "#666"}
+                          style={{ marginBottom: 8 }}
+                        />
+                        <Text
+                          style={[
+                            styles.savedCarNumber,
+                            isSelected && { color: "#fff" },
+                          ]}
+                        >
+                          {car.vehicleNo || car.number}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.savedCarType,
+                            isSelected && { color: "#rgba(255,255,255,0.7)" },
+                          ]}
+                        >
+                          {car.vehicleType || car.type}
+                        </Text>
+                        {isSelected && (
+                          <View style={styles.selectedCheck}>
+                            <Ionicons
+                              name="checkmark-circle"
+                              size={20}
+                              color="#D1F803"
+                            />
+                          </View>
+                        )}
+                      </TouchableOpacity>
+                    );
+                  })}
+                </ScrollView>
+              </View>
+            )}
+
+            {/* Vehicle Selection Section */}
+            <Text style={styles.sectionTitle}>Vehicle Details</Text>
+            <View style={styles.vehicleRow}>
+              {vehicleTypes.map((type) => {
+                const isSelected = vehicleType === type.id;
+                return (
+                  <TouchableOpacity
+                    key={type.id}
+                    style={[
+                      styles.vehicleIconBtn,
+                      isSelected && styles.vehicleIconBtnSelected,
+                    ]}
+                    onPress={() => {
+                      setSelectedCarId(null);
+                      setVehicleNumber("");
+                      setVehicleType(type.id);
+                    }}
+                  >
+                    <MaterialCommunityIcons
+                      name={type.icon as any}
+                      size={24}
+                      color={isSelected ? "#fff" : "#999"}
+                    />
+                    <Text
+                      style={[
+                        styles.vehicleTypeName,
+                        isSelected && { color: "#fff", fontWeight: "bold" },
+                      ]}
+                    >
+                      {type.name}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            <Text style={styles.subSectionTitle}>
+              Vehicle Number <Text style={{ color: "#e74c3c" }}> *</Text>
+            </Text>
+            <TextInput
+              style={styles.input}
+              placeholder="E.G. IND-1234"
+              placeholderTextColor="#ccc"
+              value={vehicleNumber}
+              onChangeText={setVehicleNumber}
+              autoCapitalize="characters"
+            />
+          </ScrollView>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
+
+      <View style={styles.footer}>
+        <View style={styles.totalContainer}>
+          <Text style={styles.totalLabel}>Total</Text>
+          <Text style={styles.totalPrice}>₹{calculateTotal()}</Text>
+        </View>
+        <TouchableOpacity
+          style={[
+            styles.nextButton,
+            (services.length === 0 || !selectedService) && {
+              opacity: 0.5,
+              backgroundColor: "#ccc",
+            },
+          ]}
+          disabled={services.length === 0 || !selectedService}
+          onPress={async () => {
+            if (!selectedService) {
+              Alert.alert(
+                "Selection Required",
+                "Please select a service to proceed.",
+              );
+              return;
+>>>>>>> 4b009da67467be33211be9df7cc490163b55d1de
             }
         }
     }, [selectedCarId, cars]);
@@ -266,10 +896,116 @@ export default function SelectServiceScreen() {
         { id: "others", name: "Others", icon: "truck-delivery" },
     ];
 
+<<<<<<< HEAD
     useFocusEffect(
         useCallback(() => {
             navigation.getParent()?.setOptions({
                 tabBarStyle: { display: "none" },
+=======
+            const cleanNumber = vehicleNumber
+              .replace(/[^a-zA-Z0-9]/g, "")
+              .toUpperCase();
+
+            if (cleanNumber.length < 6 || cleanNumber.length > 10) {
+              Alert.alert(
+                "Invalid Vehicle Number",
+                "Please enter a valid vehicle number (e.g., KA01AB1234).",
+              );
+              return;
+            }
+
+            if (!/^[A-Z]{2}[0-9A-Z]{4,8}$/.test(cleanNumber)) {
+              Alert.alert(
+                "Invalid Vehicle Number",
+                "Please enter a valid vehicle number (e.g., KA01AB1234).",
+              );
+              return;
+            }
+
+            // Check if this vehicle number is already subscribed
+            if (subscriptions && Array.isArray(subscriptions)) {
+              const duplicate = subscriptions.find((sub: any) => {
+                if (sub.status !== "active" || !sub.vehicle) return false;
+                // Normalize and compare (assuming sub.vehicle.vehicleNo exists)
+                const subNo = (
+                  sub.vehicle.vehicleNo ||
+                  sub.vehicle.number ||
+                  ""
+                )
+                  .replace(/[^a-zA-Z0-9]/g, "")
+                  .toUpperCase();
+                return subNo === cleanNumber;
+              });
+
+              if (duplicate) {
+                Alert.alert(
+                  "Already Subscribed",
+                  "You already have an active subscription for this vehicle. Please use the Add-on service to modify your booking or choose a different vehicle.",
+                );
+                return;
+              }
+            }
+
+            const service = services.find((s) => s.id === selectedService);
+            if (!service) {
+              Alert.alert("Error", "Selected service is no longer available.");
+              return;
+            }
+
+            const selectedAddons = currentAddons.filter(
+              (addon) => addons[addon.id],
+            );
+
+            const normalizedNumber = vehicleNumber
+              .replace(/[\s-]/g, "")
+              .toUpperCase();
+
+            let existingCar = cars.find(
+              (car: any) => (car.vehicleNo || car.number) === normalizedNumber,
+            );
+
+            if (!existingCar) {
+              // Only save to backend if user is logged in
+              if (isLoggedIn) {
+                try {
+                  const response = await createVehicle({
+                    vehicleType,
+                    vehicleNo: normalizedNumber,
+                    isDefault: false,
+                  }).unwrap();
+
+                  if (response?.data) {
+                    existingCar = response.data;
+                    setSelectedCarId(existingCar._id);
+                  }
+                } catch (err) {
+                  console.error("Vehicle Creation Failed", err);
+                  Alert.alert(
+                    "Note",
+                    "Could not save vehicle to your profile, but you can proceed with booking.",
+                  );
+                }
+              }
+            }
+
+            const params = {
+              serviceId: service.id,
+              serviceName: service.name,
+              basePrice: service.price,
+              totalPrice: calculateTotal(),
+              vehicleType,
+              vehicleNumber: normalizedNumber,
+              address,
+              latitude,
+              longitude,
+              addressId,
+              vehicleId: existingCar?._id || selectedCarId,
+            };
+
+            router.push({
+              pathname: "/(tabs)/home/book-doorstep/select-slot",
+              params,
+>>>>>>> 4b009da67467be33211be9df7cc490163b55d1de
             });
         }, [navigation])
     );

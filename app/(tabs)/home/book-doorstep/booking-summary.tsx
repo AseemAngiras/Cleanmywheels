@@ -4,6 +4,7 @@ import {
   useLazyGetBookingByIdQuery,
   useUpdateBookingStatusMutation,
 } from "@/store/api/bookingApi";
+import { useGetMySubscriptionQuery } from "@/store/api/subscriptionApi";
 import { logout } from "@/store/slices/authSlice";
 import { addAddress } from "@/store/slices/profileSlice";
 import { addCar } from "@/store/slices/userSlice";
@@ -48,6 +49,7 @@ export default function BookingSummaryScreen() {
     useCreateBookingMutation();
   const [updateBookingStatus] = useUpdateBookingStatusMutation();
   const userState = useSelector((state: RootState) => state.user);
+  const token = useSelector((state: RootState) => state.auth.token);
   const userId = userState?.user?._id;
 
   const [isVerifyingPayment, setIsVerifyingPayment] = useState(false);
@@ -75,17 +77,22 @@ export default function BookingSummaryScreen() {
     serviceId,
   } = params;
 
-  // const lat = parseFloat(latitude as string) || 37.7749;
-  // const long = parseFloat(longitude as string) || -122.4194;
-
-  // const isDoorstep = shopName === "Your Location";
-
   const itemTotal = parseFloat(totalPrice as string) || 0;
 
   const grandTotal = itemTotal;
 
   const parsedAddons = addons ? JSON.parse(addons as string) : {};
-  // const addonNames = Object.keys(parsedAddons).filter((k) => parsedAddons[k]);
+
+  const displayServicePrice = parseFloat(servicePrice as string) || 0;
+
+  const addonsTotal = Array.isArray(parsedAddons)
+    ? parsedAddons.reduce(
+        (acc: number, curr: any) => acc + (parseFloat(curr.price) || 0),
+        0,
+      )
+    : 0;
+
+  const displayGrandTotal = displayServicePrice + addonsTotal; // Override passed total
 
   useEffect(() => {
     navigation.getParent()?.setOptions({
@@ -94,8 +101,8 @@ export default function BookingSummaryScreen() {
   }, [navigation]);
 
   useEffect(() => {
-    if (userId) {
-      socketService.connect(userId);
+    if (userId && token) {
+      socketService.connect(userId, token);
     }
 
     const handlePaymentSuccess = (data: any) => {
@@ -134,7 +141,7 @@ export default function BookingSummaryScreen() {
     return () => {
       socketService.off("payment_success");
     };
-  }, [userId, isVerifyingPayment, params, grandTotal, router]);
+  }, [userId, token, isVerifyingPayment, params, grandTotal, router]);
 
   const checkPaymentStatus = async (bookingId: string) => {
     setIsVerifyingPayment(true);
@@ -142,12 +149,11 @@ export default function BookingSummaryScreen() {
     const maxAttempts = 10;
 
     if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
-
     pollIntervalRef.current = setInterval(async () => {
       attempts++;
       try {
         console.log(
-          `[Payment] Polling status... Attempt ${attempts}/${maxAttempts}`
+          `[Payment] Polling status... Attempt ${attempts}/${maxAttempts}`,
         );
         const result = await triggerGetBooking(bookingId).unwrap();
         const status = result?.data?.status?.toLowerCase();
@@ -185,20 +191,20 @@ export default function BookingSummaryScreen() {
           setIsVerifyingPayment(false);
           Alert.alert(
             "Payment Verification Failed",
-            "We couldn't confirm your payment status yet. Please check 'My Bookings'.",
+            "We couldn't confirmrm your payment status yet. Please check 'My Bookings'.",
             [
               {
                 text: "Check Bookings",
                 onPress: () => router.push("/(tabs)/bookings"),
               },
               { text: "Close", style: "cancel" },
-            ]
+            ],
           );
         }
       } catch (err) {
         console.error("Polling error", err);
       }
-    }, 3000);
+    }, 5000);
   };
 
   const handlePay = async () => {
@@ -228,14 +234,14 @@ export default function BookingSummaryScreen() {
       if (!finalWashPackageId || finalWashPackageId.length !== 24) {
         Alert.alert(
           "Selection Error",
-          "Invalid wash package selected. Please go back and select a service again."
+          "Invalid wash package selected. Please go back and select a service again.",
         );
         return;
       }
 
       const cityPart =
         addressParts.find(
-          (part, index) => index >= 2 && !/^\d{6}$/.test(part)
+          (part, index) => index >= 2 && !/^\d{6}$/.test(part),
         ) ||
         addressParts[2] ||
         "City";
@@ -261,7 +267,7 @@ export default function BookingSummaryScreen() {
 
       console.log(
         "[BookingSummary] TRACE - Payload:",
-        JSON.stringify(bookingPayload, null, 2)
+        JSON.stringify(bookingPayload, null, 2),
       );
       const response = await createBooking(bookingPayload).unwrap();
       console.log("[BookingSummary] TRACE - Response:", response);
@@ -277,7 +283,7 @@ export default function BookingSummaryScreen() {
             postalCode: postalCode,
             addressType: "Home",
             fullAddress: address as string,
-          })
+          }),
         );
       }
 
@@ -291,7 +297,7 @@ export default function BookingSummaryScreen() {
               "Sedan",
             number: vehicleNumber as string,
             image: "https://cdn-icons-png.flaticon.com/512/743/743007.png",
-          })
+          }),
         );
       }
 
@@ -300,12 +306,12 @@ export default function BookingSummaryScreen() {
 
       console.log(
         "[BookingSummary] DEBUG - Raw Response Keys:",
-        Object.keys(response || {})
+        Object.keys(response || {}),
       );
       if (response?.data)
         console.log(
           "[BookingSummary] DEBUG - Response.data Keys:",
-          Object.keys(response.data || {})
+          Object.keys(response.data || {}),
         );
 
       // Try multiple paths for ID
@@ -318,11 +324,11 @@ export default function BookingSummaryScreen() {
       if (!bookingId || bookingId === "temp-id") {
         console.error(
           "[BookingSummary] ❌ CRITICAL: No Booking ID found in response!",
-          response
+          response,
         );
         Alert.alert(
           "Error",
-          "Could not create booking. Please try again. (Missing ID)"
+          "Could not create booking. Please try again. (Missing ID)",
         );
         return;
       }
@@ -343,13 +349,13 @@ export default function BookingSummaryScreen() {
     } catch (err: any) {
       console.error(
         "❌ [BookingSummary] FULL ERROR OBJECT:",
-        JSON.stringify(err, null, 2)
+        JSON.stringify(err, null, 2),
       );
       if (err.status === 401) {
         Alert.alert(
           "Session Expired",
           "Your technical session has expired or is invalid. Please log out and log in again.",
-          [{ text: "OK", onPress: () => dispatch(logout()) }]
+          [{ text: "OK", onPress: () => dispatch(logout()) }],
         );
       } else {
         const errorMsg =
@@ -447,7 +453,7 @@ export default function BookingSummaryScreen() {
                 {selectedDate
                   ? new Date(selectedDate as string).toLocaleDateString(
                       undefined,
-                      { weekday: "short", day: "numeric", month: "short" }
+                      { weekday: "short", day: "numeric", month: "short" },
                     )
                   : "Date"}
                 , {selectedTime || "Time"}
@@ -462,7 +468,9 @@ export default function BookingSummaryScreen() {
 
           <View style={styles.paymentRow}>
             <Text style={styles.paymentLabel}>{serviceName || "Service"}</Text>
-            <Text style={styles.paymentValue}>₹{servicePrice || 0}</Text>
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <Text style={styles.paymentValue}>{`₹${servicePrice || 0}`}</Text>
+            </View>
           </View>
 
           {Array.isArray(parsedAddons) &&
@@ -477,7 +485,7 @@ export default function BookingSummaryScreen() {
 
           <View style={styles.paymentRow}>
             <Text style={styles.totalTextLabel}>Grand Total</Text>
-            <Text style={styles.totalTextValue}>₹{grandTotal}</Text>
+            <Text style={styles.totalTextValue}>₹{displayGrandTotal}</Text>
           </View>
         </View>
       </ScrollView>
@@ -494,7 +502,9 @@ export default function BookingSummaryScreen() {
         >
           <View style={styles.payButtonContent}>
             <View style={styles.payButtonPriceContainer}>
-              <Text style={styles.payButtonPriceText}>₹{grandTotal}</Text>
+              <Text style={styles.payButtonPriceText}>
+                ₹{displayGrandTotal}
+              </Text>
               <Text style={styles.payButtonTotalLabel}>TOTAL</Text>
             </View>
             <View style={styles.payButtonActionContainer}>
@@ -565,8 +575,7 @@ export default function BookingSummaryScreen() {
             <WebView
               source={{ uri: paymentUrl }}
               style={{ flex: 1 }}
-              onNavigationStateChange={(navState) => {
-              }}
+              onNavigationStateChange={(navState) => {}}
               startInLoadingState={true}
               renderLoading={() => <PulseLoader size={40} color="#C8F000" />}
             />

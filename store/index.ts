@@ -16,15 +16,17 @@ import { bookingApi } from "./api/bookingApi";
 import { notificationApi } from "./api/notificationApi";
 import { vehicleApi } from "./api/vehicleApi";
 import { washPackageApi } from "./api/washPackageApi";
+import { subscriptionApi } from "./api/subscriptionApi";
 import authReducer, { logout } from "./slices/authSlice";
 import bookingReducer from "./slices/bookingSlice";
 import profileReducer from "./slices/profileSlice";
+import subscriptionReducer from "./slices/subscriptionSlice";
 import userReducer from "./slices/userSlice";
 
 const persistConfig = {
   key: "root",
   storage: AsyncStorage,
-  whitelist: ["auth", "profile", "user", "bookings"],
+  whitelist: ["auth", "profile", "user", "bookings", "subscription"],
 };
 
 const appReducer = combineReducers({
@@ -32,12 +34,14 @@ const appReducer = combineReducers({
   profile: profileReducer,
   bookings: bookingReducer,
   user: userReducer,
+  subscription: subscriptionReducer,
   [authApi.reducerPath]: authApi.reducer,
   [addressApi.reducerPath]: addressApi.reducer,
   [bookingApi.reducerPath]: bookingApi.reducer,
   [notificationApi.reducerPath]: notificationApi.reducer,
   [vehicleApi.reducerPath]: vehicleApi.reducer,
   [washPackageApi.reducerPath]: washPackageApi.reducer,
+  [subscriptionApi.reducerPath]: subscriptionApi.reducer,
 });
 
 const rootReducer = (state: any, action: any) => {
@@ -64,7 +68,8 @@ export const store = configureStore({
       bookingApi.middleware,
       notificationApi.middleware,
       vehicleApi.middleware,
-      washPackageApi.middleware
+      washPackageApi.middleware,
+      subscriptionApi.middleware
     ),
 });
 

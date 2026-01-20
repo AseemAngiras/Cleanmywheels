@@ -1,13 +1,16 @@
-import { RootState } from "@/store";
+﻿import { RootState } from "@/store";
 import {
   useRegisterMutation,
   useRequestOtpMutation,
   useVerifyLoginOtpMutation,
   useVerifyRegisterOtpMutation,
 } from "@/store/api/authApi";
+import { useGetMySubscriptionQuery } from "@/store/api/subscriptionApi";
 import { loginSuccess, logout } from "@/store/slices/authSlice";
 import { Booking } from "@/store/slices/bookingSlice";
 import { setUser } from "@/store/slices/userSlice";
+import AdminSubscriptionScreen from "../admin/subscriptions";
+
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useNavigation, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -27,335 +30,6 @@ import {
 } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 
-// --- MOCK DATA FOR SHOP DASHBOARD ---
-const REVENUE_DATA = {
-  amount: "₹1,240",
-  growth: "+12%",
-  history: "vs. ₹1,105 yesterday",
-};
-
-const INITIAL_WORKERS = [
-  { id: "1", name: "Amit", statusType: "active" },
-  { id: "2", name: "Priya", statusType: "active" },
-  { id: "3", name: "Rajesh", statusType: "active" },
-  { id: "4", name: "Neha", statusType: "break" },
-  { id: "5", name: "Suresh", statusType: "active" },
-  { id: "6", name: "Rahul", statusType: "active" },
-  { id: "7", name: "Vikram", statusType: "active" },
-  { id: "8", name: "Sameer", statusType: "active" },
-];
-
-const MOCK_COMPLAINTS = [
-  {
-    id: "TKT-2024-001",
-    title: "Refund Request - Order #1234",
-    date: "Today, 10:30 AM",
-    description:
-      "Customer requested a refund because the washer did not arrive on time. Service was cancelled. The customer waited for 45 minutes beyond the scheduled time.",
-    refundRequested: true,
-    user: {
-      name: "Rohan Gupta",
-      phone: "+91 98765 43210",
-      email: "rohan.g@example.com",
-      avatar: "R",
-    },
-    images: [
-      "https://images.unsplash.com/photo-1601362840469-51e4d8d58785?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80",
-    ],
-  },
-  {
-    id: "TKT-2024-002",
-    title: "Service Complaint - Poor Cleaning",
-    date: "Yesterday, 4:15 PM",
-    description:
-      "Customer reported that the interior vacuuming was not done properly. Dust was still visible on the dashboard and mats. User provided photos as proof.",
-    refundRequested: false,
-    user: {
-      name: "Sneha Patel",
-      phone: "+91 87654 32109",
-      email: "sneha.p@example.com",
-      avatar: "S",
-    },
-    images: [
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80",
-      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80",
-    ],
-  },
-  {
-    id: "TKT-2024-003",
-    title: "Payment Issue - Double Deduction",
-    date: "24 Dec, 11:00 AM",
-    description:
-      "User claims amount was deducted twice for the Premium Wash service. Bank statement attached.",
-    refundRequested: true,
-    user: {
-      name: "Vikram Singh",
-      phone: "+91 76543 21098",
-      email: "vikram.s@example.com",
-      avatar: "V",
-    },
-    images: [],
-  },
-];
-
-// --- ADMIN COMPLAINTS SCREEN ---
-function AdminComplaintsScreen() {
-  const userName = useSelector((state: RootState) => state.user.user?.name);
-  // Merge Redux tickets with Mock data for demonstration
-  // Use local state to manage the list for "Resolve" functionality demo
-  const reduxTickets =
-    useSelector((state: RootState) => state.bookings.tickets) || [];
-  const [tickets, setTickets] = useState<any[]>([
-    ...reduxTickets,
-    ...MOCK_COMPLAINTS,
-  ]);
-
-  // Update tickets when redux changes, but keep removed ones removed (simplified for demo)
-  useEffect(() => {
-    // Only add if not already in state to preserve "resolved" status in this session
-    // For now, we prefer the local state mutation for the demo "Resolve" action
-    if (tickets.length === 0 && reduxTickets.length > 0) {
-      setTickets([...reduxTickets, ...MOCK_COMPLAINTS]);
-    }
-  }, [reduxTickets]);
-
-  const [selectedComplaint, setSelectedComplaint] = useState<any>(null);
-  const [detailsModalVisible, setDetailsModalVisible] = useState(false);
-
-  const openComplaintDetails = (complaint: any) => {
-    setSelectedComplaint(complaint);
-    setDetailsModalVisible(true);
-  };
-
-  const closeComplaintDetails = () => {
-    setDetailsModalVisible(false);
-    setSelectedComplaint(null);
-  };
-
-  const handleResolveComplaint = () => {
-    if (selectedComplaint) {
-      // Remove the resolved complaint from the list
-      setTickets((prev) => prev.filter((t) => t.id !== selectedComplaint.id));
-      closeComplaintDetails();
-    }
-  };
-
-  return (
-    <SafeAreaView style={styles.safeArea}>
-      {/* Header */}
-      <View style={[styles.header, { paddingHorizontal: 20 }]}>
-        <View>
-          <Text style={styles.greeting}>Admin Panel</Text>
-          <Text style={styles.brandTitle}>Complaints & Refunds</Text>
-        </View>
-        <TouchableOpacity style={styles.profileBtn}>
-          <Image
-            source={{
-              uri: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80",
-            }}
-            style={styles.profileAvatar}
-          />
-        </TouchableOpacity>
-      </View>
-
-      <ScrollView
-        contentContainerStyle={styles.container}
-        showsVerticalScrollIndicator={false}
-      >
-        {tickets.length === 0 ? (
-          <View style={styles.emptyStateContainer}>
-            <View style={styles.emptyIconCircle}>
-              <Ionicons name="checkmark-done" size={40} color="#2ECC71" />
-            </View>
-            <Text style={styles.emptyStateTitle}>All Caught Up!</Text>
-            <Text style={styles.emptyStateText}>
-              There are no pending complaints or refund requests.
-            </Text>
-          </View>
-        ) : (
-          tickets.map((t) => (
-            <TouchableOpacity
-              key={t.id}
-              style={styles.complaintCard}
-              activeOpacity={0.9}
-              onPress={() => openComplaintDetails(t)}
-            >
-              <View style={styles.complaintHeader}>
-                <View style={styles.complaintUserRow}>
-                  <View style={styles.userAvatarSmall}>
-                    <Text style={styles.userAvatarText}>
-                      {t.user?.avatar || (t.title ? t.title.charAt(0) : "U")}
-                    </Text>
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.complaintTitle} numberOfLines={1}>
-                      {t.title}
-                    </Text>
-                    <Text style={styles.complaintDate}>{t.date}</Text>
-                  </View>
-                </View>
-                {t.refundRequested && (
-                  <View style={styles.refundBadge}>
-                    <Text style={styles.refundBadgeText}>Refund</Text>
-                  </View>
-                )}
-              </View>
-
-              <Text style={styles.complaintDesc} numberOfLines={2}>
-                {t.description}
-              </Text>
-
-              <View style={styles.complaintFooter}>
-                <Text style={styles.complaintId}>ID: {t.id}</Text>
-                <TouchableOpacity
-                  style={styles.resolveBtn}
-                  onPress={() => openComplaintDetails(t)}
-                >
-                  <Text style={styles.resolveBtnText}>View Details</Text>
-                </TouchableOpacity>
-              </View>
-            </TouchableOpacity>
-          ))
-        )}
-        <View style={{ height: 100 }} />
-      </ScrollView>
-
-      {/* Complaint Details Modal */}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={detailsModalVisible}
-        onRequestClose={closeComplaintDetails}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, { height: "85%" }]}>
-            <View style={styles.dragHandle} />
-
-            {/* Modal Header */}
-            <View style={styles.detailsModalHeader}>
-              <View>
-                <Text style={styles.detailsModalTitle}>Complaint Details</Text>
-                <Text style={styles.detailsModalId}>
-                  {selectedComplaint?.id}
-                </Text>
-              </View>
-              <TouchableOpacity
-                onPress={closeComplaintDetails}
-                style={styles.closeBtn}
-              >
-                <Ionicons name="close" size={24} color="#666" />
-              </TouchableOpacity>
-            </View>
-
-            <ScrollView
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={{ paddingBottom: 40 }}
-            >
-              {/* Status Badge */}
-              <View style={styles.statusSection}>
-                {selectedComplaint?.refundRequested ? (
-                  <View
-                    style={[
-                      styles.refundBadge,
-                      { alignSelf: "flex-start", marginBottom: 15 },
-                    ]}
-                  >
-                    <Text style={[styles.refundBadgeText, { fontSize: 12 }]}>
-                      Refound Requested
-                    </Text>
-                  </View>
-                ) : (
-                  <View
-                    style={[
-                      styles.statusBadge,
-                      { backgroundColor: "#E0F2FE", borderColor: "#BAE6FD" },
-                    ]}
-                  >
-                    <Text
-                      style={[styles.statusBadgeText, { color: "#0EA5E9" }]}
-                    >
-                      Service Issue
-                    </Text>
-                  </View>
-                )}
-                <Text style={styles.fullDate}>{selectedComplaint?.date}</Text>
-              </View>
-
-              <Text style={styles.fullTitle}>{selectedComplaint?.title}</Text>
-
-              {/* User Details Box */}
-              <View style={styles.userDetailsBox}>
-                <View style={styles.userAvatarLarge}>
-                  <Text style={styles.userAvatarTextLarge}>
-                    {selectedComplaint?.user?.avatar || "U"}
-                  </Text>
-                </View>
-                <View>
-                  <Text style={styles.userNameLarge}>
-                    {selectedComplaint?.user?.name || "Unknown User"}
-                  </Text>
-                  <Text style={styles.userContact}>
-                    {selectedComplaint?.user?.phone || "No Phone"}
-                  </Text>
-                  <Text style={styles.userContact}>
-                    {selectedComplaint?.user?.email || "No Email"}
-                  </Text>
-                </View>
-              </View>
-
-              <Text style={styles.sectionLabel}>Description</Text>
-              <Text style={styles.fullDesc}>
-                {selectedComplaint?.description}
-              </Text>
-
-              {/* Photos */}
-              {selectedComplaint?.images &&
-                selectedComplaint.images.length > 0 && (
-                  <>
-                    <Text style={styles.sectionLabel}>Attached Photos</Text>
-                    <ScrollView
-                      horizontal
-                      showsHorizontalScrollIndicator={false}
-                      style={styles.photosScroll}
-                    >
-                      {selectedComplaint.images.map(
-                        (img: string, index: number) => (
-                          <Image
-                            key={index}
-                            source={{ uri: img }}
-                            style={styles.proofImage}
-                          />
-                        )
-                      )}
-                    </ScrollView>
-                  </>
-                )}
-            </ScrollView>
-
-            {/* Actions */}
-            <View style={styles.detailsActions}>
-              <TouchableOpacity
-                style={[styles.actionBtn, styles.actionBtnSecondary]}
-                onPress={closeComplaintDetails}
-              >
-                <Text style={styles.actionBtnTextSecondary}>Ignore</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.actionBtn, styles.actionBtnPrimary]}
-              >
-                <Text style={styles.actionBtnTextPrimary}>
-                  Resolve Complaint
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
-    </SafeAreaView>
-  );
-}
-
-// --- MAIN HOME SCREEN (CONTROLLER) ---
 export default function HomeScreen() {
   const router = useRouter();
   const navigation = useNavigation();
@@ -373,9 +47,18 @@ export default function HomeScreen() {
     }
   }, [token, dispatch]);
 
+  const { data: subscriptions } = useGetMySubscriptionQuery(undefined, {
+    skip: !isLoggedIn,
+  });
+  const hasActiveSubscription = subscriptions && subscriptions.length > 0;
+
   // Admin Check
   const user = useSelector((state: RootState) => state.user.user);
   const isAdmin = user?.accountType === "Super Admin";
+
+  if (isAdmin) {
+    return <AdminSubscriptionScreen />;
+  }
 
   // Login State
   const [isLoginModalVisible, setIsLoginModalVisible] = useState(false);
@@ -461,7 +144,7 @@ export default function HomeScreen() {
       Alert.alert(
         "Error",
         err?.data?.message ||
-          "Failed to proceed. Try entering your name to register."
+          "Failed to proceed. Try entering your name to register.",
       );
     } finally {
       setIsLoading(false);
@@ -500,7 +183,7 @@ export default function HomeScreen() {
         response = await verifyLoginOtp(loginPayload).unwrap();
       }
 
-      console.log("✅ Auth verified successfully:", response);
+      console.log("âœ… Auth verified successfully:", response);
 
       // Assuming response structure. Adjust path as needed based on actual API.
       // If response is { data: { token: ... } } or just { token: ... }
@@ -510,7 +193,7 @@ export default function HomeScreen() {
         (typeof response?.data === "string" ? response?.data : null);
 
       if (token) {
-        console.log("🎟 [HomeScreen] New token received and stored");
+        console.log("ðŸŽŸ [HomeScreen] New token received and stored");
         // Store full user object from response
         const backendUser = response?.data?.user;
         if (backendUser) {
@@ -540,7 +223,7 @@ export default function HomeScreen() {
       console.error("Login Verification Failed", err);
       Alert.alert(
         "Login Failed",
-        err?.data?.message || "Invalid OTP or Server Error"
+        err?.data?.message || "Invalid OTP or Server Error",
       );
     } finally {
       setIsLoading(false);
@@ -566,7 +249,7 @@ export default function HomeScreen() {
           tabBarStyle: { display: "flex" },
         });
       }
-    }, [navigation])
+    }, [navigation]),
   );
 
   const handleRecentServicePress = (booking: Partial<Booking>) => {
@@ -581,7 +264,7 @@ export default function HomeScreen() {
               router.push("/(tabs)/home/book-doorstep/enter-location"),
           },
           { text: "Cancel", style: "cancel" },
-        ]
+        ],
       );
       return;
     }
@@ -599,10 +282,6 @@ export default function HomeScreen() {
       },
     });
   };
-
-  if (isAdmin) {
-    return <AdminComplaintsScreen />;
-  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -658,9 +337,17 @@ export default function HomeScreen() {
               doorstep.
             </Text>
 
-            <View style={styles.actionButtons}>
+            <View
+              style={[
+                styles.actionButtons,
+                hasActiveSubscription && { flexDirection: "row", gap: 10 },
+              ]}
+            >
               <TouchableOpacity
-                style={styles.bookDoorstepButton}
+                style={[
+                  styles.bookDoorstepButton,
+                  hasActiveSubscription && { flex: 1, paddingHorizontal: 10 },
+                ]}
                 activeOpacity={0.8}
                 onPress={() =>
                   router.push("/(tabs)/home/book-doorstep/enter-location")
@@ -672,8 +359,35 @@ export default function HomeScreen() {
                   color="#1a1a1a"
                   style={{ marginRight: 10 }}
                 />
-                <Text style={styles.bookDoorstepButtonText}>Book Doorstep</Text>
+                <Text style={styles.bookDoorstepButtonText} numberOfLines={1}>
+                  Book Now
+                </Text>
               </TouchableOpacity>
+
+              {hasActiveSubscription && (
+                <TouchableOpacity
+                  style={[
+                    styles.bookDoorstepButton,
+                    {
+                      flex: 1,
+                      backgroundColor: "#FFD700",
+                      paddingHorizontal: 10,
+                    },
+                  ]}
+                  activeOpacity={0.8}
+                  onPress={() => router.push("/subscription/addons")}
+                >
+                  <Ionicons
+                    name="add-circle-outline"
+                    size={22}
+                    color="#1a1a1a"
+                    style={{ marginRight: 10 }}
+                  />
+                  <Text style={styles.bookDoorstepButtonText} numberOfLines={1}>
+                    Add-ons
+                  </Text>
+                </TouchableOpacity>
+              )}
             </View>
           </View>
         </View>
@@ -708,7 +422,7 @@ export default function HomeScreen() {
                     )}
                     <Text style={styles.recentCarText}>{item.car}</Text>
                     <View style={styles.recentPriceRow}>
-                      <Text style={styles.recentPrice}>₹{item.price}</Text>
+                      <Text style={styles.recentPrice}>â‚¹{item.price}</Text>
                       <View style={styles.rebookBadge}>
                         <Text style={styles.rebookText}>Rebook</Text>
                       </View>
@@ -754,7 +468,7 @@ export default function HomeScreen() {
               <>
                 <View style={styles.phoneContainer}>
                   <View style={styles.countryCode}>
-                    <Text style={styles.countryCodeText}>🇮🇳 +91</Text>
+                    <Text style={styles.countryCodeText}>ðŸ‡®ðŸ‡³ +91</Text>
                   </View>
                   <TextInput
                     style={styles.inputField}

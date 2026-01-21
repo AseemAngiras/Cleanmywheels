@@ -15,6 +15,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useNavigation, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   Image,
   KeyboardAvoidingView,
@@ -40,7 +41,6 @@ export default function HomeScreen() {
   const dispatch = useDispatch();
   const token = useSelector((state: RootState) => state.auth.token);
 
-  // Force logout if using old dummy token
   useEffect(() => {
     if (token === "dummy-token") {
       dispatch(logout());
@@ -56,15 +56,9 @@ export default function HomeScreen() {
       ["active", "ongoing"].includes(sub.status),
     );
 
-  // Admin Check
   const user = useSelector((state: RootState) => state.user.user);
   const isAdmin = user?.accountType === "Super Admin";
 
-  if (isAdmin) {
-    return <AdminSubscriptionScreen />;
-  }
-
-  // Login State
   const [isLoginModalVisible, setIsLoginModalVisible] = useState(false);
   const [modalStep, setModalStep] = useState<"details" | "otp">("details");
   const [name, setName] = useState("");
@@ -83,35 +77,20 @@ export default function HomeScreen() {
 
   // ... (Login handlers)
   const handleSendOtp = async () => {
-    // Name validation removed for Homepage Login
-
     const cleanedPhone = phoneNumber.trim();
 
-    // 1. Allow Admin Number check bypass (Logic kept as is, but assuming backend handles it or we proceed to request)
-    // The previous code just fell through. We will keep checks.
-
-    // 2. Basic Length Check
     if (!cleanedPhone || cleanedPhone.length !== 10) {
       Alert.alert("Invalid Phone", "Please enter a 10-digit phone number.");
       return;
     }
 
-    // 3. Indian Mobile Number Check (starts with 6-9)
-    // Relaxed check for test numbers if needed, but keeping original logic
     if (!/^[6-9]/.test(cleanedPhone) && cleanedPhone !== "1234567890") {
-      // Allowing 1234567890 to pass regex check if it fails, though 1 doesn't match 6-9
-      // Actually 1234567890 starts with 1.
       Alert.alert("Invalid Phone", "Please enter a valid mobile number.");
       return;
     }
-
-    // 4. Repeated Digits Check (e.g., 8888888888)
-    // keeping original logic
-
     setIsLoading(true);
     try {
       if (name.trim()) {
-        // Explicit registration/update if name is provided
         const trimmedName = name.trim();
         const trimmedPhone = cleanedPhone;
         const result = await register({
@@ -121,7 +100,6 @@ export default function HomeScreen() {
           accountType: trimmedPhone === "1234567890" ? "Super Admin" : "Seeker",
         }).unwrap();
 
-        // Store initial token from register response (needed for verify-otp)
         const token = result.data?.token;
         const backendUser = result.data?.user;
 
@@ -132,7 +110,6 @@ export default function HomeScreen() {
           dispatch(setUser(backendUser));
         }
       } else {
-        // Default to normal Login (works if user exists)
         await requestOtp({
           phone: cleanedPhone,
           countryCode: "+91",
@@ -178,7 +155,6 @@ export default function HomeScreen() {
           otpType: "REGISTER",
         }).unwrap();
       } else {
-        // BACKEND Joi strictly requires ONLY these 3 keys for login verification
         const loginPayload = {
           countryCode: payload.countryCode,
           phone: payload.phone,
@@ -189,8 +165,6 @@ export default function HomeScreen() {
 
       console.log("✅ Auth verified successfully:", response);
 
-      // Assuming response structure. Adjust path as needed based on actual API.
-      // If response is { data: { token: ... } } or just { token: ... }
       const token =
         response?.data?.token ||
         response?.token ||
@@ -198,7 +172,6 @@ export default function HomeScreen() {
 
       if (token) {
         console.log("🎟 [HomeScreen] New token received and stored");
-        // Store full user object from response
         const backendUser = response?.data?.user;
         if (backendUser) {
           dispatch(setUser(backendUser));
@@ -207,14 +180,12 @@ export default function HomeScreen() {
 
         const isAdminUser = backendUser?.accountType === "Super Admin";
 
-        // Reset State immediately
         setModalStep("details");
         setOtp(["", "", "", "", "", ""]);
         setName("");
         setPhoneNumber("");
         setIsLoginModalVisible(false);
 
-        // Check for Admin Redirect
         if (isAdminUser) {
           setTimeout(() => {
             router.replace("/(tabs)/dashboard");
@@ -238,7 +209,6 @@ export default function HomeScreen() {
   const allBookings = bookings;
   const uniqueBookingsMap = new Map();
   allBookings.forEach((booking) => {
-    // Valid bookings must have a serviceName (Subscription purchases do not)
     if (booking.serviceName) {
       const key = `${booking.serviceName}|${booking.address}|${booking.car}`;
       uniqueBookingsMap.set(key, booking);
@@ -290,6 +260,10 @@ export default function HomeScreen() {
     });
   };
 
+  if (isAdmin) {
+    return <AdminSubscriptionScreen />;
+  }
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView
@@ -299,12 +273,12 @@ export default function HomeScreen() {
         {/* Header */}
         <View style={styles.header}>
           <View>
+            <Text style={styles.greeting}>
+              {isLoggedIn
+                ? `Hello, ${userName?.split(" ")[0] || "User"} 👋`
+                : "Welcome to"}
+            </Text>
             <Text style={styles.brandTitle}>Cleanmywheels</Text>
-            {/* {isLoggedIn ? (
-              <Text style={styles.greeting}>Hi, {userName || "User"}</Text>
-            ) : (
-              <Text style={styles.greeting}>Welcome</Text>
-            )} */}
           </View>
           <View style={styles.headerIcons}>
             {!isLoggedIn && (
@@ -315,99 +289,106 @@ export default function HomeScreen() {
                 <Text style={styles.headerLoginText}>Log in</Text>
               </TouchableOpacity>
             )}
-            <TouchableOpacity style={styles.iconButton}>
-              <Ionicons name="notifications-outline" size={24} color="#000" />
-            </TouchableOpacity>
           </View>
         </View>
 
         {/* Hero Section */}
-        <View style={styles.heroContainer}>
-          <View
-            style={[
-              styles.imageWrapper,
-              (!isLoggedIn || pastBookings.length === 0) && { height: 450 },
-            ]}
-          >
+        <View style={styles.heroSection}>
+          <View style={styles.heroCard}>
             <Image
               source={{
                 uri: "https://images.unsplash.com/photo-1601362840469-51e4d8d58785?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
               }}
               style={styles.heroImage}
             />
-          </View>
-
-          <View style={styles.heroContent}>
-            <Text style={styles.heroTitle}>Make Your Car Shine.</Text>
-            <Text style={styles.heroSubtitle}>
-              Premium eco-friendly car wash service{"\n"}delivered right to your
-              doorstep.
-            </Text>
-
-            <View
-              style={[
-                styles.actionButtons,
-                hasActiveSubscription && { flexDirection: "row", gap: 10 },
-              ]}
-            >
-              <TouchableOpacity
-                style={[
-                  styles.bookDoorstepButton,
-                  hasActiveSubscription && {
-                    flex: 1,
-                    paddingHorizontal: 10,
-                    width: "auto",
-                  },
-                ]}
-                activeOpacity={0.8}
-                onPress={() =>
-                  router.push("/(tabs)/home/book-doorstep/enter-location")
-                }
-              >
-                <Ionicons
-                  name="home"
-                  size={22}
-                  color="#1a1a1a"
-                  style={{ marginRight: 10 }}
-                />
-                <Text style={styles.bookDoorstepButtonText} numberOfLines={1}>
-                  Book Now
-                </Text>
-              </TouchableOpacity>
-
-              {hasActiveSubscription && (
-                <TouchableOpacity
-                  style={[
-                    styles.bookDoorstepButton,
-                    {
-                      flex: 1,
-                      backgroundColor: "#FFD700",
-                      paddingHorizontal: 10,
-                      width: "auto",
-                    },
-                  ]}
-                  activeOpacity={0.8}
-                  onPress={() => router.push("/subscription/addons")}
-                >
-                  <Ionicons
-                    name="add-circle-outline"
-                    size={22}
-                    color="#1a1a1a"
-                    style={{ paddingRight: 5 }}
-                  />
-                  <Text style={styles.bookDoorstepButtonText} numberOfLines={1}>
-                    Add-ons
-                  </Text>
-                </TouchableOpacity>
-              )}
+            <View style={styles.heroOverlay}>
+              <Text style={styles.heroOverlayTitle}>Premium Car Care</Text>
+              <Text style={styles.heroOverlaySubtitle}>
+                Eco-friendly wash at your doorstep
+              </Text>
             </View>
           </View>
         </View>
 
+        {/* Action Buttons */}
+        <View
+          style={[
+            styles.actionSection,
+            !isLoggedIn && { justifyContent: "center" },
+          ]}
+        >
+          <TouchableOpacity
+            style={[
+              styles.actionButton,
+              styles.primaryBtn,
+              hasActiveSubscription && { flex: 1, width: "auto" },
+              !isLoggedIn && {
+                width: "90%",
+                paddingVertical: 12,
+                height: "auto",
+                alignSelf: "center",
+                flex: 0,
+              },
+            ]}
+            activeOpacity={0.8}
+            onPress={() =>
+              router.push("/(tabs)/home/book-doorstep/enter-location")
+            }
+          >
+            <View style={styles.iconContainer}>
+              <Ionicons name="calendar" size={24} color="#1a1a1a" />
+            </View>
+            <View>
+              <Text style={styles.actionBtnTitle}>Book Service</Text>
+              <Text style={styles.actionBtnSubtitle}>One-time wash</Text>
+            </View>
+            {/* <Ionicons
+              name="chevron-forward"
+              size={20}
+              color="#1a1a1a"
+              style={{ marginLeft: "auto", opacity: 0.5 }}
+            /> */}
+          </TouchableOpacity>
+
+          {hasActiveSubscription && (
+            <TouchableOpacity
+              style={[
+                styles.actionButton,
+                styles.secondaryBtn,
+                { flex: 1, width: "auto" },
+              ]}
+              activeOpacity={0.8}
+              onPress={() => router.push("/subscription/addons")}
+            >
+              <View
+                style={[styles.iconContainer, { backgroundColor: "#FFF8E1" }]}
+              >
+                <Ionicons name="add-circle" size={24} color="#F59E0B" />
+              </View>
+              <View>
+                <Text style={styles.actionBtnTitle}>Add-ons</Text>
+                <Text style={styles.actionBtnSubtitle}>For next visit</Text>
+              </View>
+              <Ionicons
+                name="chevron-forward"
+                size={20}
+                color="#1a1a1a"
+                style={{ marginLeft: "auto", opacity: 0.5 }}
+              />
+            </TouchableOpacity>
+          )}
+        </View>
+
         {/* Recent Services Section */}
         {isLoggedIn && pastBookings.length > 0 && (
-          <View style={styles.recentSection}>
-            <Text style={styles.recentTitle}>Recent Services</Text>
+          <View style={styles.sectionContainer}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Recent Services</Text>
+              <TouchableOpacity>
+                <Text style={styles.viewAllText}>View All</Text>
+              </TouchableOpacity>
+            </View>
+
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -417,32 +398,128 @@ export default function HomeScreen() {
                 <TouchableOpacity
                   key={index}
                   style={styles.recentCard}
+                  activeOpacity={0.9}
                   onPress={() => handleRecentServicePress(item)}
                 >
-                  <View style={styles.recentIconContainer}>
-                    <Ionicons name="sparkles" size={24} color="#84c95c" />
-                  </View>
-                  <View style={styles.recentInfo}>
-                    <Text style={styles.recentServiceName}>
-                      {item.serviceName}
-                    </Text>
-                    {/* Display Address */}
-                    {item.address && (
-                      <Text style={styles.recentAddress} numberOfLines={1}>
-                        {item.address}
-                      </Text>
-                    )}
-                    <Text style={styles.recentCarText}>{item.car}</Text>
-                    <View style={styles.recentPriceRow}>
-                      <Text style={styles.recentPrice}> ₹ {item.price}</Text>
-                      <View style={styles.rebookBadge}>
-                        <Text style={styles.rebookText}>Rebook</Text>
-                      </View>
+                  <View style={styles.recentCardHeader}>
+                    <View
+                      style={[
+                        styles.recentIconBox,
+                        { backgroundColor: "#E8F5E9" },
+                      ]}
+                    >
+                      <Ionicons name="sparkles" size={16} color="#2E7D32" />
                     </View>
+                    <View style={styles.rebookBadge}>
+                      <Ionicons name="refresh" size={10} color="#fff" />
+                      <Text style={styles.rebookText}>Rebook</Text>
+                    </View>
+                  </View>
+
+                  <Text style={styles.recentServiceName} numberOfLines={1}>
+                    {item.serviceName}
+                  </Text>
+                  <Text style={styles.recentCarText} numberOfLines={1}>
+                    {item.car}
+                  </Text>
+
+                  <View style={styles.recentDivider} />
+
+                  <View style={styles.recentFooter}>
+                    <Text style={styles.recentDate}>
+                      {item.date
+                        ? new Date(item.date).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                          })
+                        : "N/A"}
+                    </Text>
+                    <Text style={styles.recentPrice}>₹ {item.price}</Text>
                   </View>
                 </TouchableOpacity>
               ))}
             </ScrollView>
+          </View>
+        )}
+
+        {/* Guest Features Section */}
+        {!isLoggedIn && (
+          <View style={styles.guestSection}>
+            {/* Why Choose Us */}
+            <View style={styles.sectionContainer}>
+              <Text style={styles.sectionTitle}>Why Choose Us?</Text>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.featuresList}
+              >
+                {[
+                  {
+                    icon: "water",
+                    title: "Eco-Friendly",
+                    desc: "Waterless wash technology",
+                    color: "#4CAF50",
+                    bg: "#E8F5E9",
+                  },
+                  {
+                    icon: "shield-checkmark",
+                    title: "Trusted Pros",
+                    desc: "Vetted & trained partners",
+                    color: "#2196F3",
+                    bg: "#E3F2FD",
+                  },
+                  {
+                    icon: "time",
+                    title: "Doorstep",
+                    desc: "Service at your location",
+                    color: "#FF9800",
+                    bg: "#FFF3E0",
+                  },
+                ].map((feature, index) => (
+                  <View key={index} style={styles.featureCard}>
+                    <View
+                      style={[
+                        styles.featureIconBox,
+                        { backgroundColor: feature.bg },
+                      ]}
+                    >
+                      <Ionicons
+                        name={feature.icon as any}
+                        size={24}
+                        color={feature.color}
+                      />
+                    </View>
+                    <Text style={styles.featureTitle}>{feature.title}</Text>
+                    <Text style={styles.featureDesc}>{feature.desc}</Text>
+                  </View>
+                ))}
+              </ScrollView>
+            </View>
+          </View>
+        )}
+
+        {isLoggedIn && !hasActiveSubscription && (
+          <View style={styles.promoSection}>
+            <View style={styles.promoCard}>
+              <View style={styles.promoContent}>
+                <Text style={styles.promoTitle}>Get Daily Wash</Text>
+                <Text style={styles.promoDesc}>
+                  Subscribe now and get your car cleaned every day.
+                </Text>
+                <TouchableOpacity
+                  style={styles.promoBtn}
+                  onPress={() => router.push("/(tabs)/bookings")}
+                >
+                  <Text style={styles.promoBtnText}>View Plans</Text>
+                </TouchableOpacity>
+              </View>
+              <Ionicons
+                name="water"
+                size={80}
+                color="#E3F2FD"
+                style={styles.promoIcon}
+              />
+            </View>
           </View>
         )}
       </ScrollView>
@@ -459,65 +536,58 @@ export default function HomeScreen() {
           style={styles.modalOverlay}
         >
           <TouchableOpacity
-            style={styles.modalOverlayTouch}
+            style={styles.modalDismissArea}
             activeOpacity={1}
             onPress={() => setIsLoginModalVisible(false)}
           />
 
           <View style={styles.modalContent}>
-            <View style={styles.dragHandle} />
+            <View style={styles.modalHeader}>
+              <View style={styles.modalIndicator} />
+            </View>
 
             <Text style={styles.modalTitle}>
-              {modalStep === "details" ? "Welcome" : "Verify OTP"}
+              {modalStep === "details" ? "Welcome Back!" : "Enter OTP"}
             </Text>
             <Text style={styles.modalSubtitle}>
               {modalStep === "details"
-                ? "Enter your details to log in."
-                : `Enter the 6-digit code sent to +91 ${phoneNumber}`}
+                ? "Enter your mobile number to continue."
+                : `We sent a code to +91 ${phoneNumber}`}
             </Text>
 
             {modalStep === "details" ? (
-              <>
-                <View style={styles.phoneContainer}>
-                  <View style={styles.countryCode}>
-                    <Text style={styles.countryCodeText}>+91</Text>
+              <View>
+                <View style={styles.inputWrapper}>
+                  <Text style={styles.inputLabel}>Mobile Number</Text>
+                  <View style={styles.phoneInputContainer}>
+                    <Text style={styles.prefixText}>+91</Text>
+                    <View style={styles.verticalDivider} />
+                    <TextInput
+                      style={styles.phoneInput}
+                      placeholder="98765 43210"
+                      placeholderTextColor="#999"
+                      keyboardType="phone-pad"
+                      maxLength={10}
+                      value={phoneNumber}
+                      onChangeText={setPhoneNumber}
+                    />
                   </View>
-                  <TextInput
-                    style={styles.inputField}
-                    placeholder="Mobile Number"
-                    placeholderTextColor="#ccc"
-                    keyboardType="phone-pad"
-                    maxLength={10}
-                    value={phoneNumber}
-                    onChangeText={setPhoneNumber}
-                  />
                 </View>
 
                 <TouchableOpacity
-                  style={styles.modalContinueButton}
+                  style={styles.primaryModalBtn}
                   onPress={handleSendOtp}
+                  disabled={isLoading}
                 >
                   {isLoading ? (
-                    <Text style={styles.continueButtonText}>Sending...</Text>
+                    <ActivityIndicator color="#000" />
                   ) : (
-                    <Text style={styles.continueButtonText}>Send OTP</Text>
+                    <Text style={styles.primaryModalBtnText}>Continue</Text>
                   )}
                 </TouchableOpacity>
-              </>
+              </View>
             ) : (
-              <>
-                <View style={styles.otpHeaderRow}>
-                  <TouchableOpacity
-                    onPress={() => setModalStep("details")}
-                    style={{ marginRight: 10 }}
-                  >
-                    <Ionicons name="arrow-back" size={24} color="#1a1a1a" />
-                  </TouchableOpacity>
-                  <Text style={{ fontSize: 14, color: "#666" }}>
-                    Change Number
-                  </Text>
-                </View>
-
+              <View>
                 <View style={styles.otpContainer}>
                   {otp.map((digit, i) => (
                     <TextInput
@@ -525,7 +595,10 @@ export default function HomeScreen() {
                       ref={(ref) => {
                         inputRefs.current[i] = ref;
                       }}
-                      style={styles.otpBox}
+                      style={[
+                        styles.otpBox,
+                        digit ? styles.otpBoxFilled : null,
+                      ]}
                       keyboardType="number-pad"
                       maxLength={1}
                       value={digit}
@@ -550,15 +623,27 @@ export default function HomeScreen() {
                   ))}
                 </View>
 
-                <TouchableOpacity
-                  style={styles.modalContinueButton}
-                  onPress={handleVerifyOtp}
-                >
-                  <Text style={styles.continueButtonText}>
-                    Verify & Proceed
+                <View style={styles.resendContainer}>
+                  <Text style={styles.resendText}>
+                    Didn&apos;t receive code?{" "}
                   </Text>
+                  <TouchableOpacity onPress={handleSendOtp}>
+                    <Text style={styles.resendLink}>Resend</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <TouchableOpacity
+                  style={styles.primaryModalBtn}
+                  onPress={handleVerifyOtp}
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <ActivityIndicator color="#000" />
+                  ) : (
+                    <Text style={styles.primaryModalBtnText}>Verify Login</Text>
+                  )}
                 </TouchableOpacity>
-              </>
+              </View>
             )}
           </View>
         </KeyboardAvoidingView>
@@ -570,868 +655,509 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#FAFAFA",
   },
   container: {
-    paddingHorizontal: 20,
-    paddingTop: 10,
-    paddingBottom: 40,
+    paddingBottom: 100,
   },
+
+  // Header
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 16,
-  },
-  brandTitle: {
-    fontSize: 20,
-    fontWeight: "800",
-    color: "#1a1a1a",
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 20,
+    backgroundColor: "#fff",
   },
   greeting: {
-    fontSize: 12,
-    color: "#666",
-    marginTop: 2,
+    fontSize: 14,
+    color: "#64748B",
+    fontWeight: "500",
+  },
+  brandTitle: {
+    fontSize: 24,
+    fontWeight: "800",
+    color: "#1a1a1a",
+    letterSpacing: -0.5,
   },
   headerIcons: {
     flexDirection: "row",
-    gap: 15,
-  },
-  iconButton: {
-    padding: 4,
-  },
-  heroContainer: {
     alignItems: "center",
-    marginBottom: 30,
+    gap: 12,
   },
-  imageWrapper: {
-    width: "100%",
-    height: 240,
-    borderRadius: 25,
+  headerLoginBtn: {
+    backgroundColor: "#1a1a1a",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  headerLoginText: {
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: "700",
+  },
+  iconCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#F1F5F9",
+    justifyContent: "center",
+    alignItems: "center",
+    position: "relative",
+  },
+  notificationDot: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#EF4444",
+    borderWidth: 1,
+    borderColor: "#F1F5F9",
+  },
+
+  // Hero
+  heroSection: {
+    paddingHorizontal: 20,
+    marginBottom: 24,
+  },
+  heroCard: {
+    height: 200,
+    borderRadius: 24,
     overflow: "hidden",
     position: "relative",
-    marginBottom: 20,
+    backgroundColor: "#1a1a1a",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.1,
-    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 18,
     elevation: 8,
   },
   heroImage: {
     width: "100%",
     height: "100%",
     resizeMode: "cover",
+    opacity: 0.8,
   },
-  heroContent: {
-    alignItems: "center",
-    width: "100%",
+  heroOverlay: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: 24,
+    backgroundColor: "rgba(0,0,0,0.3)",
   },
-  heroTitle: {
-    fontSize: 32,
-    fontWeight: "900",
-    textAlign: "center",
-    color: "#1a1a1a",
-    lineHeight: 38,
-    marginBottom: 2,
-  },
-  heroSubtitle: {
-    fontSize: 14,
-    color: "#666",
-    textAlign: "center",
-    lineHeight: 22,
-    // marginBottom: 4,
-  },
-  actionButtons: {
-    flexDirection: "row",
-    justifyContent: "center",
-    gap: 15,
-    width: "100%",
-  },
-  bookDoorstepButton: {
-    backgroundColor: "#C8F000",
-    paddingVertical: 16,
-    paddingHorizontal: 30,
-    borderRadius: 40,
-    width: "80%",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "#C8F000",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-  bookDoorstepButtonText: {
-    color: "#1a1a1a",
+  heroOverlayTitle: {
+    color: "#fff",
+    fontSize: 28,
     fontWeight: "800",
-    fontSize: 16,
-    letterSpacing: 0.5,
-  },
-
-  // Recent Services Styles
-  recentSection: {
-    marginTop: 0,
-  },
-  recentTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#1a1a1a",
-    marginBottom: 15,
-  },
-  recentList: {
-    paddingRight: 20,
-  },
-  recentCard: {
-    backgroundColor: "#fff",
-    width: 250,
-    padding: 15,
-    borderRadius: 16,
-    marginRight: 15,
-    flexDirection: "row",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#eee",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 5,
-    elevation: 2,
-  },
-  recentIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    backgroundColor: "#f0f9eb",
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 15,
-  },
-  recentInfo: {
-    flex: 1,
-  },
-  recentServiceName: {
-    fontSize: 14,
-    fontWeight: "bold",
-    color: "#1a1a1a",
-    marginBottom: 2,
-  },
-  recentAddress: {
-    fontSize: 11,
-    color: "#555",
     marginBottom: 4,
+    textShadowColor: "rgba(0,0,0,0.3)",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
   },
-  recentCarText: {
-    fontSize: 12,
-    color: "#666",
-    marginBottom: 8,
-  },
-  recentPriceRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  recentPrice: {
+  heroOverlaySubtitle: {
+    color: "#E2E8F0",
     fontSize: 14,
-    fontWeight: "bold",
-    color: "#1a1a1a",
-  },
-  rebookBadge: {
-    backgroundColor: "#1a1a1a",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  rebookText: {
-    fontSize: 10,
-    fontWeight: "bold",
-    color: "#fff",
+    fontWeight: "500",
   },
 
-  // Login Styles
-  loginText: {
-    fontSize: 14,
-    fontWeight: "400",
-    color: "#666",
-  },
-
-  // Modal Styles
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "flex-end",
-  },
-  modalOverlayTouch: { flex: 1 },
-  modalContent: {
-    backgroundColor: "#fff",
-    borderTopLeftRadius: 25,
-    borderTopRightRadius: 25,
-    padding: 25,
-    paddingBottom: 40,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 10,
-  },
-  dragHandle: {
-    width: 40,
-    height: 4,
-    backgroundColor: "#e0e0e0",
-    borderRadius: 2,
-    alignSelf: "center",
-    marginBottom: 20,
-  },
-  modalTitle: {
-    fontSize: 22,
-    fontWeight: "bold",
-    color: "#1a1a1a",
-    marginBottom: 5,
-  },
-  modalSubtitle: {
-    fontSize: 14,
-    color: "#888",
-    marginBottom: 20,
-  },
-  inputLabel: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "#1a1a1a",
-    marginBottom: 8,
-  },
-  inputContainer: {
+  actionSection: {
     flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#f9f9f9",
-    borderRadius: 30,
     paddingHorizontal: 20,
-    paddingVertical: 12,
-    marginBottom: 15,
-    borderWidth: 1,
-    borderColor: "#f0f0f0",
+    gap: 12,
+    marginBottom: 32,
   },
-  inputField: {
+  actionButton: {
     flex: 1,
-    fontSize: 14,
-    color: "#1a1a1a",
-  },
-  phoneContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#f9f9f9",
-    borderRadius: 30,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    marginBottom: 25,
-    borderWidth: 1,
-    borderColor: "#f0f0f0",
-  },
-  countryCode: { marginRight: 10 },
-  countryCodeText: { fontSize: 14, fontWeight: "bold", color: "#1a1a1a" },
-
-  modalContinueButton: {
-    backgroundColor: "#C8F000",
-    paddingVertical: 16,
-    borderRadius: 30,
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  continueButtonText: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#1a1a1a",
-  },
-
-  otpHeaderRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 5,
-  },
-  otpContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 20,
-    paddingHorizontal: 10,
-  },
-  otpBox: {
-    width: 45,
-    height: 55,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#f0f0f0",
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#1a1a1a",
-    backgroundColor: "#f9f9f9",
-    textAlign: "center",
-  },
-
-  // Header Login Button
-  headerLoginBtn: {
-    backgroundColor: "#1a1a1a",
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 30,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  headerLoginText: {
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: "600",
-  },
-
-  // --- DASHBOARD STYLES (Appended) ---
-  profileBtn: {
+    padding: 12,
+    borderRadius: 20,
+    gap: 5,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.05,
     shadowRadius: 8,
-    elevation: 2,
+    elevation: 3,
   },
-  profileAvatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    borderWidth: 2,
-    borderColor: "#fff",
+  primaryBtn: {
+    backgroundColor: "#D1F803",
+  },
+  secondaryBtn: {
+    backgroundColor: "#FFF",
+    borderWidth: 1,
+    borderColor: "#F1F5F9",
+  },
+  iconContainer: {
+    width: 34,
+    height: 34,
+    borderRadius: 14,
+    backgroundColor: "rgba(255,255,255,0.4)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  actionBtnTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#1a1a1a",
+  },
+  actionBtnSubtitle: {
+    fontSize: 12,
+    color: "#475569",
+    marginTop: 2,
+  },
+
+  // Sections
+  sectionContainer: {
+    marginBottom: 24,
   },
   sectionHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: 20,
-    marginBottom: 15,
+    paddingHorizontal: 20,
+    marginBottom: 16,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#1a1a1a",
+    color: "#0F172A",
+    paddingLeft: 20,
+    marginBottom: 15,
   },
   viewAllText: {
-    fontSize: 14,
-    color: "#3498DB",
+    fontSize: 13,
+    color: "#2563EB",
     fontWeight: "600",
   },
-
-  // Revenue Card
-  revenueCard: {
+  recentList: {
+    paddingLeft: 20,
+    paddingRight: 8,
+  },
+  recentCard: {
+    width: 200,
     backgroundColor: "#fff",
+    borderRadius: 18,
+    padding: 16,
+    marginRight: 12,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+  },
+  recentCardHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 12,
+  },
+  recentIconBox: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  rebookBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#1a1a1a",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    gap: 4,
+  },
+  rebookText: {
+    color: "#fff",
+    fontSize: 10,
+    fontWeight: "700",
+  },
+  recentServiceName: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#0F172A",
+    marginBottom: 4,
+  },
+  recentCarText: {
+    fontSize: 13,
+    color: "#64748B",
+    marginBottom: 12,
+  },
+  recentDivider: {
+    height: 1,
+    backgroundColor: "#F1F5F9",
+    marginBottom: 12,
+  },
+  recentFooter: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  recentDate: {
+    fontSize: 12,
+    color: "#94A3B8",
+    fontWeight: "500",
+  },
+  recentPrice: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#1a1a1a",
+  },
+
+  promoSection: {
+    paddingHorizontal: 20,
+  },
+  promoCard: {
+    backgroundColor: "#2563EB",
     borderRadius: 24,
-    padding: 20,
-    marginBottom: 20,
+    padding: 24,
+    flexDirection: "row",
+    alignItems: "center",
+    overflow: "hidden",
+    position: "relative",
+  },
+  promoContent: {
+    flex: 1,
+    zIndex: 1,
+  },
+  promoTitle: {
+    color: "#fff",
+    fontSize: 20,
+    fontWeight: "800",
+    marginBottom: 8,
+  },
+  promoDesc: {
+    color: "#BFDBFE",
+    fontSize: 13,
+    marginBottom: 16,
+    lineHeight: 18,
+  },
+  promoBtn: {
+    backgroundColor: "#fff",
+    alignSelf: "flex-start",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 12,
+  },
+  promoBtnText: {
+    color: "#1D4ED8",
+    fontWeight: "700",
+    fontSize: 12,
+  },
+  promoIcon: {
+    position: "absolute",
+    right: -10,
+    bottom: -10,
+    opacity: 0.2,
+    transform: [{ rotate: "-15deg" }],
+  },
+
+  // Guest Section
+  guestSection: {
+    paddingBottom: 20,
+  },
+  featuresList: {
+    paddingHorizontal: 20,
+    gap: 16,
+    paddingBottom: 20,
+  },
+  featureCard: {
+    backgroundColor: "#fff",
+    padding: 16,
+    borderRadius: 20,
+    width: 140,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.05,
     shadowRadius: 12,
-    elevation: 3,
+    elevation: 4,
   },
-  revenueHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+  featureIconBox: {
+    width: 48,
+    height: 48,
+    borderRadius: 16,
+    justifyContent: "center",
     alignItems: "center",
     marginBottom: 12,
   },
-  iconCircleBlue: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#EBF5FB",
-    justifyContent: "center",
-    alignItems: "center",
+  featureTitle: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#0F172A",
+    marginBottom: 4,
   },
-  growthBadge: {
+  featureDesc: {
+    fontSize: 12,
+    color: "#64748B",
+    lineHeight: 16,
+  },
+  stepsContainer: {
+    paddingHorizontal: 20,
+    gap: 16,
+  },
+  stepItem: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#E9F7EF",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    gap: 4,
+    backgroundColor: "#fff",
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#F1F5F9",
   },
-  growthText: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "#2ECC71",
+  stepNumber: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "#1a1a1a",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 16,
   },
-  revenueLabel: {
+  stepNumberText: {
+    color: "#fff",
+    fontWeight: "700",
     fontSize: 14,
-    color: "#7F8C8D",
-    fontWeight: "500",
-    marginBottom: 4,
   },
-  revenueAmount: {
-    fontSize: 32,
-    fontWeight: "800",
-    color: "#1a1a1a",
-    marginBottom: 4,
+  stepContent: {
+    flex: 1,
   },
-  revenueHistory: {
-    fontSize: 12,
-    color: "#95A5A6",
+  stepTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#0F172A",
+  },
+  stepDesc: {
+    fontSize: 13,
+    color: "#64748B",
+    marginTop: 2,
   },
 
-  // Stats Row
-  statsRow: {
-    flexDirection: "row",
-    gap: 16,
-    marginBottom: 10,
-  },
-  statBox: {
+  modalOverlay: {
     flex: 1,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    justifyContent: "flex-end",
+  },
+  modalDismissArea: {
+    flex: 1,
+  },
+  modalContent: {
     backgroundColor: "#fff",
-    borderRadius: 20,
-    padding: 16,
-    height: 140,
-    justifyContent: "space-between",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 8,
-    elevation: 2,
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    padding: 32,
+    paddingBottom: 48,
+    minHeight: 400,
   },
-  iconCircleBlueLight: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: "#EBF5FB",
-    justifyContent: "center",
+  modalHeader: {
     alignItems: "center",
+    marginBottom: 24,
   },
-  iconCircleOrangeLight: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: "#FEF5E7",
-    justifyContent: "center",
-    alignItems: "center",
+  modalIndicator: {
+    width: 48,
+    height: 4,
+    backgroundColor: "#E2E8F0",
+    borderRadius: 2,
   },
-  statBoxLabel: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#7F8C8D",
-  },
-  statCountRow: {
-    flexDirection: "row",
-    alignItems: "baseline",
-    gap: 4,
-  },
-  statBigNum: {
+  modalTitle: {
     fontSize: 28,
     fontWeight: "800",
-    color: "#1a1a1a",
+    color: "#0F172A",
+    marginBottom: 8,
   },
-  statTotalNum: {
-    fontSize: 16,
-    color: "#95A5A6",
-    fontWeight: "500",
+  modalSubtitle: {
+    fontSize: 15,
+    color: "#64748B",
+    marginBottom: 32,
   },
-
-  // Live Status Timeline
-  liveStatusContainer: {
-    gap: 0, // Timeline items connect
+  inputWrapper: {
+    marginBottom: 24,
   },
-  timelineItem: {
-    flexDirection: "row",
-    minHeight: 80,
-  },
-  timelineLeft: {
-    alignItems: "center",
-    width: 30,
-    marginRight: 12,
-  },
-  timelineLine: {
-    width: 2,
-    flex: 1,
-    backgroundColor: "#E0E0E0",
-    marginTop: 4,
-  },
-  timelineContent: {
-    flex: 1,
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 8,
-    elevation: 1,
-  },
-  timelineHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  timelineTitle: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#1a1a1a",
-    marginBottom: 4,
-  },
-  timelineTime: {
-    fontSize: 12,
-    color: "#95A5A6",
-    fontWeight: "500",
-  },
-  timelineSubtitle: {
+  inputLabel: {
     fontSize: 13,
-    color: "#7F8C8D",
+    fontWeight: "600",
+    color: "#334155",
+    marginBottom: 10,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
   },
-  // FAB (Matches dashboard)
-  fab: {
-    position: "absolute",
-    bottom: 100,
-    right: 20,
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: "#F1C40F",
+  phoneInputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1.5,
+    borderColor: "#E2E8F0",
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    height: 56,
+    backgroundColor: "#F8FAFC",
+  },
+  prefixText: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#0F172A",
+  },
+  verticalDivider: {
+    width: 1,
+    height: 20,
+    backgroundColor: "#CBD5E1",
+    marginHorizontal: 16,
+  },
+  phoneInput: {
+    flex: 1,
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#0F172A",
+  },
+  primaryModalBtn: {
+    backgroundColor: "#D1F803",
+    height: 56,
+    borderRadius: 16,
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#F1C40F",
+    shadowColor: "#D1F803",
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
     elevation: 8,
   },
-  btn: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 12,
-    alignItems: "center",
-  },
-  btnCancel: {
-    backgroundColor: "#F5F5F5",
-  },
-  btnAdd: {
-    backgroundColor: "#F1C40F",
-  },
-  btnTextCancel: {
-    fontWeight: "600",
-    color: "#666",
-  },
-  btnTextAdd: {
-    fontWeight: "700",
+  primaryModalBtnText: {
+    fontSize: 16,
+    fontWeight: "800",
     color: "#1a1a1a",
   },
-  filterBtn: {
-    // Keeping definition for safety
-    backgroundColor: "#fff",
-    padding: 8,
-    borderRadius: 20,
-  },
-  input: {
-    width: "100%",
-    backgroundColor: "#F5F5F5",
-    padding: 14,
-    borderRadius: 12,
-    marginBottom: 12,
-    fontSize: 14,
-    color: "#333",
-  },
-  modalButtons: {
+  otpContainer: {
     flexDirection: "row",
-    gap: 12,
-    marginTop: 10,
-    width: "100%",
+    justifyContent: "space-between",
+    marginBottom: 22,
+    gap: 8,
   },
-  shopHeroContainer: {
-    width: "100%",
-    height: 260,
-    borderRadius: 24,
-    overflow: "hidden",
-    marginBottom: 20,
-    position: "relative",
-  },
-  shopHeroImage: {
-    width: "100%",
-    height: "100%",
-    resizeMode: "cover",
-  },
-  heroOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.3)",
-    justifyContent: "flex-end",
-    padding: 20,
-  },
-  heroSloganTitle: {
-    fontSize: 22,
-    fontWeight: "800",
-    color: "#fff",
-    marginBottom: 4,
-    textShadowColor: "rgba(0,0,0,0.5)",
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
-  },
-  heroSloganSubtitle: {
-    fontSize: 14,
-    color: "#fff",
-    fontWeight: "500",
-    opacity: 0.9,
-    textShadowColor: "rgba(0,0,0,0.5)",
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
-  },
-  // --- COMPLAINTS SCREEN STYLES ---
-  emptyStateContainer: {
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 60,
-  },
-  emptyIconCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: "#F0FDF4",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: "#DCFCE7",
-  },
-  emptyStateTitle: {
-    fontSize: 20,
-    fontWeight: "800",
-    color: "#1a1a1a",
-    marginBottom: 8,
-  },
-  emptyStateText: {
-    fontSize: 14,
-    color: "#666",
+  otpBox: {
+    width: "14%",
+    height: 55,
+    borderWidth: 1.5,
+    borderColor: "#E2E8F0",
+    borderRadius: 12,
     textAlign: "center",
-    maxWidth: "70%",
-    lineHeight: 20,
+    fontSize: 24,
+    fontWeight: "700",
+    color: "#0F172A",
+    backgroundColor: "#F8FAFC",
   },
-  complaintCard: {
+  otpBoxFilled: {
+    borderColor: "#D1F803",
     backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: "#eaeaea",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 8,
-    elevation: 2,
   },
-  complaintHeader: {
+  resendContainer: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: 12,
-  },
-  complaintUserRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    flex: 1,
-    marginRight: 10,
-  },
-  userAvatarSmall: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#F3F4F6",
-    alignItems: "center",
     justifyContent: "center",
+    marginBottom: 24,
   },
-  userAvatarText: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#4B5563",
+  resendText: {
+    color: "#64748B",
   },
-  complaintTitle: {
-    fontSize: 16,
-    fontWeight: "700",
+  resendLink: {
     color: "#1a1a1a",
-    marginBottom: 2,
-  },
-  complaintDate: {
-    fontSize: 12,
-    color: "#9CA3AF",
-  },
-  complaintDesc: {
-    fontSize: 14,
-    color: "#4B5563",
-    lineHeight: 20,
-    marginBottom: 16,
-  },
-  complaintFooter: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    borderTopWidth: 1,
-    borderTopColor: "#f3f4f6",
-    paddingTop: 12,
-  },
-  complaintId: {
-    fontSize: 12,
-    color: "#9CA3AF",
-    fontFamily: Platform.OS === "ios" ? "Courier" : "monospace",
-  },
-  resolveBtn: {
-    backgroundColor: "#1a1a1a",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-  },
-  resolveBtnText: {
-    color: "#fff",
-    fontSize: 12,
-    fontWeight: "600",
-  },
-  refundBadge: {
-    backgroundColor: "#FEF2F2",
-    borderWidth: 1,
-    borderColor: "#FCA5A5",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  refundBadgeText: {
-    color: "#EF4444",
-    fontSize: 10,
     fontWeight: "700",
-  },
-  // --- MODAL DETAILS STYLES ---
-  detailsModalHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
-    paddingBottom: 15,
-  },
-  detailsModalTitle: {
-    fontSize: 20,
-    fontWeight: "800",
-    color: "#1a1a1a",
-  },
-  detailsModalId: {
-    fontSize: 12,
-    color: "#999",
-    marginTop: 2,
-    fontFamily: Platform.OS === "ios" ? "Courier" : "monospace",
-  },
-  closeBtn: {
-    padding: 8,
-    backgroundColor: "#f5f5f5",
-    borderRadius: 20,
-  },
-  statusSection: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 10,
-  },
-  statusBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 8,
-    borderWidth: 1,
-  },
-  statusBadgeText: {
-    fontSize: 12,
-    fontWeight: "700",
-  },
-  fullDate: {
-    fontSize: 13,
-    color: "#999",
-  },
-  fullTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#1a1a1a",
-    marginBottom: 20,
-  },
-  userDetailsBox: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#F9FAFB",
-    padding: 15,
-    borderRadius: 12,
-    marginBottom: 25,
-    borderWidth: 1,
-    borderColor: "#F3F4F6",
-  },
-  userAvatarLarge: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: "#E5E7EB",
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 15,
-  },
-  userAvatarTextLarge: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#4B5563",
-  },
-  userNameLarge: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#1a1a1a",
-    marginBottom: 2,
-  },
-  userContact: {
-    fontSize: 12,
-    color: "#6B7280",
-  },
-  sectionLabel: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#374151",
-    marginBottom: 8,
-    marginTop: 5,
-  },
-  fullDesc: {
-    fontSize: 15,
-    color: "#4B5563",
-    lineHeight: 24,
-    marginBottom: 25,
-  },
-  photosScroll: {
-    marginBottom: 20,
-  },
-  proofImage: {
-    width: 120,
-    height: 120,
-    borderRadius: 12,
-    marginRight: 10,
-    backgroundColor: "#eee",
-  },
-  detailsActions: {
-    flexDirection: "row",
-    gap: 15,
-    paddingTop: 15,
-    borderTopWidth: 1,
-    borderTopColor: "#f0f0f0",
-  },
-  actionBtn: {
-    flex: 1,
-    paddingVertical: 14,
-    borderRadius: 30,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  actionBtnPrimary: {
-    backgroundColor: "#1a1a1a",
-  },
-  actionBtnSecondary: {
-    backgroundColor: "#f5f5f5",
-  },
-  actionBtnTextPrimary: {
-    color: "#fff",
-    fontWeight: "700",
-    fontSize: 14,
-  },
-  actionBtnTextSecondary: {
-    color: "#666",
-    fontWeight: "600",
-    fontSize: 14,
+    textDecorationLine: "underline",
   },
 });

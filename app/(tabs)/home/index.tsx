@@ -50,7 +50,11 @@ export default function HomeScreen() {
   const { data: subscriptions } = useGetMySubscriptionQuery(undefined, {
     skip: !isLoggedIn,
   });
-  const hasActiveSubscription = subscriptions && subscriptions.length > 0;
+  const hasActiveSubscription =
+    subscriptions &&
+    subscriptions.some((sub: any) =>
+      ["active", "ongoing"].includes(sub.status),
+    );
 
   // Admin Check
   const user = useSelector((state: RootState) => state.user.user);
@@ -183,7 +187,7 @@ export default function HomeScreen() {
         response = await verifyLoginOtp(loginPayload).unwrap();
       }
 
-      console.log("âœ… Auth verified successfully:", response);
+      console.log("✅ Auth verified successfully:", response);
 
       // Assuming response structure. Adjust path as needed based on actual API.
       // If response is { data: { token: ... } } or just { token: ... }
@@ -193,7 +197,7 @@ export default function HomeScreen() {
         (typeof response?.data === "string" ? response?.data : null);
 
       if (token) {
-        console.log("ðŸŽŸ [HomeScreen] New token received and stored");
+        console.log("🎟 [HomeScreen] New token received and stored");
         // Store full user object from response
         const backendUser = response?.data?.user;
         if (backendUser) {
@@ -234,8 +238,11 @@ export default function HomeScreen() {
   const allBookings = bookings;
   const uniqueBookingsMap = new Map();
   allBookings.forEach((booking) => {
-    const key = `${booking.serviceName}|${booking.address}|${booking.car}`;
-    uniqueBookingsMap.set(key, booking);
+    // Valid bookings must have a serviceName (Subscription purchases do not)
+    if (booking.serviceName) {
+      const key = `${booking.serviceName}|${booking.address}|${booking.car}`;
+      uniqueBookingsMap.set(key, booking);
+    }
   });
   const pastBookings = Array.from(uniqueBookingsMap.values()).reverse();
 
@@ -346,7 +353,11 @@ export default function HomeScreen() {
               <TouchableOpacity
                 style={[
                   styles.bookDoorstepButton,
-                  hasActiveSubscription && { flex: 1, paddingHorizontal: 10 },
+                  hasActiveSubscription && {
+                    flex: 1,
+                    paddingHorizontal: 10,
+                    width: "auto",
+                  },
                 ]}
                 activeOpacity={0.8}
                 onPress={() =>
@@ -372,6 +383,7 @@ export default function HomeScreen() {
                       flex: 1,
                       backgroundColor: "#FFD700",
                       paddingHorizontal: 10,
+                      width: "auto",
                     },
                   ]}
                   activeOpacity={0.8}
@@ -381,7 +393,7 @@ export default function HomeScreen() {
                     name="add-circle-outline"
                     size={22}
                     color="#1a1a1a"
-                    style={{ marginRight: 10 }}
+                    style={{ paddingRight: 5 }}
                   />
                   <Text style={styles.bookDoorstepButtonText} numberOfLines={1}>
                     Add-ons
@@ -422,7 +434,7 @@ export default function HomeScreen() {
                     )}
                     <Text style={styles.recentCarText}>{item.car}</Text>
                     <View style={styles.recentPriceRow}>
-                      <Text style={styles.recentPrice}>â‚¹{item.price}</Text>
+                      <Text style={styles.recentPrice}> ₹ {item.price}</Text>
                       <View style={styles.rebookBadge}>
                         <Text style={styles.rebookText}>Rebook</Text>
                       </View>
@@ -468,7 +480,7 @@ export default function HomeScreen() {
               <>
                 <View style={styles.phoneContainer}>
                   <View style={styles.countryCode}>
-                    <Text style={styles.countryCodeText}>ðŸ‡®ðŸ‡³ +91</Text>
+                    <Text style={styles.countryCodeText}>+91</Text>
                   </View>
                   <TextInput
                     style={styles.inputField}

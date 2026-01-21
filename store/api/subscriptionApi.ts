@@ -70,10 +70,13 @@ export const subscriptionApi = createApi({
         razorpay_payment_id: string;
         razorpay_order_id: string;
         razorpay_signature: string;
-        planId: string;
-        vehicleId: string;
-        timeSlot: string;
-        startDate: string;
+        razorpay_payment_link_id?: string;
+        razorpay_payment_link_status?: string;
+        planId?: string;
+        vehicleId?: string;
+        timeSlot?: string;
+        startDate?: string;
+        subscriptionId?: string;
       }
     >({
       query: (body) => ({
@@ -140,6 +143,7 @@ export const subscriptionApi = createApi({
         razorpay_signature: string;
         subscriptionId: string;
         addons: any[];
+        serviceDate?: string;
       }
     >({
       query: (body) => ({

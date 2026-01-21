@@ -668,19 +668,26 @@ export default function UpcomingServices() {
                       const completed = sub.servicesCompleted || 0;
                       const nextServiceDate = new Date(startDate);
                       nextServiceDate.setDate(startDate.getDate() + completed);
-                      const targetDateStr = nextServiceDate.toDateString();
 
                       const displayAddons = (
                         sub.nextServiceAddons || []
                       ).filter((a: any) => {
                         if (!a.serviceDate) return false;
-                        return (
-                          new Date(a.serviceDate).toDateString() ===
-                          targetDateStr
-                        );
+                        const addonDate = new Date(
+                          a.serviceDate,
+                        ).toDateString();
+                        const serviceDate = nextServiceDate.toDateString();
+                        return addonDate === serviceDate;
                       });
 
-                      if (!displayAddons || displayAddons.length === 0)
+                      // Deduplicate by name
+                      const uniqueAddonsMap = new Map();
+                      displayAddons.forEach((addon: any) => {
+                        uniqueAddonsMap.set(addon.name, addon);
+                      });
+                      const uniqueAddons = Array.from(uniqueAddonsMap.values());
+
+                      if (!uniqueAddons || uniqueAddons.length === 0)
                         return null;
 
                       return (
@@ -712,7 +719,7 @@ export default function UpcomingServices() {
                               gap: 4,
                             }}
                           >
-                            {displayAddons.map((addon: any, idx: number) => (
+                            {uniqueAddons.map((addon: any, idx: number) => (
                               <View
                                 key={idx}
                                 style={{

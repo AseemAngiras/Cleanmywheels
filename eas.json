@@ -9,28 +9,28 @@
             "distribution": "internal",
             "channel": "development",
             "android": {
-                "buildType": "apk" // faster to install on device/emulator
+                "buildType": "apk" 
             },
             "ios": {
-                "simulator": true // builds for iOS simulator (no Apple account required)
+                "simulator": true 
             },
             "env": {
                 "APP_ENV": "development",
-                "EXPO_PUBLIC_API_URL": "https://hlynk-api.ddns.net"
+                "EXPO_PUBLIC_API_URL": "http://festive-glade-85038.pktriot.xyz/api"
             }
         },
         "testing": {
             "distribution": "internal",
             "channel": "testing",
             "android": {
-                "buildType": "app-bundle" // use .aab for testing installs
+                "buildType": "apk" 
             },
             "ios": {
                 "simulator": false
             },
             "env": {
                 "APP_ENV": "testing",
-                "EXPO_PUBLIC_API_URL": "https://hlynk-api.ddns.net"
+                "EXPO_PUBLIC_API_URL": "http://festive-glade-85038.pktriot.xyz/api"
             }
         },
         "preview": {
@@ -41,7 +41,7 @@
             },
             "env": {
                 "APP_ENV": "preview",
-                "EXPO_PUBLIC_API_URL": "https://hlynk-api.ddns.net"
+                "EXPO_PUBLIC_API_URL": "http://192.168.1.19:5000/api"
             }
         },
         "production": {
@@ -49,7 +49,7 @@
             "channel": "production",
             "env": {
                 "APP_ENV": "production",
-                "EXPO_PUBLIC_API_URL": "https://hlynk-api.ddns.net"
+                "EXPO_PUBLIC_API_URL": "http://festive-glade-85038.pktriot.xyz/api"
             }
         }
     },

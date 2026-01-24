@@ -13,6 +13,7 @@ import {
   TouchableOpacity,
   View,
   Modal,
+  Switch,
 } from "react-native";
 import RazorpayCheckout from "react-native-razorpay";
 import {
@@ -112,6 +113,8 @@ export default function SubscriptionConfigureScreen() {
     }
   };
 
+  const [isAutoPay, setIsAutoPay] = useState(false);
+
   const handlePayment = async () => {
     if (!selectedVehicleId || !selectedTimeSlot) {
       Alert.alert("Missing Details", "Please select a vehicle and time slot.");
@@ -126,20 +129,28 @@ export default function SubscriptionConfigureScreen() {
         vehicleId: selectedVehicleId,
         timeSlot: selectedTimeSlot,
         startDate: startDate.toISOString(),
+        isAutoPay,
       }).unwrap();
 
-      const { subscriptionId, paymentLinkUrl, id: orderId } = response;
+      const {
+        subscriptionId,
+        paymentLinkUrl,
+        id: orderId,
+        razorpaySubscriptionId,
+      } = response;
 
       if (paymentLinkUrl) {
-        router.push({
-          pathname: "/(tabs)/home/book-doorstep/payment-webview",
-          params: {
-            url: paymentLinkUrl,
-            bookingId: subscriptionId,
-            type: "SUBSCRIPTION",
-          },
-        } as any);
-        return;
+        if (!NativeModules.RazorpayCheckout || !razorpaySubscriptionId) {
+          router.push({
+            pathname: "/(tabs)/home/book-doorstep/payment-webview",
+            params: {
+              url: paymentLinkUrl,
+              bookingId: subscriptionId,
+              type: "SUBSCRIPTION",
+            },
+          } as any);
+          return;
+        }
       }
 
       const options = {
@@ -147,10 +158,12 @@ export default function SubscriptionConfigureScreen() {
         image: "https://your-logo-url.png",
         currency: "INR",
         key: RAZORPAY_KEY,
-        amount: response.amount,
+        amount: response.amount || selectedPlan.price * 30 * 100,
         name: APP_NAME,
         order_id: orderId,
+        subscription_id: razorpaySubscriptionId,
         theme: { color: "#84c95c" },
+        recurring: isAutoPay ? true : false,
       };
 
       if (!NativeModules.RazorpayCheckout) {
@@ -167,10 +180,12 @@ export default function SubscriptionConfigureScreen() {
             razorpay_payment_id: data.razorpay_payment_id,
             razorpay_order_id: data.razorpay_order_id,
             razorpay_signature: data.razorpay_signature,
+            razorpay_subscription_id: data.razorpay_subscription_id,
             planId: selectedPlan._id,
             vehicleId: selectedVehicleId,
             timeSlot: selectedTimeSlot,
             startDate: startDate.toISOString(),
+            subscriptionId,
           }).unwrap();
 
           Alert.alert("Success", "Welcome to Premium!", [
@@ -178,8 +193,11 @@ export default function SubscriptionConfigureScreen() {
           ]);
         })
         .catch((error: any) => {
-          // ...
           console.log(error);
+          Alert.alert(
+            "Payment Cancelled",
+            error.description || "Payment failed",
+          );
         });
     } catch (err: any) {
       Alert.alert(
@@ -292,6 +310,24 @@ export default function SubscriptionConfigureScreen() {
           <Text style={styles.dateText}>
             Valid for 30 days starting {new Date().toLocaleDateString()}
           </Text>
+        </View>
+
+        <View style={styles.autopayContainer}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.sectionTitle}>Enable Autopay</Text>
+            <Text style={styles.subText}>
+              Automatically renew subscription every month.
+            </Text>
+          </View>
+          <View style={{ transform: [{ scale: 0.8 }] }}>
+            <Switch
+              trackColor={{ false: "#767577", true: "#84c95c" }}
+              thumbColor={isAutoPay ? "#f4f3f4" : "#f4f3f4"}
+              ios_backgroundColor="#3e3e3e"
+              onValueChange={setIsAutoPay}
+              value={isAutoPay}
+            />
+          </View>
         </View>
       </ScrollView>
 
@@ -547,4 +583,15 @@ const styles = StyleSheet.create({
   },
   cancelText: { fontWeight: "600", color: "#333" },
   saveBtnText: { fontWeight: "600", color: "#FFF" },
+  autopayContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "#FFF",
+    padding: 16,
+    borderRadius: 12,
+    marginTop: 20,
+    borderWidth: 1,
+    borderColor: "#e0e0e0",
+  },
 });

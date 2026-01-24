@@ -53,8 +53,22 @@ export const subscriptionApi = createApi({
     }),
 
     createSubscription: builder.mutation<
-      { id: string; amount: number; currency: string; planId: string },
-      { planId: string }
+      {
+        subscriptionId?: string;
+        amount?: number;
+        currency?: string;
+        planId?: string;
+        paymentLinkUrl?: string;
+        razorpaySubscriptionId?: string;
+        id?: string;
+      },
+      {
+        planId: string;
+        vehicleId: string;
+        timeSlot: string;
+        startDate: string;
+        isAutoPay?: boolean;
+      }
     >({
       query: (body) => ({
         url: "/subscribe",
@@ -72,6 +86,7 @@ export const subscriptionApi = createApi({
         razorpay_signature: string;
         razorpay_payment_link_id?: string;
         razorpay_payment_link_status?: string;
+        razorpay_subscription_id?: string;
         planId?: string;
         vehicleId?: string;
         timeSlot?: string;

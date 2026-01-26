@@ -4,6 +4,7 @@ import {
   useRequestOtpMutation,
   useVerifyLoginOtpMutation,
   useVerifyRegisterOtpMutation,
+  useGetProfileQuery,
 } from "@/store/api/authApi";
 import { useGetMySubscriptionQuery } from "@/store/api/subscriptionApi";
 import { loginSuccess, logout } from "@/store/slices/authSlice";
@@ -37,7 +38,7 @@ export default function HomeScreen() {
   const bookings = useSelector((state: RootState) => state.bookings.bookings);
   const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
   const userName = useSelector((state: RootState) => state.user.user?.name);
-  const userPhone = useSelector((state: RootState) => state.user.user?.phone);
+
   const dispatch = useDispatch();
   const token = useSelector((state: RootState) => state.auth.token);
 
@@ -46,6 +47,17 @@ export default function HomeScreen() {
       dispatch(logout());
     }
   }, [token, dispatch]);
+
+  const { data: userProfile } = useGetProfileQuery(undefined, {
+    skip: !token || token === "dummy-token",
+  });
+
+  useEffect(() => {
+    if (userProfile?.user) {
+      console.log("✅ [HomeScreen] Setting user:", userProfile.user);
+      dispatch(setUser(userProfile.user));
+    }
+  }, [userProfile, dispatch]);
 
   const { data: subscriptions } = useGetMySubscriptionQuery(undefined, {
     skip: !isLoggedIn,
@@ -275,7 +287,7 @@ export default function HomeScreen() {
           <View>
             <Text style={styles.greeting}>
               {isLoggedIn
-                ? `Hello, ${userName?.split(" ")[0] || "User"} 👋`
+                ? `Hello, ${userName?.split(" ")[0] || "Userr"} 👋`
                 : "Welcome to"}
             </Text>
             <Text style={styles.brandTitle}>Cleanmywheels</Text>
@@ -311,73 +323,117 @@ export default function HomeScreen() {
         </View>
 
         {/* Action Buttons */}
-        <View
-          style={[
-            styles.actionSection,
-            !isLoggedIn && { justifyContent: "center" },
-          ]}
-        >
-          <TouchableOpacity
-            style={[
-              styles.actionButton,
-              styles.primaryBtn,
-              hasActiveSubscription && { flex: 1, width: "auto" },
-              !isLoggedIn && {
-                width: "90%",
-                paddingVertical: 12,
-                height: "auto",
-                alignSelf: "center",
-                flex: 0,
-              },
-            ]}
-            activeOpacity={0.8}
-            onPress={() =>
-              router.push("/(tabs)/home/book-doorstep/enter-location")
-            }
-          >
-            <View style={styles.iconContainer}>
-              <Ionicons name="calendar" size={24} color="#1a1a1a" />
-            </View>
-            <View>
-              <Text style={styles.actionBtnTitle}>Book Service</Text>
-              <Text style={styles.actionBtnSubtitle}>One-time wash</Text>
-            </View>
-            {/* <Ionicons
-              name="chevron-forward"
-              size={20}
-              color="#1a1a1a"
-              style={{ marginLeft: "auto", opacity: 0.5 }}
-            /> */}
-          </TouchableOpacity>
+        {isLoggedIn && !hasActiveSubscription ? (
+          <View style={styles.quickActionsGrid}>
+            <TouchableOpacity
+              style={[styles.squareCard, styles.whiteCard]}
+              activeOpacity={0.9}
+              onPress={() =>
+                router.push("/(tabs)/home/book-doorstep/enter-location")
+              }
+            >
+              <View
+                style={[styles.iconContainer, { backgroundColor: "#F1F5F9" }]}
+              >
+                <Ionicons name="calendar-outline" size={28} color="#1a1a1a" />
+              </View>
+              <View>
+                <Text style={styles.squareTitle}>Book Service</Text>
+                <Text style={styles.squareSubtitle}>One-time wash</Text>
+              </View>
+            </TouchableOpacity>
 
-          {hasActiveSubscription && (
+            <TouchableOpacity
+              style={[styles.squareCard, styles.blueCard]}
+              activeOpacity={0.9}
+              onPress={() => router.push("/(tabs)/bookings")}
+            >
+              <View
+                style={[
+                  styles.iconContainer,
+                  { backgroundColor: "rgba(255,255,255,0.2)" },
+                ]}
+              >
+                <Ionicons name="water-outline" size={28} color="#fff" />
+              </View>
+              <View>
+                <Text style={[styles.squareTitle, { color: "#fff" }]}>
+                  Daily Wash
+                </Text>
+                <Text
+                  style={[
+                    styles.squareSubtitle,
+                    { color: "rgba(255,255,255,0.8)" },
+                  ]}
+                >
+                  View Plans
+                </Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <View
+            style={[
+              styles.actionSection,
+              !isLoggedIn && { justifyContent: "center" },
+            ]}
+          >
             <TouchableOpacity
               style={[
                 styles.actionButton,
-                styles.secondaryBtn,
-                { flex: 1, width: "auto" },
+                styles.primaryBtn,
+                hasActiveSubscription && { flex: 1, width: "auto" },
+                !isLoggedIn && {
+                  width: "90%",
+                  paddingVertical: 12,
+                  height: "auto",
+                  alignSelf: "center",
+                  flex: 0,
+                },
               ]}
               activeOpacity={0.8}
-              onPress={() => router.push("/subscription/addons")}
+              onPress={() =>
+                router.push("/(tabs)/home/book-doorstep/enter-location")
+              }
             >
-              <View
-                style={[styles.iconContainer, { backgroundColor: "#FFF8E1" }]}
-              >
-                <Ionicons name="add-circle" size={24} color="#F59E0B" />
+              <View style={styles.iconContainer}>
+                <Ionicons name="calendar" size={24} color="#1a1a1a" />
               </View>
               <View>
-                <Text style={styles.actionBtnTitle}>Add-ons</Text>
-                <Text style={styles.actionBtnSubtitle}>For next visit</Text>
+                <Text style={styles.actionBtnTitle}>Book Service</Text>
+                <Text style={styles.actionBtnSubtitle}>One-time wash</Text>
               </View>
-              <Ionicons
-                name="chevron-forward"
-                size={20}
-                color="#1a1a1a"
-                style={{ marginLeft: "auto", opacity: 0.5 }}
-              />
             </TouchableOpacity>
-          )}
-        </View>
+
+            {hasActiveSubscription && (
+              <TouchableOpacity
+                style={[
+                  styles.actionButton,
+                  styles.secondaryBtn,
+                  { flex: 1, width: "auto" },
+                ]}
+                activeOpacity={0.8}
+                onPress={() => router.push("/subscription/addons")}
+              >
+                <View
+                  style={[styles.iconContainer, { backgroundColor: "#FFF8E1" }]}
+                >
+                  <Ionicons name="add-circle" size={24} color="#F59E0B" />
+                </View>
+                <View>
+                  <Text style={styles.actionBtnTitle}>Add-ons</Text>
+                  <Text style={styles.actionBtnSubtitle}>For next visit</Text>
+                </View>
+                <Ionicons
+                  name="chevron-forward"
+                  size={20}
+                  color="#1a1a1a"
+                  style={{ marginLeft: "auto", opacity: 0.5 }}
+                />
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
 
         {/* Recent Services Section */}
         {isLoggedIn && pastBookings.length > 0 && (
@@ -494,31 +550,6 @@ export default function HomeScreen() {
                   </View>
                 ))}
               </ScrollView>
-            </View>
-          </View>
-        )}
-
-        {isLoggedIn && !hasActiveSubscription && (
-          <View style={styles.promoSection}>
-            <View style={styles.promoCard}>
-              <View style={styles.promoContent}>
-                <Text style={styles.promoTitle}>Get Daily Wash</Text>
-                <Text style={styles.promoDesc}>
-                  Subscribe now and get your car cleaned every day.
-                </Text>
-                <TouchableOpacity
-                  style={styles.promoBtn}
-                  onPress={() => router.push("/(tabs)/bookings")}
-                >
-                  <Text style={styles.promoBtnText}>View Plans</Text>
-                </TouchableOpacity>
-              </View>
-              <Ionicons
-                name="water"
-                size={80}
-                color="#E3F2FD"
-                style={styles.promoIcon}
-              />
             </View>
           </View>
         )}
@@ -1159,5 +1190,44 @@ const styles = StyleSheet.create({
     color: "#1a1a1a",
     fontWeight: "700",
     textDecorationLine: "underline",
+  },
+
+  // Quick Actions Grid
+  quickActionsGrid: {
+    flexDirection: "row",
+    paddingHorizontal: 20,
+    gap: 16,
+    marginBottom: 32,
+  },
+  squareCard: {
+    flex: 1,
+    aspectRatio: 1,
+    borderRadius: 24,
+    padding: 20,
+    justifyContent: "space-between",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.05,
+    shadowRadius: 16,
+    elevation: 4,
+  },
+  whiteCard: {
+    backgroundColor: "#fff",
+    borderWidth: 1,
+    borderColor: "#F1F5F9",
+  },
+  blueCard: {
+    backgroundColor: "#2563EB",
+  },
+  squareTitle: {
+    fontSize: 16,
+    fontWeight: "800",
+    color: "#1a1a1a",
+    marginBottom: 4,
+  },
+  squareSubtitle: {
+    fontSize: 13,
+    color: "#64748B",
+    fontWeight: "500",
   },
 });

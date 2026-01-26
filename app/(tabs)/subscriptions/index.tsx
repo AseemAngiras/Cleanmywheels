@@ -18,7 +18,7 @@ import {
 import {
   useGetPlansQuery,
   useGetMySubscriptionQuery,
-} from "../../store/api/subscriptionApi";
+} from "../../../store/api/subscriptionApi";
 
 if (
   Platform.OS === "android" &&
@@ -100,12 +100,12 @@ export default function SubscriptionPlansScreen() {
       <View style={styles.headerContainer}>
         <SafeAreaView>
           <View style={styles.headerContent}>
-            <TouchableOpacity
+            {/* <TouchableOpacity
               onPress={() => router.back()}
               style={styles.backBtn}
             >
               <Ionicons name="arrow-back" size={24} color="#FFF" />
-            </TouchableOpacity>
+            </TouchableOpacity> */}
             <Text style={styles.headerTitle}>My Subscriptions</Text>
             <View style={{ width: 24 }} />
           </View>
@@ -498,7 +498,7 @@ const styles = StyleSheet.create({
   },
 
   plansSection: {
-    marginHorizontal: 20,
+    marginHorizontal: 0,
     marginBottom: 20,
   },
   planCard: {
@@ -596,12 +596,12 @@ const styles = StyleSheet.create({
   },
 
   activeSectionWrapper: {
-    marginHorizontal: 20,
+    marginHorizontal: 0,
     marginTop: 10,
     gap: 16,
   },
   promoBanner: {
-    margin: 20,
+    margin: 0,
     borderRadius: 24,
     overflow: "hidden",
     shadowColor: "#D1F803",

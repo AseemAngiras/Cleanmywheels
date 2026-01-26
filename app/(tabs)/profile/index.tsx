@@ -614,10 +614,10 @@ export default function ProfileHome() {
               onPress={() => router.push("/profile/payment-methods")}
             />
             <Row
-              icon="star-outline"
-              title="My Subscription"
-              subtitle="Manage your premium plan"
-              onPress={() => router.push("/subscription/plans")}
+              icon="car-outline"
+              title="My Cars"
+              subtitle="Manage your vehicles"
+              onPress={() => router.push("/garage")}
             />
 
             <Row

@@ -1,4 +1,4 @@
-﻿import { Ionicons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRef, useState } from "react";
@@ -28,12 +28,13 @@ import {
   useDeleteVehicleMutation,
   useGetVehiclesQuery,
   useUpdateVehicleMutation,
-} from "../../../store/api/vehicleApi";
-import { useGetMySubscriptionQuery } from "../../../store/api/subscriptionApi";
+} from "../../store/api/vehicleApi";
+import { useGetMySubscriptionQuery } from "../../store/api/subscriptionApi";
 
 import { RootState } from "@/store";
 import { useSelector } from "react-redux";
-import AdminSubscriptionsScreen from "../admin/subscriptions";
+import AdminSubscriptionsScreen from "../(tabs)/admin/subscriptions";
+import { useRouter } from "expo-router";
 
 if (
   Platform.OS === "android" &&
@@ -45,6 +46,7 @@ if (
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 export default function MyCarsScreen() {
+  const router = useRouter();
   const user = useSelector((state: RootState) => state.user.user);
   const isAdmin = user?.accountType === "Super Admin";
 
@@ -326,6 +328,12 @@ export default function MyCarsScreen() {
     <TouchableWithoutFeedback onPress={handleDismiss} accessible={false}>
       <View style={styles.container}>
         <View style={styles.header}>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={styles.backButton}
+          >
+            <Ionicons name="arrow-back" size={24} color="#1a1a1a" />
+          </TouchableOpacity>
           <View>
             <Text style={styles.headerTitle}>My Garage</Text>
             <Text style={styles.headerSubtitle}>
@@ -519,6 +527,12 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 24,
+  },
+  backButton: {
+    marginRight: 10,
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: "#F1F5F9",
   },
   headerTitle: {
     fontSize: 28,
@@ -798,32 +812,40 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 10,
     elevation: 4,
-    gap: 10,
   },
   saveBtnText: {
-    color: "#1a1a1a",
+    color: "#000",
     fontSize: 16,
     fontWeight: "800",
     letterSpacing: 0.5,
   },
+  premiumBadge: {
+    backgroundColor: "#D1F803",
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  premiumText: {
+    fontSize: 10,
+    fontWeight: "bold",
+    color: "#000",
+  },
+
+  // PICKER
   pickerOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.6)",
+    backgroundColor: "rgba(0,0,0,0.5)",
     justifyContent: "center",
-    alignItems: "center",
     padding: 24,
   },
   pickerContainer: {
     backgroundColor: "#fff",
-    width: "100%",
     borderRadius: 24,
-    padding: 20,
-    maxHeight: "60%",
+    padding: 24,
   },
   pickerTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: "700",
-    color: "#1a1a1a",
     marginBottom: 16,
     textAlign: "center",
   },
@@ -831,34 +853,22 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingVertical: 14,
+    paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#F1F5F9",
+    borderBottomColor: "#f0f0f0",
   },
   pickerItemSelected: {
     backgroundColor: "#F0FDF4",
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    borderBottomWidth: 0,
+    marginLeft: -24,
+    marginRight: -24,
+    paddingHorizontal: 24,
   },
   pickerItemText: {
     fontSize: 16,
-    color: "#4B5563",
+    color: "#333",
   },
   pickerItemTextSelected: {
-    color: "#1a1a1a",
-    fontWeight: "700",
-  },
-  premiumBadge: {
-    backgroundColor: "#D1F803",
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 12,
-  },
-  premiumText: {
-    fontSize: 10,
-    fontWeight: "800",
-    color: "#000",
-    letterSpacing: 0.5,
+    color: "#166534",
+    fontWeight: "600",
   },
 });

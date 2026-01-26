@@ -79,7 +79,6 @@ export default function HomeScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const inputRefs = useRef<(TextInput | null)[]>([]);
 
-  // Auth Mutations
   const [requestOtp, { isLoading: isRequestingOtp }] = useRequestOtpMutation();
   const [verifyLoginOtp, { isLoading: isVerifyingOtp }] =
     useVerifyLoginOtpMutation();
@@ -87,7 +86,6 @@ export default function HomeScreen() {
   const [verifyRegisterOtp, { isLoading: isVerifyingRegOtp }] =
     useVerifyRegisterOtpMutation();
 
-  // ... (Login handlers)
   const handleSendOtp = async () => {
     const cleanedPhone = phoneNumber.trim();
 
@@ -228,6 +226,21 @@ export default function HomeScreen() {
   });
   const pastBookings = Array.from(uniqueBookingsMap.values()).reverse();
 
+  const activeSubs =
+    subscriptions?.filter((s: any) =>
+      ["active", "ongoing"].includes(s.status),
+    ) || [];
+  const nextSubscription = activeSubs.sort(
+    (a: any, b: any) =>
+      new Date(a.endDate).getTime() - new Date(b.endDate).getTime(),
+  )[0];
+
+  const getDaysLeft = (dateStr: string) => {
+    if (!dateStr) return 0;
+    const diff = new Date(dateStr).getTime() - Date.now();
+    return Math.ceil(diff / (1000 * 60 * 60 * 24));
+  };
+
   useFocusEffect(
     useCallback(() => {
       const homeStack = navigation.getParent();
@@ -285,20 +298,16 @@ export default function HomeScreen() {
         {/* Header */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.greeting}>
-              {isLoggedIn
-                ? `Hello, ${userName?.split(" ")[0] || "Userr"} 👋`
-                : "Welcome to"}
-            </Text>
-            <Text style={styles.brandTitle}>Cleanmywheels</Text>
+            <Text style={styles.headerTitleLarge}>Welcome to</Text>
+            <Text style={styles.headerTitleSub}>Cleanmywheels</Text>
           </View>
           <View style={styles.headerIcons}>
             {!isLoggedIn && (
               <TouchableOpacity
-                style={styles.headerLoginBtn}
+                style={styles.limePillBtn}
                 onPress={() => setIsLoginModalVisible(true)}
               >
-                <Text style={styles.headerLoginText}>Log in</Text>
+                <Text style={styles.limePillText}>Log in</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -306,24 +315,111 @@ export default function HomeScreen() {
 
         {/* Hero Section */}
         <View style={styles.heroSection}>
-          <View style={styles.heroCard}>
-            <Image
-              source={{
-                uri: "https://images.unsplash.com/photo-1601362840469-51e4d8d58785?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
-              }}
-              style={styles.heroImage}
-            />
-            <View style={styles.heroOverlay}>
-              <Text style={styles.heroOverlayTitle}>Premium Car Care</Text>
-              <Text style={styles.heroOverlaySubtitle}>
-                Eco-friendly wash at your doorstep
-              </Text>
+          {isLoggedIn && hasActiveSubscription && nextSubscription ? (
+            <View style={{ flexDirection: "row", height: 200, gap: 12 }}>
+              <View
+                style={[
+                  styles.heroCard,
+                  { flex: 3, height: "100%", marginBottom: 0 },
+                ]}
+              >
+                <Image
+                  source={{
+                    uri: "https://images.unsplash.com/photo-1601362840469-51e4d8d58785?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
+                  }}
+                  style={styles.heroImage}
+                />
+                <View style={styles.heroOverlay}>
+                  <Text style={styles.heroOverlayTitleSmall}>
+                    Premium{"\n"}Car Care
+                  </Text>
+                </View>
+              </View>
+
+              <TouchableOpacity
+                style={[
+                  styles.whiteCard,
+                  {
+                    flex: 2,
+                    height: "100%",
+                    borderRadius: 24,
+                    padding: 16,
+                    justifyContent: "space-between",
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowOpacity: 0.05,
+                    shadowRadius: 10,
+                    elevation: 3,
+                  },
+                ]}
+                activeOpacity={0.9}
+                onPress={() => router.push("/subscription/addons")}
+              >
+                <View
+                  style={[styles.iconContainer, { backgroundColor: "#FFF8E1" }]}
+                >
+                  <Ionicons
+                    name="add-circle-outline"
+                    size={28}
+                    color="#F59E0B"
+                  />
+                </View>
+                <View>
+                  <Text style={styles.squareTitle}>Add-ons</Text>
+                  <Text style={styles.squareSubtitle}>For next visit</Text>
+                </View>
+                <View
+                  style={{
+                    position: "absolute",
+                    top: 20,
+                    right: 20,
+                    opacity: 0.3,
+                  }}
+                >
+                  <Ionicons name="chevron-forward" size={20} color="#1a1a1a" />
+                </View>
+              </TouchableOpacity>
             </View>
-          </View>
+          ) : (
+            <View style={styles.heroCard}>
+              <Image
+                source={{
+                  uri: "https://images.unsplash.com/photo-1601362840469-51e4d8d58785?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
+                }}
+                style={styles.heroImage}
+              />
+              <View style={styles.heroOverlay}>
+                <Text style={styles.heroOverlayTitle}>Premium Car Care</Text>
+                <Text style={styles.heroOverlaySubtitle}>
+                  <Text style={{ color: "#D1F803", fontWeight: "800" }}>
+                    Eco-friendly wash
+                  </Text>{" "}
+                  at your doerstop
+                </Text>
+              </View>
+            </View>
+          )}
         </View>
 
         {/* Action Buttons */}
-        {isLoggedIn && !hasActiveSubscription ? (
+        {!isLoggedIn ? (
+          /* Guest Action Button */
+          <View
+            style={{ alignItems: "center", marginBottom: 10, marginTop: 10 }}
+          >
+            <TouchableOpacity
+              style={styles.guestBookBtn}
+              activeOpacity={0.9}
+              onPress={() =>
+                router.push("/(tabs)/home/book-doorstep/enter-location")
+              }
+            >
+              <Ionicons name="car-sport" size={24} color="#1a1a1a" />
+              <Text style={styles.guestBookBtnText}>Book Service</Text>
+            </TouchableOpacity>
+          </View>
+        ) : !hasActiveSubscription ? (
+          /* Non-Subscriber Actions */
           <View style={styles.quickActionsGrid}>
             <TouchableOpacity
               style={[styles.squareCard, styles.whiteCard]}
@@ -372,66 +468,74 @@ export default function HomeScreen() {
             </TouchableOpacity>
           </View>
         ) : (
-          <View
-            style={[
-              styles.actionSection,
-              !isLoggedIn && { justifyContent: "center" },
-            ]}
-          >
+          /* Subscriber Actions */
+          <View style={[styles.quickActionsGrid, { gap: 12 }]}>
             <TouchableOpacity
-              style={[
-                styles.actionButton,
-                styles.primaryBtn,
-                hasActiveSubscription && { flex: 1, width: "auto" },
-                !isLoggedIn && {
-                  width: "90%",
-                  paddingVertical: 12,
-                  height: "auto",
-                  alignSelf: "center",
-                  flex: 0,
-                },
-              ]}
-              activeOpacity={0.8}
+              style={[styles.squareCard, styles.whiteCard, { flex: 3 }]}
+              activeOpacity={0.9}
               onPress={() =>
                 router.push("/(tabs)/home/book-doorstep/enter-location")
               }
             >
-              <View style={styles.iconContainer}>
-                <Ionicons name="calendar" size={24} color="#1a1a1a" />
+              <View
+                style={[styles.iconContainer, { backgroundColor: "#F1F5F9" }]}
+              >
+                <Ionicons name="calendar-outline" size={28} color="#1a1a1a" />
               </View>
               <View>
-                <Text style={styles.actionBtnTitle}>Book Service</Text>
-                <Text style={styles.actionBtnSubtitle}>One-time wash</Text>
+                <Text style={styles.squareTitle}>Book Service</Text>
+                <Text style={styles.squareSubtitle}>One-time wash</Text>
               </View>
             </TouchableOpacity>
 
-            {hasActiveSubscription && (
-              <TouchableOpacity
-                style={[
-                  styles.actionButton,
-                  styles.secondaryBtn,
-                  { flex: 1, width: "auto" },
-                ]}
-                activeOpacity={0.8}
-                onPress={() => router.push("/subscription/addons")}
-              >
-                <View
-                  style={[styles.iconContainer, { backgroundColor: "#FFF8E1" }]}
+            <TouchableOpacity
+              style={[
+                styles.subscriptionStatusCard,
+                {
+                  flex: 2,
+                  height: 120,
+                  backgroundColor: "#fff",
+                  borderWidth: 1,
+                  borderColor: "#F1F5F9",
+                  shadowColor: "#000",
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 0.05,
+                  shadowRadius: 10,
+                  elevation: 3,
+                },
+              ]}
+              activeOpacity={0.9}
+              onPress={() => router.push("/(tabs)/subscriptions")}
+            >
+              <View style={styles.subStatusIcon}>
+                <Ionicons name="shield-checkmark" size={20} color="#0284C7" />
+              </View>
+              <View>
+                <Text style={styles.subStatusLabel}>Next Service</Text>
+                <Text style={styles.subStatusValue}>
+                  {new Date(nextSubscription.endDate).toLocaleDateString(
+                    "en-GB",
+                    {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    },
+                  )}
+                </Text>
+                <Text
+                  style={[
+                    styles.subStatusDays,
+                    getDaysLeft(nextSubscription.endDate) < 5 && {
+                      color: "#EF4444",
+                    },
+                  ]}
                 >
-                  <Ionicons name="add-circle" size={24} color="#F59E0B" />
-                </View>
-                <View>
-                  <Text style={styles.actionBtnTitle}>Add-ons</Text>
-                  <Text style={styles.actionBtnSubtitle}>For next visit</Text>
-                </View>
-                <Ionicons
-                  name="chevron-forward"
-                  size={20}
-                  color="#1a1a1a"
-                  style={{ marginLeft: "auto", opacity: 0.5 }}
-                />
-              </TouchableOpacity>
-            )}
+                  {nextSubscription.vehicle?.number ||
+                    nextSubscription.vehicle?.vehicleNo ||
+                    "Car"}
+                </Text>
+              </View>
+            </TouchableOpacity>
           </View>
         )}
 
@@ -501,55 +605,37 @@ export default function HomeScreen() {
         {/* Guest Features Section */}
         {!isLoggedIn && (
           <View style={styles.guestSection}>
-            {/* Why Choose Us */}
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>Why Choose Us?</Text>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.featuresList}
-              >
-                {[
-                  {
-                    icon: "water",
-                    title: "Eco-Friendly",
-                    desc: "Waterless wash technology",
-                    color: "#4CAF50",
-                    bg: "#E8F5E9",
-                  },
-                  {
-                    icon: "shield-checkmark",
-                    title: "Trusted Pros",
-                    desc: "Vetted & trained partners",
-                    color: "#2196F3",
-                    bg: "#E3F2FD",
-                  },
-                  {
-                    icon: "time",
-                    title: "Doorstep",
-                    desc: "Service at your location",
-                    color: "#FF9800",
-                    bg: "#FFF3E0",
-                  },
-                ].map((feature, index) => (
-                  <View key={index} style={styles.featureCard}>
-                    <View
-                      style={[
-                        styles.featureIconBox,
-                        { backgroundColor: feature.bg },
-                      ]}
-                    >
-                      <Ionicons
-                        name={feature.icon as any}
-                        size={24}
-                        color={feature.color}
-                      />
-                    </View>
-                    <Text style={styles.featureTitle}>{feature.title}</Text>
-                    <Text style={styles.featureDesc}>{feature.desc}</Text>
+            <Text style={styles.guestFeaturesTitle}>Why Choose Us?</Text>
+            <View style={styles.guestFeaturesRow}>
+              {[
+                {
+                  icon: "leaf",
+                  title: "Eco-Friendly",
+                  desc: "(Waterless technology)",
+                },
+                {
+                  icon: "shield-checkmark",
+                  title: "Trusted Pros",
+                  desc: "(Vetted partners)",
+                },
+                {
+                  icon: "home",
+                  title: "Doorstep Service",
+                  desc: "(We comes to you)",
+                },
+              ].map((item, idx) => (
+                <View key={idx} style={styles.guestFeatureItem}>
+                  <View style={styles.guestFeatureIconCircle}>
+                    <Ionicons
+                      name={item.icon as any}
+                      size={28}
+                      color="#7BBF2A"
+                    />
                   </View>
-                ))}
-              </ScrollView>
+                  <Text style={styles.guestFeatureTitle}>{item.title}</Text>
+                  <Text style={styles.guestFeatureDesc}>{item.desc}</Text>
+                </View>
+              ))}
             </View>
           </View>
         )}
@@ -984,45 +1070,6 @@ const styles = StyleSheet.create({
     transform: [{ rotate: "-15deg" }],
   },
 
-  // Guest Section
-  guestSection: {
-    paddingBottom: 20,
-  },
-  featuresList: {
-    paddingHorizontal: 20,
-    gap: 16,
-    paddingBottom: 20,
-  },
-  featureCard: {
-    backgroundColor: "#fff",
-    padding: 16,
-    borderRadius: 20,
-    width: 140,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 12,
-    elevation: 4,
-  },
-  featureIconBox: {
-    width: 48,
-    height: 48,
-    borderRadius: 16,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  featureTitle: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#0F172A",
-    marginBottom: 4,
-  },
-  featureDesc: {
-    fontSize: 12,
-    color: "#64748B",
-    lineHeight: 16,
-  },
   stepsContainer: {
     paddingHorizontal: 20,
     gap: 16,
@@ -1201,7 +1248,7 @@ const styles = StyleSheet.create({
   },
   squareCard: {
     flex: 1,
-    aspectRatio: 1,
+    height: 120,
     borderRadius: 24,
     padding: 20,
     justifyContent: "space-between",
@@ -1223,11 +1270,148 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "800",
     color: "#1a1a1a",
-    marginBottom: 4,
+    // paddingTop: 10,
+    marginBottom: 1,
   },
   squareSubtitle: {
     fontSize: 13,
     color: "#64748B",
     fontWeight: "500",
+  },
+
+  // Guest Refactor Styles
+  headerTitleLarge: {
+    fontSize: 28,
+    fontWeight: "800",
+    color: "#1a1a1a",
+    letterSpacing: -1,
+    lineHeight: 32,
+  },
+  headerTitleSub: {
+    fontSize: 28,
+    fontWeight: "800",
+    color: "#1a1a1a",
+    letterSpacing: -1,
+    lineHeight: 32,
+  },
+  limePillBtn: {
+    backgroundColor: "#D1F803",
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 24,
+  },
+  limePillText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#1a1a1a",
+  },
+  guestBookBtn: {
+    backgroundColor: "#D1F803",
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 16,
+    paddingHorizontal: 48,
+    borderRadius: 30,
+    gap: 12,
+    shadowColor: "#D1F803",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.4,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  guestBookBtnText: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#1a1a1a",
+  },
+  guestSection: {
+    paddingVertical: 40,
+    alignItems: "center",
+  },
+  guestFeaturesTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#1a1a1a",
+    marginBottom: 32,
+  },
+  guestFeaturesRow: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    width: "100%",
+    paddingHorizontal: 20,
+  },
+  guestFeatureItem: {
+    alignItems: "center",
+    width: "30%",
+  },
+  guestFeatureIconCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: "#F7FEE7",
+    borderWidth: 4,
+    borderColor: "#ECFCCB",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  guestFeatureTitle: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#1a1a1a",
+    textAlign: "center",
+    marginBottom: 4,
+  },
+  guestFeatureDesc: {
+    fontSize: 10,
+    color: "#64748B",
+    textAlign: "center",
+    lineHeight: 14,
+  },
+
+  // Split Hero Styles
+  heroSplitRow: {
+    flexDirection: "row",
+    height: 200,
+  },
+  heroOverlayTitleSmall: {
+    color: "#fff",
+    fontSize: 22,
+    fontWeight: "800",
+    marginBottom: 4,
+    textShadowColor: "rgba(0,0,0,0.3)",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
+    lineHeight: 26,
+  },
+  subscriptionStatusCard: {
+    borderRadius: 24,
+    padding: 16,
+    justifyContent: "space-between",
+  },
+  subStatusIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    backgroundColor: "rgba(255,255,255,0.6)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  subStatusLabel: {
+    fontSize: 12,
+    color: "#475569",
+    fontWeight: "600",
+    marginBottom: 2,
+  },
+  subStatusValue: {
+    fontSize: 16,
+    color: "#0F172A",
+    fontWeight: "800",
+    marginBottom: 4,
+  },
+  subStatusDays: {
+    fontSize: 12,
+    color: "#0284C7",
+    fontWeight: "600",
   },
 });

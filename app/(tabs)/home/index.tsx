@@ -37,7 +37,14 @@ export default function HomeScreen() {
   const navigation = useNavigation();
   const bookings = useSelector((state: RootState) => state.bookings.bookings);
   const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
-  const userName = useSelector((state: RootState) => state.user.user?.name);
+  const userStateName = useSelector(
+    (state: RootState) => state.user.user?.name,
+  );
+  const profileName = useSelector((state: RootState) => state.profile.name);
+
+  const userName = profileName || userStateName;
+
+  const userAvatar = useSelector((state: RootState) => state.profile.avatar);
 
   const dispatch = useDispatch();
   const token = useSelector((state: RootState) => state.auth.token);
@@ -298,16 +305,31 @@ export default function HomeScreen() {
         {/* Header */}
         <View style={styles.header}>
           <View>
+            {isLoggedIn && userName ? (
+              <Text style={styles.headerGreeting}>Hello, {userName} 👋</Text>
+            ) : null}
             <Text style={styles.headerTitleLarge}>Welcome to</Text>
             <Text style={styles.headerTitleSub}>Cleanmywheels</Text>
           </View>
           <View style={styles.headerIcons}>
-            {!isLoggedIn && (
+            {!isLoggedIn ? (
               <TouchableOpacity
                 style={styles.limePillBtn}
                 onPress={() => setIsLoginModalVisible(true)}
               >
                 <Text style={styles.limePillText}>Log in</Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                style={styles.iconCircle}
+                onPress={() => router.push("/(tabs)/profile")}
+              >
+                <Image
+                  source={{
+                    uri: userAvatar || "https://i.pravatar.cc/150?img=12",
+                  }}
+                  style={styles.avatarImage}
+                />
               </TouchableOpacity>
             )}
           </View>
@@ -442,7 +464,7 @@ export default function HomeScreen() {
             <TouchableOpacity
               style={[styles.squareCard, styles.blueCard]}
               activeOpacity={0.9}
-              onPress={() => router.push("/(tabs)/bookings")}
+              onPress={() => router.push("/(tabs)/subscriptions")}
             >
               <View
                 style={[
@@ -1280,6 +1302,12 @@ const styles = StyleSheet.create({
   },
 
   // Guest Refactor Styles
+  headerGreeting: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#64748B",
+    marginBottom: 2,
+  },
   headerTitleLarge: {
     fontSize: 28,
     fontWeight: "800",
@@ -1323,6 +1351,20 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "800",
     color: "#1a1a1a",
+  },
+  iconCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#F1F5F9",
+    justifyContent: "center",
+    alignItems: "center",
+    overflow: "hidden",
+  },
+  avatarImage: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 20,
   },
   guestSection: {
     paddingVertical: 40,

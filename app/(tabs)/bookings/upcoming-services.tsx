@@ -129,11 +129,6 @@ export default function UpcomingServices() {
   const [isAssigningSubWorker, setIsAssigningSubWorker] = useState(false);
 
   const sendUserConfirmation = (worker: any, booking: any) => {
-<<<<<<< HEAD
-    const message = `Hello, your booking for *${booking.serviceName}* is confirmed! 🚗✨\n\n*${worker.name}* will be arriving shortly to service your vehicle.\n\nBooking ID: ${booking.id}\nTime: ${booking.timeSlot}`;
-    const url = `whatsapp://send?phone=${booking.phone
-      }&text=${encodeURIComponent(message)}`;
-=======
     const isSubscription = !!booking.plan;
     const serviceName = isSubscription
       ? booking.plan.name
@@ -141,16 +136,12 @@ export default function UpcomingServices() {
     const id = isSubscription ? booking._id : booking.id;
     const time = isSubscription ? "Daily Service" : booking.timeSlot;
 
-    const message = `Hello, your ${
-      isSubscription ? "subscription" : "booking"
-    } for *${serviceName}* is confirmed! 🚗✨\n\n*${
-      worker.name
-    }* has been assigned as your valet.\n\nID: ${id}\nTime: ${time}`;
+    const message = `Hello, your ${isSubscription ? "subscription" : "booking"
+      } for *${serviceName}* is confirmed! 🚗✨\n\n*${worker.name
+      }* has been assigned as your valet.\n\nID: ${id}\nTime: ${time}`;
 
-    const url = `whatsapp://send?phone=${
-      booking.phone
-    }&text=${encodeURIComponent(message)}`;
->>>>>>> 4b009da67467be33211be9df7cc490163b55d1de
+    const url = `whatsapp://send?phone=${booking.phone
+      }&text=${encodeURIComponent(message)}`;
 
     Linking.canOpenURL(url).then((supported) => {
       if (supported) {
@@ -713,8 +704,8 @@ export default function UpcomingServices() {
                             }}
                           >
                             {displayAddons.map((addon: any, idx: number) => (
-                              <View
-                                key={idx}
+                              // @ts-ignore
+                              <View key={idx.toString()}
                                 style={{
                                   flexDirection: "row",
                                   alignItems: "center",

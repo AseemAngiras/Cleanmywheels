@@ -217,7 +217,7 @@ export default function SubscriptionConfigureScreen() {
           <ActivityIndicator />
         ) : (
           <View style={styles.optionsGrid}>
-            {availableCars.map((car) => (
+            {availableCars.map((car: any) => (
               <TouchableOpacity
                 key={car._id}
                 style={[

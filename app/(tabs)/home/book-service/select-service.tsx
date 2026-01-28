@@ -1,19 +1,3 @@
-<<<<<<< HEAD
-import { useAppSelector } from '@/store/hooks';
-import { addCar } from '@/store/slices/userSlice';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { useFocusEffect, useNavigation, useRouter } from 'expo-router';
-import { useCallback, useState } from 'react';
-import { Alert, Image, Keyboard, KeyboardAvoidingView, LayoutAnimation, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, UIManager, View } from 'react-native';
-// import { useDispatch } from 'react-redux'; // Dispatch likely not needed for car creation anymore, but keeping if other things use it
-import { useDispatch } from 'react-redux';
-import BookingStepper from '../../../../components/BookingStepper';
-
-if (Platform.OS === 'android') {
-    if (UIManager.setLayoutAnimationEnabledExperimental) {
-        UIManager.setLayoutAnimationEnabledExperimental(true);
-    }
-=======
 import { useAppSelector } from "@/store/hooks";
 import { addCar } from "@/store/slices/userSlice";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
@@ -43,7 +27,6 @@ if (Platform.OS === "android") {
   if (UIManager.setLayoutAnimationEnabledExperimental) {
     UIManager.setLayoutAnimationEnabledExperimental(true);
   }
->>>>>>> 4b009da67467be33211be9df7cc490163b55d1de
 }
 
 // Define available add-ons per service

@@ -53,8 +53,15 @@ export const subscriptionApi = createApi({
     }),
 
     createSubscription: builder.mutation<
-      { id: string; amount: number; currency: string; planId: string },
-      { planId: string }
+      {
+        id: string;
+        amount: number;
+        currency: string;
+        planId: string;
+        subscriptionId: string;
+        paymentLinkUrl?: string;
+      },
+      { planId: string; vehicleId: string; timeSlot: string; startDate: string }
     >({
       query: (body) => ({
         url: "/subscribe",

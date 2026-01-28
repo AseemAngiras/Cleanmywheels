@@ -32,6 +32,12 @@ import {
 } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 
+import { HomeBackground } from "../../../components/home/HomeBackground";
+import { HeroSection } from "../../../components/home/HeroSection";
+import { ServiceActionGrid } from "../../../components/home/ServiceActionGrid";
+import { NextServiceWidget } from "../../../components/home/NextServiceWidget";
+import { WhyChooseUs } from "../../../components/home/WhyChooseUs";
+
 export default function HomeScreen() {
   const router = useRouter();
   const navigation = useNavigation();
@@ -42,7 +48,9 @@ export default function HomeScreen() {
   );
   const profileName = useSelector((state: RootState) => state.profile.name);
 
-  const userName = profileName || userStateName;
+  const fullName = profileName || userStateName || "";
+  const firstName = fullName.split(" ")[0];
+  const userName = firstName;
 
   const userAvatar = useSelector((state: RootState) => state.profile.avatar);
 
@@ -69,11 +77,6 @@ export default function HomeScreen() {
   const { data: subscriptions } = useGetMySubscriptionQuery(undefined, {
     skip: !isLoggedIn,
   });
-  const hasActiveSubscription =
-    subscriptions &&
-    subscriptions.some((sub: any) =>
-      ["active", "ongoing"].includes(sub.status),
-    );
 
   const user = useSelector((state: RootState) => state.user.user);
   const isAdmin = user?.accountType === "Super Admin";
@@ -242,12 +245,6 @@ export default function HomeScreen() {
       new Date(a.endDate).getTime() - new Date(b.endDate).getTime(),
   )[0];
 
-  const getDaysLeft = (dateStr: string) => {
-    if (!dateStr) return 0;
-    const diff = new Date(dateStr).getTime() - Date.now();
-    return Math.ceil(diff / (1000 * 60 * 60 * 24));
-  };
-
   useFocusEffect(
     useCallback(() => {
       const homeStack = navigation.getParent();
@@ -298,6 +295,9 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
+      {/* Background Pattern */}
+      <HomeBackground />
+
       <ScrollView
         contentContainerStyle={styles.container}
         showsVerticalScrollIndicator={false}
@@ -311,6 +311,7 @@ export default function HomeScreen() {
             <Text style={styles.headerTitleLarge}>Welcome to</Text>
             <Text style={styles.headerTitleSub}>Cleanmywheels</Text>
           </View>
+
           <View style={styles.headerIcons}>
             {!isLoggedIn ? (
               <TouchableOpacity
@@ -326,7 +327,9 @@ export default function HomeScreen() {
               >
                 <Image
                   source={{
-                    uri: userAvatar || "https://i.pravatar.cc/150?img=12",
+                    uri:
+                      userAvatar ||
+                      "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
                   }}
                   style={styles.avatarImage}
                 />
@@ -336,235 +339,29 @@ export default function HomeScreen() {
         </View>
 
         {/* Hero Section */}
-        <View style={styles.heroSection}>
-          {isLoggedIn && hasActiveSubscription && nextSubscription ? (
-            <View style={{ flexDirection: "row", height: 200, gap: 12 }}>
-              <View
-                style={[
-                  styles.heroCard,
-                  { flex: 3, height: "100%", marginBottom: 0 },
-                ]}
-              >
-                <Image
-                  source={{
-                    uri: "https://images.unsplash.com/photo-1601362840469-51e4d8d58785?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
-                  }}
-                  style={styles.heroImage}
-                />
-                <View style={styles.heroOverlay}>
-                  <Text style={styles.heroOverlayTitleSmall}>
-                    Premium{"\n"}Car Care
-                  </Text>
-                </View>
-              </View>
+        <HeroSection isLoggedIn={isLoggedIn} />
 
-              <TouchableOpacity
-                style={[
-                  styles.whiteCard,
-                  {
-                    flex: 2,
-                    height: "100%",
-                    borderRadius: 24,
-                    padding: 16,
-                    justifyContent: "space-between",
-                    shadowColor: "#000",
-                    shadowOffset: { width: 0, height: 4 },
-                    shadowOpacity: 0.05,
-                    shadowRadius: 10,
-                    elevation: 3,
-                  },
-                ]}
-                activeOpacity={0.9}
-                onPress={() => router.push("/subscription/addons")}
-              >
-                <View
-                  style={[styles.iconContainer, { backgroundColor: "#FFF8E1" }]}
-                >
-                  <Ionicons
-                    name="add-circle-outline"
-                    size={28}
-                    color="#F59E0B"
-                  />
-                </View>
-                <View>
-                  <Text style={styles.squareTitle}>Add-ons</Text>
-                  <Text style={styles.squareSubtitle}>For next visit</Text>
-                </View>
-                <View
-                  style={{
-                    position: "absolute",
-                    top: 20,
-                    right: 20,
-                    opacity: 0.3,
-                  }}
-                >
-                  <Ionicons name="chevron-forward" size={20} color="#1a1a1a" />
-                </View>
-              </TouchableOpacity>
-            </View>
-          ) : (
-            <View style={styles.heroCard}>
-              <Image
-                source={{
-                  uri: "https://images.unsplash.com/photo-1601362840469-51e4d8d58785?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
-                }}
-                style={styles.heroImage}
-              />
-              <View style={styles.heroOverlay}>
-                <Text style={styles.heroOverlayTitle}>Premium Car Care</Text>
-                <Text style={styles.heroOverlaySubtitle}>
-                  <Text style={{ color: "#D1F803", fontWeight: "800" }}>
-                    Eco-friendly wash
-                  </Text>{" "}
-                  at your doerstop
-                </Text>
-              </View>
-            </View>
-          )}
-        </View>
+        {/* Action Grid (Book / Add-ons) */}
+        <ServiceActionGrid isLoggedIn={isLoggedIn} />
 
-        {/* Action Buttons */}
-        {!isLoggedIn ? (
-          /* Guest Action Button */
-          <View
-            style={{ alignItems: "center", marginBottom: 10, marginTop: 10 }}
-          >
-            <TouchableOpacity
-              style={styles.guestBookBtn}
-              activeOpacity={0.9}
-              onPress={() =>
-                router.push("/(tabs)/home/book-doorstep/enter-location")
-              }
-            >
-              <Ionicons name="car-sport" size={24} color="#1a1a1a" />
-              <Text style={styles.guestBookBtnText}>Book Service</Text>
-            </TouchableOpacity>
-          </View>
-        ) : !hasActiveSubscription ? (
-          /* Non-Subscriber Actions */
-          <View style={styles.quickActionsGrid}>
-            <TouchableOpacity
-              style={[styles.squareCard, styles.whiteCard]}
-              activeOpacity={0.9}
-              onPress={() =>
-                router.push("/(tabs)/home/book-doorstep/enter-location")
-              }
-            >
-              <View
-                style={[styles.iconContainer, { backgroundColor: "#F1F5F9" }]}
-              >
-                <Ionicons name="calendar-outline" size={28} color="#1a1a1a" />
-              </View>
-              <View>
-                <Text style={styles.squareTitle}>Book Service</Text>
-                <Text style={styles.squareSubtitle}>One-time wash</Text>
-              </View>
-            </TouchableOpacity>
+        {/* Why Choose Us - Only for Guests */}
+        {!isLoggedIn && <WhyChooseUs />}
 
-            <TouchableOpacity
-              style={[styles.squareCard, styles.blueCard]}
-              activeOpacity={0.9}
-              onPress={() => router.push("/(tabs)/subscriptions")}
-            >
-              <View
-                style={[
-                  styles.iconContainer,
-                  { backgroundColor: "rgba(255,255,255,0.2)" },
-                ]}
-              >
-                <Ionicons name="water-outline" size={28} color="#fff" />
-              </View>
-              <View>
-                <Text style={[styles.squareTitle, { color: "#fff" }]}>
-                  Daily Wash
-                </Text>
-                <Text
-                  style={[
-                    styles.squareSubtitle,
-                    { color: "rgba(255,255,255,0.8)" },
-                  ]}
-                >
-                  View Plans
-                </Text>
-              </View>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          /* Subscriber Actions */
-          <View style={[styles.quickActionsGrid, { gap: 12 }]}>
-            <TouchableOpacity
-              style={[styles.squareCard, styles.whiteCard, { flex: 3 }]}
-              activeOpacity={0.9}
-              onPress={() =>
-                router.push("/(tabs)/home/book-doorstep/enter-location")
-              }
-            >
-              <View
-                style={[styles.iconContainer, { backgroundColor: "#F1F5F9" }]}
-              >
-                <Ionicons name="calendar-outline" size={28} color="#1a1a1a" />
-              </View>
-              <View>
-                <Text style={styles.squareTitle}>Book Service</Text>
-                <Text style={styles.squareSubtitle}>One-time wash</Text>
-              </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[
-                styles.subscriptionStatusCard,
-                {
-                  flex: 2,
-                  height: 120,
-                  backgroundColor: "#fff",
-                  borderWidth: 1,
-                  borderColor: "#F1F5F9",
-                  shadowColor: "#000",
-                  shadowOffset: { width: 0, height: 4 },
-                  shadowOpacity: 0.05,
-                  shadowRadius: 10,
-                  elevation: 3,
-                },
-              ]}
-              activeOpacity={0.9}
-              onPress={() => router.push("/(tabs)/subscriptions")}
-            >
-              <View style={styles.subStatusIcon}>
-                <Ionicons name="shield-checkmark" size={20} color="#0284C7" />
-              </View>
-              <View>
-                <Text style={styles.subStatusLabel}>Next Service</Text>
-                <Text style={styles.subStatusValue}>
-                  {new Date(nextSubscription.endDate).toLocaleDateString(
-                    "en-GB",
-                    {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                    },
-                  )}
-                </Text>
-                <Text
-                  style={[
-                    styles.subStatusDays,
-                    getDaysLeft(nextSubscription.endDate) < 5 && {
-                      color: "#EF4444",
-                    },
-                  ]}
-                >
-                  {nextSubscription.vehicle?.number ||
-                    nextSubscription.vehicle?.vehicleNo ||
-                    "Car"}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          </View>
+        {/* Next Service (For Subscribers) */}
+        {isLoggedIn && nextSubscription && (
+          <NextServiceWidget
+            date={nextSubscription.endDate}
+            vehicleNo={
+              nextSubscription.vehicle?.number ||
+              nextSubscription.vehicle?.vehicleNo ||
+              "Car"
+            }
+          />
         )}
 
-        {/* Recent Services Section */}
         {isLoggedIn && pastBookings.length > 0 && (
           <View style={styles.sectionContainer}>
-            <View style={styles.sectionHeader}>
+            <View style={[styles.sectionHeader, { paddingHorizontal: 20 }]}>
               <Text style={styles.sectionTitle}>Recent Services</Text>
               <TouchableOpacity>
                 <Text style={styles.viewAllText}>View All</Text>
@@ -584,16 +381,11 @@ export default function HomeScreen() {
                   onPress={() => handleRecentServicePress(item)}
                 >
                   <View style={styles.recentCardHeader}>
-                    <View
-                      style={[
-                        styles.recentIconBox,
-                        { backgroundColor: "#E8F5E9" },
-                      ]}
-                    >
-                      <Ionicons name="sparkles" size={16} color="#2E7D32" />
+                    <View style={styles.recentIconBox}>
+                      <Ionicons name="sparkles" size={16} color="#000" />
                     </View>
                     <View style={styles.rebookBadge}>
-                      <Ionicons name="refresh" size={10} color="#fff" />
+                      <Ionicons name="refresh" size={10} color="#000" />
                       <Text style={styles.rebookText}>Rebook</Text>
                     </View>
                   </View>
@@ -621,44 +413,6 @@ export default function HomeScreen() {
                 </TouchableOpacity>
               ))}
             </ScrollView>
-          </View>
-        )}
-
-        {/* Guest Features Section */}
-        {!isLoggedIn && (
-          <View style={styles.guestSection}>
-            <Text style={styles.guestFeaturesTitle}>Why Choose Us?</Text>
-            <View style={styles.guestFeaturesRow}>
-              {[
-                {
-                  icon: "leaf",
-                  title: "Eco-Friendly",
-                  desc: "(Waterless technology)",
-                },
-                {
-                  icon: "shield-checkmark",
-                  title: "Trusted Pros",
-                  desc: "(Vetted partners)",
-                },
-                {
-                  icon: "home",
-                  title: "Doorstep Service",
-                  desc: "(We comes to you)",
-                },
-              ].map((item, idx) => (
-                <View key={idx} style={styles.guestFeatureItem}>
-                  <View style={styles.guestFeatureIconCircle}>
-                    <Ionicons
-                      name={item.icon as any}
-                      size={28}
-                      color="#7BBF2A"
-                    />
-                  </View>
-                  <Text style={styles.guestFeatureTitle}>{item.title}</Text>
-                  <Text style={styles.guestFeatureDesc}>{item.desc}</Text>
-                </View>
-              ))}
-            </View>
           </View>
         )}
       </ScrollView>
@@ -794,197 +548,103 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#FAFAFA",
+    backgroundColor: "transparent",
   },
   container: {
     paddingBottom: 100,
   },
-
-  // Header
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
+    alignItems: "flex-start",
     paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 20,
-    backgroundColor: "#fff",
+    paddingTop: 10,
+    paddingBottom: 0,
+    marginBottom: 20,
   },
-  greeting: {
+  headerGreeting: {
     fontSize: 14,
     color: "#64748B",
-    fontWeight: "500",
+    fontWeight: "700",
+    marginBottom: 4,
   },
-  brandTitle: {
-    fontSize: 24,
+  headerTitleLarge: {
+    fontSize: 32,
     fontWeight: "800",
-    color: "#1a1a1a",
-    letterSpacing: -0.5,
+    color: "#0F172A",
+    lineHeight: 36,
+  },
+  headerTitleSub: {
+    fontSize: 32,
+    fontWeight: "800",
+    color: "#0F172A",
+    lineHeight: 36,
   },
   headerIcons: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  headerLoginBtn: {
-    backgroundColor: "#1a1a1a",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-  },
-  headerLoginText: {
-    color: "#fff",
-    fontSize: 12,
-    fontWeight: "700",
+    marginTop: 8,
   },
   iconCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#F1F5F9",
-    justifyContent: "center",
-    alignItems: "center",
-    position: "relative",
-  },
-  notificationDot: {
-    position: "absolute",
-    top: 10,
-    right: 10,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: "#EF4444",
-    borderWidth: 1,
-    borderColor: "#F1F5F9",
-  },
-
-  // Hero
-  heroSection: {
-    paddingHorizontal: 20,
-    marginBottom: 24,
-  },
-  heroCard: {
-    height: 200,
+    width: 48,
+    height: 48,
     borderRadius: 24,
     overflow: "hidden",
-    position: "relative",
-    backgroundColor: "#1a1a1a",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 18,
-    elevation: 8,
-  },
-  heroImage: {
-    width: "100%",
-    height: "100%",
-    resizeMode: "cover",
-    opacity: 0.8,
-  },
-  heroOverlay: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: 24,
-    backgroundColor: "rgba(0,0,0,0.3)",
-  },
-  heroOverlayTitle: {
-    color: "#fff",
-    fontSize: 28,
-    fontWeight: "800",
-    marginBottom: 4,
-    textShadowColor: "rgba(0,0,0,0.3)",
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
-  },
-  heroOverlaySubtitle: {
-    color: "#E2E8F0",
-    fontSize: 14,
-    fontWeight: "500",
-  },
-
-  actionSection: {
-    flexDirection: "row",
-    paddingHorizontal: 20,
-    gap: 12,
-    marginBottom: 32,
-  },
-  actionButton: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 12,
-    borderRadius: 20,
-    gap: 5,
+    borderWidth: 2,
+    borderColor: "#FFF",
+    elevation: 4,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.1,
     shadowRadius: 8,
-    elevation: 3,
   },
-  primaryBtn: {
-    backgroundColor: "#D1F803",
+  avatarImage: {
+    width: "100%",
+    height: "100%",
   },
-  secondaryBtn: {
-    backgroundColor: "#FFF",
-    borderWidth: 1,
-    borderColor: "#F1F5F9",
+  limePillBtn: {
+    backgroundColor: "#C8F000",
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 20,
+    elevation: 2,
   },
-  iconContainer: {
-    width: 34,
-    height: 34,
-    borderRadius: 14,
-    backgroundColor: "rgba(255,255,255,0.4)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  actionBtnTitle: {
-    fontSize: 16,
+  limePillText: {
     fontWeight: "700",
-    color: "#1a1a1a",
-  },
-  actionBtnSubtitle: {
-    fontSize: 12,
-    color: "#475569",
-    marginTop: 2,
+    color: "#000",
   },
 
-  // Sections
   sectionContainer: {
     marginBottom: 24,
   },
   sectionHeader: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 20,
+    justifyContent: "space-between",
     marginBottom: 16,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: "700",
     color: "#0F172A",
-    paddingLeft: 20,
-    marginBottom: 15,
   },
   viewAllText: {
-    fontSize: 13,
-    color: "#2563EB",
+    fontSize: 14,
+    color: "#64748B",
     fontWeight: "600",
   },
   recentList: {
-    paddingLeft: 20,
-    paddingRight: 8,
+    paddingHorizontal: 20,
+    gap: 16,
   },
   recentCard: {
-    width: 200,
-    backgroundColor: "#fff",
-    borderRadius: 18,
-    padding: 16,
-    marginRight: 12,
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
+    width: 180,
+    padding: 20,
+    borderRadius: 24,
+    backgroundColor: "#FFFFFF",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
+    elevation: 4,
   },
   recentCardHeader: {
     flexDirection: "row",
@@ -992,41 +652,43 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   recentIconBox: {
-    width: 32,
-    height: 32,
-    borderRadius: 10,
-    justifyContent: "center",
+    width: 40,
+    height: 40,
+    borderRadius: 14,
+    backgroundColor: "#F1F5F9",
     alignItems: "center",
+    justifyContent: "center",
   },
   rebookBadge: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#1a1a1a",
+    backgroundColor: "#000",
+    borderRadius: 12,
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 12,
-    gap: 4,
+    height: 24,
+    gap: 2,
   },
   rebookText: {
-    color: "#fff",
+    color: "#FFF",
     fontSize: 10,
     fontWeight: "700",
   },
   recentServiceName: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: "700",
     color: "#0F172A",
-    marginBottom: 4,
+    marginBottom: 2,
   },
   recentCarText: {
-    fontSize: 13,
+    fontSize: 12,
     color: "#64748B",
-    marginBottom: 12,
+    fontWeight: "500",
   },
   recentDivider: {
     height: 1,
     backgroundColor: "#F1F5F9",
-    marginBottom: 12,
+    marginVertical: 12,
   },
   recentFooter: {
     flexDirection: "row",
@@ -1036,137 +698,47 @@ const styles = StyleSheet.create({
   recentDate: {
     fontSize: 12,
     color: "#94A3B8",
-    fontWeight: "500",
+    fontWeight: "600",
   },
   recentPrice: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: "#1a1a1a",
-  },
-
-  promoSection: {
-    paddingHorizontal: 20,
-  },
-  promoCard: {
-    backgroundColor: "#2563EB",
-    borderRadius: 24,
-    padding: 24,
-    flexDirection: "row",
-    alignItems: "center",
-    overflow: "hidden",
-    position: "relative",
-  },
-  promoContent: {
-    flex: 1,
-    zIndex: 1,
-  },
-  promoTitle: {
-    color: "#fff",
-    fontSize: 20,
+    fontSize: 16,
     fontWeight: "800",
-    marginBottom: 8,
-  },
-  promoDesc: {
-    color: "#BFDBFE",
-    fontSize: 13,
-    marginBottom: 16,
-    lineHeight: 18,
-  },
-  promoBtn: {
-    backgroundColor: "#fff",
-    alignSelf: "flex-start",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 12,
-  },
-  promoBtnText: {
-    color: "#1D4ED8",
-    fontWeight: "700",
-    fontSize: 12,
-  },
-  promoIcon: {
-    position: "absolute",
-    right: -10,
-    bottom: -10,
-    opacity: 0.2,
-    transform: [{ rotate: "-15deg" }],
-  },
-
-  stepsContainer: {
-    paddingHorizontal: 20,
-    gap: 16,
-  },
-  stepItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#fff",
-    padding: 16,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: "#F1F5F9",
-  },
-  stepNumber: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "#1a1a1a",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 16,
-  },
-  stepNumberText: {
-    color: "#fff",
-    fontWeight: "700",
-    fontSize: 14,
-  },
-  stepContent: {
-    flex: 1,
-  },
-  stepTitle: {
-    fontSize: 15,
-    fontWeight: "700",
     color: "#0F172A",
-  },
-  stepDesc: {
-    fontSize: 13,
-    color: "#64748B",
-    marginTop: 2,
   },
 
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.6)",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
     justifyContent: "flex-end",
   },
   modalDismissArea: {
     flex: 1,
   },
   modalContent: {
-    backgroundColor: "#fff",
-    borderTopLeftRadius: 32,
-    borderTopRightRadius: 32,
-    padding: 32,
-    paddingBottom: 48,
-    minHeight: 400,
+    backgroundColor: "#FFF",
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 24,
+    paddingBottom: 40,
   },
   modalHeader: {
     alignItems: "center",
     marginBottom: 24,
   },
   modalIndicator: {
-    width: 48,
+    width: 40,
     height: 4,
-    backgroundColor: "#E2E8F0",
     borderRadius: 2,
+    backgroundColor: "#E2E8F0",
   },
   modalTitle: {
-    fontSize: 28,
-    fontWeight: "800",
+    fontSize: 24,
+    fontWeight: "700",
     color: "#0F172A",
     marginBottom: 8,
   },
   modalSubtitle: {
-    fontSize: 15,
+    fontSize: 14,
     color: "#64748B",
     marginBottom: 32,
   },
@@ -1174,78 +746,70 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   inputLabel: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: "600",
-    color: "#334155",
-    marginBottom: 10,
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
+    color: "#0F172A",
+    marginBottom: 8,
   },
   phoneInputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    borderWidth: 1.5,
-    borderColor: "#E2E8F0",
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    height: 56,
     backgroundColor: "#F8FAFC",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    borderRadius: 12,
+    height: 52,
+    paddingHorizontal: 16,
   },
   prefixText: {
     fontSize: 16,
-    fontWeight: "700",
     color: "#0F172A",
+    fontWeight: "600",
   },
   verticalDivider: {
     width: 1,
-    height: 20,
-    backgroundColor: "#CBD5E1",
-    marginHorizontal: 16,
+    height: 24,
+    backgroundColor: "#E2E8F0",
+    marginHorizontal: 12,
   },
   phoneInput: {
     flex: 1,
-    fontSize: 18,
-    fontWeight: "600",
+    fontSize: 16,
     color: "#0F172A",
+    fontWeight: "500",
   },
   primaryModalBtn: {
-    backgroundColor: "#D1F803",
-    height: 56,
+    backgroundColor: "#C8F000",
+    height: 52,
     borderRadius: 16,
-    justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#D1F803",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 8,
+    justifyContent: "center",
   },
   primaryModalBtnText: {
     fontSize: 16,
-    fontWeight: "800",
-    color: "#1a1a1a",
+    fontWeight: "700",
+    color: "#000",
   },
   otpContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 22,
-    gap: 8,
+    marginBottom: 24,
   },
   otpBox: {
-    width: "14%",
-    height: 55,
-    borderWidth: 1.5,
-    borderColor: "#E2E8F0",
+    width: 48,
+    height: 48,
     borderRadius: 12,
-    textAlign: "center",
-    fontSize: 24,
-    fontWeight: "700",
-    color: "#0F172A",
     backgroundColor: "#F8FAFC",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    textAlign: "center",
+    fontSize: 20,
+    fontWeight: "600",
+    color: "#0F172A",
   },
   otpBoxFilled: {
-    borderColor: "#D1F803",
-    backgroundColor: "#fff",
+    borderColor: "#C8F000",
+    backgroundColor: "#FAFDEB",
   },
   resendContainer: {
     flexDirection: "row",
@@ -1253,207 +817,12 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   resendText: {
+    fontSize: 14,
     color: "#64748B",
   },
   resendLink: {
-    color: "#1a1a1a",
-    fontWeight: "700",
-    textDecorationLine: "underline",
-  },
-
-  // Quick Actions Grid
-  quickActionsGrid: {
-    flexDirection: "row",
-    paddingHorizontal: 20,
-    gap: 16,
-    marginBottom: 32,
-  },
-  squareCard: {
-    flex: 1,
-    height: 120,
-    borderRadius: 24,
-    padding: 20,
-    justifyContent: "space-between",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.05,
-    shadowRadius: 16,
-    elevation: 4,
-  },
-  whiteCard: {
-    backgroundColor: "#fff",
-    borderWidth: 1,
-    borderColor: "#F1F5F9",
-  },
-  blueCard: {
-    backgroundColor: "#2563EB",
-  },
-  squareTitle: {
-    fontSize: 16,
-    fontWeight: "800",
-    color: "#1a1a1a",
-    // paddingTop: 10,
-    marginBottom: 1,
-  },
-  squareSubtitle: {
-    fontSize: 13,
-    color: "#64748B",
-    fontWeight: "500",
-  },
-
-  // Guest Refactor Styles
-  headerGreeting: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: "#64748B",
-    marginBottom: 2,
-  },
-  headerTitleLarge: {
-    fontSize: 28,
-    fontWeight: "800",
-    color: "#1a1a1a",
-    letterSpacing: -1,
-    lineHeight: 32,
-  },
-  headerTitleSub: {
-    fontSize: 28,
-    fontWeight: "800",
-    color: "#1a1a1a",
-    letterSpacing: -1,
-    lineHeight: 32,
-  },
-  limePillBtn: {
-    backgroundColor: "#D1F803",
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 24,
-  },
-  limePillText: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#1a1a1a",
-  },
-  guestBookBtn: {
-    backgroundColor: "#D1F803",
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 16,
-    paddingHorizontal: 48,
-    borderRadius: 30,
-    gap: 12,
-    shadowColor: "#D1F803",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    shadowRadius: 16,
-    elevation: 8,
-  },
-  guestBookBtnText: {
-    fontSize: 18,
-    fontWeight: "800",
-    color: "#1a1a1a",
-  },
-  iconCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#F1F5F9",
-    justifyContent: "center",
-    alignItems: "center",
-    overflow: "hidden",
-  },
-  avatarImage: {
-    width: "100%",
-    height: "100%",
-    borderRadius: 20,
-  },
-  guestSection: {
-    paddingVertical: 40,
-    alignItems: "center",
-  },
-  guestFeaturesTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#1a1a1a",
-    marginBottom: 32,
-  },
-  guestFeaturesRow: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    width: "100%",
-    paddingHorizontal: 20,
-  },
-  guestFeatureItem: {
-    alignItems: "center",
-    width: "30%",
-  },
-  guestFeatureIconCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: "#F7FEE7",
-    borderWidth: 4,
-    borderColor: "#ECFCCB",
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  guestFeatureTitle: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: "#1a1a1a",
-    textAlign: "center",
-    marginBottom: 4,
-  },
-  guestFeatureDesc: {
-    fontSize: 10,
-    color: "#64748B",
-    textAlign: "center",
-    lineHeight: 14,
-  },
-
-  // Split Hero Styles
-  heroSplitRow: {
-    flexDirection: "row",
-    height: 200,
-  },
-  heroOverlayTitleSmall: {
-    color: "#fff",
-    fontSize: 22,
-    fontWeight: "800",
-    marginBottom: 4,
-    textShadowColor: "rgba(0,0,0,0.3)",
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
-    lineHeight: 26,
-  },
-  subscriptionStatusCard: {
-    borderRadius: 24,
-    padding: 16,
-    justifyContent: "space-between",
-  },
-  subStatusIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    backgroundColor: "rgba(255,255,255,0.6)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  subStatusLabel: {
-    fontSize: 12,
-    color: "#475569",
-    fontWeight: "600",
-    marginBottom: 2,
-  },
-  subStatusValue: {
-    fontSize: 16,
-    color: "#0F172A",
-    fontWeight: "800",
-    marginBottom: 4,
-  },
-  subStatusDays: {
-    fontSize: 12,
-    color: "#0284C7",
-    fontWeight: "600",
+    color: "#000",
   },
 });

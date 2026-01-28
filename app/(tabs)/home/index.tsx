@@ -6,6 +6,8 @@ import {
   useVerifyRegisterOtpMutation,
   useGetProfileQuery,
 } from "@/store/api/authApi";
+import { useGetAddressesQuery } from "@/store/api/addressApi";
+import { useGetBookingsQuery } from "@/store/api/bookingApi";
 import { useGetMySubscriptionQuery } from "@/store/api/subscriptionApi";
 import { loginSuccess, logout } from "@/store/slices/authSlice";
 import { Booking } from "@/store/slices/bookingSlice";
@@ -75,6 +77,14 @@ export default function HomeScreen() {
   }, [userProfile, dispatch]);
 
   const { data: subscriptions } = useGetMySubscriptionQuery(undefined, {
+    skip: !isLoggedIn,
+  });
+
+  const { data: bookingsData } = useGetBookingsQuery(undefined, {
+    skip: !isLoggedIn,
+  });
+
+  useGetAddressesQuery(undefined, {
     skip: !isLoggedIn,
   });
 
@@ -226,12 +236,34 @@ export default function HomeScreen() {
     return;
   };
 
-  const allBookings = bookings;
+  const allBookings = [...(bookingsData?.data?.bookingList || []), ...bookings];
   const uniqueBookingsMap = new Map();
+
   allBookings.forEach((booking) => {
-    if (booking.serviceName) {
-      const key = `${booking.serviceName}|${booking.address}|${booking.car}`;
-      uniqueBookingsMap.set(key, booking);
+    // Map backend fields to frontend expected fields if necessary
+    const serviceName = booking.serviceName || booking.washPackage?.name;
+    const address = booking.address?.fullAddress || booking.address || "";
+    const car =
+      booking.car ||
+      (booking.vehicle
+        ? `${booking.vehicle.vehicleType} - ${booking.vehicle.vehicleNo}`
+        : "");
+    const price = booking.price || booking.washPackage?.price || 0;
+    const date = booking.date || booking.bookingDate;
+    const serviceId = booking.serviceId || booking.washPackage?._id;
+
+    if (serviceName) {
+      const key = `${serviceName}|${address}|${car}`;
+      // Store a normalized object
+      uniqueBookingsMap.set(key, {
+        ...booking,
+        serviceName,
+        address,
+        car,
+        price,
+        date,
+        serviceId,
+      });
     }
   });
   const pastBookings = Array.from(uniqueBookingsMap.values()).reverse();
@@ -342,7 +374,10 @@ export default function HomeScreen() {
         <HeroSection isLoggedIn={isLoggedIn} />
 
         {/* Action Grid (Book / Add-ons) */}
-        <ServiceActionGrid isLoggedIn={isLoggedIn} />
+        <ServiceActionGrid
+          isLoggedIn={isLoggedIn}
+          hasActiveSubscription={activeSubs.length > 0}
+        />
 
         {/* Why Choose Us - Only for Guests */}
         {!isLoggedIn && <WhyChooseUs />}

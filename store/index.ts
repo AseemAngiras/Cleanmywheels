@@ -69,7 +69,7 @@ export const store = configureStore({
       notificationApi.middleware,
       vehicleApi.middleware,
       washPackageApi.middleware,
-      subscriptionApi.middleware
+      subscriptionApi.middleware,
     ),
 });
 

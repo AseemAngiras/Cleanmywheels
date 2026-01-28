@@ -97,15 +97,17 @@ export default function SubscriptionConfigureScreen() {
         vehicleNo: newCarNo.toUpperCase(),
         vehicleType: newCarType,
         isDefault: false,
-        status: "active",
       }).unwrap();
 
       setShowAddCarModal(false);
       setNewCarNo("");
       setNewCarType("SEDAN");
 
-      if (result?._id) {
-        setSelectedVehicleId(result._id);
+      setNewCarType("SEDAN");
+
+      const createdVehicle = result?.data || result;
+      if (createdVehicle?._id) {
+        setSelectedVehicleId(createdVehicle._id);
       }
       Alert.alert("Success", "Vehicle added successfully!");
     } catch (e: any) {

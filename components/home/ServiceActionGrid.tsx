@@ -5,9 +5,13 @@ import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 interface ServiceActionGridProps {
   isLoggedIn: boolean;
+  hasActiveSubscription?: boolean;
 }
 
-export const ServiceActionGrid = ({ isLoggedIn }: ServiceActionGridProps) => {
+export const ServiceActionGrid = ({
+  isLoggedIn,
+  hasActiveSubscription,
+}: ServiceActionGridProps) => {
   const router = useRouter();
 
   if (!isLoggedIn) {
@@ -46,19 +50,36 @@ export const ServiceActionGrid = ({ isLoggedIn }: ServiceActionGridProps) => {
         </View>
       </TouchableOpacity>
 
-      <TouchableOpacity
-        style={styles.card}
-        activeOpacity={0.9}
-        onPress={() => router.push("/subscription/addons")}
-      >
-        <View style={styles.iconContainer}>
-          <Ionicons name="add-circle-outline" size={28} color="#CA8A04" />
-        </View>
-        <View>
-          <Text style={styles.title}>Add-ons</Text>
-          <Text style={styles.subtitle}>For next visit</Text>
-        </View>
-      </TouchableOpacity>
+      {/* Add-ons OR Buy Subscription */}
+      {hasActiveSubscription ? (
+        <TouchableOpacity
+          style={styles.card}
+          activeOpacity={0.9}
+          onPress={() => router.push("/subscription/addons")}
+        >
+          <View style={styles.iconContainer}>
+            <Ionicons name="add-circle-outline" size={28} color="#CA8A04" />
+          </View>
+          <View>
+            <Text style={styles.title}>Add-ons</Text>
+            <Text style={styles.subtitle}>For next visit</Text>
+          </View>
+        </TouchableOpacity>
+      ) : (
+        <TouchableOpacity
+          style={styles.card}
+          activeOpacity={0.9}
+          onPress={() => router.push("/(tabs)/subscriptions")}
+        >
+          <View style={styles.iconContainer}>
+            <Ionicons name="star-outline" size={28} color="#16A34A" />
+          </View>
+          <View>
+            <Text style={styles.title}>Buy Plan</Text>
+            <Text style={styles.subtitle}>Get Daily Washes</Text>
+          </View>
+        </TouchableOpacity>
+      )}
     </View>
   );
 };

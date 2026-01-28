@@ -21,7 +21,10 @@ import {
 import { RootState } from "@/store";
 import { useSelector } from "react-redux";
 import { useUpdateProfileMutation } from "../../../store/api/authApi";
-import { useGetAddressesQuery } from "../../../store/api/addressApi";
+import {
+  useGetAddressesQuery,
+  useDeleteAddressMutation,
+} from "../../../store/api/addressApi";
 import { useAppDispatch, useAppSelector } from "../../../store/hooks";
 import { logout } from "../../../store/slices/authSlice";
 import {
@@ -70,6 +73,7 @@ export default function ProfileHome() {
   const isAdmin = userData?.accountType === "Super Admin";
 
   const { data: addressesData } = useGetAddressesQuery(undefined);
+  const [deleteAddress] = useDeleteAddressMutation();
   const profileState = useSelector((state: RootState) => state.profile);
 
   // Defensive check & mapping
@@ -590,9 +594,22 @@ export default function ProfileHome() {
                                       {
                                         text: "Delete",
                                         style: "destructive",
-                                        onPress: () => {
-                                          dispatch(removeAddresses(addr.id));
-                                          setExpandedAddressId(null);
+                                        onPress: async () => {
+                                          try {
+                                            await deleteAddress(
+                                              addr.id,
+                                            ).unwrap();
+                                            // The API tag invalidation will refresh the list,
+                                            // but we can also dispatch local remove for instant feedback
+                                            dispatch(removeAddresses(addr.id));
+                                            setExpandedAddressId(null);
+                                          } catch (error) {
+                                            console.log("Delete error", error);
+                                            Alert.alert(
+                                              "Error",
+                                              "Failed to delete address",
+                                            );
+                                          }
                                         },
                                       },
                                     ],

@@ -39,9 +39,9 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="my-cars"
+        name="subscriptions"
         options={{
-          title: "My Cars",
+          title: "subs",
         }}
       />
       <Tabs.Screen name="bookings" />

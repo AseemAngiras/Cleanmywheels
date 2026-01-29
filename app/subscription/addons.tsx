@@ -13,7 +13,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import RazorpayCheckout from "react-native-razorpay";
+// import RazorpayCheckout from "react-native-razorpay";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
@@ -133,7 +133,10 @@ export default function AddonsScreen() {
         return;
       }
 
-      Alert.alert("Error", "Failed to generate payment link.");
+      // EXPO GO WORKAROUND: Skip Razorpay native check
+      Alert.alert("Expo Go Mode", "Razorpay native module is disabled. Payment simulation or web-fallback needed.");
+
+      // Alert.alert("Error", "Failed to generate payment link.");
     } catch (err: any) {
       console.error("Payment Start Error:", err);
       Alert.alert("Error", err?.data?.message || "Failed to create order");
@@ -288,7 +291,7 @@ export default function AddonsScreen() {
                     const isDone = activeSubscription.serviceHistory?.some(
                       (h: any) =>
                         new Date(h.date).toDateString() ===
-                          date.toDateString() && h.status === "completed",
+                        date.toDateString() && h.status === "completed",
                     );
 
                     if (isDone) {

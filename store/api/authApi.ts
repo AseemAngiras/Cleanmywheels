@@ -2,13 +2,15 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import Constants from "expo-constants";
 import { Platform } from "react-native";
 
-export const MY_PC_IP = "192.168.1.3";
+export const MY_PC_IP = "192.168.1.6";
 
 export const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL
   ? process.env.EXPO_PUBLIC_API_URL
   : __DEV__
     ? `http://${MY_PC_IP}:5000/api`
     : "https://your-production-api.com/api";
+
+console.log("🔌 API_BASE_URL Configured as:", API_BASE_URL); // DEBUG LOG
 
 export const APP_VERSION = Constants.expoConfig?.version ?? "1.0.0";
 
@@ -78,6 +80,12 @@ export const authApi = createApi({
         body,
       }),
     }),
+    getProfile: builder.query({
+      query: () => ({
+        url: "/auth/get-profile",
+        method: "GET",
+      }),
+    }),
   }),
 });
 
@@ -87,4 +95,5 @@ export const {
   useVerifyLoginOtpMutation,
   useVerifyRegisterOtpMutation,
   useUpdateProfileMutation,
+  useGetProfileQuery,
 } = authApi;

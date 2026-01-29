@@ -122,14 +122,22 @@ export default function SubscriptionDetailsScreen() {
         {item.addons && item.addons.length > 0 && (
           <View style={styles.addonsContainer}>
             <Text style={styles.addonsLabel}>Add-ons Purchased:</Text>
-            {item.addons.map((addon: any, idx: number) => (
-              <View key={idx} style={styles.addonRow}>
-                <Ionicons name="add-circle-outline" size={16} color="#444" />
-                <Text style={styles.addonText}>
-                  {addon.name} - ₹{addon.price}
-                </Text>
-              </View>
-            ))}
+            {(() => {
+              const uniqueAddonsMap = new Map();
+              item.addons.forEach((addon: any) => {
+                uniqueAddonsMap.set(addon.name, addon);
+              });
+              const uniqueAddons = Array.from(uniqueAddonsMap.values());
+
+              return uniqueAddons.map((addon: any, idx: number) => (
+                <View key={idx} style={styles.addonRow}>
+                  <Ionicons name="add-circle-outline" size={16} color="#444" />
+                  <Text style={styles.addonText}>
+                    {addon.name} - ₹{addon.price}
+                  </Text>
+                </View>
+              ));
+            })()}
           </View>
         )}
       </View>

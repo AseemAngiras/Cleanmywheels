@@ -82,7 +82,7 @@ const bookingSlice = createSlice({
 
     setBookingService(
       state,
-      action: PayloadAction<{ serviceName: string; price: number }>
+      action: PayloadAction<{ serviceName: string; price: number }>,
     ) {
       state.currentBooking.serviceName = action.payload.serviceName;
       state.currentBooking.price = action.payload.price;
@@ -90,7 +90,7 @@ const bookingSlice = createSlice({
 
     setBookingCar(
       state,
-      action: PayloadAction<{ car: string; plate: string; carImage: string }>
+      action: PayloadAction<{ car: string; plate: string; carImage: string }>,
     ) {
       state.currentBooking.car = action.payload.car;
       state.currentBooking.plate = action.payload.plate;
@@ -99,7 +99,7 @@ const bookingSlice = createSlice({
 
     setBookingSlot(
       state,
-      action: PayloadAction<{ date: string; timeSlot: string }>
+      action: PayloadAction<{ date: string; timeSlot: string }>,
     ) {
       state.currentBooking.date = action.payload.date;
       state.currentBooking.timeSlot = action.payload.timeSlot;
@@ -111,10 +111,10 @@ const bookingSlice = createSlice({
 
     updateBookingStatus(
       state,
-      action: PayloadAction<{ bookingId: string; status: BookingStatus }>
+      action: PayloadAction<{ bookingId: string; status: BookingStatus }>,
     ) {
       const booking = state.bookings.find(
-        (b) => b.id === action.payload.bookingId
+        (b) => b.id === action.payload.bookingId,
       );
       if (booking) {
         booking.status = action.payload.status;

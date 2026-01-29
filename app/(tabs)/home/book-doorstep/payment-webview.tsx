@@ -82,6 +82,9 @@ export default function PaymentWebViewScreen() {
               razorpay_signature: (razorpay_signature as string) || "demo_sig",
               subscriptionId: subscriptionId as string,
               addons: parsedAddons,
+              serviceDate: serviceDate
+                ? String(serviceDate)
+                : new Date().toISOString(),
             }).unwrap();
           }
         } else if (type === "SUBSCRIPTION") {

@@ -1,6 +1,7 @@
 import { RootState } from "@/store";
 import {
   useCreateAddressMutation,
+  useGetAddressesQuery,
   useLazyGetAddressesQuery,
 } from "@/store/api/addressApi";
 import { setBookingAddress } from "@/store/slices/bookingSlice";
@@ -39,9 +40,29 @@ export default function EnterLocationScreen() {
   const [createAddress, { isLoading: isCreating }] = useCreateAddressMutation();
   const [triggerGetAddresses] = useLazyGetAddressesQuery();
 
-  const savedAddresses = useSelector(
+  const { data: addressesData } = useGetAddressesQuery(undefined);
+
+  let fetchedAddresses =
+    addressesData?.data?.addressList || addressesData?.data || [];
+
+  if (!Array.isArray(fetchedAddresses)) {
+    fetchedAddresses = [];
+  }
+
+  const profileAddresses = useSelector(
     (state: RootState) => state.profile.addresses,
   );
+
+  const savedAddresses =
+    fetchedAddresses.length > 0
+      ? fetchedAddresses.map((addr: any) => ({
+          ...addr,
+          id: addr._id || addr.id,
+          fullAddress:
+            addr.fullAddress ||
+            `${addr.houseOrFlatNo}, ${addr.locality}, ${addr.city} - ${addr.postalCode}`,
+        }))
+      : profileAddresses || [];
 
   const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
 

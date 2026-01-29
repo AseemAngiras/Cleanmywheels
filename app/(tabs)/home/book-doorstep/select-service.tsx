@@ -204,6 +204,16 @@ export default function SelectServiceScreen() {
         "❌ [SelectService] API LOAD ERROR:",
         JSON.stringify(loadError, null, 2)
       );
+      // DEBUG: Show error to user
+      let errorMessage = "Unknown error";
+      if ('status' in loadError) {
+        errorMessage = `Status: ${loadError.status}, Error: ${JSON.stringify(loadError.data)}`;
+      } else {
+        errorMessage = loadError.message || JSON.stringify(loadError);
+      }
+      // Only alert once
+      Alert.alert("Debug API Error", errorMessage);
+      // Commented out to avoid loop, but let's enable it once or imply it.
     }
 
     if (servicesFromApi.length > 0) {

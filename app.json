@@ -11,7 +11,10 @@
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
-        "NSCameraUsageDescription": "CleanMyWheels needs camera access to scan QR codes for service check-in."
+        "NSCameraUsageDescription": "CleanMyWheels needs camera access to scan QR codes for service check-in.",
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": true
+        }
       }
     },
     "android": {
@@ -66,7 +69,7 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "ba82a2e9-123a-4d31-9281-c3913e8611d7"
+        "projectId": "e52de151-eaa3-4b09-a3fd-3a65a623cae3"
       }
     }
   }

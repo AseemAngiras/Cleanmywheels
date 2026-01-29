@@ -9,10 +9,10 @@
             "distribution": "internal",
             "channel": "development",
             "android": {
-                "buildType": "apk" // faster to install on device/emulator
+                "buildType": "apk" 
             },
             "ios": {
-                "simulator": true // builds for iOS simulator (no Apple account required)
+                "simulator": true 
             },
             "env": {
                 "APP_ENV": "development",
@@ -23,7 +23,7 @@
             "distribution": "internal",
             "channel": "testing",
             "android": {
-                "buildType": "app-bundle" // use .aab for testing installs
+                "buildType": "apk" 
             },
             "ios": {
                 "simulator": false
@@ -41,7 +41,7 @@
             },
             "env": {
                 "APP_ENV": "preview",
-                "EXPO_PUBLIC_API_URL": "http://192.168.1.3:3000/api"
+                "EXPO_PUBLIC_API_URL": "http://festive-glade-85038.pktriot.xyz/api"
             }
         },
         "production": {

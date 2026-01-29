@@ -21,7 +21,7 @@ import {
 import { useFocusEffect, useRouter } from "expo-router";
 
 import type { RootState } from "../../../store";
-import { useGetBookingsQuery } from "../../../store/api/bookingApi";
+import { useGetBookingsQuery, useNotifyBookingPartiesMutation } from "../../../store/api/bookingApi";
 import {
   useAssignSubscriptionWorkerMutation,
   useGetMySubscriptionQuery,
@@ -126,46 +126,8 @@ export default function UpcomingServices() {
 
   const [workerModalVisible, setWorkerModalVisible] = useState(false);
   const [assignSubscriptionWorker] = useAssignSubscriptionWorkerMutation();
+  const [notifyBookingParties, { isLoading: isNotifying }] = useNotifyBookingPartiesMutation();
   const [isAssigningSubWorker, setIsAssigningSubWorker] = useState(false);
-
-  const sendUserConfirmation = (worker: any, booking: any) => {
-    const isSubscription = !!booking.plan;
-    const serviceName = isSubscription
-      ? booking.plan.name
-      : booking.serviceName;
-    const id = isSubscription ? booking._id : booking.id;
-    const time = isSubscription ? "Daily Service" : booking.timeSlot;
-
-    const message = `Hello, your ${isSubscription ? "subscription" : "booking"
-      } for *${serviceName}* is confirmed! 🚗✨\n\n*${worker.name
-      }* has been assigned as your valet.\n\nID: ${id}\nTime: ${time}`;
-
-    const url = `whatsapp://send?phone=${booking.phone
-      }&text=${encodeURIComponent(message)}`;
-
-    Linking.canOpenURL(url).then((supported) => {
-      if (supported) {
-        Linking.openURL(url);
-      } else {
-        Alert.alert("Error", "WhatsApp is not installed");
-      }
-    });
-  };
-
-  const sendWorkerJobDetails = (worker: any, booking: any) => {
-    const message = `🛠️ *New Job Assigned!*\n\nCustomer: ${booking.user || "Valued Customer"
-      }\nPhone: ${booking.phone}\nAddress: ${booking.address}\n\nService: ${booking.serviceName
-      }\nCar: ${booking.car} (${booking.plate})\nTime: ${booking.timeSlot
-      }\n\nPlease reach on time.`;
-    const url = `whatsapp://send?phone=${worker.phone
-      }&text=${encodeURIComponent(message)}`;
-
-    Linking.canOpenURL(url).then((supported) => {
-      if (supported) {
-        Linking.openURL(url);
-      }
-    });
-  };
 
   const handleAssignWorker = async (worker: any) => {
     if (isAssigningSubWorker && subscription && subscription.length > 0) {
@@ -188,24 +150,28 @@ export default function UpcomingServices() {
 
     Alert.alert(
       "Confirm Assignment",
-      `Assign ${worker.name} to this job? This will open WhatsApp to notify both parties.`,
+      `Assign ${worker.name} to this job? This will send automated WhatsApp notifications to both parties.`,
       [
         { text: "Cancel", style: "cancel" },
         {
           text: "Assign & Notify",
-          onPress: () => {
-            sendUserConfirmation(worker, activeBooking);
+          onPress: async () => {
+            try {
+              await notifyBookingParties({
+                bookingId: activeBooking.id,
+                workerName: worker.name,
+                workerPhone: worker.phone,
+              }).unwrap();
 
-            setTimeout(() => {
-              sendWorkerJobDetails(worker, activeBooking);
-            }, 1500);
-
-            setWorkerModalVisible(false);
-            closeSheet();
-            Alert.alert(
-              "Success",
-              "Worker assigned and notifications initiated!",
-            );
+              setWorkerModalVisible(false);
+              closeSheet();
+              Alert.alert(
+                "Success",
+                "Worker assigned and ID: " + activeBooking.id + " notifications sent!",
+              );
+            } catch (err: any) {
+              Alert.alert("Error", err?.data?.message || "Failed to send notifications");
+            }
           },
         },
       ],
@@ -659,19 +625,26 @@ export default function UpcomingServices() {
                       const completed = sub.servicesCompleted || 0;
                       const nextServiceDate = new Date(startDate);
                       nextServiceDate.setDate(startDate.getDate() + completed);
-                      const targetDateStr = nextServiceDate.toDateString();
 
                       const displayAddons = (
                         sub.nextServiceAddons || []
                       ).filter((a: any) => {
                         if (!a.serviceDate) return false;
-                        return (
-                          new Date(a.serviceDate).toDateString() ===
-                          targetDateStr
-                        );
+                        const addonDate = new Date(
+                          a.serviceDate,
+                        ).toDateString();
+                        const serviceDate = nextServiceDate.toDateString();
+                        return addonDate === serviceDate;
                       });
 
-                      if (!displayAddons || displayAddons.length === 0)
+                      // Deduplicate by name
+                      const uniqueAddonsMap = new Map();
+                      displayAddons.forEach((addon: any) => {
+                        uniqueAddonsMap.set(addon.name, addon);
+                      });
+                      const uniqueAddons = Array.from(uniqueAddonsMap.values());
+
+                      if (!uniqueAddons || uniqueAddons.length === 0)
                         return null;
 
                       return (
@@ -703,9 +676,10 @@ export default function UpcomingServices() {
                               gap: 4,
                             }}
                           >
-                            {displayAddons.map((addon: any, idx: number) => (
-                              // @ts-ignore
-                              <View key={idx.toString()}
+                            {uniqueAddons.map((addon: any, idx: number) => (
+                              <View
+                                // @ts-ignore
+                                key={idx}
                                 style={{
                                   flexDirection: "row",
                                   alignItems: "center",

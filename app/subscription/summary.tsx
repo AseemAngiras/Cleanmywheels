@@ -122,33 +122,35 @@ export default function SubscriptionSummaryScreen() {
 
       RazorpayCheckout.open(options)
         .then(async (data: any) => {
-          await verifySubscription({
-            razorpay_payment_id: data.razorpay_payment_id,
-            razorpay_order_id: data.razorpay_order_id,
-            razorpay_signature: data.razorpay_signature,
-            razorpay_subscription_id: data.razorpay_subscription_id,
-            subscriptionId,
-          }).unwrap();
+          setTimeout(async () => {
+            await verifySubscription({
+              razorpay_payment_id: data.razorpay_payment_id,
+              razorpay_order_id: data.razorpay_order_id,
+              razorpay_signature: data.razorpay_signature,
+              razorpay_subscription_id: data.razorpay_subscription_id,
+              subscriptionId,
+            }).unwrap();
 
-          router.replace({
-            pathname: "/subscription/order-confirmation",
-            params: {
-              status: "success",
-              grandTotal: String(selectedPlan.price),
-              vehicleType: selectedVehicle.vehicleType,
-              vehicleNumber: selectedVehicle.vehicleNo,
-              serviceDate: startDate as string,
-              serviceName: selectedPlan.name,
-              address:
-                defaultAddress?.fullAddress ||
-                (defaultAddress
-                  ? `${defaultAddress.houseOrFlatNo}, ${defaultAddress.locality}, ${defaultAddress.city}`
-                  : "Your Registered Address"),
-              paymentMethod: "Online",
-              selectedDate: startDate as string,
-              selectedTime: timeSlot as string,
-            },
-          } as any);
+            router.replace({
+              pathname: "/subscription/order-confirmation",
+              params: {
+                status: "success",
+                grandTotal: String(selectedPlan.price),
+                vehicleType: selectedVehicle.vehicleType,
+                vehicleNumber: selectedVehicle.vehicleNo,
+                serviceDate: startDate as string,
+                serviceName: selectedPlan.name,
+                address:
+                  defaultAddress?.fullAddress ||
+                  (defaultAddress
+                    ? `${defaultAddress.houseOrFlatNo}, ${defaultAddress.locality}, ${defaultAddress.city}`
+                    : "Your Registered Address"),
+                paymentMethod: "Online",
+                selectedDate: startDate as string,
+                selectedTime: timeSlot as string,
+              },
+            } as any);
+          }, 5000); // Wait 5 seconds for webhook to process
         })
         .catch((error: any) => {
           console.log(error);

@@ -53,95 +53,100 @@ export default function PaymentWebViewScreen() {
       setIsLoading(true);
 
       try {
-        if (type === "ADDON") {
-          const params = new URLSearchParams(
-            url.includes("?") ? url.split("?")[1] : "",
-          );
+        // Wait 5 seconds for webhook to process
+        setTimeout(async () => {
+          if (type === "ADDON") {
+            const params = new URLSearchParams(
+              url.includes("?") ? url.split("?")[1] : "",
+            );
 
-          const razorpay_payment_id = params.get("razorpay_payment_id");
-          const razorpay_payment_link_id = params.get(
-            "razorpay_payment_link_id",
-          );
-          const razorpay_payment_link_status = params.get(
-            "razorpay_payment_link_status",
-          );
-          const razorpay_order_id = params.get(
-            "razorpay_payment_link_reference_id",
-          );
-          const razorpay_signature = params.get("razorpay_signature");
+            const razorpay_payment_id = params.get("razorpay_payment_id");
+            const razorpay_payment_link_id = params.get(
+              "razorpay_payment_link_id",
+            );
+            const razorpay_payment_link_status = params.get(
+              "razorpay_payment_link_status",
+            );
+            const razorpay_order_id = params.get(
+              "razorpay_payment_link_reference_id",
+            );
+            const razorpay_signature = params.get("razorpay_signature");
 
-          // Verify with Backend
-          if (addons) {
-            const parsedAddons = JSON.parse(addons as string);
-            await verifyAddonPayment({
+            // Verify with Backend
+            if (addons) {
+              const parsedAddons = JSON.parse(addons as string);
+              await verifyAddonPayment({
+                razorpay_payment_id:
+                  (razorpay_payment_id as string) || "demo_id",
+                razorpay_order_id:
+                  (razorpay_order_id as string) || (bookingId as string), // Reference ID (AD_...)
+                razorpay_payment_link_id: razorpay_payment_link_id as string, // Payment Link ID for signature verification
+                razorpay_payment_link_status:
+                  razorpay_payment_link_status as string,
+                razorpay_signature:
+                  (razorpay_signature as string) || "demo_sig",
+                subscriptionId: subscriptionId as string,
+                addons: parsedAddons,
+                serviceDate: serviceDate
+                  ? String(serviceDate)
+                  : new Date().toISOString(),
+              }).unwrap();
+            }
+          } else if (type === "SUBSCRIPTION") {
+            // Logic for Subscription Verification
+            const params = new URLSearchParams(
+              url.includes("?") ? url.split("?")[1] : "",
+            );
+
+            const razorpay_payment_id = params.get("razorpay_payment_id");
+            const razorpay_signature = params.get("razorpay_signature");
+            const razorpay_payment_link_id = params.get(
+              "razorpay_payment_link_id",
+            );
+            const razorpay_payment_link_status = params.get(
+              "razorpay_payment_link_status",
+            );
+            // payment_link_reference_id is usually the order_id for payment links
+            const razorpay_order_id = params.get(
+              "razorpay_payment_link_reference_id",
+            );
+
+            await verifySubscription({
               razorpay_payment_id: (razorpay_payment_id as string) || "demo_id",
-              razorpay_order_id:
-                (razorpay_order_id as string) || (bookingId as string), // Reference ID (AD_...)
-              razorpay_payment_link_id: razorpay_payment_link_id as string, // Payment Link ID for signature verification
+              razorpay_order_id: (razorpay_order_id as string) || "demo_order",
+              razorpay_payment_link_id: razorpay_payment_link_id as string,
               razorpay_payment_link_status:
                 razorpay_payment_link_status as string,
               razorpay_signature: (razorpay_signature as string) || "demo_sig",
-              subscriptionId: subscriptionId as string,
-              addons: parsedAddons,
-              serviceDate: serviceDate
-                ? String(serviceDate)
-                : new Date().toISOString(),
+              subscriptionId: bookingId as string, // bookingId is the subscriptionId here
             }).unwrap();
           }
-        } else if (type === "SUBSCRIPTION") {
-          // Logic for Subscription Verification
-          const params = new URLSearchParams(
-            url.includes("?") ? url.split("?")[1] : "",
-          );
 
-          const razorpay_payment_id = params.get("razorpay_payment_id");
-          const razorpay_signature = params.get("razorpay_signature");
-          const razorpay_payment_link_id = params.get(
-            "razorpay_payment_link_id",
-          );
-          const razorpay_payment_link_status = params.get(
-            "razorpay_payment_link_status",
-          );
-          // payment_link_reference_id is usually the order_id for payment links
-          const razorpay_order_id = params.get(
-            "razorpay_payment_link_reference_id",
-          );
+          // Redirect to Order Confirmation
+          const targetPath =
+            type === "ADDON" || type === "SUBSCRIPTION"
+              ? "/subscription/order-confirmation"
+              : "/(tabs)/home/book-doorstep/order-confirmation";
 
-          await verifySubscription({
-            razorpay_payment_id: (razorpay_payment_id as string) || "demo_id",
-            razorpay_order_id: (razorpay_order_id as string) || "demo_order",
-            razorpay_payment_link_id: razorpay_payment_link_id as string,
-            razorpay_payment_link_status:
-              razorpay_payment_link_status as string,
-            razorpay_signature: (razorpay_signature as string) || "demo_sig",
-            subscriptionId: bookingId as string, // bookingId is the subscriptionId here
-          }).unwrap();
-        }
-
-        // Redirect to Order Confirmation
-        const targetPath =
-          type === "ADDON" || type === "SUBSCRIPTION"
-            ? "/subscription/order-confirmation"
-            : "/(tabs)/home/book-doorstep/order-confirmation";
-
-        router.replace({
-          pathname: targetPath,
-          params: {
-            bookingId: bookingId,
-            status: "success",
-            addons: addons || "[]",
-            grandTotal,
-            vehicleType,
-            vehicleNumber,
-            serviceDate,
-            serviceName,
-            address,
-            paymentMethod: "Online",
-            selectedDate: serviceDate,
-            selectedTime: (timeSlot as string) || "Anytime",
-            shopName: "CleanMyWheels",
-          },
-        } as any);
+          router.replace({
+            pathname: targetPath,
+            params: {
+              bookingId: bookingId,
+              status: "success",
+              addons: addons || "[]",
+              grandTotal,
+              vehicleType,
+              vehicleNumber,
+              serviceDate,
+              serviceName,
+              address,
+              paymentMethod: "Online",
+              selectedDate: serviceDate,
+              selectedTime: (timeSlot as string) || "Anytime",
+              shopName: "CleanMyWheels",
+            },
+          } as any);
+        }, 5000);
       } catch (error) {
         console.error("Verification failed", error);
         Alert.alert(

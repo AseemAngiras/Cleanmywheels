@@ -2,6 +2,7 @@ import { RootState } from "@/store";
 import {
   useGetBookingsQuery,
   useUpdateBookingStatusMutation,
+  useAssignWorkerAndNotifyMutation,
 } from "@/store/api/bookingApi";
 import { useGetAllSubscriptionsQuery } from "@/store/api/subscriptionApi";
 import { useGetWorkersQuery } from "@/store/api/workerApi";
@@ -78,7 +79,6 @@ const parseSubTimeSlotToHour = (slot: string): number | null => {
   return hour;
 };
 
-
 export default function AdminBookingsScreen() {
   const [filter, setFilter] = useState("All");
   const [workerModalVisible, setWorkerModalVisible] = useState(false);
@@ -103,6 +103,8 @@ export default function AdminBookingsScreen() {
   } = useGetBookingsQuery({ page: 1, perPage: 100 });
   const [updateBookingStatus, { isLoading: isUpdatingStatus }] =
     useUpdateBookingStatusMutation();
+
+  const [assignWorkerAndNotify] = useAssignWorkerAndNotifyMutation();
 
   const bookingList = bookingsResponse?.data?.bookingList || [];
   const bookings = bookingList.map((booking: any) => mapBookingToUI(booking));
@@ -184,51 +186,14 @@ export default function AdminBookingsScreen() {
           text: "Confirm & Notify",
           onPress: async () => {
             try {
-              await updateBookingStatus({
-                id: selectedBooking.id,
-                status: "Pending",
-                worker: worker._id,
-                workerName: worker.name,
-                workerPhone: worker.phone,
+              await assignWorkerAndNotify({
+                bookingId: selectedBooking.id,
+                workerId: worker._id,
               }).unwrap();
-
-              const userMsg = `Hello ${selectedBooking.customerName}, your service for ${selectedBooking.car} has been assigned to ${worker.name} (Ph: ${worker.phone}). They will arrive shortly.`;
-              const userUrl = `https://wa.me/${
-                selectedBooking.phone
-              }?text=${encodeURIComponent(userMsg)}`;
-
-              Linking.openURL(userUrl).catch(() => {
-                Alert.alert("Error", "Could not open WhatsApp");
-              });
-
-              setTimeout(() => {
-                Alert.alert(
-                  "Notify Worker",
-                  "Send job details to the worker now?",
-                  [
-                    { text: "Skip", style: "cancel", onPress: () => refetch() },
-                    {
-                      text: "Send to Worker",
-                      onPress: () => {
-                        const workerPhone = worker.phone.replace(/[^0-9]/g, "");
-                        const workerMsg = `🛠 *New Job Assigned!*\n\n👤 Client: ${selectedBooking.customerName}\n🚗 Car: ${selectedBooking.car} (${selectedBooking.license})\n📋 Service: ${selectedBooking.service}\n⏰ Time: ${selectedBooking.time}\n📍 Address: ${selectedBooking.address}\n📞 Phone: ${selectedBooking.phone}`;
-                        const workerUrl = `https://wa.me/${workerPhone}?text=${encodeURIComponent(
-                          workerMsg,
-                        )}`;
-                        Linking.openURL(workerUrl).catch(() =>
-                          Alert.alert(
-                            "Error",
-                            "Could not open WhatsApp for Worker",
-                          ),
-                        );
-                        refetch();
-                      },
-                    },
-                  ],
-                );
-              }, 1000);
+              Alert.alert("Success", "Worker assigned and notifications sent!");
+              refetch();
             } catch (err) {
-              console.error("Failed to update booking status:", err);
+              console.error("Failed to assign worker:", err);
               Alert.alert(
                 "Error",
                 "Failed to assign worker. Please try again.",

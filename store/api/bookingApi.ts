@@ -98,6 +98,20 @@ export const bookingApi = createApi({
         "Worker",
       ],
     }),
+    assignWorkerAndNotify: builder.mutation<
+      any,
+      {
+        bookingId: string;
+        workerId: string;
+      }
+    >({
+      query: (body) => ({
+        url: `/booking/assign-notify`,
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["Booking", "Worker"],
+    }),
   }),
 });
 
@@ -107,4 +121,5 @@ export const {
   useGetBookingByIdQuery,
   useLazyGetBookingByIdQuery,
   useUpdateBookingStatusMutation,
+  useAssignWorkerAndNotifyMutation,
 } = bookingApi;

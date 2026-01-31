@@ -2,7 +2,7 @@ import { RootState } from "@/store";
 import { Tabs, useSegments } from "expo-router";
 import { useSelector } from "react-redux";
 import { CustomTabBar } from "../../components/CustomTabBar";
-import { ShopTabBar } from "../../components/ShopTabBar";
+import ShopTabBar from "../../components/ShopTabBar";
 
 export default function TabsLayout() {
   const segments = useSegments();

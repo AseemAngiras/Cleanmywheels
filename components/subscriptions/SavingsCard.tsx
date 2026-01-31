@@ -13,7 +13,7 @@ export const SavingsCard = () => {
           </View>
           <View>
             <Text style={styles.value}>4 hrs</Text>
-            <Text style={styles.label}>Time Saved</Text>
+            {/* <Text style={styles.label}>Time Saved</Text> */}
           </View>
         </View>
 
@@ -25,7 +25,7 @@ export const SavingsCard = () => {
           </View>
           <View>
             <Text style={styles.value}>₹1,200</Text>
-            <Text style={styles.label}>Money Saved</Text>
+            {/* <Text style={styles.label}>Money Saved</Text> */}
           </View>
         </View>
       </View>

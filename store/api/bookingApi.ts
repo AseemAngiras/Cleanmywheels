@@ -42,7 +42,7 @@ export const bookingApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ["Booking"],
+  tagTypes: ["Booking", "Worker"],
   endpoints: (builder) => ({
     getBookings: builder.query<
       BookingsResponse,
@@ -77,15 +77,25 @@ export const bookingApi = createApi({
       query: (id) => `/booking/${id}`,
       providesTags: (result, error, id) => [{ type: "Booking", id }],
     }),
-    updateBookingStatus: builder.mutation<any, { id: string; status: string; workerName?: string; workerPhone?: string }>({
-      query: ({ id, status, workerName, workerPhone }) => ({
+    updateBookingStatus: builder.mutation<
+      any,
+      {
+        id: string;
+        status?: string;
+        worker?: string;
+        workerName?: string;
+        workerPhone?: string;
+      }
+    >({
+      query: ({ id, ...body }) => ({
         url: `/booking/${id}`,
         method: "PUT",
-        body: { status, workerName, workerPhone },
+        body,
       }),
       invalidatesTags: (result, error, { id }) => [
         { type: "Booking", id },
         "Booking",
+        "Worker",
       ],
     }),
   }),

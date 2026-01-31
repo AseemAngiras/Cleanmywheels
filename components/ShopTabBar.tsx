@@ -2,8 +2,89 @@ import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useRef } from "react";
 import { Animated, StyleSheet, TouchableOpacity, View } from "react-native";
 
-export function ShopTabBar({ state, descriptors, navigation }: any) {
+const TabItem = ({
+  name,
+  focused,
+  onPress,
+  label,
+}: {
+  name: string;
+  focused: boolean;
+  onPress: () => void;
+  label: string;
+}) => {
+  const progress = useRef(new Animated.Value(focused ? 1 : 0)).current;
 
+  useEffect(() => {
+    Animated.spring(progress, {
+      toValue: focused ? 1 : 0,
+      useNativeDriver: false,
+      friction: 8,
+      tension: 80,
+    }).start();
+  }, [focused]);
+
+  const width = progress.interpolate({
+    inputRange: [0, 1],
+    outputRange: [48, 120],
+  });
+
+  const labelOpacity = progress;
+  const labelTranslate = progress.interpolate({
+    inputRange: [0, 1],
+    outputRange: [-8, 0],
+  });
+
+  const icon =
+    name === "subscriptions"
+      ? focused
+        ? "alert-circle"
+        : "alert-circle-outline"
+      : name === "dashboard"
+        ? focused
+          ? "grid"
+          : "grid-outline"
+        : name === "bookings"
+          ? focused
+            ? "receipt"
+            : "receipt-outline"
+          : focused
+            ? "person"
+            : "person-outline";
+
+  return (
+    <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
+      <Animated.View
+        style={[
+          styles.tab,
+          focused ? styles.activeTab : styles.inactiveTab,
+          { width },
+        ]}
+      >
+        <Ionicons
+          name={icon as any}
+          size={24}
+          color={focused ? "#000" : "#94a3b8"}
+        />
+        {focused && (
+          <Animated.Text
+            style={[
+              styles.label,
+              {
+                opacity: labelOpacity,
+                transform: [{ translateX: labelTranslate }],
+              },
+            ]}
+          >
+            {label}
+          </Animated.Text>
+        )}
+      </Animated.View>
+    </TouchableOpacity>
+  );
+};
+
+export default function ShopTabBar({ state, descriptors, navigation }: any) {
   const currentRouteKey = state.routes[state.index].key;
   const { options } = descriptors[currentRouteKey];
 
@@ -11,18 +92,12 @@ export function ShopTabBar({ state, descriptors, navigation }: any) {
     return null;
   }
 
-  console.log(
-    "ShopTabBar Routes:",
-    state.routes.map((r: any) => r.name),
-  );
-
-  const ORDER = ["dashboard", "bookings", "home", "profile"];
+  const ORDER = ["dashboard", "bookings", "subscriptions", "profile"];
 
   return (
     <View style={styles.wrapper}>
       <View style={styles.container}>
         {ORDER.map((name, index) => {
-          // Handle route lookup including dashboard variation
           const route = state.routes.find(
             (r: any) =>
               r.name === name ||
@@ -34,48 +109,8 @@ export function ShopTabBar({ state, descriptors, navigation }: any) {
           const activeRoute = state.routes[state.index];
           const focused = activeRoute ? activeRoute.key === route.key : false;
 
-          const progress = useRef(new Animated.Value(focused ? 1 : 0)).current;
-
-          useEffect(() => {
-            Animated.spring(progress, {
-              toValue: focused ? 1 : 0,
-              useNativeDriver: false,
-              friction: 8,
-              tension: 80,
-            }).start();
-          }, [focused]);
-
-          const width = progress.interpolate({
-            inputRange: [0, 1],
-            outputRange: [48, 120],
-          });
-
-          const labelOpacity = progress;
-          const labelTranslate = progress.interpolate({
-            inputRange: [0, 1],
-            outputRange: [-8, 0],
-          });
-
-          // Icons specific for Shop Owner
-          const icon =
-            name === "home"
-              ? focused
-                ? "alert-circle"
-                : "alert-circle-outline"
-              : name === "dashboard"
-                ? focused
-                  ? "grid"
-                  : "grid-outline"
-                : name === "bookings"
-                  ? focused
-                    ? "receipt"
-                    : "receipt-outline"
-                  : focused
-                    ? "person"
-                    : "person-outline";
-
           const label =
-            name === "home"
+            name === "subscriptions"
               ? "Subscription"
               : name === "dashboard"
                 ? "Dashboard"
@@ -83,34 +118,26 @@ export function ShopTabBar({ state, descriptors, navigation }: any) {
                   ? "Bookings"
                   : "Profile";
 
-          return (
-            <TouchableOpacity
-              key={route.key}
-              onPress={() => navigation.navigate(route.name)}
-              activeOpacity={0.85}
-            >
-              <Animated.View
-                style={[
-                  styles.tab,
-                  focused ? styles.activeTab : styles.inactiveTab,
-                  { width },
-                ]}
-              >
-                <Ionicons name={icon} size={22} color="#000" />
+          const onPress = () => {
+            const event = navigation.emit({
+              type: "tabPress",
+              target: route.key,
+              canPreventDefault: true,
+            });
 
-                <Animated.Text
-                  style={[
-                    styles.label,
-                    {
-                      opacity: labelOpacity,
-                      transform: [{ translateX: labelTranslate }],
-                    },
-                  ]}
-                >
-                  {label}
-                </Animated.Text>
-              </Animated.View>
-            </TouchableOpacity>
+            if (!focused && !event.defaultPrevented) {
+              navigation.navigate(route.name);
+            }
+          };
+
+          return (
+            <TabItem
+              key={name}
+              name={name}
+              focused={focused}
+              onPress={onPress}
+              label={label}
+            />
           );
         })}
       </View>
@@ -125,7 +152,6 @@ const styles = StyleSheet.create({
     left: 16,
     right: 16,
   },
-
   container: {
     backgroundColor: "#1C1C1C",
     borderRadius: 40,
@@ -134,7 +160,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
   },
-
   tab: {
     height: 48,
     borderRadius: 24,
@@ -143,17 +168,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     overflow: "hidden",
   },
-
   inactiveTab: {
-    backgroundColor: "#FFFFFF",
-    paddingLeft: 23,
+    // No specific style needed for inactive items inside animated view
   },
-
   activeTab: {
     backgroundColor: "#C8F000",
     paddingHorizontal: 18,
   },
-
   label: {
     marginLeft: 8,
     fontSize: 14,

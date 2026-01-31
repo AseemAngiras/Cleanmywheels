@@ -22,6 +22,7 @@ import { useFocusEffect, useRouter } from "expo-router";
 
 import type { RootState } from "../../../store";
 import { useGetBookingsQuery } from "../../../store/api/bookingApi";
+import { useGetWorkersQuery } from "../../../store/api/workerApi";
 import {
   useAssignSubscriptionWorkerMutation,
   useGetMySubscriptionQuery,
@@ -103,28 +104,8 @@ export default function UpcomingServices() {
   const user = useAppSelector((state: RootState) => state.user.user);
   const isAdmin = user?.accountType === "Super Admin";
 
-  const MOCK_WORKERS = [
-    {
-      id: "65a1234567890abcdef12345",
-      name: "Amit Sharma",
-      phone: "+919876543210",
-    },
-    {
-      id: "65a1234567890abcdef12346",
-      name: "Rahul Verma",
-      phone: "+918765432109",
-    },
-    {
-      id: "65a1234567890abcdef12347",
-      name: "Suresh Singh",
-      phone: "+917654321098",
-    },
-    {
-      id: "65a1234567890abcdef12348",
-      name: "Vikram Yadav",
-      phone: "+916543210987",
-    },
-  ];
+  const { data: workersData } = useGetWorkersQuery({});
+  const workers = workersData?.workers || [];
 
   const [workerModalVisible, setWorkerModalVisible] = useState(false);
   const [assignSubscriptionWorker] = useAssignSubscriptionWorkerMutation();
@@ -181,7 +162,7 @@ export default function UpcomingServices() {
       try {
         await assignSubscriptionWorker({
           subscriptionId: subscription[0]._id,
-          workerId: worker.id,
+          workerId: worker._id,
         }).unwrap();
 
         Alert.alert("Success", `Assigned ${worker.name} to subscription!`);
@@ -984,21 +965,39 @@ export default function UpcomingServices() {
             </TouchableOpacity>
           </View>
           <FlatList
-            data={MOCK_WORKERS}
-            keyExtractor={(item) => item.id}
+            data={workers}
+            keyExtractor={(item) => item._id}
             renderItem={({ item }) => (
               <TouchableOpacity
                 style={styles.workerRow}
                 onPress={() => handleAssignWorker(item)}
               >
                 <View style={styles.workerAvatar}>
-                  <Text style={styles.workerInitials}>
-                    {item.name.charAt(0)}
-                  </Text>
+                  {item.profileImage ? (
+                    <Image
+                      source={{ uri: item.profileImage }}
+                      style={{ width: 40, height: 40, borderRadius: 20 }}
+                    />
+                  ) : (
+                    <Text style={styles.workerInitials}>
+                      {item.name.charAt(0)}
+                    </Text>
+                  )}
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.workerName}>{item.name}</Text>
                   <Text style={styles.workerPhone}>{item.phone}</Text>
+                  <Text
+                    style={[
+                      styles.workerPhone,
+                      {
+                        fontSize: 10,
+                        color: item.status === "Active" ? "green" : "gray",
+                      },
+                    ]}
+                  >
+                    {item.status}
+                  </Text>
                 </View>
                 <View style={styles.assignBtn}>
                   <Text style={styles.assignBtnText}>Assign</Text>

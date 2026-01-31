@@ -26,34 +26,16 @@ import {
   useMarkSubscriptionDailyDoneMutation,
 } from "../../../store/api/subscriptionApi";
 
-const MOCK_WORKERS = [
-  {
-    id: "65a000000000000000000001",
-    name: "Amit Sharma",
-    phone: "+919876543210",
-  },
-  {
-    id: "65a000000000000000000002",
-    name: "Rahul Verma",
-    phone: "+918765432109",
-  },
-  {
-    id: "65a000000000000000000003",
-    name: "Suresh Singh",
-    phone: "+917654321098",
-  },
-  {
-    id: "65a000000000000000000004",
-    name: "Vikram Yadav",
-    phone: "+916543210987",
-  },
-];
+import { useGetWorkersQuery } from "@/store/api/workerApi";
 
 export default function AdminSubscriptionsScreen() {
   const router = useRouter();
   const [filter, setFilter] = useState("Requests");
   const [workerModalVisible, setWorkerModalVisible] = useState(false);
   const [selectedSub, setSelectedSub] = useState<any>(null);
+
+  const { data: workersData } = useGetWorkersQuery({});
+  const workers = workersData?.workers || [];
 
   const getStatusQuery = (label: string) => {
     switch (label) {
@@ -103,7 +85,7 @@ export default function AdminSubscriptionsScreen() {
             try {
               await assignWorker({
                 subscriptionId: selectedSub._id,
-                workerId: worker.id,
+                workerId: worker._id,
                 workerName: worker.name,
                 workerPhone: worker.phone,
               }).unwrap();
@@ -407,20 +389,38 @@ export default function AdminSubscriptionsScreen() {
           />
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Select Worker</Text>
-            {MOCK_WORKERS.map((worker) => (
+            {workers.map((worker) => (
               <TouchableOpacity
-                key={worker.id}
+                key={worker._id}
                 style={styles.workerRow}
                 onPress={() => handleAssignWorker(worker)}
               >
                 <View style={styles.workerInitial}>
-                  <Text style={{ fontWeight: "bold" }}>
-                    {worker.name.charAt(0)}
-                  </Text>
+                  {worker.profileImage ? (
+                    <Image
+                      source={{ uri: worker.profileImage }}
+                      style={{ width: 36, height: 36, borderRadius: 18 }}
+                    />
+                  ) : (
+                    <Text style={{ fontWeight: "bold" }}>
+                      {worker.name.charAt(0)}
+                    </Text>
+                  )}
                 </View>
                 <View>
                   <Text style={styles.workerName}>{worker.name}</Text>
                   <Text style={styles.workerPhone}>{worker.phone}</Text>
+                  <Text
+                    style={[
+                      styles.workerPhone,
+                      {
+                        fontSize: 10,
+                        color: worker.status === "Active" ? "green" : "gray",
+                      },
+                    ]}
+                  >
+                    {worker.status}
+                  </Text>
                 </View>
               </TouchableOpacity>
             ))}

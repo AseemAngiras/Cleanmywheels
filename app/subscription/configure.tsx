@@ -15,19 +15,15 @@ import {
   Modal,
   Switch,
 } from "react-native";
-import RazorpayCheckout from "react-native-razorpay";
 import {
   useGetVehiclesQuery,
   useCreateVehicleMutation,
 } from "../../store/api/vehicleApi";
 import {
-  useCreateSubscriptionMutation,
   useGetPlansQuery,
-  useVerifySubscriptionMutation,
   useGetMySubscriptionQuery,
 } from "../../store/api/subscriptionApi";
 
-const APP_NAME = "CleanMyWheels";
 const RAZORPAY_KEY = process.env.RAZORPAY_KEY_ID || "";
 
 const TIME_SLOTS = [
@@ -52,10 +48,6 @@ export default function SubscriptionConfigureScreen() {
 
   const [createVehicle, { isLoading: isAddingCar }] =
     useCreateVehicleMutation();
-
-  const [createSubscription, { isLoading: isCreating }] =
-    useCreateSubscriptionMutation();
-  const [verifySubscription] = useVerifySubscriptionMutation();
 
   const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(
     null,
@@ -117,7 +109,7 @@ export default function SubscriptionConfigureScreen() {
 
   const [isAutoPay, setIsAutoPay] = useState(false);
 
-  const handlePayment = async () => {
+  const handleContinue = () => {
     if (!selectedVehicleId || !selectedTimeSlot) {
       Alert.alert("Missing Details", "Please select a vehicle and time slot.");
       return;
@@ -125,88 +117,16 @@ export default function SubscriptionConfigureScreen() {
 
     if (!selectedPlan) return;
 
-    try {
-      const response = await createSubscription({
+    router.push({
+      pathname: "/subscription/summary",
+      params: {
         planId: selectedPlan._id,
         vehicleId: selectedVehicleId,
         timeSlot: selectedTimeSlot,
         startDate: startDate.toISOString(),
-        isAutoPay,
-      }).unwrap();
-
-      const {
-        subscriptionId,
-        paymentLinkUrl,
-        id: orderId,
-        razorpaySubscriptionId,
-      } = response;
-
-      if (paymentLinkUrl) {
-        if (!NativeModules.RazorpayCheckout || !razorpaySubscriptionId) {
-          router.push({
-            pathname: "/(tabs)/home/book-doorstep/payment-webview",
-            params: {
-              url: paymentLinkUrl,
-              bookingId: subscriptionId,
-              type: "SUBSCRIPTION",
-            },
-          } as any);
-          return;
-        }
-      }
-
-      const options = {
-        description: `Subscription for ${selectedPlan.name}`,
-        image: "https://your-logo-url.png",
-        currency: "INR",
-        key: RAZORPAY_KEY,
-        amount: response.amount || selectedPlan.price * 30 * 100,
-        name: APP_NAME,
-        order_id: orderId,
-        subscription_id: razorpaySubscriptionId,
-        theme: { color: "#84c95c" },
-        recurring: isAutoPay ? true : false,
-      };
-
-      if (!NativeModules.RazorpayCheckout) {
-        Alert.alert(
-          "Error",
-          "Native Payment Module Missing and no Web Link provided.",
-        );
-        return;
-      }
-
-      RazorpayCheckout.open(options)
-        .then(async (data: any) => {
-          await verifySubscription({
-            razorpay_payment_id: data.razorpay_payment_id,
-            razorpay_order_id: data.razorpay_order_id,
-            razorpay_signature: data.razorpay_signature,
-            razorpay_subscription_id: data.razorpay_subscription_id,
-            planId: selectedPlan._id,
-            vehicleId: selectedVehicleId,
-            timeSlot: selectedTimeSlot,
-            startDate: startDate.toISOString(),
-            subscriptionId,
-          }).unwrap();
-
-          Alert.alert("Success", "Welcome to Premium!", [
-            { text: "OK", onPress: () => router.replace("/(tabs)/profile") },
-          ]);
-        })
-        .catch((error: any) => {
-          console.log(error);
-          Alert.alert(
-            "Payment Cancelled",
-            error.description || "Payment failed",
-          );
-        });
-    } catch (err: any) {
-      Alert.alert(
-        "Error",
-        err?.data?.message || "Failed to initiate subscription",
-      );
-    }
+        isAutoPay: String(isAutoPay),
+      },
+    });
   };
 
   if (!selectedPlan) {
@@ -334,18 +254,8 @@ export default function SubscriptionConfigureScreen() {
       </ScrollView>
 
       <View style={styles.footer}>
-        <TouchableOpacity
-          style={[styles.payBtn, isCreating && styles.disabledBtn]}
-          onPress={handlePayment}
-          disabled={isCreating}
-        >
-          {isCreating ? (
-            <ActivityIndicator color="#FFF" />
-          ) : (
-            <Text style={styles.payBtnText}>
-              Proceed to Pay ₹{selectedPlan.price}
-            </Text>
-          )}
+        <TouchableOpacity style={styles.payBtn} onPress={handleContinue}>
+          <Text style={styles.payBtnText}>Continue to Summary</Text>
         </TouchableOpacity>
       </View>
 

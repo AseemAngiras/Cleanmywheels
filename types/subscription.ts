@@ -63,6 +63,7 @@ export interface UserSubscription {
     status: "completed" | "skipped";
     notes?: string;
   }[];
+  timeSlot: string;
 }
 
 export interface RazorpaySubscriptionResponse {

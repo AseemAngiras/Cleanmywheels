@@ -6,11 +6,13 @@ import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 interface NextServiceWidgetProps {
   date: string;
   vehicleNo: string;
+  progress?: number;
 }
 
 export const NextServiceWidget = ({
   date,
   vehicleNo,
+  progress = 0.6,
 }: NextServiceWidgetProps) => {
   const router = useRouter();
   const formattedDate = new Date(date).toLocaleDateString("en-GB", {
@@ -31,17 +33,22 @@ export const NextServiceWidget = ({
             <Ionicons name="calendar-sharp" size={18} color="#1C1C1C" />
           </View>
           <View>
+            <Text style={styles.label}>Next Service</Text>
             <Text style={styles.date}>{formattedDate}</Text>
-            <Text style={styles.label}>Registration no.</Text>
           </View>
         </View>
 
         <View style={styles.rightContent}>
           <View style={styles.progressBarBg}>
-            <View style={styles.progressBarFill} />
+            <View
+              style={[
+                styles.progressBarFill,
+                { width: `${Math.min(100, Math.max(0, progress * 100))}%` },
+              ]}
+            />
           </View>
           <View style={styles.details}>
-            <Text style={styles.serviceTitle}>Next Service</Text>
+            <Text style={styles.serviceTitle}>Your vehicle no.</Text>
             <Text style={styles.vehicleNo}>{vehicleNo}</Text>
           </View>
         </View>

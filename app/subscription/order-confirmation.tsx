@@ -22,19 +22,19 @@ export default function OrderConfirmationScreen() {
   useEffect(() => {
     dispatch(
       addBooking({
-        center: (params.shopName as string) || "Your Location",
-        date: params.selectedDate as string,
-        timeSlot: params.selectedTime as string,
+        center: (params.shopName as string) || "CleanMyWheels",
+        date: (params.selectedDate as string) || new Date().toISOString(),
+        timeSlot: (params.selectedTime as string) || "Anytime",
         car: params.vehicleType
           ? `${params.vehicleType} - ${params.vehicleNumber}`
           : "Vehicle",
         carImage: "https://cdn-icons-png.flaticon.com/512/743/743007.png",
-        phone: params.userPhone as string,
-        price: Number(params.grandTotal),
-        address: params.address as string,
-        plate: params.vehicleNumber as string,
-        serviceName: params.serviceName as string,
-        serviceId: params.serviceId as string,
+        phone: (params.userPhone as string) || "",
+        price: Number(params.grandTotal || 0),
+        address: (params.address as string) || "Your Registered Address",
+        plate: (params.vehicleNumber as string) || "",
+        serviceName: (params.serviceName as string) || "Subscription",
+        serviceId: (params.serviceId as string) || "",
       }),
     );
   }, []);
@@ -50,7 +50,7 @@ export default function OrderConfirmationScreen() {
           <View style={styles.successIcon}>
             <Ionicons name="checkmark" size={50} color="#1a1a1a" />
           </View>
-          <Text style={styles.statusTitle}>Booking Confirmed!</Text>
+          <Text style={styles.statusTitle}>Subscription Confirmed!</Text>
         </View>
 
         {/* What Happens Next Section */}
@@ -95,7 +95,7 @@ export default function OrderConfirmationScreen() {
             </Text>
           </View>
 
-          {/* Add-ons List */}
+          {/* Add-ons List
           {params.addons && (
             <View
               style={{
@@ -150,32 +150,45 @@ export default function OrderConfirmationScreen() {
                 ),
               )}
             </View>
-          )}
+          )} */}
 
           <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Date & Time</Text>
+            <Text style={styles.detailLabel}>Vehicle</Text>
+            <Text style={styles.detailValue}>
+              {params.vehicleType} ({params.vehicleNumber})
+            </Text>
+          </View>
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Start Date</Text>
             <Text style={styles.detailValue}>
               {selectedDate
-                ? new Date(selectedDate as string).toLocaleDateString()
+                ? new Date(selectedDate as string).toLocaleDateString("en-IN", {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                  })
                 : "Today"}
-              , {selectedTime}
             </Text>
+          </View>
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Daily Slot</Text>
+            <Text style={styles.detailValue}>{selectedTime || "Anytime"}</Text>
           </View>
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Address</Text>
             <Text style={styles.detailValueVisible}>
-              {params.address || "No address provided"}
+              {params.address || "Your Registered Address"}
             </Text>
           </View>
           <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Payment Method</Text>
+            <Text style={styles.detailLabel}>Payment</Text>
             <Text style={styles.detailValueVisible}>
               {paymentMethod as string}
             </Text>
           </View>
           <View style={styles.totalRow}>
             <Text style={styles.totalLabel}>Total Amount</Text>
-            <Text style={styles.totalValue}>₹{grandTotal}</Text>
+            <Text style={styles.totalValue}>₹{grandTotal || "0"}</Text>
           </View>
         </View>
       </ScrollView>

@@ -62,7 +62,7 @@ export const ServiceActionGrid = ({
           </View>
           <View>
             <Text style={styles.title}>Add-ons</Text>
-            <Text style={styles.subtitle}>For next visit</Text>
+            <Text style={styles.subtitle}>For next scheduled wash</Text>
           </View>
         </TouchableOpacity>
       ) : (

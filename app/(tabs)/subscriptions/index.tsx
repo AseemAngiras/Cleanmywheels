@@ -22,6 +22,10 @@ import { PlanCard } from "../../../components/subscriptions/PlanCard";
 import { BenefitsCard } from "../../../components/subscriptions/BenefitsCard";
 import { SavingsCard } from "../../../components/subscriptions/SavingsCard";
 
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
+import AdminSubscriptionScreen from "../admin/subscriptions";
+
 if (
   Platform.OS === "android" &&
   UIManager.setLayoutAnimationEnabledExperimental
@@ -31,6 +35,9 @@ if (
 
 export default function SubscriptionPlansScreen() {
   const router = useRouter();
+  const user = useSelector((state: RootState) => state.user.user);
+  const isAdmin = user?.accountType === "Super Admin";
+
   const [arePlansVisible, setArePlansVisible] = useState(false);
 
   const {
@@ -40,6 +47,10 @@ export default function SubscriptionPlansScreen() {
   } = useGetPlansQuery();
   const { data: subscriptions, isLoading: isSubLoading } =
     useGetMySubscriptionQuery();
+
+  if (isAdmin) {
+    return <AdminSubscriptionScreen />;
+  }
 
   const handleSubscribe = (plan: any) => {
     router.push({

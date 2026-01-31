@@ -12,7 +12,6 @@ import { useGetMySubscriptionQuery } from "@/store/api/subscriptionApi";
 import { loginSuccess, logout } from "@/store/slices/authSlice";
 import { Booking } from "@/store/slices/bookingSlice";
 import { setUser } from "@/store/slices/userSlice";
-import AdminSubscriptionScreen from "../admin/subscriptions";
 
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useNavigation, useRouter } from "expo-router";
@@ -89,7 +88,6 @@ export default function HomeScreen() {
   });
 
   const user = useSelector((state: RootState) => state.user.user);
-  const isAdmin = user?.accountType === "Super Admin";
 
   const [isLoginModalVisible, setIsLoginModalVisible] = useState(false);
   const [modalStep, setModalStep] = useState<"details" | "otp">("details");
@@ -272,10 +270,6 @@ export default function HomeScreen() {
     subscriptions?.filter((s: any) =>
       ["active", "ongoing"].includes(s.status),
     ) || [];
-  const nextSubscription = activeSubs.sort(
-    (a: any, b: any) =>
-      new Date(a.endDate).getTime() - new Date(b.endDate).getTime(),
-  )[0];
 
   useFocusEffect(
     useCallback(() => {
@@ -320,10 +314,6 @@ export default function HomeScreen() {
       },
     });
   };
-
-  if (isAdmin) {
-    return <AdminSubscriptionScreen />;
-  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -383,23 +373,29 @@ export default function HomeScreen() {
         {!isLoggedIn && <WhyChooseUs />}
 
         {/* Next Service (For Subscribers) */}
-        {isLoggedIn && nextSubscription && (
-          <NextServiceWidget
-            date={nextSubscription.endDate}
-            vehicleNo={
-              nextSubscription.vehicle?.number ||
-              nextSubscription.vehicle?.vehicleNo ||
-              "Car"
-            }
-          />
-        )}
+        {isLoggedIn &&
+          activeSubs.map((sub: any) => {
+            const startDate = new Date(sub.startDate || new Date());
+            const completed = sub.servicesCompleted || 0;
+            const total = sub.servicesTotal || 30;
+            const nextDate = new Date(startDate);
+            nextDate.setDate(startDate.getDate() + completed);
 
+            return (
+              <NextServiceWidget
+                key={sub._id}
+                date={nextDate.toISOString()}
+                vehicleNo={sub.vehicle?.vehicleNo || "Car"}
+                progress={completed / total}
+              />
+            );
+          })}
         {isLoggedIn && pastBookings.length > 0 && (
           <View style={styles.sectionContainer}>
             <View style={[styles.sectionHeader, { paddingHorizontal: 20 }]}>
               <Text style={styles.sectionTitle}>Recent Services</Text>
               <TouchableOpacity>
-                <Text style={styles.viewAllText}>View All</Text>
+                {/* <Text style={styles.viewAllText}>View All</Text> */}
               </TouchableOpacity>
             </View>
 

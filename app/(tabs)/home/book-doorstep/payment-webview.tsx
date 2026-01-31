@@ -30,6 +30,7 @@ export default function PaymentWebViewScreen() {
     serviceDate,
     serviceName,
     address,
+    timeSlot,
   } = useLocalSearchParams();
 
   const [verifyAddonPayment] = useVerifyAddonPaymentMutation();
@@ -128,7 +129,7 @@ export default function PaymentWebViewScreen() {
           params: {
             bookingId: bookingId,
             status: "success",
-            addons: addons,
+            addons: addons || "[]",
             grandTotal,
             vehicleType,
             vehicleNumber,
@@ -137,7 +138,7 @@ export default function PaymentWebViewScreen() {
             address,
             paymentMethod: "Online",
             selectedDate: serviceDate,
-            selectedTime: "Anytime",
+            selectedTime: (timeSlot as string) || "Anytime",
             shopName: "CleanMyWheels",
           },
         } as any);

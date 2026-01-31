@@ -290,14 +290,24 @@ export default function ProfileHome() {
             <View
               style={{
                 position: "absolute",
-                bottom: -2,
-                right: 8,
+                bottom: 0,
+                right: 4,
                 backgroundColor: "#fff",
-                borderRadius: 10,
-                padding: 2,
+                borderRadius: 15,
+                width: 20,
+                height: 20,
+                alignItems: "center",
+                justifyContent: "center",
+                borderWidth: 1,
+                borderColor: "#f0f0f0",
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.1,
+                shadowRadius: 4,
+                elevation: 3,
               }}
             >
-              <Ionicons name="pencil-sharp" size={12} color="#111" />
+              <Ionicons name="pencil" size={10} color="#000000" />
             </View>
           </TouchableOpacity>
           <View>
@@ -305,13 +315,13 @@ export default function ProfileHome() {
               <View style={{ flexDirection: "row", alignItems: "center" }}>
                 <Text style={styles.profileName}>
                   {profileState?.name || userData?.name || "Your Name"}
-                  <Ionicons
-                    name="create-outline"
-                    size={16}
-                    color="#777"
-                    style={{ marginLeft: 6 }}
-                  />
                 </Text>
+                <Ionicons
+                  name="pencil-sharp"
+                  size={16}
+                  color="#666"
+                  style={{ marginLeft: 8 }}
+                />
                 {/* Premium Badge */}
                 {isPremiumUser && (
                   <View
@@ -367,12 +377,12 @@ export default function ProfileHome() {
             subtitle="View and assign active bookings"
             onPress={() => router.push("/(tabs)/bookings")}
           />
-          <Row
+          {/* <Row
             icon="alert-circle-outline"
             title="Complaints & Refunds"
             subtitle="View user tickets and refund requests"
-            onPress={() => router.push("/(tabs)/home")}
-          />
+            onPress={() => router.push("/(tabs)/admin/subscriptions")}
+          /> */}
           <Row
             icon="people-outline"
             title="Manage Users"

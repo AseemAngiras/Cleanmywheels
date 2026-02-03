@@ -271,10 +271,26 @@ export default function SelectServiceScreen() {
 
   const vehicleTypes = [
     { id: "Hatchback", name: "Hatchback", icon: "car-hatchback" },
-    { id: "Sedan", name: "Sedan", icon: "car" },
+    { id: "Sedan", name: "Sedan", icon: "car-side" },
     { id: "SUV", name: "SUV", icon: "car-estate" },
-    { id: "Other", name: "Others", icon: "truck-delivery" },
+    { id: "Two Wheeler", name: "Two Wheeler", icon: "motorbike" },
   ];
+
+  const getVehicleIconName = (type: string) => {
+    switch (type?.toLowerCase()) {
+      case "hatchback":
+        return "car-hatchback";
+      case "sedan":
+        return "car-side";
+      case "suv":
+        return "car-estate";
+      case "two wheeler":
+      case "bike":
+        return "motorbike";
+      default:
+        return "car";
+    }
+  };
 
   useFocusEffect(
     useCallback(() => {
@@ -666,8 +682,12 @@ export default function SelectServiceScreen() {
                         ]}
                         onPress={() => setSelectedCarId(car._id || car.id)}
                       >
-                        <Ionicons
-                          name="car-sport"
+                        <MaterialCommunityIcons
+                          name={
+                            getVehicleIconName(
+                              car.vehicleType || car.type || "",
+                            ) as any
+                          }
                           size={24}
                           color={isSelected ? "#D1F803" : "#666"}
                           style={{ marginBottom: 8 }}

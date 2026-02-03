@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useState, useEffect } from "react";
 import {
@@ -13,7 +13,6 @@ import {
   TouchableOpacity,
   View,
   Modal,
-  Switch,
 } from "react-native";
 import {
   useGetVehiclesQuery,
@@ -37,7 +36,23 @@ const TIME_SLOTS = [
   "7 PM - 8 PM",
 ];
 
-const VEHICLE_TYPES = ["Sedan", "SUV", "Hatchback", "Other"];
+const VEHICLE_TYPES = ["Sedan", "SUV", "Hatchback", "Two Wheeler"];
+
+const getVehicleIconName = (type: string) => {
+  switch (type?.toLowerCase()) {
+    case "hatchback":
+      return "car-hatchback";
+    case "sedan":
+      return "car-side";
+    case "suv":
+      return "car-estate";
+    case "two wheeler":
+    case "bike":
+      return "motorbike";
+    default:
+      return "car";
+  }
+};
 
 export default function SubscriptionConfigureScreen() {
   const router = useRouter();
@@ -107,8 +122,6 @@ export default function SubscriptionConfigureScreen() {
     }
   };
 
-  const [isAutoPay, setIsAutoPay] = useState(false);
-
   const handleContinue = () => {
     if (!selectedVehicleId || !selectedTimeSlot) {
       Alert.alert("Missing Details", "Please select a vehicle and time slot.");
@@ -124,7 +137,7 @@ export default function SubscriptionConfigureScreen() {
         vehicleId: selectedVehicleId,
         timeSlot: selectedTimeSlot,
         startDate: startDate.toISOString(),
-        isAutoPay: String(isAutoPay),
+        isAutoPay: "true",
       },
     });
   };
@@ -166,9 +179,9 @@ export default function SubscriptionConfigureScreen() {
                 ]}
                 onPress={() => setSelectedVehicleId(car._id)}
               >
-                <Ionicons
-                  name="car-sport"
-                  size={24}
+                <MaterialCommunityIcons
+                  name={getVehicleIconName(car.vehicleType) as any}
+                  size={46}
                   color={selectedVehicleId === car._id ? "#FFF" : "#666"}
                 />
                 <Text
@@ -232,24 +245,6 @@ export default function SubscriptionConfigureScreen() {
           <Text style={styles.dateText}>
             Valid for 30 days starting {new Date().toLocaleDateString()}
           </Text>
-        </View>
-
-        <View style={styles.autopayContainer}>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.sectionTitle}>Enable Autopay</Text>
-            <Text style={styles.subText}>
-              Automatically renew subscription every month.
-            </Text>
-          </View>
-          <View style={{ transform: [{ scale: 0.8 }] }}>
-            <Switch
-              trackColor={{ false: "#767577", true: "#84c95c" }}
-              thumbColor={isAutoPay ? "#f4f3f4" : "#f4f3f4"}
-              ios_backgroundColor="#3e3e3e"
-              onValueChange={setIsAutoPay}
-              value={isAutoPay}
-            />
-          </View>
         </View>
       </ScrollView>
 
@@ -495,15 +490,4 @@ const styles = StyleSheet.create({
   },
   cancelText: { fontWeight: "600", color: "#333" },
   saveBtnText: { fontWeight: "600", color: "#FFF" },
-  autopayContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: "#FFF",
-    padding: 16,
-    borderRadius: 12,
-    marginTop: 20,
-    borderWidth: 1,
-    borderColor: "#e0e0e0",
-  },
 });

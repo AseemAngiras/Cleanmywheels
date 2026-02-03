@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRef, useState } from "react";
@@ -65,16 +65,15 @@ export default function MyCarsScreen() {
   const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
-  if (isAdmin) {
-    return <AdminSubscriptionsScreen />;
-  }
-
   const [editingCarId, setEditingCarId] = useState<string | null>(null);
   const [type, setType] = useState("");
   const [number, setNumber] = useState("");
   const [image, setImage] = useState<string | undefined>(undefined);
-
   const [expandedCarId, setExpandedCarId] = useState<string | null>(null);
+
+  if (isAdmin) {
+    return <AdminSubscriptionsScreen />;
+  }
 
   const toggleCard = (id: string) => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -101,9 +100,9 @@ export default function MyCarsScreen() {
 
   const openModal = (car?: any) => {
     if (car) {
-      setEditingCarId(car.id);
-      setType(car.type);
-      setNumber(car.number);
+      setEditingCarId(car._id || car.id);
+      setType(car.vehicleType || car.type);
+      setNumber(car.vehicleNo || car.number);
       setImage(car.image);
     } else {
       setEditingCarId(null);
@@ -223,7 +222,23 @@ export default function MyCarsScreen() {
 
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const [isTypePickerVisible, setIsTypePickerVisible] = useState(false);
-  const VEHICLE_TYPES = ["Sedan", "SUV", "Hatchback", "Other"];
+  const VEHICLE_TYPES = ["Sedan", "SUV", "Hatchback", "Two Wheeler"];
+
+  const getVehicleIconName = (type: string) => {
+    switch (type?.toLowerCase()) {
+      case "hatchback":
+        return "car-hatchback";
+      case "sedan":
+        return "car-side";
+      case "suv":
+        return "car-estate";
+      case "two wheeler":
+      case "bike":
+        return "motorbike";
+      default:
+        return "car";
+    }
+  };
 
   const handleDismiss = () => {
     if (expandedCarId) {
@@ -275,7 +290,11 @@ export default function MyCarsScreen() {
             </View>
 
             <View style={[styles.carImage, styles.imagePlaceholder]}>
-              <Ionicons name="car-sport" size={32} color="#CBD5E1" />
+              <MaterialCommunityIcons
+                name={getVehicleIconName(item.vehicleType) as any}
+                size={34}
+                color="#CBD5E1"
+              />
             </View>
           </View>
 

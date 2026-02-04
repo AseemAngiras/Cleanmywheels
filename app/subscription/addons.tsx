@@ -25,9 +25,7 @@ import {
 } from "@/store/api/subscriptionApi";
 
 const RAZORPAY_KEY =
-  process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID ||
-  process.env.RAZORPAY_KEY_ID ||
-  "rzp_test_1DP5mmOlF5G5ag";
+  process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_1DP5mmOlF5G5ag";
 const APP_NAME = "CleanMyWheels";
 
 export default function AddonsScreen() {

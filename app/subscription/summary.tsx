@@ -22,7 +22,7 @@ import { useGetVehiclesQuery } from "../../store/api/vehicleApi";
 import { useGetAddressesQuery } from "../../store/api/addressApi";
 
 const APP_NAME = "CleanMyWheels";
-const RAZORPAY_KEY = process.env.RAZORPAY_KEY_ID || "";
+const RAZORPAY_KEY = process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID || "";
 
 export default function SubscriptionSummaryScreen() {
   const router = useRouter();

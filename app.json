@@ -9,6 +9,7 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
+      "bundleIdentifier": "com.cleanmywheels.app",
       "supportsTablet": true,
       "infoPlist": {
         "NSCameraUsageDescription": "CleanMyWheels needs camera access to scan QR codes for service check-in."

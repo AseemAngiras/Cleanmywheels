@@ -56,6 +56,8 @@ const mapBackendBooking = (booking: any) => ({
       }`.replace(/^, /, "")
     : "Address not provided",
   phone: booking.user?.phone || "",
+  workerName: booking.worker?.name,
+  workerPhone: booking.worker?.phone,
 });
 
 export default function PastServices() {

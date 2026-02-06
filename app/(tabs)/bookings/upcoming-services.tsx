@@ -62,8 +62,8 @@ const mapBackendBooking = (booking: any): Booking => ({
       }`.replace(/^, /, "")
     : "Address not provided",
   phone: booking.user?.phone || "",
-  workerName: booking.workerName,
-  workerPhone: booking.workerPhone,
+  workerName: booking.worker?.name,
+  workerPhone: booking.worker?.phone,
 });
 
 export default function UpcomingServices() {
@@ -91,6 +91,9 @@ export default function UpcomingServices() {
   const bookings = bookingList
     .filter((b: any) => {
       const status = b.status?.toLowerCase();
+      if (status === "pending" && b.worker) {
+        return true;
+      }
       return !["completed", "cancelled", "pending", "failed"].includes(status);
     })
     .map(mapBackendBooking);

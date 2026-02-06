@@ -1,6 +1,6 @@
 import { Platform } from "react-native";
 import { io, Socket } from "socket.io-client";
-import { APP_VERSION, MY_PC_IP } from "../store/api/authApi";
+import { APP_VERSION, SOCKET_URL } from "../store/api/authApi";
 
 class SocketService {
   private socket: Socket | null = null;
@@ -19,7 +19,7 @@ class SocketService {
 
     console.log("Connecting socket for user:", userId);
 
-    const socketUrl = `http://${MY_PC_IP}:5000/base`;
+    const socketUrl = SOCKET_URL;
     console.log("Connecting to socket URL:", socketUrl);
 
     this.socket = io(socketUrl, {

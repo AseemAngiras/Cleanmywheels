@@ -1,6 +1,8 @@
+import { RootState } from "@/store";
 import {
   useCreateBookingMutation,
   useLazyGetBookingByIdQuery,
+  useUpdateBookingStatusMutation,
 } from "@/store/api/bookingApi";
 import { useGetMySubscriptionQuery } from "@/store/api/subscriptionApi";
 import { logout } from "@/store/slices/authSlice";
@@ -21,9 +23,11 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import BookingStepper from "../../../../components/BookingStepper";
 import PulseLoader from "../../../../components/PulseLoader";
+
+import socketService from "@/services/socketService";
 
 const VEHICLE_TYPE_MAP: Record<string, string> = {
   sedan: "Sedan",
@@ -43,6 +47,10 @@ export default function BookingSummaryScreen() {
   const dispatch = useDispatch();
   const [createBooking, { isLoading: isCreatingBooking }] =
     useCreateBookingMutation();
+  const [updateBookingStatus] = useUpdateBookingStatusMutation();
+  const userState = useSelector((state: RootState) => state.user);
+  const token = useSelector((state: RootState) => state.auth.token);
+  const userId = userState?.user?._id;
 
   const [isVerifyingPayment, setIsVerifyingPayment] = useState(false);
   const [showGateway, setShowGateway] = useState(false);
@@ -91,6 +99,49 @@ export default function BookingSummaryScreen() {
       tabBarStyle: { display: "none" },
     });
   }, [navigation]);
+
+  useEffect(() => {
+    if (userId && token) {
+      socketService.connect(userId, token);
+    }
+
+    const handlePaymentSuccess = (data: any) => {
+      console.log("⚡ [Socket] Payment Success Event Received:", data);
+
+      const { bookingId, status } = data;
+
+      if (
+        currentBookingIdRef.current &&
+        bookingId === currentBookingIdRef.current &&
+        isVerifyingPayment
+      ) {
+        console.log("✅ [Socket] Matched Booking ID! Redirecting...");
+
+        if (pollIntervalRef.current) {
+          clearInterval(pollIntervalRef.current);
+          pollIntervalRef.current = null;
+        }
+
+        setIsVerifyingPayment(false);
+        setShowGateway(false);
+        router.push({
+          pathname: "/(tabs)/home/book-doorstep/order-confirmation",
+          params: {
+            ...params,
+            grandTotal,
+            bookingId,
+            paymentMethod: "razorpay",
+          },
+        });
+      }
+    };
+
+    socketService.on("payment_success", handlePaymentSuccess);
+
+    return () => {
+      socketService.off("payment_success");
+    };
+  }, [userId, token, isVerifyingPayment, params, grandTotal, router]);
 
   const checkPaymentStatus = async (bookingId: string) => {
     setIsVerifyingPayment(true);

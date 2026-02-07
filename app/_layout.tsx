@@ -2,7 +2,7 @@ import { Stack } from "expo-router";
 import { ActivityIndicator, View } from "react-native";
 import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
-
+import SocketManager from "../components/SocketManager";
 import { persistor, store } from "../store/index";
 import { useEffect, useState } from "react";
 import { useFonts } from "expo-font";
@@ -45,6 +45,7 @@ export default function RootLayout() {
     <Provider store={store}>
       <PersistGate loading={<LoadingView />} persistor={persistor}>
         <View style={{ flex: 1 }}>
+          <SocketManager />
           <View style={{ flex: 1, paddingTop: 40 }}>
             <Stack screenOptions={{ headerShown: false }}>
               <Stack.Screen name="index" />

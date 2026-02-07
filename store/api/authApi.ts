@@ -10,6 +10,12 @@ export const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL
     ? `http://${MY_PC_IP}:5000/api`
     : "http://65.1.215.9/api";
 
+export const SOCKET_URL = process.env.EXPO_PUBLIC_SOCKET_URL
+  ? process.env.EXPO_PUBLIC_SOCKET_URL
+  : __DEV__
+    ? `http://${MY_PC_IP}:5000/base`
+    : "http://65.1.215.9/base";
+
 export const APP_VERSION = Constants.expoConfig?.version ?? "1.0.0";
 
 const TIMEZONE = Intl.DateTimeFormat().resolvedOptions().timeZone;

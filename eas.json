@@ -16,7 +16,8 @@
             },
             "env": {
                 "APP_ENV": "development",
-                "EXPO_PUBLIC_API_URL": "http://65.1.215.9/api"
+                "EXPO_PUBLIC_API_URL": "http://65.1.215.9/api",
+                "EXPO_PUBLIC_SOCKET_URL": "http://65.1.215.9/base"
             }
         },
         "testing": {
@@ -30,7 +31,8 @@
             },
             "env": {
                 "APP_ENV": "testing",
-                "EXPO_PUBLIC_API_URL": "http://65.1.215.9/api"
+                "EXPO_PUBLIC_API_URL": "http://65.1.215.9/api",
+                "EXPO_PUBLIC_SOCKET_URL": "http://65.1.215.9/base"
             }
         },
         "preview": {
@@ -41,7 +43,8 @@
             },
             "env": {
                 "APP_ENV": "preview",
-                "EXPO_PUBLIC_API_URL": "http://65.1.215.9/api"
+                "EXPO_PUBLIC_API_URL": "http://65.1.215.9/api",
+                "EXPO_PUBLIC_SOCKET_URL": "http://65.1.215.9/base"
             }
         },
         "production": {

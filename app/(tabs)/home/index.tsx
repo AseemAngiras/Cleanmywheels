@@ -541,14 +541,27 @@ export default function HomeScreen() {
                         digit ? styles.otpBoxFilled : null,
                       ]}
                       keyboardType="number-pad"
-                      maxLength={1}
+                      maxLength={6}
+                      contextMenuHidden={false}
+                      selectTextOnFocus
                       value={digit}
                       onChangeText={(val) => {
-                        const newOtp = [...otp];
-                        newOtp[i] = val;
-                        setOtp(newOtp);
-                        if (val && i < 5) {
-                          inputRefs.current[i + 1]?.focus();
+                        if (val.length >= 6) {
+                          const pasted = val.slice(-6).split("");
+                          setOtp(pasted);
+                          inputRefs.current[5]?.focus();
+                        } else if (val.length > 0) {
+                          const lastChar = val.slice(-1);
+                          const newOtp = [...otp];
+                          newOtp[i] = lastChar;
+                          setOtp(newOtp);
+                          if (i < 5) {
+                            inputRefs.current[i + 1]?.focus();
+                          }
+                        } else {
+                          const newOtp = [...otp];
+                          newOtp[i] = "";
+                          setOtp(newOtp);
                         }
                       }}
                       onKeyPress={({ nativeEvent }) => {

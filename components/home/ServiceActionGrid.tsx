@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 
 interface ServiceActionGridProps {
   isLoggedIn: boolean;
@@ -14,70 +15,69 @@ export const ServiceActionGrid = ({
 }: ServiceActionGridProps) => {
   const router = useRouter();
 
-  if (!isLoggedIn) {
-    return (
-      <View style={styles.container}>
-        <TouchableOpacity
-          style={styles.guestButton}
-          activeOpacity={0.9}
-          onPress={() =>
-            router.push("/(tabs)/home/book-doorstep/enter-location")
-          }
-        >
-          <Text style={styles.guestButtonText}>Book a Wash</Text>
-          <View style={styles.arrowCircle}>
-            <Ionicons name="arrow-forward" size={16} color="#000" />
-          </View>
-        </TouchableOpacity>
-      </View>
-    );
-  }
+  const handleBookPress = () => {
+    router.push("/(tabs)/home/book-doorstep/enter-location");
+  };
+
+  const handleSubPress = () => {
+    if (hasActiveSubscription) {
+      router.push("/subscription/addons");
+    } else {
+      router.push("/(tabs)/subscriptions");
+    }
+  };
 
   return (
     <View style={styles.container}>
-      {/* Book Service - Square Card */}
+      {/* Primary: Book Wash */}
       <TouchableOpacity
-        style={styles.card}
         activeOpacity={0.9}
-        onPress={() => router.push("/(tabs)/home/book-doorstep/enter-location")}
+        onPress={handleBookPress}
+        style={[styles.touchable, styles.primaryCard]}
       >
-        <View style={styles.iconContainer}>
-          <Ionicons name="calendar-outline" size={28} color="#0284C7" />
-        </View>
-        <View>
-          <Text style={styles.title}>Book Service</Text>
-          <Text style={styles.subtitle}>One-time wash</Text>
-        </View>
+        <LinearGradient
+          colors={["#1A1A1A", "#111111"]}
+          style={styles.cardContent}
+        >
+          <View style={styles.textContainer}>
+            <Text style={styles.label}>DISPATCH</Text>
+            <Text style={styles.title}>BOOK A{"\n"}WASH</Text>
+          </View>
+
+          <View style={styles.actionButton}>
+            <Ionicons name="flash" size={24} color="#000" />
+          </View>
+        </LinearGradient>
       </TouchableOpacity>
 
-      {/* Add-ons OR Buy Subscription */}
-      {hasActiveSubscription ? (
+      {/* Secondary: Subscription - Only if logged in */}
+      {isLoggedIn && (
         <TouchableOpacity
-          style={styles.card}
           activeOpacity={0.9}
-          onPress={() => router.push("/subscription/addons")}
+          onPress={handleSubPress}
+          style={[styles.touchable, styles.secondaryCard]}
         >
-          <View style={styles.iconContainer}>
-            <Ionicons name="add-circle-outline" size={28} color="#CA8A04" />
-          </View>
-          <View>
-            <Text style={styles.title}>Add-ons</Text>
-            <Text style={styles.subtitle}>For next scheduled wash</Text>
-          </View>
-        </TouchableOpacity>
-      ) : (
-        <TouchableOpacity
-          style={styles.card}
-          activeOpacity={0.9}
-          onPress={() => router.push("/(tabs)/subscriptions")}
-        >
-          <View style={styles.iconContainer}>
-            <Ionicons name="star-outline" size={28} color="#16A34A" />
-          </View>
-          <View>
-            <Text style={styles.title}>Buy Plan</Text>
-            <Text style={styles.subtitle}>Get Daily Washes</Text>
-          </View>
+          <LinearGradient
+            colors={["#1A1A1A", "#111111"]}
+            style={styles.cardContent}
+          >
+            <View style={styles.textContainer}>
+              <Text style={styles.label}>
+                {hasActiveSubscription ? "UPGRADE" : "MEMBERSHIP"}
+              </Text>
+              <Text style={styles.titleSmall}>
+                {hasActiveSubscription ? "ADD-ONS" : "BUY PLAN"}
+              </Text>
+            </View>
+
+            <View style={[styles.actionButton, styles.secondaryBtn]}>
+              <Ionicons
+                name={hasActiveSubscription ? "add" : "star"}
+                size={20}
+                color="#000"
+              />
+            </View>
+          </LinearGradient>
         </TouchableOpacity>
       )}
     </View>
@@ -86,65 +86,74 @@ export const ServiceActionGrid = ({
 
 const styles = StyleSheet.create({
   container: {
+    paddingHorizontal: 16,
+    marginBottom: 20,
     flexDirection: "row",
     gap: 12,
-    paddingHorizontal: 20,
-    marginBottom: 20,
   },
-  card: {
-    flex: 1,
-    backgroundColor: "#FFFFFF",
-    borderRadius: 20,
-    padding: 16,
-    justifyContent: "space-between",
-    height: 120,
-    shadowColor: "#000",
-    shadowRadius: 10,
-    elevation: 3,
-  },
-  guestButton: {
-    backgroundColor: "#1C1C1C",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    borderRadius: 50, // Capsule shape
-    width: "100%",
+  touchable: {
+    borderRadius: 24,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 5,
+    height: 140,
   },
-  guestButtonText: {
-    fontSize: 16,
+  primaryCard: {
+    flex: 1.2,
+  },
+  secondaryCard: {
+    flex: 0.8,
+  },
+  cardContent: {
+    flex: 1,
+    padding: 16,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: "#333",
+    justifyContent: "space-between",
+  },
+  textContainer: {},
+  label: {
+    color: "#C8F000",
+    fontSize: 10,
     fontWeight: "700",
-    color: "#FFFFFF",
-    letterSpacing: 0.5,
-  },
-  arrowCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "#C8F000",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  iconContainer: {
-    marginBottom: 10,
-    width: "100%",
-    alignItems: "flex-start",
+    letterSpacing: 1,
+    marginBottom: 4,
+    textTransform: "uppercase",
   },
   title: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#1a1a1a",
-    marginBottom: 2,
+    color: "#FFFFFF",
+    fontSize: 20,
+    fontWeight: "800",
+    fontStyle: "italic",
+    letterSpacing: 0.5,
+    lineHeight: 22,
   },
-  subtitle: {
-    fontSize: 12,
-    color: "#64748B",
-    fontWeight: "500",
+  titleSmall: {
+    color: "#FFFFFF",
+    fontSize: 18,
+    fontWeight: "800",
+    fontStyle: "italic",
+    letterSpacing: 0.5,
+    lineHeight: 20,
+  },
+  actionButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: "#C8F000",
+    alignItems: "center",
+    justifyContent: "center",
+    alignSelf: "flex-end",
+    shadowColor: "#C8F000",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
+  },
+  secondaryBtn: {
+    backgroundColor: "#FFF",
+    shadowColor: "#FFF",
   },
 });

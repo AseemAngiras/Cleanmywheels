@@ -1,45 +1,16 @@
 import { useRouter } from "expo-router";
-import React, { useRef, useState } from "react";
+import React from "react";
 import {
   Dimensions,
-  FlatList,
-  Image,
-  NativeScrollEvent,
-  NativeSyntheticEvent,
+  ImageBackground,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 
 const { width } = Dimensions.get("window");
-
-const CAROUSEL_DATA = [
-  {
-    id: "1",
-    title: "Premium\nCar Care",
-    image:
-      "https://images.unsplash.com/photo-1617788138017-80ad40651399?q=80&w=2070&auto=format&fit=crop",
-    buttonText: "EXPLORE",
-    route: "/(tabs)/subscriptions",
-  },
-  {
-    id: "2",
-    title: "Eco-Friendly\nWash",
-    image:
-      "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?q=80&w=2070&auto=format&fit=crop",
-    buttonText: "LEARN MORE",
-    route: "/(tabs)/subscriptions",
-  },
-  {
-    id: "3",
-    title: "Interior\nDetailing",
-    image:
-      "https://images.unsplash.com/photo-1601362840469-51e4d8d58785?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
-    buttonText: "BOOK NOW",
-    route: "/(tabs)/home/book-doorstep/enter-location",
-  },
-];
 
 interface HeroSectionProps {
   isLoggedIn?: boolean;
@@ -47,73 +18,46 @@ interface HeroSectionProps {
 
 export const HeroSection = ({ isLoggedIn = false }: HeroSectionProps) => {
   const router = useRouter();
-  const [activeIndex, setActiveIndex] = useState(0);
 
-  const GUEST_ROUTE = "/(tabs)/home/book-doorstep/enter-location"; // Force guest to booking
-
-  const onScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const slideSize = event.nativeEvent.layoutMeasurement.width;
-    const index = event.nativeEvent.contentOffset.x / slideSize;
-    const roundIndex = Math.round(index);
-    if (roundIndex !== activeIndex) {
-      setActiveIndex(roundIndex);
-    }
-  };
-
-  const renderItem = ({ item }: { item: (typeof CAROUSEL_DATA)[0] }) => {
-    const handlePress = () => {
-      // If logged in, go to specific banner route. If guest, always go to enter-location.
-      const targetRoute = isLoggedIn ? item.route : GUEST_ROUTE;
-      router.push(targetRoute as any);
-    };
-
-    return (
-      <View style={styles.cardContainer}>
-        <View style={styles.card}>
-          <Image source={{ uri: item.image }} style={styles.image} />
-          <View style={styles.overlay} />
-          <View style={styles.content}>
-            <Text style={styles.title}>{item.title}</Text>
-            <TouchableOpacity
-              activeOpacity={0.9}
-              style={styles.button}
-              onPress={handlePress}
-            >
-              <Text style={styles.buttonText}>{item.buttonText}</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
+  const handlePress = () => {
+    router.push(
+      isLoggedIn
+        ? "/(tabs)/subscriptions"
+        : "/(tabs)/home/book-doorstep/enter-location",
     );
   };
 
   return (
     <View style={styles.container}>
-      <FlatList
-        data={CAROUSEL_DATA}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id}
-        horizontal
-        pagingEnabled
-        showsHorizontalScrollIndicator={false}
-        onScroll={onScroll}
-        scrollEventThrottle={16}
-        snapToInterval={width}
-        snapToAlignment="center"
-        decelerationRate="fast"
-        contentContainerStyle={{ alignItems: "center" }}
-      />
+      <View style={styles.cardContainer}>
+        <ImageBackground
+          source={{
+            uri: "https://images.unsplash.com/photo-1617788138017-80ad40651399?q=80&w=2070&auto=format&fit=crop",
+          }}
+          style={styles.imageBackground}
+          imageStyle={styles.imageStyle}
+          resizeMode="cover"
+        >
+          <LinearGradient
+            colors={["rgba(0,0,0,0.1)", "rgba(0,0,0,0.6)", "rgba(0,0,0,0.9)"]}
+            style={styles.gradient}
+          >
+            <View style={styles.content}>
+              <Text style={styles.eliteText}>ELITE</Text>
+              <Text style={styles.shineText}>
+                <Text style={styles.shineHighlight}>SHINE</Text> SYSTEM
+              </Text>
 
-      <View style={styles.pagination}>
-        {CAROUSEL_DATA.map((_, index) => (
-          <View
-            key={index}
-            style={[
-              styles.dot,
-              index === activeIndex ? styles.activeDot : null,
-            ]}
-          />
-        ))}
+              <TouchableOpacity
+                style={styles.button}
+                activeOpacity={0.8}
+                onPress={handlePress}
+              >
+                <Text style={styles.buttonText}>EXPLORE SPECS</Text>
+              </TouchableOpacity>
+            </View>
+          </LinearGradient>
+        </ImageBackground>
       </View>
     </View>
   );
@@ -121,81 +65,64 @@ export const HeroSection = ({ isLoggedIn = false }: HeroSectionProps) => {
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 20,
+    marginBottom: 24,
   },
   cardContainer: {
     width: width,
     alignItems: "center",
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
   },
-  card: {
+  imageBackground: {
     width: "100%",
-    height: 180,
-    borderRadius: 24,
+    height: 220,
     overflow: "hidden",
-    position: "relative",
-    backgroundColor: "#000",
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.1)",
   },
-  image: {
-    width: "100%",
-    height: "100%",
-    resizeMode: "cover",
+  imageStyle: {
+    borderRadius: 24,
   },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.3)",
+  gradient: {
+    flex: 1,
+    justifyContent: "flex-end",
+    padding: 20,
   },
   content: {
-    position: "absolute",
-    right: 20,
-    top: 0,
-    bottom: 0,
-    justifyContent: "center",
-    alignItems: "flex-end",
+    alignItems: "flex-start",
   },
-  title: {
+  eliteText: {
     color: "#FFFFFF",
-    fontSize: 26,
+    fontSize: 28,
+    fontStyle: "italic",
     fontWeight: "800",
-    textAlign: "right",
-    lineHeight: 30,
-    marginBottom: 12,
-    textShadowColor: "rgba(0,0,0,0.5)",
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
+    letterSpacing: 1,
+    lineHeight: 32,
+  },
+  shineText: {
+    color: "#FFFFFF",
+    fontSize: 28,
+    fontStyle: "italic",
+    fontWeight: "800",
+    letterSpacing: 1,
+    lineHeight: 32,
+    marginBottom: 20,
+  },
+  shineHighlight: {
+    color: "#C8F000",
   },
   button: {
-    backgroundColor: "#FFFFFF",
-    paddingHorizontal: 20,
+    borderWidth: 2,
+    borderColor: "#C8F000",
     paddingVertical: 10,
-    borderRadius: 20,
+    paddingHorizontal: 24,
+    borderRadius: 12,
   },
   buttonText: {
-    color: "#000000",
-    fontWeight: "800",
-    fontSize: 11,
+    color: "#C8F000",
+    fontSize: 14,
+    fontWeight: "900",
+    fontStyle: "italic",
     letterSpacing: 0.5,
-  },
-  pagination: {
-    position: "absolute",
-    bottom: 15,
-    left: 0,
-    right: 0,
-    flexDirection: "row",
-    justifyContent: "center",
-    gap: 6,
-    pointerEvents: "none",
-  },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: "rgba(255,255,255,0.5)",
-  },
-  activeDot: {
-    backgroundColor: "#FFFFFF",
-    width: 16,
-    height: 6,
-    borderRadius: 3,
   },
 });

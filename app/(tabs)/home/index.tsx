@@ -30,6 +30,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  StatusBar,
 } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -37,7 +38,7 @@ import { HomeBackground } from "../../../components/home/HomeBackground";
 import { HeroSection } from "../../../components/home/HeroSection";
 import { ServiceActionGrid } from "../../../components/home/ServiceActionGrid";
 import { NextServiceWidget } from "../../../components/home/NextServiceWidget";
-import { WhyChooseUs } from "../../../components/home/WhyChooseUs";
+import { CoreProtocols } from "../../../components/home/CoreProtocols";
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -316,267 +317,280 @@ export default function HomeScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      {/* Background Pattern */}
+    <View style={styles.root}>
+      <StatusBar
+        barStyle="light-content"
+        translucent
+        backgroundColor="transparent"
+      />
+
+      {/* Background Pattern - Placed in Root to cover everything */}
       <HomeBackground />
 
-      <ScrollView
-        contentContainerStyle={styles.container}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Header */}
-        <View style={styles.header}>
-          <View>
-            {isLoggedIn && userName ? (
-              <Text style={styles.headerGreeting}>Hello, {userName} 👋</Text>
-            ) : null}
-            <Text style={styles.headerTitleLarge}>Welcome to</Text>
-            <Text style={styles.headerTitleSub}>Cleanmywheels</Text>
-          </View>
-
-          <View style={styles.headerIcons}>
-            {!isLoggedIn ? (
-              <TouchableOpacity
-                style={styles.limePillBtn}
-                onPress={() => setIsLoginModalVisible(true)}
-              >
-                <Text style={styles.limePillText}>Log in</Text>
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity
-                style={styles.iconCircle}
-                onPress={() => router.push("/(tabs)/profile")}
-              >
-                <Image
-                  source={{
-                    uri:
-                      userAvatar ||
-                      "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
-                  }}
-                  style={styles.avatarImage}
-                />
-              </TouchableOpacity>
-            )}
-          </View>
-        </View>
-
-        {/* Hero Section */}
-        <HeroSection isLoggedIn={isLoggedIn} />
-
-        {/* Action Grid (Book / Add-ons) */}
-        <ServiceActionGrid
-          isLoggedIn={isLoggedIn}
-          hasActiveSubscription={activeSubs.length > 0}
-        />
-
-        {/* Why Choose Us - Only for Guests */}
-        {!isLoggedIn && <WhyChooseUs />}
-
-        {/* Next Service (For Subscribers) */}
-        {isLoggedIn &&
-          activeSubs.map((sub: any) => {
-            const startDate = new Date(sub.startDate || new Date());
-            const completed = sub.servicesCompleted || 0;
-            const total = sub.servicesTotal || 30;
-            const nextDate = new Date(startDate);
-            nextDate.setDate(startDate.getDate() + completed);
-
-            return (
-              <NextServiceWidget
-                key={sub._id}
-                date={nextDate.toISOString()}
-                vehicleNo={sub.vehicle?.vehicleNo || "Car"}
-                progress={completed / total}
-              />
-            );
-          })}
-        {isLoggedIn && pastBookings.length > 0 && (
-          <View style={styles.sectionContainer}>
-            <View style={[styles.sectionHeader, { paddingHorizontal: 20 }]}>
-              <Text style={styles.sectionTitle}>Recent Services</Text>
-              <TouchableOpacity>
-                {/* <Text style={styles.viewAllText}>View All</Text> */}
-              </TouchableOpacity>
+      <SafeAreaView style={styles.safeArea}>
+        <ScrollView
+          contentContainerStyle={styles.container}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Header */}
+          <View style={styles.header}>
+            <View>
+              <Text style={styles.headerSmall}>ON-DEMAND CARE</Text>
+              <Text style={styles.headerTitleLogo}>
+                CLEANMY<Text style={styles.headerTitleHighlight}>WHEELS</Text>
+              </Text>
             </View>
 
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.recentList}
-            >
-              {pastBookings.map((item, index) => (
+            <View style={styles.headerIcons}>
+              {!isLoggedIn ? (
                 <TouchableOpacity
-                  key={index}
-                  style={styles.recentCard}
-                  activeOpacity={0.9}
-                  onPress={() => handleRecentServicePress(item)}
+                  style={styles.limePillBtn}
+                  onPress={() => setIsLoginModalVisible(true)}
                 >
-                  <View style={styles.recentCardHeader}>
-                    <View style={styles.recentIconBox}>
-                      <Ionicons name="sparkles" size={16} color="#000" />
-                    </View>
-                    <View style={styles.rebookBadge}>
-                      <Ionicons name="refresh" size={10} color="#000" />
-                      <Text style={styles.rebookText}>Rebook</Text>
-                    </View>
-                  </View>
-
-                  <Text style={styles.recentServiceName} numberOfLines={1}>
-                    {item.serviceName}
-                  </Text>
-                  <Text style={styles.recentCarText} numberOfLines={1}>
-                    {item.car}
-                  </Text>
-
-                  <View style={styles.recentDivider} />
-
-                  <View style={styles.recentFooter}>
-                    <Text style={styles.recentDate}>
-                      {item.date
-                        ? new Date(item.date).toLocaleDateString("en-US", {
-                            month: "short",
-                            day: "numeric",
-                          })
-                        : "N/A"}
-                    </Text>
-                    <Text style={styles.recentPrice}>₹ {item.price}</Text>
-                  </View>
+                  <Text style={styles.limePillText}>LOG IN</Text>
                 </TouchableOpacity>
-              ))}
-            </ScrollView>
+              ) : (
+                <TouchableOpacity
+                  style={styles.iconCircle}
+                  onPress={() => router.push("/(tabs)/profile")}
+                >
+                  <Image
+                    source={{
+                      uri:
+                        userAvatar ||
+                        "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
+                    }}
+                    style={styles.avatarImage}
+                  />
+                </TouchableOpacity>
+              )}
+            </View>
           </View>
-        )}
-      </ScrollView>
 
-      {/* Login Modal */}
-      <Modal
-        visible={isLoginModalVisible}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setIsLoginModalVisible(false)}
-      >
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={styles.modalOverlay}
-        >
-          <TouchableOpacity
-            style={styles.modalDismissArea}
-            activeOpacity={1}
-            onPress={() => setIsLoginModalVisible(false)}
+          {/* Hero Section */}
+          <HeroSection isLoggedIn={isLoggedIn} />
+
+          {/* Action Grid (Book / Add-ons) */}
+          <ServiceActionGrid
+            isLoggedIn={isLoggedIn}
+            hasActiveSubscription={activeSubs.length > 0}
           />
 
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <View style={styles.modalIndicator} />
-            </View>
+          {/* Core Protocols (Replaces WhyChooseUs) */}
+          {!isLoggedIn && <CoreProtocols />}
 
-            <Text style={styles.modalTitle}>
-              {modalStep === "details" ? "Welcome Back!" : "Enter OTP"}
-            </Text>
-            <Text style={styles.modalSubtitle}>
-              {modalStep === "details"
-                ? "Enter your mobile number to continue."
-                : `We sent a code to +91 ${phoneNumber}`}
-            </Text>
+          {/* Next Service (For Subscribers) */}
+          {isLoggedIn &&
+            activeSubs.map((sub: any) => {
+              const startDate = new Date(sub.startDate || new Date());
+              const completed = sub.servicesCompleted || 0;
+              const total = sub.servicesTotal || 30;
+              const nextDate = new Date(startDate);
+              nextDate.setDate(startDate.getDate() + completed);
 
-            {modalStep === "details" ? (
-              <View>
-                <View style={styles.inputWrapper}>
-                  <Text style={styles.inputLabel}>Mobile Number</Text>
-                  <View style={styles.phoneInputContainer}>
-                    <Text style={styles.prefixText}>+91</Text>
-                    <View style={styles.verticalDivider} />
-                    <TextInput
-                      style={styles.phoneInput}
-                      placeholder="98765 43210"
-                      placeholderTextColor="#999"
-                      keyboardType="phone-pad"
-                      maxLength={10}
-                      value={phoneNumber}
-                      onChangeText={setPhoneNumber}
-                    />
-                  </View>
-                </View>
-
-                <TouchableOpacity
-                  style={styles.primaryModalBtn}
-                  onPress={handleSendOtp}
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <ActivityIndicator color="#000" />
-                  ) : (
-                    <Text style={styles.primaryModalBtnText}>Continue</Text>
-                  )}
+              return (
+                <NextServiceWidget
+                  key={sub._id}
+                  date={nextDate.toISOString()}
+                  vehicleNo={sub.vehicle?.vehicleNo || "Car"}
+                  progress={completed / total}
+                />
+              );
+            })}
+          {isLoggedIn && pastBookings.length > 0 && (
+            <View style={styles.sectionContainer}>
+              <View style={[styles.sectionHeader, { paddingHorizontal: 20 }]}>
+                <Text style={styles.sectionTitle}>Recent Services</Text>
+                <TouchableOpacity>
+                  {/* <Text style={styles.viewAllText}>View All</Text> */}
                 </TouchableOpacity>
               </View>
-            ) : (
-              <View>
-                <View style={styles.otpContainer}>
-                  {otp.map((digit, i) => (
-                    <TextInput
-                      key={i}
-                      ref={(ref) => {
-                        inputRefs.current[i] = ref;
-                      }}
-                      style={[
-                        styles.otpBox,
-                        digit ? styles.otpBoxFilled : null,
-                      ]}
-                      keyboardType="number-pad"
-                      maxLength={1}
-                      value={digit}
-                      onChangeText={(val) => {
-                        const newOtp = [...otp];
-                        newOtp[i] = val;
-                        setOtp(newOtp);
-                        if (val && i < 5) {
-                          inputRefs.current[i + 1]?.focus();
-                        }
-                      }}
-                      onKeyPress={({ nativeEvent }) => {
-                        if (
-                          nativeEvent.key === "Backspace" &&
-                          !otp[i] &&
-                          i > 0
-                        ) {
-                          inputRefs.current[i - 1]?.focus();
-                        }
-                      }}
-                    />
-                  ))}
-                </View>
 
-                <View style={styles.resendContainer}>
-                  <Text style={styles.resendText}>
-                    Didn&apos;t receive code?{" "}
-                  </Text>
-                  <TouchableOpacity onPress={handleSendOtp}>
-                    <Text style={styles.resendLink}>Resend</Text>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.recentList}
+              >
+                {pastBookings.map((item, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={styles.recentCard}
+                    activeOpacity={0.9}
+                    onPress={() => handleRecentServicePress(item)}
+                  >
+                    <View style={styles.recentCardHeader}>
+                      <View style={styles.recentIconBox}>
+                        <Ionicons name="sparkles" size={20} color="#C8F000" />
+                      </View>
+                      <View style={styles.rebookBadge}>
+                        <Ionicons name="refresh" size={10} color="#C8F000" />
+                        <Text style={styles.rebookText}>Rebook</Text>
+                      </View>
+                    </View>
+
+                    <Text style={styles.recentServiceName} numberOfLines={1}>
+                      {item.serviceName}
+                    </Text>
+                    <Text style={styles.recentCarText} numberOfLines={1}>
+                      {item.car}
+                    </Text>
+
+                    <View style={styles.recentDivider} />
+
+                    <View style={styles.recentFooter}>
+                      <Text style={styles.recentDate}>
+                        {item.date
+                          ? new Date(item.date).toLocaleDateString("en-US", {
+                              month: "short",
+                              day: "numeric",
+                            })
+                          : "N/A"}
+                      </Text>
+                      <Text style={styles.recentPrice}>₹ {item.price}</Text>
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          )}
+        </ScrollView>
+
+        {/* Login Modal */}
+        <Modal
+          visible={isLoginModalVisible}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setIsLoginModalVisible(false)}
+        >
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            style={styles.modalOverlay}
+          >
+            <TouchableOpacity
+              style={styles.modalDismissArea}
+              activeOpacity={1}
+              onPress={() => setIsLoginModalVisible(false)}
+            />
+
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <View style={styles.modalIndicator} />
+              </View>
+
+              <Text style={styles.modalTitle}>
+                {modalStep === "details" ? "Welcome Back!" : "Enter OTP"}
+              </Text>
+              <Text style={styles.modalSubtitle}>
+                {modalStep === "details"
+                  ? "Enter your mobile number to continue."
+                  : `We sent a code to +91 ${phoneNumber}`}
+              </Text>
+
+              {modalStep === "details" ? (
+                <View>
+                  <View style={styles.inputWrapper}>
+                    <Text style={styles.inputLabel}>Mobile Number</Text>
+                    <View style={styles.phoneInputContainer}>
+                      <Text style={styles.prefixText}>+91</Text>
+                      <View style={styles.verticalDivider} />
+                      <TextInput
+                        style={styles.phoneInput}
+                        placeholder="98765 43210"
+                        placeholderTextColor="#999"
+                        keyboardType="phone-pad"
+                        maxLength={10}
+                        value={phoneNumber}
+                        onChangeText={setPhoneNumber}
+                      />
+                    </View>
+                  </View>
+
+                  <TouchableOpacity
+                    style={styles.primaryModalBtn}
+                    onPress={handleSendOtp}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <ActivityIndicator color="#000" />
+                    ) : (
+                      <Text style={styles.primaryModalBtnText}>Continue</Text>
+                    )}
                   </TouchableOpacity>
                 </View>
+              ) : (
+                <View>
+                  <View style={styles.otpContainer}>
+                    {otp.map((digit, i) => (
+                      <TextInput
+                        key={i}
+                        ref={(ref) => {
+                          inputRefs.current[i] = ref;
+                        }}
+                        style={[
+                          styles.otpBox,
+                          digit ? styles.otpBoxFilled : null,
+                        ]}
+                        keyboardType="number-pad"
+                        maxLength={1}
+                        value={digit}
+                        onChangeText={(val) => {
+                          const newOtp = [...otp];
+                          newOtp[i] = val;
+                          setOtp(newOtp);
+                          if (val && i < 5) {
+                            inputRefs.current[i + 1]?.focus();
+                          }
+                        }}
+                        onKeyPress={({ nativeEvent }) => {
+                          if (
+                            nativeEvent.key === "Backspace" &&
+                            !otp[i] &&
+                            i > 0
+                          ) {
+                            inputRefs.current[i - 1]?.focus();
+                          }
+                        }}
+                      />
+                    ))}
+                  </View>
 
-                <TouchableOpacity
-                  style={styles.primaryModalBtn}
-                  onPress={handleVerifyOtp}
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <ActivityIndicator color="#000" />
-                  ) : (
-                    <Text style={styles.primaryModalBtnText}>Verify Login</Text>
-                  )}
-                </TouchableOpacity>
-              </View>
-            )}
-          </View>
-        </KeyboardAvoidingView>
-      </Modal>
-    </SafeAreaView>
+                  <View style={styles.resendContainer}>
+                    <Text style={styles.resendText}>
+                      Didn&apos;t receive code?{" "}
+                    </Text>
+                    <TouchableOpacity onPress={handleSendOtp}>
+                      <Text style={styles.resendLink}>Resend</Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  <TouchableOpacity
+                    style={styles.primaryModalBtn}
+                    onPress={handleVerifyOtp}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <ActivityIndicator color="#000" />
+                    ) : (
+                      <Text style={styles.primaryModalBtnText}>
+                        Verify Login
+                      </Text>
+                    )}
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+          </KeyboardAvoidingView>
+        </Modal>
+      </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+    backgroundColor: "#111",
+  },
   safeArea: {
     flex: 1,
     backgroundColor: "transparent",
@@ -593,23 +607,23 @@ const styles = StyleSheet.create({
     paddingBottom: 0,
     marginBottom: 20,
   },
-  headerGreeting: {
-    fontSize: 14,
-    color: "#64748B",
+  headerSmall: {
+    fontSize: 10,
+    color: "#C8F000",
     fontWeight: "700",
+    letterSpacing: 1,
     marginBottom: 4,
+    textTransform: "uppercase",
   },
-  headerTitleLarge: {
-    fontSize: 32,
+  headerTitleLogo: {
+    fontSize: 24,
     fontWeight: "800",
-    color: "#0F172A",
-    lineHeight: 36,
+    color: "#FFFFFF",
+    fontStyle: "italic",
+    letterSpacing: -1,
   },
-  headerTitleSub: {
-    fontSize: 32,
-    fontWeight: "800",
-    color: "#0F172A",
-    lineHeight: 36,
+  headerTitleHighlight: {
+    color: "#C8F000",
   },
   headerIcons: {
     marginTop: 8,
@@ -620,7 +634,7 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     overflow: "hidden",
     borderWidth: 2,
-    borderColor: "#FFF",
+    borderColor: "#333",
     elevation: 4,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
@@ -633,14 +647,20 @@ const styles = StyleSheet.create({
   },
   limePillBtn: {
     backgroundColor: "#C8F000",
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 20,
-    elevation: 2,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 6, // Boxy button per design
+    shadowColor: "#C8F000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 4,
   },
   limePillText: {
-    fontWeight: "700",
+    fontWeight: "900",
     color: "#000",
+    fontStyle: "italic",
+    fontSize: 12,
   },
 
   sectionContainer: {
@@ -650,16 +670,16 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 16,
+    marginBottom: 5,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#0F172A",
+    color: "#FFFFFF",
   },
   viewAllText: {
     fontSize: 14,
-    color: "#64748B",
+    color: "#999",
     fontWeight: "600",
   },
   recentList: {
@@ -667,58 +687,65 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   recentCard: {
-    width: 180,
+    width: 200,
     padding: 20,
     borderRadius: 24,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#181818",
+    borderWidth: 1,
+    borderColor: "rgba(200, 240, 0, 0.2)", // Subtle golden border
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
   },
   recentCardHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 12,
+    marginBottom: 16,
   },
   recentIconBox: {
-    width: 40,
-    height: 40,
+    width: 44,
+    height: 44,
     borderRadius: 14,
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "rgba(200, 240, 0, 0.1)", // Yellow tint bg
     alignItems: "center",
     justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "rgba(200, 240, 0, 0.1)",
   },
   rebookBadge: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#000",
+    backgroundColor: "rgba(200, 240, 0, 0.1)", // Subtle yellow tint
     borderRadius: 12,
     paddingHorizontal: 8,
     paddingVertical: 4,
     height: 24,
-    gap: 2,
+    gap: 4,
+    borderWidth: 1,
+    borderColor: "#C8F000",
   },
   rebookText: {
-    color: "#FFF",
+    color: "#C8F000",
     fontSize: 10,
     fontWeight: "700",
+    textTransform: "uppercase",
   },
   recentServiceName: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#0F172A",
+    color: "#FFF",
     marginBottom: 2,
   },
   recentCarText: {
     fontSize: 12,
-    color: "#64748B",
+    color: "#888",
     fontWeight: "500",
   },
   recentDivider: {
     height: 1,
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#333",
     marginVertical: 12,
   },
   recentFooter: {
@@ -728,29 +755,31 @@ const styles = StyleSheet.create({
   },
   recentDate: {
     fontSize: 12,
-    color: "#94A3B8",
+    color: "#888",
     fontWeight: "600",
   },
   recentPrice: {
     fontSize: 16,
     fontWeight: "800",
-    color: "#0F172A",
+    color: "#C8F000",
   },
 
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    backgroundColor: "rgba(0, 0, 0, 0.8)",
     justifyContent: "flex-end",
   },
   modalDismissArea: {
     flex: 1,
   },
   modalContent: {
-    backgroundColor: "#FFF",
+    backgroundColor: "#121212",
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 24,
     paddingBottom: 40,
+    borderTopWidth: 1,
+    borderColor: "#333",
   },
   modalHeader: {
     alignItems: "center",
@@ -760,17 +789,17 @@ const styles = StyleSheet.create({
     width: 40,
     height: 4,
     borderRadius: 2,
-    backgroundColor: "#E2E8F0",
+    backgroundColor: "#333",
   },
   modalTitle: {
     fontSize: 24,
     fontWeight: "700",
-    color: "#0F172A",
+    color: "#FFF",
     marginBottom: 8,
   },
   modalSubtitle: {
     fontSize: 14,
-    color: "#64748B",
+    color: "#888",
     marginBottom: 32,
   },
   inputWrapper: {
@@ -779,42 +808,43 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#0F172A",
+    color: "#FFF",
     marginBottom: 8,
   },
   phoneInputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#1A1A1A",
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "#333",
     borderRadius: 12,
     height: 52,
     paddingHorizontal: 16,
   },
   prefixText: {
     fontSize: 16,
-    color: "#0F172A",
+    color: "#FFF",
     fontWeight: "600",
   },
   verticalDivider: {
     width: 1,
     height: 24,
-    backgroundColor: "#E2E8F0",
+    backgroundColor: "#333",
     marginHorizontal: 12,
   },
   phoneInput: {
     flex: 1,
     fontSize: 16,
-    color: "#0F172A",
-    fontWeight: "500",
+    color: "#FFF",
+    fontWeight: "600",
   },
   primaryModalBtn: {
     backgroundColor: "#C8F000",
     height: 52,
-    borderRadius: 16,
+    borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
+    marginBottom: 16,
   },
   primaryModalBtnText: {
     fontSize: 16,
@@ -824,36 +854,36 @@ const styles = StyleSheet.create({
   otpContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 24,
+    marginBottom: 32,
   },
   otpBox: {
-    width: 48,
-    height: 48,
+    width: 50,
+    height: 50,
     borderRadius: 12,
-    backgroundColor: "#F8FAFC",
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "#333",
+    backgroundColor: "#1A1A1A",
     textAlign: "center",
     fontSize: 20,
-    fontWeight: "600",
-    color: "#0F172A",
+    fontWeight: "700",
+    color: "#FFF",
   },
   otpBoxFilled: {
-    borderColor: "#C8F000",
-    backgroundColor: "#FAFDEB",
+    borderColor: "#DFFF00",
+    backgroundColor: "rgba(223, 255, 0, 0.1)",
   },
   resendContainer: {
     flexDirection: "row",
     justifyContent: "center",
-    marginBottom: 24,
+    marginBottom: 32,
   },
   resendText: {
     fontSize: 14,
-    color: "#64748B",
+    color: "#888",
   },
   resendLink: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#000",
+    color: "#DFFF00",
   },
 });

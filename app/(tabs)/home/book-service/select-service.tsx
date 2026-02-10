@@ -15,6 +15,9 @@ import {
   TouchableWithoutFeedback,
   UIManager,
   View,
+  ScrollView,
+  StyleSheet,
+  Text,
 } from "react-native";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { useDispatch } from "react-redux";

@@ -13,7 +13,7 @@ import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 import { WebView } from "react-native-webview";
 import { useEffect, useRef, useState } from "react";
-import { Alert, Modal, Text, TouchableOpacity, View } from "react-native";
+import { Alert, Modal, Text, TouchableOpacity, View, StyleSheet, ScrollView } from "react-native";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { useDispatch, useSelector } from "react-redux";
 import BookingStepper from "../../../../components/BookingStepper";

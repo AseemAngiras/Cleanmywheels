@@ -24,6 +24,7 @@ import {
   KeyboardAvoidingView,
   Modal,
   Platform,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -58,6 +59,7 @@ export default function SelectSlotScreen() {
 
   const [name, setName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [isNameWarningVisible, setIsNameWarningVisible] = useState(false);
 
   useEffect(() => {
     if (userName) setName(userName);
@@ -503,9 +505,29 @@ export default function SelectSlotScreen() {
                     placeholder="Full Name"
                     placeholderTextColor="#ccc"
                     value={name}
-                    onChangeText={setName}
+                    onChangeText={(text) => {
+                      if (/[^a-zA-Z\s]/.test(text)) {
+                        setIsNameWarningVisible(true);
+                        setTimeout(() => setIsNameWarningVisible(false), 3000);
+                      }
+                      const filteredText = text.replace(/[^a-zA-Z\s]/g, "");
+                      setName(filteredText);
+                    }}
                     autoCapitalize="words"
                   />
+                  {isNameWarningVisible && (
+                    <Text
+                      style={{
+                        position: "absolute",
+                        bottom: -16,
+                        left: 50,
+                        color: "red",
+                        fontSize: 12,
+                      }}
+                    >
+                      Only alphabets are allowed
+                    </Text>
+                  )}
                 </View>
 
                 <View style={styles.phoneContainer}>

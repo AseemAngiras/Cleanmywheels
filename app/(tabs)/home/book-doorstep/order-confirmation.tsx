@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect } from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity, View, StyleSheet, ScrollView } from "react-native";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { useDispatch } from "react-redux";
 import { addBooking } from "../../../../store/slices/bookingSlice";

@@ -627,21 +627,37 @@ export default function ProfileHome() {
                                               await deleteAddress(
                                                 addr.id,
                                               ).unwrap();
-                                              // The API tag invalidation will refresh the list,
-                                              // but we can also dispatch local remove for instant feedback
                                               dispatch(
                                                 removeAddresses(addr.id),
                                               );
                                               setExpandedAddressId(null);
-                                            } catch (error) {
+                                              Alert.alert(
+                                                "Success",
+                                                "Address deleted successfully",
+                                              );
+                                            } catch (error: any) {
                                               console.log(
                                                 "Delete error",
                                                 error,
                                               );
-                                              Alert.alert(
-                                                "Error",
-                                                "Failed to delete address",
-                                              );
+                                              if (
+                                                error?.status === 404 ||
+                                                error?.originalStatus === 404
+                                              ) {
+                                                dispatch(
+                                                  removeAddresses(addr.id),
+                                                );
+                                                setExpandedAddressId(null);
+                                                Alert.alert(
+                                                  "Notice",
+                                                  "Address was already removed from server.",
+                                                );
+                                              } else {
+                                                dispatch(
+                                                  removeAddresses(addr.id),
+                                                );
+                                                setExpandedAddressId(null);
+                                              }
                                             }
                                           },
                                         },

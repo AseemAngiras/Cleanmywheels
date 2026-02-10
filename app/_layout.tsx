@@ -1,5 +1,6 @@
 import { Stack } from "expo-router";
 import { ActivityIndicator, View } from "react-native";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
 import SocketManager from "../components/SocketManager";
@@ -44,15 +45,17 @@ export default function RootLayout() {
   return (
     <Provider store={store}>
       <PersistGate loading={<LoadingView />} persistor={persistor}>
-        <View style={{ flex: 1 }}>
-          <SocketManager />
-          <View style={{ flex: 1, paddingTop: 40 }}>
-            <Stack screenOptions={{ headerShown: false }}>
-              <Stack.Screen name="index" />
-              <Stack.Screen name="(tabs)" />
-            </Stack>
+        <SafeAreaProvider>
+          <View style={{ flex: 1 }}>
+            <SocketManager />
+            <View style={{ flex: 1 }}>
+              <Stack screenOptions={{ headerShown: false }}>
+                <Stack.Screen name="index" />
+                <Stack.Screen name="(tabs)" />
+              </Stack>
+            </View>
           </View>
-        </View>
+        </SafeAreaProvider>
       </PersistGate>
     </Provider>
   );

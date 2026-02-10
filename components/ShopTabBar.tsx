@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useRef } from "react";
 import { Animated, StyleSheet, TouchableOpacity, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const TabItem = ({
   name,
@@ -22,7 +23,7 @@ const TabItem = ({
       friction: 8,
       tension: 80,
     }).start();
-  }, [focused]);
+  }, [focused, progress]);
 
   const width = progress.interpolate({
     inputRange: [0, 1],
@@ -88,6 +89,8 @@ export default function ShopTabBar({ state, descriptors, navigation }: any) {
   const currentRouteKey = state.routes[state.index].key;
   const { options } = descriptors[currentRouteKey];
 
+  const insets = useSafeAreaInsets();
+
   if (options.tabBarStyle?.display === "none") {
     return null;
   }
@@ -95,7 +98,7 @@ export default function ShopTabBar({ state, descriptors, navigation }: any) {
   const ORDER = ["dashboard", "bookings", "subscriptions", "profile"];
 
   return (
-    <View style={styles.wrapper}>
+    <View style={[styles.wrapper, { bottom: 12 + insets.bottom }]}>
       <View style={styles.container}>
         {ORDER.map((name, index) => {
           const route = state.routes.find(

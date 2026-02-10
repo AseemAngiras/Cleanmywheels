@@ -10,7 +10,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { nanoid } from "@reduxjs/toolkit";
 import * as Location from "expo-location";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   ActivityIndicator,
   Dimensions,
@@ -41,6 +42,7 @@ export default function EnterLocationScreen() {
   const [triggerGetAddresses] = useLazyGetAddressesQuery();
 
   const { data: addressesData } = useGetAddressesQuery(undefined);
+  const insets = useSafeAreaInsets();
 
   let fetchedAddresses =
     addressesData?.data?.addressList || addressesData?.data || [];
@@ -53,8 +55,8 @@ export default function EnterLocationScreen() {
     (state: RootState) => state.profile.addresses,
   );
 
-  const savedAddresses =
-    fetchedAddresses.length > 0
+  const savedAddresses = useMemo(() => {
+    return fetchedAddresses.length > 0
       ? fetchedAddresses.map((addr: any) => ({
           ...addr,
           id: addr._id || addr.id,
@@ -63,6 +65,7 @@ export default function EnterLocationScreen() {
             `${addr.houseOrFlatNo}, ${addr.locality}, ${addr.city} - ${addr.postalCode}`,
         }))
       : profileAddresses || [];
+  }, [fetchedAddresses, profileAddresses]);
 
   const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
 
@@ -666,7 +669,7 @@ export default function EnterLocationScreen() {
       </KeyboardAvoidingView>
 
       {/* Footer Button */}
-      <View style={styles.footer}>
+      <View style={[styles.footer, { paddingBottom: 20 + insets.bottom }]}>
         {errorMsg ? <Text style={styles.errorText}>{errorMsg}</Text> : null}
         <TouchableOpacity
           style={[styles.confirmButton, isCreating && { opacity: 0.7 }]}
@@ -709,7 +712,7 @@ export default function EnterLocationScreen() {
             )}
           </MapView>
 
-          <View style={styles.mapFooter}>
+          <View style={[styles.mapFooter, { bottom: 30 + insets.bottom }]}>
             <TouchableOpacity
               style={styles.closeMapButton}
               onPress={() => setMapVisible(false)}

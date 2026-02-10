@@ -69,6 +69,7 @@ export default function SelectSlotScreen() {
   const [isLoginModalVisible, setIsLoginModalVisible] = useState(false);
   const [modalStep, setModalStep] = useState<"details" | "otp">("details");
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const [isOtpWarningVisible, setIsOtpWarningVisible] = useState(false);
 
   const [selectedDate, setSelectedDate] = useState<number>(0);
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
@@ -584,12 +585,17 @@ export default function SelectSlotScreen() {
                       selectTextOnFocus
                       value={digit}
                       onChangeText={(val) => {
-                        if (val.length >= 6) {
-                          const pasted = val.slice(-6).split("");
+                        if (/[^0-9]/.test(val)) {
+                          setIsOtpWarningVisible(true);
+                          setTimeout(() => setIsOtpWarningVisible(false), 3000);
+                        }
+                        const text = val.replace(/[^0-9]/g, "");
+                        if (text.length >= 6) {
+                          const pasted = text.slice(-6).split("");
                           setOtp(pasted);
                           inputRefs.current[5]?.focus();
-                        } else if (val.length > 0) {
-                          const lastChar = val.slice(-1);
+                        } else if (text.length > 0) {
+                          const lastChar = text.slice(-1);
                           const newOtp = [...otp];
                           newOtp[i] = lastChar;
                           setOtp(newOtp);
@@ -614,6 +620,20 @@ export default function SelectSlotScreen() {
                     />
                   ))}
                 </View>
+
+                {isOtpWarningVisible && (
+                  <Text
+                    style={{
+                      color: "red",
+                      fontSize: 12,
+                      marginTop: -15,
+                      marginBottom: 10,
+                      textAlign: "center",
+                    }}
+                  >
+                    Only numbers are allowed
+                  </Text>
+                )}
 
                 <TouchableOpacity
                   style={styles.modalContinueButton}

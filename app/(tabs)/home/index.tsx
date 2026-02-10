@@ -100,6 +100,7 @@ export default function HomeScreen() {
   const [name, setName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const [isOtpWarningVisible, setIsOtpWarningVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const inputRefs = useRef<(TextInput | null)[]>([]);
 
@@ -545,7 +546,12 @@ export default function HomeScreen() {
                       contextMenuHidden={false}
                       selectTextOnFocus
                       value={digit}
-                      onChangeText={(val) => {
+                      onChangeText={(text) => {
+                        if (/[^0-9]/.test(text)) {
+                          setIsOtpWarningVisible(true);
+                          setTimeout(() => setIsOtpWarningVisible(false), 3000);
+                        }
+                        const val = text.replace(/[^0-9]/g, "");
                         if (val.length >= 6) {
                           const pasted = val.slice(-6).split("");
                           setOtp(pasted);
@@ -576,6 +582,20 @@ export default function HomeScreen() {
                     />
                   ))}
                 </View>
+
+                {isOtpWarningVisible && (
+                  <Text
+                    style={{
+                      color: "red",
+                      fontSize: 12,
+                      marginTop: -10,
+                      marginBottom: 10,
+                      textAlign: "center",
+                    }}
+                  >
+                    Only numbers are allowed
+                  </Text>
+                )}
 
                 <View style={styles.resendContainer}>
                   <Text style={styles.resendText}>

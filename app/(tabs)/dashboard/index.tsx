@@ -1,14 +1,14 @@
 import AdminWorkerScreen from "@/components/admin/AdminWorkerScreen";
-import React from "react";
-import { View, StyleSheet, SafeAreaView } from "react-native";
+import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
+import { StyleSheet, View } from "react-native";
 
 export default function DashboardScreen() {
   return (
-    <SafeAreaView style={styles.container}>
+    <ScreenWrapper style={styles.container} backgroundColor="#fff">
       <View style={styles.content}>
         <AdminWorkerScreen />
       </View>
-    </SafeAreaView>
+    </ScreenWrapper>
   );
 }
 

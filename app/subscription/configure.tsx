@@ -5,7 +5,6 @@ import {
   ActivityIndicator,
   Alert,
   NativeModules,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
@@ -14,6 +13,7 @@ import {
   View,
   Modal,
 } from "react-native";
+import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import {
   useGetVehiclesQuery,
   useCreateVehicleMutation,
@@ -151,7 +151,7 @@ export default function SubscriptionConfigureScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <ScreenWrapper style={styles.container} backgroundColor="#f8f9fa">
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <Ionicons name="arrow-back" size={24} color="#333" />
@@ -314,7 +314,7 @@ export default function SubscriptionConfigureScreen() {
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    </ScreenWrapper>
   );
 }
 

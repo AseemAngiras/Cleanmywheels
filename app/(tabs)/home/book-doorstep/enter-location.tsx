@@ -6,6 +6,7 @@ import {
 } from "@/store/api/addressApi";
 import { setBookingAddress } from "@/store/slices/bookingSlice";
 import { addAddress, Address } from "@/store/slices/profileSlice";
+import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { Ionicons } from "@expo/vector-icons";
 import { nanoid } from "@reduxjs/toolkit";
 import * as Location from "expo-location";
@@ -18,7 +19,6 @@ import {
   KeyboardAvoidingView,
   Modal,
   Platform,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
@@ -378,7 +378,7 @@ export default function EnterLocationScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <ScreenWrapper backgroundColor="#fff" statusBarStyle="dark-content">
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
@@ -741,7 +741,7 @@ export default function EnterLocationScreen() {
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    </ScreenWrapper>
   );
 }
 

@@ -5,7 +5,6 @@ import {
   ActivityIndicator,
   LayoutAnimation,
   Platform,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
@@ -13,6 +12,7 @@ import {
   UIManager,
   View,
 } from "react-native";
+import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import {
   useGetPlansQuery,
   useGetMySubscriptionQuery,
@@ -96,31 +96,31 @@ export default function SubscriptionPlansScreen() {
   const hasActiveSubs = activeSubs.length > 0;
 
   return (
-    <View style={styles.container}>
+    <ScreenWrapper
+      style={styles.container}
+      backgroundColor="#F8FAFC"
+      statusBarStyle="dark-content"
+    >
       {/* HEADER */}
       <View style={styles.headerContainer}>
-        <SafeAreaView>
-          <View style={styles.headerContent}>
-            {arePlansVisible ? (
-              <TouchableOpacity onPress={togglePlans} style={styles.backBtn}>
-                <Ionicons name="chevron-back" size={24} color="#0F172A" />
-              </TouchableOpacity>
-            ) : (
-              <View>
-                <Text style={styles.headerTitle}>My Garage</Text>
-                <Text style={styles.headerSubtitle}>
-                  Manage your clean rides
-                </Text>
-              </View>
-            )}
+        <View style={styles.headerContent}>
+          {arePlansVisible ? (
+            <TouchableOpacity onPress={togglePlans} style={styles.backBtn}>
+              <Ionicons name="chevron-back" size={24} color="#0F172A" />
+            </TouchableOpacity>
+          ) : (
+            <View>
+              <Text style={styles.headerTitle}>My Garage</Text>
+              <Text style={styles.headerSubtitle}>Manage your clean rides</Text>
+            </View>
+          )}
 
-            {arePlansVisible && (
-              <Text style={styles.planHeaderTitle}>Select Plan</Text>
-            )}
+          {arePlansVisible && (
+            <Text style={styles.planHeaderTitle}>Select Plan</Text>
+          )}
 
-            {arePlansVisible && <View style={{ width: 24 }} />}
-          </View>
-        </SafeAreaView>
+          {arePlansVisible && <View style={{ width: 24 }} />}
+        </View>
       </View>
 
       <ScrollView
@@ -169,7 +169,7 @@ export default function SubscriptionPlansScreen() {
 
         <View style={{ height: 100 }} />
       </ScrollView>
-    </View>
+    </ScreenWrapper>
   );
 }
 

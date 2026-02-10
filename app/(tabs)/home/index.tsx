@@ -13,9 +13,11 @@ import { loginSuccess, logout } from "@/store/slices/authSlice";
 import { Booking } from "@/store/slices/bookingSlice";
 import { setUser } from "@/store/slices/userSlice";
 
+import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useNavigation, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   ActivityIndicator,
   Alert,
@@ -23,14 +25,17 @@ import {
   KeyboardAvoidingView,
   Modal,
   Platform,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
-  StatusBar,
+  // StyleSheet,
+  // Text,
+  // TextInput,
+  // TouchableOpacity,
+  // View,
 } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -98,7 +103,7 @@ export default function HomeScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const inputRefs = useRef<(TextInput | null)[]>([]);
 
-  const [requestOtp, { isLoading: isRequestingOtp }] = useRequestOtpMutation();
+  const [requestOtp] = useRequestOtpMutation();
   const [verifyLoginOtp, { isLoading: isVerifyingOtp }] =
     useVerifyLoginOtpMutation();
   const [register, { isLoading: isRegistering }] = useRegisterMutation();
@@ -328,272 +333,263 @@ export default function HomeScreen() {
   };
 
   return (
-    <View style={styles.root}>
-      <StatusBar
-        barStyle="light-content"
-        translucent
-        backgroundColor="transparent"
-      />
-
-      {/* Background Pattern - Placed in Root to cover everything */}
-      <HomeBackground />
-
-      <SafeAreaView style={styles.safeArea}>
-        <ScrollView
-          contentContainerStyle={styles.container}
-          showsVerticalScrollIndicator={false}
-        >
-          {/* Header */}
-          <View style={styles.header}>
-            <View>
-              <Text style={styles.headerSmall}>ON-DEMAND CARE</Text>
-              <Text style={styles.headerTitleLogo}>
-                CLEANMY<Text style={styles.headerTitleHighlight}>WHEELS</Text>
-              </Text>
-            </View>
-
-            <View style={styles.headerIcons}>
-              {!isLoggedIn ? (
-                <TouchableOpacity
-                  style={styles.limePillBtn}
-                  onPress={() => setIsLoginModalVisible(true)}
-                >
-                  <Text style={styles.limePillText}>LOG IN</Text>
-                </TouchableOpacity>
-              ) : (
-                <TouchableOpacity
-                  style={styles.iconCircle}
-                  onPress={() => router.push("/(tabs)/profile")}
-                >
-                  <Image
-                    source={{
-                      uri:
-                        userAvatar ||
-                        "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
-                    }}
-                    style={styles.avatarImage}
-                  />
-                </TouchableOpacity>
-              )}
-            </View>
+    <ScreenWrapper
+      background={<HomeBackground />}
+      statusBarStyle="light-content"
+      style={styles.root}
+    >
+      <ScrollView
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Header */}
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.headerSmall}>ON-DEMAND CARE</Text>
+            <Text style={styles.headerTitleLogo}>
+              CLEANMY<Text style={styles.headerTitleHighlight}>WHEELS</Text>
+            </Text>
           </View>
 
-          {/* Hero Section */}
-          <HeroSection isLoggedIn={isLoggedIn} />
+          <View style={styles.headerIcons}>
+            {!isLoggedIn ? (
+              <TouchableOpacity
+                style={styles.limePillBtn}
+                onPress={() => setIsLoginModalVisible(true)}
+              >
+                <Text style={styles.limePillText}>LOG IN</Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                style={styles.iconCircle}
+                onPress={() => router.push("/(tabs)/profile")}
+              >
+                <Image
+                  source={{
+                    uri:
+                      userAvatar ||
+                      "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
+                  }}
+                  style={styles.avatarImage}
+                />
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
 
-          {/* Action Grid (Book / Add-ons) */}
-          <ServiceActionGrid
-            isLoggedIn={isLoggedIn}
-            hasActiveSubscription={activeSubs.length > 0}
+        {/* Hero Section */}
+        <HeroSection isLoggedIn={isLoggedIn} />
+
+        {/* Action Grid (Book / Add-ons) */}
+        <ServiceActionGrid
+          isLoggedIn={isLoggedIn}
+          hasActiveSubscription={activeSubs.length > 0}
+        />
+
+        {/* Core Protocols (Replaces WhyChooseUs) */}
+        {!isLoggedIn && <CoreProtocols />}
+
+        {/* Next Service (For Subscribers) */}
+        {isLoggedIn &&
+          activeSubs.map((sub: any) => {
+            const startDate = new Date(sub.startDate || new Date());
+            const completed = sub.servicesCompleted || 0;
+            const total = sub.servicesTotal || 30;
+            const nextDate = new Date(startDate);
+            nextDate.setDate(startDate.getDate() + completed);
+
+            return (
+              <NextServiceWidget
+                key={sub._id}
+                date={nextDate.toISOString()}
+                vehicleNo={sub.vehicle?.vehicleNo || "Car"}
+                progress={completed / total}
+              />
+            );
+          })}
+        {isLoggedIn && pastBookings.length > 0 && (
+          <View style={styles.sectionContainer}>
+            <View style={[styles.sectionHeader, { paddingHorizontal: 20 }]}>
+              <Text style={styles.sectionTitle}>Recent Services</Text>
+              <TouchableOpacity>
+                {/* <Text style={styles.viewAllText}>View All</Text> */}
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.recentList}
+            >
+              {pastBookings.map((item, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={styles.recentCard}
+                  activeOpacity={0.9}
+                  onPress={() => handleRecentServicePress(item)}
+                >
+                  <View style={styles.recentCardHeader}>
+                    <View style={styles.recentIconBox}>
+                      <Ionicons name="sparkles" size={20} color="#C8F000" />
+                    </View>
+                    <View style={styles.rebookBadge}>
+                      <Ionicons name="refresh" size={10} color="#C8F000" />
+                      <Text style={styles.rebookText}>Rebook</Text>
+                    </View>
+                  </View>
+
+                  <Text style={styles.recentServiceName} numberOfLines={1}>
+                    {item.serviceName}
+                  </Text>
+                  <Text style={styles.recentCarText} numberOfLines={1}>
+                    {item.car}
+                  </Text>
+
+                  <View style={styles.recentDivider} />
+
+                  <View style={styles.recentFooter}>
+                    <Text style={styles.recentDate}>
+                      {item.date
+                        ? new Date(item.date).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                          })
+                        : "N/A"}
+                    </Text>
+                    <Text style={styles.recentPrice}>₹ {item.price}</Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        )}
+      </ScrollView>
+
+      {/* Login Modal */}
+      <Modal
+        visible={isLoginModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={handleCloseModal}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={styles.modalOverlay}
+        >
+          <TouchableOpacity
+            style={styles.modalDismissArea}
+            activeOpacity={1}
+            onPress={handleCloseModal}
           />
 
-          {/* Core Protocols (Replaces WhyChooseUs) */}
-          {!isLoggedIn && <CoreProtocols />}
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <View style={styles.modalIndicator} />
+            </View>
 
-          {/* Next Service (For Subscribers) */}
-          {isLoggedIn &&
-            activeSubs.map((sub: any) => {
-              const startDate = new Date(sub.startDate || new Date());
-              const completed = sub.servicesCompleted || 0;
-              const total = sub.servicesTotal || 30;
-              const nextDate = new Date(startDate);
-              nextDate.setDate(startDate.getDate() + completed);
+            <Text style={styles.modalTitle}>
+              {modalStep === "details" ? "Welcome Back!" : "Enter OTP"}
+            </Text>
+            <Text style={styles.modalSubtitle}>
+              {modalStep === "details"
+                ? "Enter your mobile number to continue."
+                : `We sent a code to +91 ${phoneNumber}`}
+            </Text>
 
-              return (
-                <NextServiceWidget
-                  key={sub._id}
-                  date={nextDate.toISOString()}
-                  vehicleNo={sub.vehicle?.vehicleNo || "Car"}
-                  progress={completed / total}
-                />
-              );
-            })}
-          {isLoggedIn && pastBookings.length > 0 && (
-            <View style={styles.sectionContainer}>
-              <View style={[styles.sectionHeader, { paddingHorizontal: 20 }]}>
-                <Text style={styles.sectionTitle}>Recent Services</Text>
-                <TouchableOpacity>
-                  {/* <Text style={styles.viewAllText}>View All</Text> */}
+            {modalStep === "details" ? (
+              <View>
+                <View style={styles.inputWrapper}>
+                  <Text style={styles.inputLabel}>Mobile Number</Text>
+                  <View style={styles.phoneInputContainer}>
+                    <Text style={styles.prefixText}>+91</Text>
+                    <View style={styles.verticalDivider} />
+                    <TextInput
+                      style={styles.phoneInput}
+                      placeholder="98765 43210"
+                      placeholderTextColor="#999"
+                      keyboardType="phone-pad"
+                      maxLength={10}
+                      value={phoneNumber}
+                      onChangeText={setPhoneNumber}
+                    />
+                  </View>
+                </View>
+
+                <TouchableOpacity
+                  style={styles.primaryModalBtn}
+                  onPress={handleSendOtp}
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <ActivityIndicator color="#000" />
+                  ) : (
+                    <Text style={styles.primaryModalBtnText}>Continue</Text>
+                  )}
                 </TouchableOpacity>
               </View>
+            ) : (
+              <View>
+                <View style={styles.otpContainer}>
+                  {otp.map((digit, i) => (
+                    <TextInput
+                      key={i}
+                      ref={(ref) => {
+                        inputRefs.current[i] = ref;
+                      }}
+                      style={[
+                        styles.otpBox,
+                        digit ? styles.otpBoxFilled : null,
+                      ]}
+                      keyboardType="number-pad"
+                      maxLength={1}
+                      value={digit}
+                      onChangeText={(val) => {
+                        const newOtp = [...otp];
+                        newOtp[i] = val;
+                        setOtp(newOtp);
+                        if (val && i < 5) {
+                          inputRefs.current[i + 1]?.focus();
+                        }
+                      }}
+                      onKeyPress={({ nativeEvent }) => {
+                        if (
+                          nativeEvent.key === "Backspace" &&
+                          !otp[i] &&
+                          i > 0
+                        ) {
+                          inputRefs.current[i - 1]?.focus();
+                        }
+                      }}
+                    />
+                  ))}
+                </View>
 
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.recentList}
-              >
-                {pastBookings.map((item, index) => (
-                  <TouchableOpacity
-                    key={index}
-                    style={styles.recentCard}
-                    activeOpacity={0.9}
-                    onPress={() => handleRecentServicePress(item)}
-                  >
-                    <View style={styles.recentCardHeader}>
-                      <View style={styles.recentIconBox}>
-                        <Ionicons name="sparkles" size={20} color="#C8F000" />
-                      </View>
-                      <View style={styles.rebookBadge}>
-                        <Ionicons name="refresh" size={10} color="#C8F000" />
-                        <Text style={styles.rebookText}>Rebook</Text>
-                      </View>
-                    </View>
-
-                    <Text style={styles.recentServiceName} numberOfLines={1}>
-                      {item.serviceName}
-                    </Text>
-                    <Text style={styles.recentCarText} numberOfLines={1}>
-                      {item.car}
-                    </Text>
-
-                    <View style={styles.recentDivider} />
-
-                    <View style={styles.recentFooter}>
-                      <Text style={styles.recentDate}>
-                        {item.date
-                          ? new Date(item.date).toLocaleDateString("en-US", {
-                              month: "short",
-                              day: "numeric",
-                            })
-                          : "N/A"}
-                      </Text>
-                      <Text style={styles.recentPrice}>₹ {item.price}</Text>
-                    </View>
+                <View style={styles.resendContainer}>
+                  <Text style={styles.resendText}>
+                    Didn&apos;t receive code?{" "}
+                  </Text>
+                  <TouchableOpacity onPress={handleSendOtp}>
+                    <Text style={styles.resendLink}>Resend</Text>
                   </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </View>
-          )}
-        </ScrollView>
+                </View>
 
-        {/* Login Modal */}
-        <Modal
-          visible={isLoginModalVisible}
-          transparent
-          animationType="slide"
-          onRequestClose={handleCloseModal}
-        >
-          <KeyboardAvoidingView
-            behavior={Platform.OS === "ios" ? "padding" : "height"}
-            style={styles.modalOverlay}
-          >
-            <TouchableOpacity
-              style={styles.modalDismissArea}
-              activeOpacity={1}
-              onPress={handleCloseModal}
-            />
-
-            <View style={styles.modalContent}>
-              <View style={styles.modalHeader}>
-                <View style={styles.modalIndicator} />
+                <TouchableOpacity
+                  style={styles.primaryModalBtn}
+                  onPress={handleVerifyOtp}
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <ActivityIndicator color="#000" />
+                  ) : (
+                    <Text style={styles.primaryModalBtnText}>Verify Login</Text>
+                  )}
+                </TouchableOpacity>
               </View>
-
-              <Text style={styles.modalTitle}>
-                {modalStep === "details" ? "Welcome Back!" : "Enter OTP"}
-              </Text>
-              <Text style={styles.modalSubtitle}>
-                {modalStep === "details"
-                  ? "Enter your mobile number to continue."
-                  : `We sent a code to +91 ${phoneNumber}`}
-              </Text>
-
-              {modalStep === "details" ? (
-                <View>
-                  <View style={styles.inputWrapper}>
-                    <Text style={styles.inputLabel}>Mobile Number</Text>
-                    <View style={styles.phoneInputContainer}>
-                      <Text style={styles.prefixText}>+91</Text>
-                      <View style={styles.verticalDivider} />
-                      <TextInput
-                        style={styles.phoneInput}
-                        placeholder="98765 43210"
-                        placeholderTextColor="#999"
-                        keyboardType="phone-pad"
-                        maxLength={10}
-                        value={phoneNumber}
-                        onChangeText={setPhoneNumber}
-                      />
-                    </View>
-                  </View>
-
-                  <TouchableOpacity
-                    style={styles.primaryModalBtn}
-                    onPress={handleSendOtp}
-                    disabled={isLoading}
-                  >
-                    {isLoading ? (
-                      <ActivityIndicator color="#000" />
-                    ) : (
-                      <Text style={styles.primaryModalBtnText}>Continue</Text>
-                    )}
-                  </TouchableOpacity>
-                </View>
-              ) : (
-                <View>
-                  <View style={styles.otpContainer}>
-                    {otp.map((digit, i) => (
-                      <TextInput
-                        key={i}
-                        ref={(ref) => {
-                          inputRefs.current[i] = ref;
-                        }}
-                        style={[
-                          styles.otpBox,
-                          digit ? styles.otpBoxFilled : null,
-                        ]}
-                        keyboardType="number-pad"
-                        maxLength={1}
-                        value={digit}
-                        onChangeText={(val) => {
-                          const newOtp = [...otp];
-                          newOtp[i] = val;
-                          setOtp(newOtp);
-                          if (val && i < 5) {
-                            inputRefs.current[i + 1]?.focus();
-                          }
-                        }}
-                        onKeyPress={({ nativeEvent }) => {
-                          if (
-                            nativeEvent.key === "Backspace" &&
-                            !otp[i] &&
-                            i > 0
-                          ) {
-                            inputRefs.current[i - 1]?.focus();
-                          }
-                        }}
-                      />
-                    ))}
-                  </View>
-
-                  <View style={styles.resendContainer}>
-                    <Text style={styles.resendText}>
-                      Didn&apos;t receive code?{" "}
-                    </Text>
-                    <TouchableOpacity onPress={handleSendOtp}>
-                      <Text style={styles.resendLink}>Resend</Text>
-                    </TouchableOpacity>
-                  </View>
-
-                  <TouchableOpacity
-                    style={styles.primaryModalBtn}
-                    onPress={handleVerifyOtp}
-                    disabled={isLoading}
-                  >
-                    {isLoading ? (
-                      <ActivityIndicator color="#000" />
-                    ) : (
-                      <Text style={styles.primaryModalBtnText}>
-                        Verify Login
-                      </Text>
-                    )}
-                  </TouchableOpacity>
-                </View>
-              )}
-            </View>
-          </KeyboardAvoidingView>
-        </Modal>
-      </SafeAreaView>
-    </View>
+            )}
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+    </ScreenWrapper>
   );
 }
 

@@ -7,15 +7,10 @@ import {
   Keyboard,
   KeyboardAvoidingView,
   Platform,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
   TouchableWithoutFeedback,
   View,
 } from "react-native";
+import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 
 export default function VehicleDetailsScreen() {
   const dispatch = useAppDispatch();
@@ -59,7 +54,7 @@ export default function VehicleDetailsScreen() {
   ];
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <ScreenWrapper style={styles.safeArea} backgroundColor="#fff">
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
@@ -209,7 +204,7 @@ export default function VehicleDetailsScreen() {
                 style={styles.nextButton}
                 onPress={() => {
                   console.log(
-                    "NEXT BUTTON PRESSED — this should always appear first"
+                    "NEXT BUTTON PRESSED — this should always appear first",
                   );
                   let finalCar;
 
@@ -237,7 +232,7 @@ export default function VehicleDetailsScreen() {
                     console.log("creating new car -> will dispatch:", finalCar);
                     dispatch(addCar(finalCar));
                     console.log(
-                      "Dispatch called! (but state might not update yet)"
+                      "Dispatch called! (but state might not update yet)",
                     );
                   }
 
@@ -257,7 +252,7 @@ export default function VehicleDetailsScreen() {
           </View>
         </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </ScreenWrapper>
   );
 }
 

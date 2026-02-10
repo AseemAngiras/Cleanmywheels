@@ -25,7 +25,7 @@ import {
   LayoutAnimation,
   Modal,
   Platform,
-  SafeAreaView,
+  // Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -34,6 +34,7 @@ import {
   TouchableWithoutFeedback,
   View,
 } from "react-native";
+import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { useSelector } from "react-redux";
 import BookingStepper from "../../../../components/BookingStepper";
 import { ListSkeleton } from "../../../../components/SkeletonLoader";
@@ -419,7 +420,7 @@ export default function SelectServiceScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <ScreenWrapper style={styles.safeArea} backgroundColor="#f9f9f9">
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => router.back()}
@@ -958,7 +959,7 @@ export default function SelectServiceScreen() {
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    </ScreenWrapper>
   );
 }
 

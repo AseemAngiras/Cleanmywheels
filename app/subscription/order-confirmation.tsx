@@ -2,7 +2,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect } from "react";
 import {
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
@@ -10,6 +9,7 @@ import {
   View,
 } from "react-native";
 import { useDispatch } from "react-redux";
+import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { addBooking } from "../../store/slices/bookingSlice";
 
 export default function OrderConfirmationScreen() {
@@ -40,7 +40,7 @@ export default function OrderConfirmationScreen() {
   }, []);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <ScreenWrapper style={styles.container} backgroundColor="#fff">
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 100 }}
@@ -201,7 +201,7 @@ export default function OrderConfirmationScreen() {
           <Text style={styles.homeButtonText}>Back to Home</Text>
         </TouchableOpacity>
       </View>
-    </SafeAreaView>
+    </ScreenWrapper>
   );
 }
 

@@ -13,16 +13,8 @@ import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 import { WebView } from "react-native-webview";
 import { useEffect, useRef, useState } from "react";
-import {
-  Alert,
-  Modal,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Alert, Modal, Text, TouchableOpacity, View } from "react-native";
+import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { useDispatch, useSelector } from "react-redux";
 import BookingStepper from "../../../../components/BookingStepper";
 import PulseLoader from "../../../../components/PulseLoader";
@@ -368,7 +360,7 @@ export default function BookingSummaryScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <ScreenWrapper style={styles.container} backgroundColor="#f9f9f9">
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
@@ -548,7 +540,7 @@ export default function BookingSummaryScreen() {
         animationType="slide"
         presentationStyle="pageSheet"
       >
-        <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
+        <View style={{ flex: 1, backgroundColor: "#fff" }}>
           <View
             style={{
               flexDirection: "row",
@@ -590,9 +582,9 @@ export default function BookingSummaryScreen() {
               <Text>Loading Payment...</Text>
             </View>
           )}
-        </SafeAreaView>
+        </View>
       </Modal>
-    </SafeAreaView>
+    </ScreenWrapper>
   );
 }
 

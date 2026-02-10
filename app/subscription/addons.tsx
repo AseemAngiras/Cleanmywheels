@@ -13,8 +13,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import RazorpayCheckout from "react-native-razorpay";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import {
@@ -180,7 +179,7 @@ export default function AddonsScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <ScreenWrapper style={styles.container} backgroundColor="#F8F9FA">
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
@@ -405,7 +404,7 @@ export default function AddonsScreen() {
           </TouchableOpacity>
         </View>
       )}
-    </SafeAreaView>
+    </ScreenWrapper>
   );
 }
 

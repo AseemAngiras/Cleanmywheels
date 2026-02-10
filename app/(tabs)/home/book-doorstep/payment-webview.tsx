@@ -3,12 +3,12 @@ import React, { useState } from "react";
 import {
   ActivityIndicator,
   Alert,
-  SafeAreaView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { WebView } from "react-native-webview";
 import { Ionicons } from "@expo/vector-icons";
 import {
@@ -178,7 +178,7 @@ export default function PaymentWebViewScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <ScreenWrapper style={styles.container} backgroundColor="#fff">
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.closeBtn}>
           <Ionicons name="close" size={26} color="#000" />
@@ -202,7 +202,7 @@ export default function PaymentWebViewScreen() {
           <ActivityIndicator size="large" color="#C8F000" />
         </View>
       )}
-    </SafeAreaView>
+    </ScreenWrapper>
   );
 }
 

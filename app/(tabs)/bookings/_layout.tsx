@@ -1,14 +1,9 @@
 import { RootState } from "@/store";
 import { Ionicons } from "@expo/vector-icons";
 import { Slot, usePathname, useRouter } from "expo-router";
-import {
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useSelector } from "react-redux";
+import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 
 export default function BookingsLayout() {
   const router = useRouter();
@@ -26,7 +21,11 @@ export default function BookingsLayout() {
   const isPast = pathname.includes("past");
 
   return (
-    <SafeAreaView style={styles.container}>
+    <ScreenWrapper
+      style={styles.container}
+      backgroundColor="#f5f5f5"
+      statusBarStyle="dark-content"
+    >
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
@@ -59,7 +58,7 @@ export default function BookingsLayout() {
       </View>
 
       <Slot />
-    </SafeAreaView>
+    </ScreenWrapper>
   );
 }
 

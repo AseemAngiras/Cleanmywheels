@@ -9,8 +9,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { useGetMySubscriptionQuery } from "@/store/api/subscriptionApi";
+import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 
 export default function SubscriptionDetailsScreen() {
   const router = useRouter();
@@ -145,7 +145,7 @@ export default function SubscriptionDetailsScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <ScreenWrapper style={styles.container} backgroundColor="#F8F9FA">
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <Ionicons name="arrow-back" size={24} color="#1a1a1a" />
@@ -195,7 +195,7 @@ export default function SubscriptionDetailsScreen() {
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
       />
-    </SafeAreaView>
+    </ScreenWrapper>
   );
 }
 

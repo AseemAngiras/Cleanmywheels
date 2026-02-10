@@ -28,22 +28,22 @@ const subscriptionSlice = createSlice({
       .addMatcher(
         subscriptionApi.endpoints.getMySubscription.matchFulfilled,
         (state, { payload }) => {
-          state.activeSubscription = payload;
+          state.activeSubscription = payload[0] || null;
           state.isLoading = false;
-        }
+        },
       )
       .addMatcher(
         subscriptionApi.endpoints.getMySubscription.matchPending,
         (state) => {
           state.isLoading = true;
-        }
+        },
       )
       .addMatcher(
         subscriptionApi.endpoints.getMySubscription.matchRejected,
         (state) => {
           state.activeSubscription = null;
           state.isLoading = false;
-        }
+        },
       );
   },
 });

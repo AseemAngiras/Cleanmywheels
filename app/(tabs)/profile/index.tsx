@@ -37,6 +37,8 @@ import { updateUser } from "../../../store/slices/userSlice";
 
 import { useGetMySubscriptionQuery } from "../../../store/api/subscriptionApi";
 
+import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
+
 const { height } = Dimensions.get("window");
 
 export default function ProfileHome() {
@@ -257,309 +259,351 @@ export default function ProfileHome() {
   };
 
   return (
-    <ScrollView
+    <ScreenWrapper
       style={styles.container}
-      contentContainerStyle={{ paddingBottom: 100 }}
-      showsVerticalScrollIndicator={false}
+      backgroundColor="#fff"
+      statusBarStyle="dark-content"
     >
-      {/* HEADER */}
-      <View style={styles.headerRow}>
-        <TouchableOpacity
-          style={styles.moreButton}
-          onPress={() => router.back()}
-        >
-          <Ionicons name="chevron-back" size={20} color="#111" />
-        </TouchableOpacity>
-        <Text style={styles.header}>Your Profile</Text>
-        <View style={{ width: 36 }} />
-      </View>
-      {/* PROFILE CARD */}
-      <View style={styles.profileCard}>
-        <View style={styles.profileLeft}>
+      <ScrollView
+        contentContainerStyle={{ paddingBottom: 100 }}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* HEADER */}
+        <View style={styles.headerRow}>
           <TouchableOpacity
-            onPress={() => setShowAvatarModal(true)}
-            activeOpacity={0.8}
+            style={styles.moreButton}
+            onPress={() => router.back()}
           >
-            <Image
-              source={{
-                uri: profileState?.avatar || "https://i.pravatar.cc/150?img=12",
-              }}
-              style={styles.avatar}
-            />
-            {/* Edit badge */}
-            <View
-              style={{
-                position: "absolute",
-                bottom: 0,
-                right: 4,
-                backgroundColor: "#fff",
-                borderRadius: 15,
-                width: 20,
-                height: 20,
-                alignItems: "center",
-                justifyContent: "center",
-                borderWidth: 1,
-                borderColor: "#f0f0f0",
-                shadowColor: "#000",
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.1,
-                shadowRadius: 4,
-                elevation: 3,
-              }}
-            >
-              <Ionicons name="pencil" size={10} color="#000000" />
-            </View>
+            <Ionicons name="chevron-back" size={20} color="#111" />
           </TouchableOpacity>
-          <View>
-            <TouchableOpacity onPress={() => setShowEditProfileModal(true)}>
-              <View style={{ flexDirection: "row", alignItems: "center" }}>
-                <Text style={styles.profileName}>
-                  {profileState?.name || userData?.name || "Your Name"}
-                </Text>
-                <Ionicons
-                  name="pencil-sharp"
-                  size={16}
-                  color="#666"
-                  style={{ marginLeft: 8 }}
-                />
-                {/* Premium Badge */}
-                {isPremiumUser && (
-                  <View
-                    style={{
-                      backgroundColor: "#D1F803",
-                      paddingHorizontal: 8,
-                      paddingVertical: 2,
-                      borderRadius: 12,
-                      marginLeft: 10,
-                    }}
-                  >
-                    <Text
-                      style={{
-                        color: "#1a1a1a",
-                        fontSize: 10,
-                        fontWeight: "bold",
-                      }}
-                    >
-                      PREMIUM
-                    </Text>
-                  </View>
-                )}
+          <Text style={styles.header}>Your Profile</Text>
+          <View style={{ width: 36 }} />
+        </View>
+        {/* PROFILE CARD */}
+        <View style={styles.profileCard}>
+          <View style={styles.profileLeft}>
+            <TouchableOpacity
+              onPress={() => setShowAvatarModal(true)}
+              activeOpacity={0.8}
+            >
+              <Image
+                source={{
+                  uri:
+                    profileState?.avatar || "https://i.pravatar.cc/150?img=12",
+                }}
+                style={styles.avatar}
+              />
+              {/* Edit badge */}
+              <View
+                style={{
+                  position: "absolute",
+                  bottom: 0,
+                  right: 4,
+                  backgroundColor: "#fff",
+                  borderRadius: 15,
+                  width: 20,
+                  height: 20,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  borderWidth: 1,
+                  borderColor: "#f0f0f0",
+                  shadowColor: "#000",
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.1,
+                  shadowRadius: 4,
+                  elevation: 3,
+                }}
+              >
+                <Ionicons name="pencil" size={10} color="#000000" />
               </View>
             </TouchableOpacity>
-            <Text style={styles.profileSubtitle}>
-              {profileState?.phone || userData?.phone || "Phone number"}
-            </Text>
-            {profileState?.email || userData?.email ? (
+            <View>
+              <TouchableOpacity onPress={() => setShowEditProfileModal(true)}>
+                <View style={{ flexDirection: "row", alignItems: "center" }}>
+                  <Text style={styles.profileName}>
+                    {profileState?.name || userData?.name || "Your Name"}
+                  </Text>
+                  <Ionicons
+                    name="pencil-sharp"
+                    size={16}
+                    color="#666"
+                    style={{ marginLeft: 8 }}
+                  />
+                  {/* Premium Badge */}
+                  {isPremiumUser && (
+                    <View
+                      style={{
+                        backgroundColor: "#D1F803",
+                        paddingHorizontal: 8,
+                        paddingVertical: 2,
+                        borderRadius: 12,
+                        marginLeft: 10,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          color: "#1a1a1a",
+                          fontSize: 10,
+                          fontWeight: "bold",
+                        }}
+                      >
+                        PREMIUM
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              </TouchableOpacity>
               <Text style={styles.profileSubtitle}>
-                {profileState?.email || userData?.email}
+                {profileState?.phone || userData?.phone || "Phone number"}
               </Text>
-            ) : null}
+              {profileState?.email || userData?.email ? (
+                <Text style={styles.profileSubtitle}>
+                  {profileState?.email || userData?.email}
+                </Text>
+              ) : null}
+            </View>
           </View>
         </View>
-      </View>
-      {/* ADMIN ACTIONS */}
-      {isAdmin && (
-        <View style={styles.card}>
-          <Text
-            style={{
-              fontSize: 16,
-              fontWeight: "600",
-              marginBottom: 10,
-              paddingHorizontal: 16,
-              color: "#1a1a1a",
-            }}
-          >
-            Admin Dashboard
-          </Text>
-          <Row
-            icon="calendar-outline"
-            title="Manage Bookings"
-            subtitle="View and assign active bookings"
-            onPress={() => router.push("/(tabs)/bookings")}
-          />
-          {/* <Row
+        {/* ADMIN ACTIONS */}
+        {isAdmin && (
+          <View style={styles.card}>
+            <Text
+              style={{
+                fontSize: 16,
+                fontWeight: "600",
+                marginBottom: 10,
+                paddingHorizontal: 16,
+                color: "#1a1a1a",
+              }}
+            >
+              Admin Dashboard
+            </Text>
+            <Row
+              icon="calendar-outline"
+              title="Manage Bookings"
+              subtitle="View and assign active bookings"
+              onPress={() => router.push("/(tabs)/bookings")}
+            />
+            {/* <Row
             icon="alert-circle-outline"
             title="Complaints & Refunds"
             subtitle="View user tickets and refund requests"
             onPress={() => router.push("/(tabs)/admin/subscriptions")}
           /> */}
-          <Row
-            icon="people-outline"
-            title="Manage Users"
-            subtitle="View registered users"
-            onPress={() =>
-              Alert.alert(
-                "Coming Soon",
-                "User management is under development.",
-              )
-            }
-          />
-          <Row
-            icon="stats-chart-outline"
-            title="Analytics"
-            subtitle="View platform performance"
-            onPress={() =>
-              Alert.alert("Coming Soon", "Analytics is under development.")
-            }
-          />
-        </View>
-      )}
-      {/* USER SECTIONS */}
-      {!isAdmin && (
-        <>
-          {/* SAVED ADDRESSES */}
-          <View style={styles.card}>
-            <View
-              style={{
-                paddingHorizontal: 16,
-                paddingVertical: 10,
-                borderBottomWidth: 1,
-                borderBottomColor: "#f0f0f0",
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <Text style={{ fontSize: 16, fontWeight: "600" }}>
-                Saved Addresses
-              </Text>
-              <TouchableOpacity
-                style={{ flexDirection: "row", alignItems: "center", gap: 4 }}
-                onPress={() =>
-                  router.push({
-                    pathname: "/(tabs)/home/book-doorstep/enter-location",
-                    params: { source: "profile" },
-                  })
-                }
+            <Row
+              icon="people-outline"
+              title="Manage Users"
+              subtitle="View registered users"
+              onPress={() =>
+                Alert.alert(
+                  "Coming Soon",
+                  "User management is under development.",
+                )
+              }
+            />
+            <Row
+              icon="stats-chart-outline"
+              title="Analytics"
+              subtitle="View platform performance"
+              onPress={() =>
+                Alert.alert("Coming Soon", "Analytics is under development.")
+              }
+            />
+          </View>
+        )}
+        {/* USER SECTIONS */}
+        {!isAdmin && (
+          <>
+            {/* SAVED ADDRESSES */}
+            <View style={styles.card}>
+              <View
+                style={{
+                  paddingHorizontal: 16,
+                  paddingVertical: 10,
+                  borderBottomWidth: 1,
+                  borderBottomColor: "#f0f0f0",
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
               >
-                <Ionicons name="add-circle" size={18} color="#84c95c" />
-                <Text style={{ color: "#84c95c", fontWeight: "600" }}>Add</Text>
-              </TouchableOpacity>
-            </View>
-            {savedAddresses.length === 0 ? (
-              <View style={{ padding: 16 }}>
-                <Text style={{ color: "#888" }}>No addresses saved yet.</Text>
-              </View>
-            ) : (
-              <View>
+                <Text style={{ fontSize: 16, fontWeight: "600" }}>
+                  Saved Addresses
+                </Text>
                 <TouchableOpacity
-                  style={[
-                    styles.addressRow,
-                    { borderBottomWidth: isAddressDropdownOpen ? 1 : 0 },
-                  ]}
+                  style={{ flexDirection: "row", alignItems: "center", gap: 4 }}
                   onPress={() =>
-                    setIsAddressDropdownOpen(!isAddressDropdownOpen)
+                    router.push({
+                      pathname: "/(tabs)/home/book-doorstep/enter-location",
+                      params: { source: "profile" },
+                    })
                   }
-                  activeOpacity={0.7}
                 >
-                  <View style={styles.iconBox}>
-                    <Ionicons name="location" size={18} color="#1a1a1a" />
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.rowTitle}>
-                      {defaultAddress?.addressType || "Select Address"}
-                    </Text>
-                    <Text style={styles.rowSubtitle} numberOfLines={1}>
-                      {defaultAddress?.fullAddress ||
-                        defaultAddress?.city ||
-                        "No default address selected"}
-                    </Text>
-                  </View>
-                  <Ionicons
-                    name={isAddressDropdownOpen ? "chevron-up" : "chevron-down"}
-                    size={20}
-                    color="#666"
-                  />
+                  <Ionicons name="add-circle" size={18} color="#84c95c" />
+                  <Text style={{ color: "#84c95c", fontWeight: "600" }}>
+                    Add
+                  </Text>
                 </TouchableOpacity>
+              </View>
+              {savedAddresses.length === 0 ? (
+                <View style={{ padding: 16 }}>
+                  <Text style={{ color: "#888" }}>No addresses saved yet.</Text>
+                </View>
+              ) : (
+                <View>
+                  <TouchableOpacity
+                    style={[
+                      styles.addressRow,
+                      { borderBottomWidth: isAddressDropdownOpen ? 1 : 0 },
+                    ]}
+                    onPress={() =>
+                      setIsAddressDropdownOpen(!isAddressDropdownOpen)
+                    }
+                    activeOpacity={0.7}
+                  >
+                    <View style={styles.iconBox}>
+                      <Ionicons name="location" size={18} color="#1a1a1a" />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.rowTitle}>
+                        {defaultAddress?.addressType || "Select Address"}
+                      </Text>
+                      <Text style={styles.rowSubtitle} numberOfLines={1}>
+                        {defaultAddress?.fullAddress ||
+                          defaultAddress?.city ||
+                          "No default address selected"}
+                      </Text>
+                    </View>
+                    <Ionicons
+                      name={
+                        isAddressDropdownOpen ? "chevron-up" : "chevron-down"
+                      }
+                      size={20}
+                      color="#666"
+                    />
+                  </TouchableOpacity>
 
-                {/* Dropdown List */}
-                {isAddressDropdownOpen && (
-                  <View style={{ backgroundColor: "#F9F9F9" }}>
-                    {savedAddresses.map((addr: any, idx: number) => {
-                      const isDefault =
-                        profileState.defaultAddressId === addr.id;
-                      const isExpanded = expandedAddressId === addr.id;
+                  {/* Dropdown List */}
+                  {isAddressDropdownOpen && (
+                    <View style={{ backgroundColor: "#F9F9F9" }}>
+                      {savedAddresses.map((addr: any, idx: number) => {
+                        const isDefault =
+                          profileState.defaultAddressId === addr.id;
+                        const isExpanded = expandedAddressId === addr.id;
 
-                      return (
-                        <View key={addr.id || idx}>
-                          <TouchableOpacity
-                            style={[
-                              styles.addressRow,
-                              {
-                                paddingLeft: 24,
-                                backgroundColor: isDefault
-                                  ? "#F0FDF4"
-                                  : "#F9F9F9",
-                                borderBottomWidth: isExpanded ? 0 : 1,
-                              },
-                            ]}
-                            activeOpacity={0.7}
-                            onPress={() => {
-                              setExpandedAddressId(isExpanded ? null : addr.id);
-                            }}
-                          >
-                            <View
+                        return (
+                          <View key={addr.id || idx}>
+                            <TouchableOpacity
                               style={[
-                                styles.iconBox,
+                                styles.addressRow,
                                 {
+                                  paddingLeft: 24,
                                   backgroundColor: isDefault
-                                    ? "#DCFCE7"
-                                    : "#EEEEEE",
+                                    ? "#F0FDF4"
+                                    : "#F9F9F9",
+                                  borderBottomWidth: isExpanded ? 0 : 1,
                                 },
                               ]}
-                            >
-                              <Ionicons
-                                name={
-                                  isDefault ? "checkmark" : "location-outline"
-                                }
-                                size={16}
-                                color={isDefault ? "#166534" : "#666"}
-                              />
-                            </View>
-                            <View style={{ flex: 1 }}>
-                              <Text
-                                style={[
-                                  styles.rowTitle,
-                                  isDefault && { color: "#166534" },
-                                ]}
-                              >
-                                {addr.addressType || "Home"}
-                              </Text>
-                              <Text
-                                style={styles.rowSubtitle}
-                                numberOfLines={1}
-                              >
-                                {addr.fullAddress ||
-                                  `${addr.flatNumber}, ${addr.locality}, ${addr.city}`}
-                              </Text>
-                            </View>
-
-                            {/* Dropdown arrow to indicate expandability */}
-                            <Ionicons
-                              name={isExpanded ? "chevron-up" : "chevron-down"}
-                              size={16}
-                              color="#999"
-                            />
-                          </TouchableOpacity>
-
-                          {/* ACTIONS ROW (Visible if expanded) */}
-                          {isExpanded && (
-                            <View
-                              style={{
-                                flexDirection: "row",
-                                alignItems: "center",
-                                backgroundColor: isDefault
-                                  ? "#F0FDF4"
-                                  : "#F9F9F9",
-                                paddingLeft: 60,
-                                paddingBottom: 12,
-                                paddingRight: 16,
-                                gap: 16,
-                                borderBottomWidth: 1,
-                                borderBottomColor: "#f0f0f0",
+                              activeOpacity={0.7}
+                              onPress={() => {
+                                setExpandedAddressId(
+                                  isExpanded ? null : addr.id,
+                                );
                               }}
                             >
-                              {!isDefault && (
+                              <View
+                                style={[
+                                  styles.iconBox,
+                                  {
+                                    backgroundColor: isDefault
+                                      ? "#DCFCE7"
+                                      : "#EEEEEE",
+                                  },
+                                ]}
+                              >
+                                <Ionicons
+                                  name={
+                                    isDefault ? "checkmark" : "location-outline"
+                                  }
+                                  size={16}
+                                  color={isDefault ? "#166534" : "#666"}
+                                />
+                              </View>
+                              <View style={{ flex: 1 }}>
+                                <Text
+                                  style={[
+                                    styles.rowTitle,
+                                    isDefault && { color: "#166534" },
+                                  ]}
+                                >
+                                  {addr.addressType || "Home"}
+                                </Text>
+                                <Text
+                                  style={styles.rowSubtitle}
+                                  numberOfLines={1}
+                                >
+                                  {addr.fullAddress ||
+                                    `${addr.flatNumber}, ${addr.locality}, ${addr.city}`}
+                                </Text>
+                              </View>
+
+                              {/* Dropdown arrow to indicate expandability */}
+                              <Ionicons
+                                name={
+                                  isExpanded ? "chevron-up" : "chevron-down"
+                                }
+                                size={16}
+                                color="#999"
+                              />
+                            </TouchableOpacity>
+
+                            {/* ACTIONS ROW (Visible if expanded) */}
+                            {isExpanded && (
+                              <View
+                                style={{
+                                  flexDirection: "row",
+                                  alignItems: "center",
+                                  backgroundColor: isDefault
+                                    ? "#F0FDF4"
+                                    : "#F9F9F9",
+                                  paddingLeft: 60,
+                                  paddingBottom: 12,
+                                  paddingRight: 16,
+                                  gap: 16,
+                                  borderBottomWidth: 1,
+                                  borderBottomColor: "#f0f0f0",
+                                }}
+                              >
+                                {!isDefault && (
+                                  <TouchableOpacity
+                                    style={{
+                                      flexDirection: "row",
+                                      alignItems: "center",
+                                      gap: 6,
+                                    }}
+                                    onPress={() => {
+                                      dispatch(setDefaultAddress(addr.id));
+                                      setExpandedAddressId(null);
+                                      setIsAddressDropdownOpen(false);
+                                    }}
+                                  >
+                                    <Ionicons
+                                      name="checkmark-circle-outline"
+                                      size={18}
+                                      color="#166534"
+                                    />
+                                    <Text
+                                      style={{
+                                        fontSize: 14,
+                                        color: "#166534",
+                                        fontWeight: "500",
+                                      }}
+                                    >
+                                      Make Default
+                                    </Text>
+                                  </TouchableOpacity>
+                                )}
+
                                 <TouchableOpacity
                                   style={{
                                     flexDirection: "row",
@@ -567,363 +611,344 @@ export default function ProfileHome() {
                                     gap: 6,
                                   }}
                                   onPress={() => {
-                                    dispatch(setDefaultAddress(addr.id));
-                                    setExpandedAddressId(null);
-                                    setIsAddressDropdownOpen(false);
+                                    Alert.alert(
+                                      "Delete Address",
+                                      "Are you sure you want to remove this address?",
+                                      [
+                                        { text: "Cancel", style: "cancel" },
+                                        {
+                                          text: "Delete",
+                                          style: "destructive",
+                                          onPress: async () => {
+                                            try {
+                                              await deleteAddress(
+                                                addr.id,
+                                              ).unwrap();
+                                              // The API tag invalidation will refresh the list,
+                                              // but we can also dispatch local remove for instant feedback
+                                              dispatch(
+                                                removeAddresses(addr.id),
+                                              );
+                                              setExpandedAddressId(null);
+                                            } catch (error) {
+                                              console.log(
+                                                "Delete error",
+                                                error,
+                                              );
+                                              Alert.alert(
+                                                "Error",
+                                                "Failed to delete address",
+                                              );
+                                            }
+                                          },
+                                        },
+                                      ],
+                                    );
                                   }}
                                 >
                                   <Ionicons
-                                    name="checkmark-circle-outline"
+                                    name="trash-outline"
                                     size={18}
-                                    color="#166534"
+                                    color="#EF4444"
                                   />
                                   <Text
                                     style={{
                                       fontSize: 14,
-                                      color: "#166534",
+                                      color: "#EF4444",
                                       fontWeight: "500",
                                     }}
                                   >
-                                    Make Default
+                                    Delete
                                   </Text>
                                 </TouchableOpacity>
-                              )}
-
-                              <TouchableOpacity
-                                style={{
-                                  flexDirection: "row",
-                                  alignItems: "center",
-                                  gap: 6,
-                                }}
-                                onPress={() => {
-                                  Alert.alert(
-                                    "Delete Address",
-                                    "Are you sure you want to remove this address?",
-                                    [
-                                      { text: "Cancel", style: "cancel" },
-                                      {
-                                        text: "Delete",
-                                        style: "destructive",
-                                        onPress: async () => {
-                                          try {
-                                            await deleteAddress(
-                                              addr.id,
-                                            ).unwrap();
-                                            // The API tag invalidation will refresh the list,
-                                            // but we can also dispatch local remove for instant feedback
-                                            dispatch(removeAddresses(addr.id));
-                                            setExpandedAddressId(null);
-                                          } catch (error) {
-                                            console.log("Delete error", error);
-                                            Alert.alert(
-                                              "Error",
-                                              "Failed to delete address",
-                                            );
-                                          }
-                                        },
-                                      },
-                                    ],
-                                  );
-                                }}
-                              >
-                                <Ionicons
-                                  name="trash-outline"
-                                  size={18}
-                                  color="#EF4444"
-                                />
-                                <Text
-                                  style={{
-                                    fontSize: 14,
-                                    color: "#EF4444",
-                                    fontWeight: "500",
-                                  }}
-                                >
-                                  Delete
-                                </Text>
-                              </TouchableOpacity>
-                            </View>
-                          )}
-                        </View>
-                      );
-                    })}
-                  </View>
-                )}
-              </View>
-            )}
-          </View>
-
-          {/* ACCOUNT CARD */}
-          <View style={styles.card}>
-            <Row
-              icon="wallet-outline"
-              title="Payment Methods"
-              subtitle="View your added payments methods"
-              onPress={() => router.push("/profile/payment-methods")}
-            />
-            <Row
-              icon="car-outline"
-              title="My Cars"
-              subtitle="Manage your vehicles"
-              onPress={() => router.push("/garage")}
-            />
-
-            <Row
-              icon="notifications-outline"
-              title="Manage Notifications"
-              onPress={() => router.push("/profile/notifications")}
-            />
-            <Row
-              icon="gift-outline"
-              title="Refer & Earn"
-              subtitle="Invite friends and earn rewards"
-              onPress={() => {
-                Share.share({
-                  message:
-                    "Check out CleanMyWheels! The best car wash service at your doorstep. Download now: https://cleanmywheels.com",
-                });
-              }}
-            />
-          </View>
-        </>
-      )}
-      {/* SUPPORT CARD */}
-      <View style={styles.card}>
-        {!isAdmin && (
-          <>
-            <Row
-              icon="help-circle-outline"
-              title="FAQs"
-              onPress={() => router.push("/profile/FAQs")}
-            />
-            <Row
-              icon="call-outline"
-              title="Contact Us"
-              onPress={() => {
-                const adminPhone = "+919876543210";
-                const text = "Hello, I need help with CleanMyWheels.";
-                const url = `whatsapp://send?text=${text}&phone=${adminPhone}`;
-                Linking.openURL(url).catch(() => {
-                  Linking.openURL(
-                    `https://wa.me/${adminPhone.replace("+", "")}`,
-                  );
-                });
-              }}
-            />
-          </>
-        )}
-        <Row
-          icon="log-out-outline"
-          title="Log out"
-          danger
-          onPress={() => setShowLogout(true)}
-        />
-      </View>
-      {/* LOGOUT MODAL */}
-      <Modal transparent visible={showLogout} animationType="none">
-        <Animated.View
-          style={[styles.modalOverlay, { opacity: overlayOpacity }]}
-        >
-          <TouchableOpacity
-            style={StyleSheet.absoluteFill}
-            onPress={() => closeSheet()}
-          />
-        </Animated.View>
-
-        <Animated.View
-          style={[styles.bottomSheet, { transform: [{ translateY }] }]}
-        >
-          <Text style={styles.logoutTitle}>Logout</Text>
-          <Text style={styles.logoutSubtitle}>
-            Are you sure you want to log out?
-          </Text>
-
-          <View style={styles.logoutActions}>
-            <TouchableOpacity
-              style={styles.cancelBtn}
-              onPress={() => closeSheet()}
-            >
-              <Text style={styles.cancelText}>Cancel</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
-              <Text style={styles.logoutText}>Yes, Logout</Text>
-            </TouchableOpacity>
-          </View>
-        </Animated.View>
-      </Modal>
-      {/* AVATAR SELECTION MODAL */}
-      <Modal transparent visible={showAvatarModal} animationType="none">
-        <Animated.View
-          style={[styles.modalOverlay, { opacity: avatarOverlayOpacity }]}
-        >
-          <TouchableOpacity
-            style={StyleSheet.absoluteFill}
-            onPress={() => closeAvatarSheet()}
-          />
-        </Animated.View>
-
-        <Animated.View
-          style={[
-            styles.bottomSheet,
-            { transform: [{ translateY: avatarTranslateY }] },
-          ]}
-        >
-          <View style={styles.sheetHeader}>
-            <Text style={styles.sheetTitle}>Choose Avatar</Text>
-            <Text style={styles.sheetSubtitle}>
-              Select a persona for your profile
-            </Text>
-          </View>
-
-          <View style={styles.avatarGrid}>
-            {[
-              "https://i.pravatar.cc/150?img=12",
-              "https://i.pravatar.cc/150?img=5",
-              "https://i.pravatar.cc/150?img=3",
-              "https://i.pravatar.cc/150?img=9",
-              "https://i.pravatar.cc/150?img=60",
-              "https://i.pravatar.cc/150?img=68",
-            ].map((uri, idx) => {
-              const isSelected = profileState?.avatar === uri;
-              return (
-                <TouchableOpacity
-                  key={idx}
-                  onPress={() => {
-                    closeAvatarSheet(() => {
-                      dispatch(setAvatar(uri));
-                    });
-                  }}
-                  activeOpacity={0.8}
-                  style={[
-                    styles.avatarOption,
-                    isSelected && styles.avatarOptionSelected,
-                  ]}
-                >
-                  <Image source={{ uri }} style={styles.avatarImage} />
-                  {isSelected && (
-                    <View style={styles.checkmarkBadge}>
-                      <Ionicons name="checkmark" size={12} color="#FFF" />
+                              </View>
+                            )}
+                          </View>
+                        );
+                      })}
                     </View>
                   )}
-                </TouchableOpacity>
-              );
-            })}
-          </View>
+                </View>
+              )}
+            </View>
 
-          <TouchableOpacity
-            style={styles.closeBtn}
-            onPress={() => closeAvatarSheet()}
-          >
-            <Text style={styles.closeBtnText}>Cancel</Text>
-          </TouchableOpacity>
-        </Animated.View>
-      </Modal>
-      {/* EDIT PROFILE MODAL */}
-      <Modal transparent visible={showEditProfileModal} animationType="none">
-        <Animated.View
-          style={[styles.modalOverlay, { opacity: editProfileOverlayOpacity }]}
-        >
-          <TouchableOpacity
-            style={StyleSheet.absoluteFill}
-            onPress={() => closeEditProfileSheet()}
-          />
-        </Animated.View>
-
-        <Animated.View
-          style={[
-            styles.bottomSheet,
-            { transform: [{ translateY: editProfileTranslateY }] },
-          ]}
-        >
-          <View style={styles.sheetHeader}>
-            <Text style={styles.sheetTitle}>Edit Profile</Text>
-            <Text style={styles.sheetSubtitle}>
-              Update your personal details
-            </Text>
-          </View>
-
-          <View style={{ alignItems: "center", marginBottom: 24 }}>
-            <TouchableOpacity
-              onPress={() => {
-                setShowAvatarModal(true);
-              }}
-              style={{ position: "relative" }}
-            >
-              <Image
-                source={{
-                  uri:
-                    profileState?.avatar || "https://i.pravatar.cc/150?img=12",
-                }}
-                style={{ width: 80, height: 80, borderRadius: 40 }}
+            {/* ACCOUNT CARD */}
+            <View style={styles.card}>
+              <Row
+                icon="wallet-outline"
+                title="Payment Methods"
+                subtitle="View your added payments methods"
+                onPress={() => router.push("/profile/payment-methods")}
               />
-              <View
-                style={{
-                  position: "absolute",
-                  bottom: 0,
-                  right: 0,
-                  backgroundColor: "#84c95c",
-                  padding: 6,
-                  borderRadius: 20,
-                  borderWidth: 2,
-                  borderColor: "#FFF",
+              <Row
+                icon="car-outline"
+                title="My Cars"
+                subtitle="Manage your vehicles"
+                onPress={() => router.push("/garage")}
+              />
+
+              <Row
+                icon="notifications-outline"
+                title="Manage Notifications"
+                onPress={() => router.push("/profile/notifications")}
+              />
+              <Row
+                icon="gift-outline"
+                title="Refer & Earn"
+                subtitle="Invite friends and earn rewards"
+                onPress={() => {
+                  Share.share({
+                    message:
+                      "Check out CleanMyWheels! The best car wash service at your doorstep. Download now: https://cleanmywheels.com",
+                  });
                 }}
-              >
-                <Ionicons name="camera" size={14} color="#FFF" />
-              </View>
-            </TouchableOpacity>
-          </View>
-
-          <View style={{ marginBottom: 16 }}>
-            <Text style={styles.inputLabel}>Full Name</Text>
-            <TextInput
-              style={styles.textInput}
-              value={tempName}
-              onChangeText={setTempName}
-              placeholder="Enter your name"
-            />
-          </View>
-
-          <View style={{ marginBottom: 24 }}>
-            <Text style={styles.inputLabel}>Mobile Number</Text>
-            <View
-              style={[
-                styles.textInput,
-                { backgroundColor: "#f0f0f0", justifyContent: "center" },
-              ]}
-            >
-              <Text style={{ color: "#888" }}>
-                {profileState?.phone ||
-                  userData?.phone ||
-                  userState?.user?.phone ||
-                  "N/A"}
-              </Text>
-              <Ionicons
-                name="lock-closed"
-                size={16}
-                color="#aaa"
-                style={{ position: "absolute", right: 12 }}
               />
             </View>
-          </View>
-
-          <View style={styles.logoutActions}>
+          </>
+        )}
+        {/* SUPPORT CARD */}
+        <View style={styles.card}>
+          {!isAdmin && (
+            <>
+              <Row
+                icon="help-circle-outline"
+                title="FAQs"
+                onPress={() => router.push("/profile/FAQs")}
+              />
+              <Row
+                icon="call-outline"
+                title="Contact Us"
+                onPress={() => {
+                  const adminPhone = "+919876543210";
+                  const text = "Hello, I need help with CleanMyWheels.";
+                  const url = `whatsapp://send?text=${text}&phone=${adminPhone}`;
+                  Linking.openURL(url).catch(() => {
+                    Linking.openURL(
+                      `https://wa.me/${adminPhone.replace("+", "")}`,
+                    );
+                  });
+                }}
+              />
+            </>
+          )}
+          <Row
+            icon="log-out-outline"
+            title="Log out"
+            danger
+            onPress={() => setShowLogout(true)}
+          />
+        </View>
+        {/* LOGOUT MODAL */}
+        <Modal transparent visible={showLogout} animationType="none">
+          <Animated.View
+            style={[styles.modalOverlay, { opacity: overlayOpacity }]}
+          >
             <TouchableOpacity
-              style={styles.cancelBtn}
+              style={StyleSheet.absoluteFill}
+              onPress={() => closeSheet()}
+            />
+          </Animated.View>
+
+          <Animated.View
+            style={[styles.bottomSheet, { transform: [{ translateY }] }]}
+          >
+            <Text style={styles.logoutTitle}>Logout</Text>
+            <Text style={styles.logoutSubtitle}>
+              Are you sure you want to log out?
+            </Text>
+
+            <View style={styles.logoutActions}>
+              <TouchableOpacity
+                style={styles.cancelBtn}
+                onPress={() => closeSheet()}
+              >
+                <Text style={styles.cancelText}>Cancel</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
+                <Text style={styles.logoutText}>Yes, Logout</Text>
+              </TouchableOpacity>
+            </View>
+          </Animated.View>
+        </Modal>
+        {/* AVATAR SELECTION MODAL */}
+        <Modal transparent visible={showAvatarModal} animationType="none">
+          <Animated.View
+            style={[styles.modalOverlay, { opacity: avatarOverlayOpacity }]}
+          >
+            <TouchableOpacity
+              style={StyleSheet.absoluteFill}
+              onPress={() => closeAvatarSheet()}
+            />
+          </Animated.View>
+
+          <Animated.View
+            style={[
+              styles.bottomSheet,
+              { transform: [{ translateY: avatarTranslateY }] },
+            ]}
+          >
+            <View style={styles.sheetHeader}>
+              <Text style={styles.sheetTitle}>Choose Avatar</Text>
+              <Text style={styles.sheetSubtitle}>
+                Select a persona for your profile
+              </Text>
+            </View>
+
+            <View style={styles.avatarGrid}>
+              {[
+                "https://i.pravatar.cc/150?img=12",
+                "https://i.pravatar.cc/150?img=5",
+                "https://i.pravatar.cc/150?img=3",
+                "https://i.pravatar.cc/150?img=9",
+                "https://i.pravatar.cc/150?img=60",
+                "https://i.pravatar.cc/150?img=68",
+              ].map((uri, idx) => {
+                const isSelected = profileState?.avatar === uri;
+                return (
+                  <TouchableOpacity
+                    key={idx}
+                    onPress={() => {
+                      closeAvatarSheet(() => {
+                        dispatch(setAvatar(uri));
+                      });
+                    }}
+                    activeOpacity={0.8}
+                    style={[
+                      styles.avatarOption,
+                      isSelected && styles.avatarOptionSelected,
+                    ]}
+                  >
+                    <Image source={{ uri }} style={styles.avatarImage} />
+                    {isSelected && (
+                      <View style={styles.checkmarkBadge}>
+                        <Ionicons name="checkmark" size={12} color="#FFF" />
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            <TouchableOpacity
+              style={styles.closeBtn}
+              onPress={() => closeAvatarSheet()}
+            >
+              <Text style={styles.closeBtnText}>Cancel</Text>
+            </TouchableOpacity>
+          </Animated.View>
+        </Modal>
+        {/* EDIT PROFILE MODAL */}
+        <Modal transparent visible={showEditProfileModal} animationType="none">
+          <Animated.View
+            style={[
+              styles.modalOverlay,
+              { opacity: editProfileOverlayOpacity },
+            ]}
+          >
+            <TouchableOpacity
+              style={StyleSheet.absoluteFill}
               onPress={() => closeEditProfileSheet()}
-            >
-              <Text style={styles.cancelText}>Cancel</Text>
-            </TouchableOpacity>
+            />
+          </Animated.View>
 
-            <TouchableOpacity
-              style={styles.logoutBtn}
-              onPress={handleSaveProfile}
-            >
-              <Text style={styles.logoutText}>Save Changes</Text>
-            </TouchableOpacity>
-          </View>
-        </Animated.View>
-      </Modal>
-    </ScrollView>
+          <Animated.View
+            style={[
+              styles.bottomSheet,
+              { transform: [{ translateY: editProfileTranslateY }] },
+            ]}
+          >
+            <View style={styles.sheetHeader}>
+              <Text style={styles.sheetTitle}>Edit Profile</Text>
+              <Text style={styles.sheetSubtitle}>
+                Update your personal details
+              </Text>
+            </View>
+
+            <View style={{ alignItems: "center", marginBottom: 24 }}>
+              <TouchableOpacity
+                onPress={() => {
+                  setShowAvatarModal(true);
+                }}
+                style={{ position: "relative" }}
+              >
+                <Image
+                  source={{
+                    uri:
+                      profileState?.avatar ||
+                      "https://i.pravatar.cc/150?img=12",
+                  }}
+                  style={{ width: 80, height: 80, borderRadius: 40 }}
+                />
+                <View
+                  style={{
+                    position: "absolute",
+                    bottom: 0,
+                    right: 0,
+                    backgroundColor: "#84c95c",
+                    padding: 6,
+                    borderRadius: 20,
+                    borderWidth: 2,
+                    borderColor: "#FFF",
+                  }}
+                >
+                  <Ionicons name="camera" size={14} color="#FFF" />
+                </View>
+              </TouchableOpacity>
+            </View>
+
+            <View style={{ marginBottom: 16 }}>
+              <Text style={styles.inputLabel}>Full Name</Text>
+              <TextInput
+                style={styles.textInput}
+                value={tempName}
+                onChangeText={setTempName}
+                placeholder="Enter your name"
+              />
+            </View>
+
+            <View style={{ marginBottom: 24 }}>
+              <Text style={styles.inputLabel}>Mobile Number</Text>
+              <View
+                style={[
+                  styles.textInput,
+                  { backgroundColor: "#f0f0f0", justifyContent: "center" },
+                ]}
+              >
+                <Text style={{ color: "#888" }}>
+                  {profileState?.phone ||
+                    userData?.phone ||
+                    userState?.user?.phone ||
+                    "N/A"}
+                </Text>
+                <Ionicons
+                  name="lock-closed"
+                  size={16}
+                  color="#aaa"
+                  style={{ position: "absolute", right: 12 }}
+                />
+              </View>
+            </View>
+
+            <View style={styles.logoutActions}>
+              <TouchableOpacity
+                style={styles.cancelBtn}
+                onPress={() => closeEditProfileSheet()}
+              >
+                <Text style={styles.cancelText}>Cancel</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.logoutBtn}
+                onPress={handleSaveProfile}
+              >
+                <Text style={styles.logoutText}>Save Changes</Text>
+              </TouchableOpacity>
+            </View>
+          </Animated.View>
+        </Modal>
+      </ScrollView>
+    </ScreenWrapper>
   );
 }
 

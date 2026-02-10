@@ -5,13 +5,13 @@ import {
   ActivityIndicator,
   Alert,
   NativeModules,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import RazorpayCheckout from "react-native-razorpay";
 import {
   useCreateSubscriptionMutation,
@@ -176,7 +176,7 @@ export default function SubscriptionSummaryScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <ScreenWrapper style={styles.container} backgroundColor="#f8f9fa">
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <Ionicons name="arrow-back" size={24} color="#333" />
@@ -283,7 +283,7 @@ export default function SubscriptionSummaryScreen() {
           )}
         </TouchableOpacity>
       </View>
-    </SafeAreaView>
+    </ScreenWrapper>
   );
 }
 

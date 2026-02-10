@@ -24,14 +24,13 @@ import {
   KeyboardAvoidingView,
   Modal,
   Platform,
-  SafeAreaView,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
+import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 type TimeSlot = {
   id: string;
   time: string;
@@ -314,7 +313,7 @@ export default function SelectSlotScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <ScreenWrapper style={styles.safeArea} backgroundColor="#f9f9f9">
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => router.back()}
@@ -594,7 +593,7 @@ export default function SelectSlotScreen() {
           </View>
         </KeyboardAvoidingView>
       </Modal>
-    </SafeAreaView>
+    </ScreenWrapper>
   );
 }
 

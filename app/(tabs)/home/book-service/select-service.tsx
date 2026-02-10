@@ -10,16 +10,13 @@ import {
   KeyboardAvoidingView,
   LayoutAnimation,
   Platform,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
   TextInput,
   TouchableOpacity,
   TouchableWithoutFeedback,
   UIManager,
   View,
 } from "react-native";
+import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { useDispatch } from "react-redux";
 import BookingStepper from "../../../../components/BookingStepper";
 
@@ -53,12 +50,12 @@ export default function SelectServiceScreen() {
   const router = useRouter();
   const navigation = useNavigation();
   const [selectedService, setSelectedService] = useState<string | null>(
-    "premium"
+    "premium",
   );
   const [addons, setAddons] = useState<Record<string, boolean>>({});
 
   const [detailsExpanded, setDetailsExpanded] = useState<Set<string>>(
-    new Set()
+    new Set(),
   );
 
   const toggleDetails = (id: string, e: any) => {
@@ -92,7 +89,7 @@ export default function SelectServiceScreen() {
       navigation.getParent()?.setOptions({
         tabBarStyle: { display: "none" },
       });
-    }, [navigation])
+    }, [navigation]),
   );
 
   const services = [
@@ -164,7 +161,7 @@ export default function SelectServiceScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <ScreenWrapper style={styles.safeArea} backgroundColor="#f9f9f9">
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => router.back()}
@@ -485,7 +482,7 @@ export default function SelectServiceScreen() {
             if (!selectedService) {
               Alert.alert(
                 "Selection Required",
-                "Please select a service to proceed."
+                "Please select a service to proceed.",
               );
               return;
             }
@@ -498,7 +495,7 @@ export default function SelectServiceScreen() {
             if (cleanNumber.length < 6 || cleanNumber.length > 11) {
               Alert.alert(
                 "Invalid Vehicle Number",
-                "Please enter a valid vehicle number (e.g., KA01AB1234)."
+                "Please enter a valid vehicle number (e.g., KA01AB1234).",
               );
               return;
             }
@@ -513,7 +510,7 @@ export default function SelectServiceScreen() {
             if (!vehicleRegex.test(cleanNumber)) {
               Alert.alert(
                 "Invalid Vehicle Number",
-                "Please enter a valid vehicle number format (e.g., KA01AB1234)."
+                "Please enter a valid vehicle number format (e.g., KA01AB1234).",
               );
               return;
             }
@@ -522,7 +519,7 @@ export default function SelectServiceScreen() {
             if (!service) return;
 
             const selectedAddons = currentAddons.filter(
-              (addon) => addons[addon.id]
+              (addon) => addons[addon.id],
             );
 
             const bookingDraft = {
@@ -542,7 +539,7 @@ export default function SelectServiceScreen() {
             const normalizedNumber = vehicleNumber.trim().toUpperCase();
 
             let existingCar = cars.find(
-              (car) => car.number === normalizedNumber
+              (car) => car.number === normalizedNumber,
             );
 
             if (!existingCar) {
@@ -569,7 +566,7 @@ export default function SelectServiceScreen() {
           <Text style={styles.nextButtonText}>Next</Text>
         </TouchableOpacity>
       </View>
-    </SafeAreaView>
+    </ScreenWrapper>
   );
 }
 

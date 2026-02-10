@@ -65,6 +65,7 @@ export default function ProfileHome() {
   // Edit Profile Animations
   const [showEditProfileModal, setShowEditProfileModal] = useState(false);
   const [tempName, setTempName] = useState("");
+  const [isNameWarningVisible, setIsNameWarningVisible] = useState(false);
   const editProfileTranslateY = useRef(new Animated.Value(height)).current;
   const editProfileOverlayOpacity = useRef(new Animated.Value(0)).current;
 
@@ -354,7 +355,9 @@ export default function ProfileHome() {
                 </View>
               </TouchableOpacity>
               <Text style={styles.profileSubtitle}>
-                {profileState?.phone || userData?.phone || "Phone number"}
+                {userData?.phone || profileState?.phone
+                  ? `+91 ${userData?.phone || profileState?.phone}`
+                  : "Phone number"}
               </Text>
               {profileState?.email || userData?.email ? (
                 <Text style={styles.profileSubtitle}>
@@ -739,7 +742,12 @@ export default function ProfileHome() {
           />
         </View>
         {/* LOGOUT MODAL */}
-        <Modal transparent visible={showLogout} animationType="none">
+        <Modal
+          transparent
+          visible={showLogout}
+          animationType="none"
+          onRequestClose={() => closeSheet()}
+        >
           <Animated.View
             style={[styles.modalOverlay, { opacity: overlayOpacity }]}
           >
@@ -772,7 +780,12 @@ export default function ProfileHome() {
           </Animated.View>
         </Modal>
         {/* AVATAR SELECTION MODAL */}
-        <Modal transparent visible={showAvatarModal} animationType="none">
+        <Modal
+          transparent
+          visible={showAvatarModal}
+          animationType="none"
+          onRequestClose={() => closeAvatarSheet()}
+        >
           <Animated.View
             style={[styles.modalOverlay, { opacity: avatarOverlayOpacity }]}
           >
@@ -839,7 +852,12 @@ export default function ProfileHome() {
           </Animated.View>
         </Modal>
         {/* EDIT PROFILE MODAL */}
-        <Modal transparent visible={showEditProfileModal} animationType="none">
+        <Modal
+          transparent
+          visible={showEditProfileModal}
+          animationType="none"
+          onRequestClose={() => closeEditProfileSheet()}
+        >
           <Animated.View
             style={[
               styles.modalOverlay,
@@ -902,9 +920,28 @@ export default function ProfileHome() {
               <TextInput
                 style={styles.textInput}
                 value={tempName}
-                onChangeText={setTempName}
+                onChangeText={(text) => {
+                  if (/[^a-zA-Z\s]/.test(text)) {
+                    setIsNameWarningVisible(true);
+                    setTimeout(() => setIsNameWarningVisible(false), 3000);
+                  }
+                  setTempName(text.replace(/[^a-zA-Z\s]/g, ""));
+                }}
                 placeholder="Enter your name"
+                maxLength={30}
               />
+              {isNameWarningVisible && (
+                <Text
+                  style={{
+                    color: "red",
+                    fontSize: 12,
+                    marginTop: 4,
+                    marginLeft: 4,
+                  }}
+                >
+                  Only alphabets are allowed
+                </Text>
+              )}
             </View>
 
             <View style={{ marginBottom: 24 }}>
@@ -912,21 +949,31 @@ export default function ProfileHome() {
               <View
                 style={[
                   styles.textInput,
-                  { backgroundColor: "#f0f0f0", justifyContent: "center" },
+                  {
+                    backgroundColor: "#f0f0f0",
+                    flexDirection: "row",
+                    alignItems: "center",
+                  },
                 ]}
               >
-                <Text style={{ color: "#888" }}>
+                <Text style={{ fontSize: 16, color: "#888", marginRight: 8 }}>
+                  +91
+                </Text>
+                <View
+                  style={{
+                    height: "100%",
+                    width: 1,
+                    backgroundColor: "#E5E7EB",
+                    marginRight: 12,
+                  }}
+                />
+                <Text style={{ color: "#888", fontSize: 16, flex: 1 }}>
                   {profileState?.phone ||
                     userData?.phone ||
                     userState?.user?.phone ||
                     "N/A"}
                 </Text>
-                <Ionicons
-                  name="lock-closed"
-                  size={16}
-                  color="#aaa"
-                  style={{ position: "absolute", right: 12 }}
-                />
+                <Ionicons name="lock-closed" size={16} color="#aaa" />
               </View>
             </View>
 

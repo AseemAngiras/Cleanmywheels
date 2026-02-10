@@ -25,6 +25,7 @@ export default function EditProfile() {
   const [fullName, setFullName] = React.useState("");
   const [mobile, setMobile] = React.useState("");
   const [email, setEmail] = React.useState(profile.email ?? "");
+  const [isNameWarningVisible, setIsNameWarningVisible] = React.useState(false);
 
   const [focusedInput, setFocusedInput] = React.useState<string | null>(null);
   const [hasChanges, setHasChanges] = React.useState(false);
@@ -145,11 +146,29 @@ export default function EditProfile() {
           <Text style={styles.label}>Full Name</Text>
           <TextInput
             value={fullName}
-            onChangeText={setFullName}
+            onChangeText={(text) => {
+              if (/[^a-zA-Z\s]/.test(text)) {
+                setIsNameWarningVisible(true);
+                setTimeout(() => setIsNameWarningVisible(false), 3000);
+              }
+              setFullName(text.replace(/[^a-zA-Z\s]/g, ""));
+            }}
             style={getInputStyle("fullName")}
             onFocus={() => setFocusedInput("fullName")}
             onBlur={() => setFocusedInput(null)}
           />
+          {isNameWarningVisible && (
+            <Text
+              style={{
+                color: "red",
+                fontSize: 12,
+                marginTop: 4,
+                marginLeft: 4,
+              }}
+            >
+              Only alphabets are allowed
+            </Text>
+          )}
         </View>
 
         <View style={styles.card}>

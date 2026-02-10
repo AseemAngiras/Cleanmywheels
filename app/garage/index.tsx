@@ -1,5 +1,5 @@
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import * as ImagePicker from "expo-image-picker";
+
 import { LinearGradient } from "expo-linear-gradient";
 import { useRef, useState } from "react";
 import {
@@ -8,7 +8,6 @@ import {
   Dimensions,
   Easing,
   FlatList,
-  Image,
   Keyboard,
   LayoutAnimation,
   Modal,
@@ -68,7 +67,6 @@ export default function MyCarsScreen() {
   const [editingCarId, setEditingCarId] = useState<string | null>(null);
   const [type, setType] = useState("");
   const [number, setNumber] = useState("");
-  const [image, setImage] = useState<string | undefined>(undefined);
   const [expandedCarId, setExpandedCarId] = useState<string | null>(null);
 
   if (isAdmin) {
@@ -80,35 +78,15 @@ export default function MyCarsScreen() {
     setExpandedCarId(expandedCarId === id ? null : id);
   };
 
-  const pickImage = async () => {
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-    if (!permission.granted) {
-      Alert.alert("Permission required", "Allow photo access");
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 0.7,
-    });
-
-    if (!result.canceled) {
-      setImage(result.assets[0].uri);
-    }
-  };
-
   const openModal = (car?: any) => {
     if (car) {
       setEditingCarId(car._id || car.id);
       setType(car.vehicleType || car.type);
       setNumber(car.vehicleNo || car.number);
-      setImage(car.image);
     } else {
       setEditingCarId(null);
       setType("");
       setNumber("");
-      setImage(undefined);
     }
 
     setModalVisible(true);
@@ -459,21 +437,6 @@ export default function MyCarsScreen() {
                   </View>
                 </View>
 
-                <Text style={styles.fieldLabel}>Vehicle Image</Text>
-                <TouchableOpacity
-                  style={styles.darkImagePicker}
-                  onPress={pickImage}
-                >
-                  {image ? (
-                    <Image source={{ uri: image }} style={styles.preview} />
-                  ) : (
-                    <View style={styles.uploadPlaceholder}>
-                      <Ionicons name="camera" size={32} color="#444" />
-                      <Text style={styles.uploadTextDark}>Upload Photo</Text>
-                    </View>
-                  )}
-                </TouchableOpacity>
-
                 <TouchableOpacity
                   style={styles.saveBtn}
                   onPress={handleSaveCar}
@@ -739,7 +702,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 32,
     padding: 24,
     paddingBottom: 40,
-    height: "72%",
+    height: "50%",
   },
   sheetHeader: {
     flexDirection: "row",
@@ -792,32 +755,6 @@ const styles = StyleSheet.create({
   },
   row: {
     flexDirection: "row",
-  },
-  darkImagePicker: {
-    height: 140,
-    backgroundColor: "#27272a",
-    borderRadius: 20,
-    borderWidth: 2,
-    borderColor: "#3f3f46",
-    borderStyle: "dashed",
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 24,
-    overflow: "hidden",
-  },
-  uploadPlaceholder: {
-    alignItems: "center",
-  },
-  uploadTextDark: {
-    marginTop: 8,
-    color: "#71717A",
-    fontSize: 14,
-    fontWeight: "600",
-  },
-  preview: {
-    width: "100%",
-    height: "100%",
-    resizeMode: "cover",
   },
   saveBtn: {
     backgroundColor: "#D1F803",

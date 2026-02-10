@@ -235,6 +235,17 @@ export default function HomeScreen() {
     return;
   };
 
+  const handleCloseModal = () => {
+    setIsLoginModalVisible(false);
+
+    if (modalStep === "details") {
+      setPhoneNumber("");
+      setOtp(["", "", "", "", "", ""]);
+      setModalStep("details");
+      setName("");
+    }
+  };
+
   const allBookings = [...(bookingsData?.data?.bookingList || []), ...bookings];
   const uniqueBookingsMap = new Map();
 
@@ -460,7 +471,7 @@ export default function HomeScreen() {
           visible={isLoginModalVisible}
           transparent
           animationType="slide"
-          onRequestClose={() => setIsLoginModalVisible(false)}
+          onRequestClose={handleCloseModal}
         >
           <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -469,7 +480,7 @@ export default function HomeScreen() {
             <TouchableOpacity
               style={styles.modalDismissArea}
               activeOpacity={1}
-              onPress={() => setIsLoginModalVisible(false)}
+              onPress={handleCloseModal}
             />
 
             <View style={styles.modalContent}>

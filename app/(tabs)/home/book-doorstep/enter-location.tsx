@@ -44,12 +44,10 @@ export default function EnterLocationScreen() {
   const { data: addressesData } = useGetAddressesQuery(undefined);
   const insets = useSafeAreaInsets();
 
-  let fetchedAddresses =
-    addressesData?.data?.addressList || addressesData?.data || [];
-
-  if (!Array.isArray(fetchedAddresses)) {
-    fetchedAddresses = [];
-  }
+  const fetchedAddresses = useMemo(() => {
+    const list = addressesData?.data?.addressList || addressesData?.data || [];
+    return Array.isArray(list) ? list : [];
+  }, [addressesData]);
 
   const profileAddresses = useSelector(
     (state: RootState) => state.profile.addresses,
@@ -85,10 +83,13 @@ export default function EnterLocationScreen() {
   );
 
   React.useEffect(() => {
+    const isFormEmpty = !flatNumber && !locality && !city && !postalCode;
+
     if (
       savedAddresses.length > 0 &&
       !selectedSavedAddressId &&
-      !isFromProfile
+      !isFromProfile &&
+      isFormEmpty
     ) {
       if (defaultAddressId) {
         const def = savedAddresses.find((a) => a.id === defaultAddressId);
@@ -103,7 +104,16 @@ export default function EnterLocationScreen() {
         fillAddressInputs(savedAddresses[0]);
       }
     }
-  }, [defaultAddressId, savedAddresses, selectedSavedAddressId, isFromProfile]);
+  }, [
+    defaultAddressId,
+    savedAddresses,
+    selectedSavedAddressId,
+    isFromProfile,
+    flatNumber,
+    locality,
+    city,
+    postalCode,
+  ]);
 
   const [flatNumber, setFlatNumber] = useState("");
   const [locality, setLocality] = useState("");
@@ -281,6 +291,7 @@ export default function EnterLocationScreen() {
 
       dispatch(addAddress(fallbackAddr));
       dispatch(setBookingAddress({ addressId: fallbackId }));
+      setSelectedSavedAddressId(fallbackId);
 
       if (isFromProfile) {
         router.back();
@@ -315,6 +326,7 @@ export default function EnterLocationScreen() {
         dispatch(
           setBookingAddress({ addressId: newAddress.id || newAddress._id }),
         );
+        setSelectedSavedAddressId(newAddress.id || newAddress._id);
 
         if (isFromProfile) {
           router.back();
@@ -342,6 +354,7 @@ export default function EnterLocationScreen() {
         };
         dispatch(addAddress(fallbackAddr));
         dispatch(setBookingAddress({ addressId: fallbackId }));
+        setSelectedSavedAddressId(fallbackId);
 
         if (isFromProfile) {
           router.back();

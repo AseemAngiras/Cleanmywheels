@@ -16,7 +16,6 @@ import {
   Linking,
   Modal,
   RefreshControl,
-  SafeAreaView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -24,6 +23,7 @@ import {
 } from "react-native";
 import { useSelector } from "react-redux";
 import BookingDetailsModal from "./BookingDetailsModal";
+import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 
 const formatTime = (hour: number): string => {
   if (hour === 0) return "12:00 AM";
@@ -397,7 +397,7 @@ export default function AdminBookingsScreen() {
   };
 
   return (
-    <SafeAreaView style={adminStyles.container}>
+    <ScreenWrapper style={adminStyles.container}>
       <View style={adminStyles.titleHeader}>
         <Text style={adminStyles.titleText}>Bookings Management</Text>
       </View>
@@ -543,7 +543,7 @@ export default function AdminBookingsScreen() {
         onClose={() => setDetailsModalVisible(false)}
         booking={selectedBooking}
       />
-    </SafeAreaView>
+    </ScreenWrapper>
   );
 }
 

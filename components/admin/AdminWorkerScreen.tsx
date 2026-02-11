@@ -7,7 +7,6 @@ import {
   FlatList,
   ActivityIndicator,
   Modal,
-  SafeAreaView,
   Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -19,6 +18,7 @@ import {
   Worker,
 } from "@/store/api/workerApi";
 import { WorkerForm } from "./WorkerForm";
+import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 
 export default function AdminWorkerScreen() {
   const [modalVisible, setModalVisible] = useState(false);
@@ -174,7 +174,7 @@ export default function AdminWorkerScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <ScreenWrapper style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Manage Workers</Text>
         <TouchableOpacity style={styles.addButton} onPress={handleAddWorker}>
@@ -234,7 +234,7 @@ export default function AdminWorkerScreen() {
           submitLabel={editingWorker ? "Update Worker" : "Create Worker"}
         />
       </Modal>
-    </SafeAreaView>
+    </ScreenWrapper>
   );
 }
 
@@ -247,7 +247,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: 20,
+    paddingHorizontal: 20,
+    // paddingVertical: 16,
     backgroundColor: "#FFF",
     borderBottomWidth: 1,
     borderBottomColor: "#F1F5F9",
@@ -264,7 +265,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
-    gap: 4,
+    // gap: 1,
   },
   addButtonText: {
     color: "#FFF",

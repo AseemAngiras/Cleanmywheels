@@ -1,7 +1,13 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect } from "react";
-import { Text, TouchableOpacity, View, StyleSheet, ScrollView } from "react-native";
+import {
+  Text,
+  TouchableOpacity,
+  View,
+  StyleSheet,
+  ScrollView,
+} from "react-native";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { useDispatch } from "react-redux";
 import { addBooking } from "../../../../store/slices/bookingSlice";
@@ -212,7 +218,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     borderRadius: 0,
     padding: 24,
-    paddingTop: 30,
+    paddingTop: 10,
     marginBottom: 20,
     position: "relative",
     shadowColor: "#000",
@@ -280,7 +286,7 @@ const styles = StyleSheet.create({
     right: 0,
     backgroundColor: "#fff",
     padding: 20,
-    paddingBottom: 30,
+    paddingBottom: 40,
     borderTopWidth: 1,
     borderTopColor: "#f0f0f0",
   },

@@ -11,7 +11,6 @@ import {
   Linking,
   Modal,
   RefreshControl,
-  SafeAreaView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -27,6 +26,7 @@ import {
 } from "../../../store/api/subscriptionApi";
 
 import { useGetWorkersQuery } from "@/store/api/workerApi";
+import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 
 export default function AdminSubscriptionsScreen() {
   const router = useRouter();
@@ -321,7 +321,7 @@ export default function AdminSubscriptionsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <ScreenWrapper style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
@@ -433,7 +433,7 @@ export default function AdminSubscriptionsScreen() {
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    </ScreenWrapper>
   );
 }
 

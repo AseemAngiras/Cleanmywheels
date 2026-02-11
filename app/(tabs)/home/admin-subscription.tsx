@@ -17,6 +17,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { useGetAllSubscriptionsQuery } from "@/store/api/subscriptionApi";
 import { UserSubscription } from "@/types/subscription";
+import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 
 export default function AdminSubscriptionScreen() {
   const router = useRouter();
@@ -132,7 +133,7 @@ export default function AdminSubscriptionScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <ScreenWrapper style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <View>
@@ -270,7 +271,7 @@ export default function AdminSubscriptionScreen() {
           )}
         </View>
       </Modal>
-    </SafeAreaView>
+    </ScreenWrapper>
   );
 }
 

@@ -173,14 +173,39 @@ export default function EditProfile() {
 
         <View style={styles.card}>
           <Text style={styles.label}>Mobile Number</Text>
-          <TextInput
-            value={mobile}
-            onChangeText={setMobile}
-            keyboardType="phone-pad"
-            style={getInputStyle("mobile")}
-            onFocus={() => setFocusedInput("mobile")}
-            onBlur={() => setFocusedInput(null)}
-          />
+          <View
+            style={[
+              ...getInputStyle("mobile"),
+              { flexDirection: "row", alignItems: "center" },
+            ]}
+          >
+            <Text
+              style={{
+                fontSize: 16,
+                color: "#111",
+                marginRight: 8,
+                fontWeight: "500",
+              }}
+            >
+              +91
+            </Text>
+            <View
+              style={{
+                width: 1,
+                height: 20,
+                backgroundColor: "#ddd",
+                marginRight: 10,
+              }}
+            />
+            <TextInput
+              value={mobile}
+              onChangeText={setMobile}
+              keyboardType="phone-pad"
+              style={{ flex: 1, fontSize: 16, color: "#111" }}
+              onFocus={() => setFocusedInput("mobile")}
+              onBlur={() => setFocusedInput(null)}
+            />
+          </View>
         </View>
 
         <View style={styles.card}>

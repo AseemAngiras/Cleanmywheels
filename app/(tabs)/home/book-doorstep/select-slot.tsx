@@ -141,6 +141,7 @@ export default function SelectSlotScreen() {
   const [registrationToken, setRegistrationToken] = useState<string | null>(
     null,
   );
+
   const guestAddresses = useSelector(
     (state: RootState) => state.profile.addresses,
   );
@@ -185,6 +186,13 @@ export default function SelectSlotScreen() {
           "Registration token saved:",
           token.substring(0, 20) + "...",
         );
+
+        await requestOtp({
+          phone: trimmedPhone,
+          countryCode: "+91",
+          verifyType: "PHONE",
+          otpType: "REGISTER",
+        }).unwrap();
       } else {
         console.warn("No token in register response!");
       }
@@ -218,8 +226,12 @@ export default function SelectSlotScreen() {
       let response;
       if (name.trim()) {
         response = await verifyRegisterOtp({
-          body: { ...payload, otpType: "REGISTER" },
-          token: registrationToken,
+          body: {
+            ...payload,
+            otpType: "REGISTER",
+            name: name.trim(),
+            accountType: "Seeker",
+          },
         }).unwrap();
       } else {
         const loginPayload = {

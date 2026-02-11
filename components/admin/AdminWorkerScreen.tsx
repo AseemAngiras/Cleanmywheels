@@ -141,7 +141,7 @@ export default function AdminWorkerScreen() {
       <View style={styles.cardDetails}>
         <View style={styles.detailRow}>
           <Ionicons name="call-outline" size={16} color="#64748B" />
-          <Text style={styles.detailText}>{item.phone}</Text>
+          <Text style={styles.detailText}>+91 {item.phone}</Text>
         </View>
         {item.address ? (
           <View style={styles.detailRow}>

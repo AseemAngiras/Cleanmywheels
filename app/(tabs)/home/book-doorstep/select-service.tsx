@@ -766,7 +766,7 @@ export default function SelectServiceScreen() {
             </Text>
             <TextInput
               style={styles.input}
-              placeholder="E.G. IND-1234"
+              placeholder="E.G. MH01CK1234"
               placeholderTextColor="#ccc"
               value={vehicleNumber}
               onChangeText={setVehicleNumber}

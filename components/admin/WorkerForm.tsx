@@ -38,6 +38,8 @@ export const WorkerForm: React.FC<WorkerFormProps> = ({
   const [jobRole, setJobRole] = useState(initialValues?.jobRole || "");
   const [address, setAddress] = useState(initialValues?.address || "");
   const [status, setStatus] = useState(initialValues?.status || "Active");
+  const [isNameWarningVisible, setIsNameWarningVisible] = useState(false);
+  const [isPhoneWarningVisible, setIsPhoneWarningVisible] = useState(false);
 
   const handleSubmit = async () => {
     if (!name || !phone || !jobRole) {
@@ -58,10 +60,32 @@ export const WorkerForm: React.FC<WorkerFormProps> = ({
           <TextInput
             style={styles.input}
             value={name}
-            onChangeText={setName}
+            onChangeText={(text) => {
+              if (/[^a-zA-Z\s]/.test(text)) {
+                setIsNameWarningVisible(true);
+                setTimeout(() => setIsNameWarningVisible(false), 3000);
+              }
+              const filteredText = text.replace(/[^a-zA-Z\s]/g, "");
+              setName(filteredText);
+            }}
+            autoCapitalize="words"
+            maxLength={30}
             placeholder="e.g. Rahul Sharma"
             placeholderTextColor="#94A3B8"
           />
+          {isNameWarningVisible && (
+            <Text
+              style={{
+                position: "absolute",
+                bottom: -16,
+                left: 50,
+                color: "red",
+                fontSize: 12,
+              }}
+            >
+              Only alphabets are allowed
+            </Text>
+          )}
         </View>
 
         <View style={styles.inputGroup}>
@@ -75,13 +99,33 @@ export const WorkerForm: React.FC<WorkerFormProps> = ({
             <TextInput
               style={styles.phoneInput}
               value={phone}
-              onChangeText={setPhone}
+              onChangeText={(text) => {
+                if (/[^0-9]/.test(text)) {
+                  setIsPhoneWarningVisible(true);
+                  setTimeout(() => setIsPhoneWarningVisible(false), 3000);
+                }
+                const filteredText = text.replace(/[^0-9]/g, "");
+                setPhone(filteredText);
+              }}
               placeholder="9876543210"
               placeholderTextColor="#94A3B8"
               keyboardType="phone-pad"
               maxLength={10}
             />
           </View>
+          {isPhoneWarningVisible && (
+            <Text
+              style={{
+                position: "absolute",
+                bottom: -16,
+                left: 10,
+                color: "red",
+                fontSize: 12,
+              }}
+            >
+              Only numbers are allowed
+            </Text>
+          )}
         </View>
 
         <View style={styles.inputGroup}>

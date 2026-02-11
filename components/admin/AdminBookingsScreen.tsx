@@ -305,7 +305,7 @@ export default function AdminBookingsScreen() {
             />
             <View>
               <Text style={adminStyles.detailTitle}>{item.car}</Text>
-              <Text style={adminStyles.detailSub}>{item.license}</Text>
+              <Text style={adminStyles.detailSub}> {item.license}</Text>
             </View>
           </View>
           <View style={[adminStyles.detailRow, { marginTop: 12 }]}>
@@ -348,7 +348,7 @@ export default function AdminBookingsScreen() {
                 style={adminStyles.detailIcon}
               />
               <Text style={[adminStyles.detailTitle, { color: "#007BFF" }]}>
-                +{item.phone}
+                +91 {item.phone}
               </Text>
             </TouchableOpacity>
           )}
@@ -514,7 +514,7 @@ export default function AdminBookingsScreen() {
                     </View>
                     <View>
                       <Text style={styles.workerName}>{item.name}</Text>
-                      <Text style={styles.workerPhone}>{item.phone}</Text>
+                      <Text style={styles.workerPhone}> +91 {item.phone}</Text>
                       <Text
                         style={[
                           styles.workerPhone,

@@ -1,4 +1,5 @@
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Colors } from "@/constants/Colors";
 
 import { LinearGradient } from "expo-linear-gradient";
 import { useRef, useState } from "react";
@@ -238,7 +239,7 @@ export default function MyCarsScreen() {
         onPress={() => toggleCard(id)}
       >
         <LinearGradient
-          colors={["#f7fee7", "#ffffff"]}
+          colors={[Colors.card, Colors.card]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={{ padding: 20 }}
@@ -271,7 +272,7 @@ export default function MyCarsScreen() {
               <MaterialCommunityIcons
                 name={getVehicleIconName(item.vehicleType) as any}
                 size={34}
-                color="#CBD5E1"
+                color={Colors.textSecondary}
               />
             </View>
           </View>
@@ -282,7 +283,7 @@ export default function MyCarsScreen() {
                 style={[styles.actionBtn, styles.editBtn]}
                 onPress={() => openModal(item)}
               >
-                <Ionicons name="create-outline" size={16} color="#1a1a1a" />
+                <Ionicons name="create-outline" size={16} color={Colors.text} />
                 <Text style={styles.editText}>Edit Vehicle</Text>
               </TouchableOpacity>
 
@@ -306,10 +307,13 @@ export default function MyCarsScreen() {
                 <Ionicons
                   name="trash-outline"
                   size={16}
-                  color={isSubscribed ? "#aaa" : "#EF4444"}
+                  color={isSubscribed ? Colors.textSecondary : Colors.error}
                 />
                 <Text
-                  style={[styles.removeText, isSubscribed && { color: "#aaa" }]}
+                  style={[
+                    styles.removeText,
+                    isSubscribed && { color: Colors.textSecondary },
+                  ]}
                 >
                   Remove
                 </Text>
@@ -329,7 +333,7 @@ export default function MyCarsScreen() {
             onPress={() => router.back()}
             style={styles.backButton}
           >
-            <Ionicons name="arrow-back" size={24} color="#1a1a1a" />
+            <Ionicons name="arrow-back" size={24} color={Colors.text} />
           </TouchableOpacity>
           <View>
             <Text style={styles.headerTitle}>My Garage</Text>
@@ -339,7 +343,7 @@ export default function MyCarsScreen() {
           </View>
 
           <TouchableOpacity style={styles.addBtn} onPress={() => openModal()}>
-            <Ionicons name="add" size={24} color="#000" />
+            <Ionicons name="add" size={24} color={Colors.black} />
           </TouchableOpacity>
         </View>
 
@@ -352,7 +356,11 @@ export default function MyCarsScreen() {
           onScrollBeginDrag={handleDismiss}
           ListEmptyComponent={
             <View style={styles.emptyState}>
-              <Ionicons name="car-sport-outline" size={64} color="#E2E8F0" />
+              <Ionicons
+                name="car-sport-outline"
+                size={64}
+                color={Colors.textSecondary}
+              />
               <Text style={styles.emptyText}>No cars added yet</Text>
               <TouchableOpacity onPress={() => openModal()}>
                 <Text style={styles.emptyAction}>Add your first vehicle</Text>
@@ -382,7 +390,7 @@ export default function MyCarsScreen() {
                   {editingCarId ? "Edit Vehicle" : "Add Vehicle"}
                 </Text>
                 <TouchableOpacity onPress={closeModal} style={styles.closeBtn}>
-                  <Ionicons name="close" size={20} color="#fff" />
+                  <Ionicons name="close" size={20} color={Colors.text} />
                 </TouchableOpacity>
               </View>
 
@@ -414,7 +422,7 @@ export default function MyCarsScreen() {
                       >
                         <Text
                           style={{
-                            color: type ? "#fff" : "#666",
+                            color: type ? Colors.text : Colors.textSecondary,
                             fontSize: 16,
                           }}
                         >
@@ -428,7 +436,7 @@ export default function MyCarsScreen() {
                     <Text style={styles.fieldLabel}>Reg. Number</Text>
                     <TextInput
                       placeholder="DL10AB1234"
-                      placeholderTextColor="#666"
+                      placeholderTextColor={Colors.textSecondary}
                       value={number}
                       onChangeText={setNumber}
                       style={styles.darkInput}
@@ -444,7 +452,11 @@ export default function MyCarsScreen() {
                   <Text style={styles.saveBtnText}>
                     {editingCarId ? "Update Vehicle" : "Add Vehicle"}
                   </Text>
-                  <Ionicons name="arrow-forward" size={18} color="#000" />
+                  <Ionicons
+                    name="arrow-forward"
+                    size={18}
+                    color={Colors.black}
+                  />
                 </TouchableOpacity>
               </ScrollView>
             </Animated.View>
@@ -500,7 +512,7 @@ export default function MyCarsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8FAFC",
+    backgroundColor: Colors.background,
     paddingHorizontal: 20,
     paddingTop: 60,
   },
@@ -514,17 +526,17 @@ const styles = StyleSheet.create({
     marginRight: 10,
     padding: 8,
     borderRadius: 8,
-    backgroundColor: "#F1F5F9",
+    backgroundColor: Colors.card,
   },
   headerTitle: {
     fontSize: 28,
     fontWeight: "800",
-    color: "#1a1a1a",
+    color: Colors.text,
     letterSpacing: -0.5,
   },
   headerSubtitle: {
     fontSize: 14,
-    color: "#64748B",
+    color: Colors.textSecondary,
     fontWeight: "500",
     marginTop: 2,
   },
@@ -532,10 +544,10 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: "#D1F803",
+    backgroundColor: Colors.primary,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#D1F803",
+    shadowColor: Colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -547,15 +559,15 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 2,
     borderWidth: 1,
-    borderColor: "#F1F5F9",
+    borderColor: Colors.border,
     overflow: "hidden",
   },
   cardExpanded: {
-    borderColor: "#D1F803",
+    borderColor: Colors.primary,
     borderWidth: 1.5,
   },
   cardHeader: {
@@ -568,12 +580,12 @@ const styles = StyleSheet.create({
   carName: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#1E293B",
+    color: Colors.text,
     marginBottom: 2,
   },
   carType: {
     fontSize: 13,
-    color: "#64748B",
+    color: Colors.textSecondary,
     fontWeight: "600",
     textTransform: "uppercase",
     letterSpacing: 0.5,
@@ -619,7 +631,7 @@ const styles = StyleSheet.create({
     resizeMode: "cover",
   },
   imagePlaceholder: {
-    backgroundColor: "#F1F5F9",
+    backgroundColor: Colors.card,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -631,7 +643,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
     paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: "#F1F5F9",
+    borderTopColor: Colors.border,
     gap: 12,
   },
   actionBtn: {
@@ -642,31 +654,31 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   editBtn: {
-    backgroundColor: "#F0FDF4",
+    backgroundColor: Colors.card,
     borderWidth: 1,
-    borderColor: "#DCFCE7",
+    borderColor: Colors.border,
   },
   removeBtn: {
-    backgroundColor: "#FEF2F2",
+    backgroundColor: "rgba(239, 68, 68, 0.1)",
     borderWidth: 1,
-    borderColor: "#FEE2E2",
+    borderColor: "rgba(239, 68, 68, 0.2)",
   },
   disabledBtn: {
-    backgroundColor: "#F3F4F6",
+    backgroundColor: Colors.background,
     borderWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: Colors.border,
   },
   editText: {
     marginLeft: 6,
     fontSize: 13,
     fontWeight: "600",
-    color: "#1a1a1a",
+    color: Colors.text,
   },
   removeText: {
     marginLeft: 6,
     fontSize: 13,
     fontWeight: "600",
-    color: "#EF4444",
+    color: Colors.error,
   },
 
   emptyState: {
@@ -677,13 +689,13 @@ const styles = StyleSheet.create({
   emptyText: {
     marginTop: 16,
     fontSize: 16,
-    color: "#94A3B8",
+    color: Colors.textSecondary,
     fontWeight: "500",
   },
   emptyAction: {
     marginTop: 8,
     fontSize: 14,
-    color: "#1a1a1a",
+    color: Colors.text,
     fontWeight: "700",
     textDecorationLine: "underline",
   },
@@ -697,7 +709,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.6)",
   },
   bottomSheet: {
-    backgroundColor: "#000",
+    backgroundColor: Colors.card,
     borderTopLeftRadius: 32,
     borderTopRightRadius: 32,
     padding: 24,
@@ -713,7 +725,7 @@ const styles = StyleSheet.create({
   sheetTitle: {
     fontSize: 24,
     fontWeight: "700",
-    color: "#fff",
+    color: Colors.text,
   },
   closeBtn: {
     padding: 4,
@@ -726,7 +738,7 @@ const styles = StyleSheet.create({
   limeAccentBox: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#D1F803",
+    backgroundColor: Colors.primary,
     padding: 16,
     borderRadius: 20,
     marginBottom: 24,
@@ -735,48 +747,48 @@ const styles = StyleSheet.create({
     marginLeft: 12,
     fontSize: 14,
     fontWeight: "700",
-    color: "#1a1a1a",
+    color: Colors.black,
     flex: 1,
   },
   fieldLabel: {
     fontSize: 13,
-    color: "#A1A1AA",
+    color: Colors.textSecondary,
     marginBottom: 8,
     marginLeft: 4,
     fontWeight: "500",
   },
   darkInput: {
-    backgroundColor: "#27272a",
+    backgroundColor: Colors.background,
     borderRadius: 16,
     padding: 16,
     fontSize: 16,
-    color: "#fff",
+    color: Colors.text,
     marginBottom: 16,
   },
   row: {
     flexDirection: "row",
   },
   saveBtn: {
-    backgroundColor: "#D1F803",
+    backgroundColor: Colors.primary,
     borderRadius: 20,
     paddingVertical: 18,
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#D1F803",
+    shadowColor: Colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 10,
     elevation: 4,
   },
   saveBtnText: {
-    color: "#000",
+    color: Colors.black,
     fontSize: 16,
     fontWeight: "800",
     letterSpacing: 0.5,
   },
   premiumBadge: {
-    backgroundColor: "#D1F803",
+    backgroundColor: Colors.primary,
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
@@ -784,7 +796,7 @@ const styles = StyleSheet.create({
   premiumText: {
     fontSize: 10,
     fontWeight: "bold",
-    color: "#000",
+    color: Colors.black,
   },
 
   // PICKER
@@ -795,7 +807,7 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   pickerContainer: {
-    backgroundColor: "#fff",
+    backgroundColor: Colors.card,
     borderRadius: 24,
     padding: 24,
   },
@@ -804,6 +816,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     marginBottom: 16,
     textAlign: "center",
+    color: Colors.text,
   },
   pickerItem: {
     flexDirection: "row",
@@ -811,20 +824,20 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
+    borderBottomColor: Colors.border,
   },
   pickerItemSelected: {
-    backgroundColor: "#F0FDF4",
+    backgroundColor: "rgba(76, 175, 80, 0.1)",
     marginLeft: -24,
     marginRight: -24,
     paddingHorizontal: 24,
   },
   pickerItemText: {
     fontSize: 16,
-    color: "#333",
+    color: Colors.text,
   },
   pickerItemTextSelected: {
-    color: "#166534",
+    color: Colors.success,
     fontWeight: "600",
   },
 });

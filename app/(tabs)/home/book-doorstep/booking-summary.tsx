@@ -1,4 +1,5 @@
 import { RootState } from "@/store";
+import { Colors } from "@/constants/Colors";
 import {
   useCreateBookingMutation,
   useLazyGetBookingByIdQuery,
@@ -368,14 +369,18 @@ export default function BookingSummaryScreen() {
   };
 
   return (
-    <ScreenWrapper style={styles.container} backgroundColor="#f9f9f9">
+    <ScreenWrapper
+      style={styles.container}
+      backgroundColor={Colors.background}
+      statusBarStyle="light-content"
+    >
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => router.back()}
           style={styles.backButton}
         >
-          <Ionicons name="arrow-back" size={24} color="#1a1a1a" />
+          <Ionicons name="arrow-back" size={24} color={Colors.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Booking Summary</Text>
         <View style={{ width: 40 }} />
@@ -415,7 +420,11 @@ export default function BookingSummaryScreen() {
 
           <View style={styles.row}>
             <View style={styles.iconBox}>
-              <Ionicons name="sparkles" size={20} color="#555" />
+              <Ionicons
+                name="sparkles"
+                size={20}
+                color={Colors.textSecondary}
+              />
             </View>
             <View style={styles.rowContent}>
               <Text style={styles.label}>Service</Text>
@@ -427,7 +436,11 @@ export default function BookingSummaryScreen() {
 
           <View style={styles.row}>
             <View style={styles.iconBox}>
-              <Ionicons name="car-sport" size={20} color="#555" />
+              <Ionicons
+                name="car-sport"
+                size={20}
+                color={Colors.textSecondary}
+              />
             </View>
             <View style={styles.rowContent}>
               <Text style={styles.label}>Vehicle</Text>
@@ -445,7 +458,11 @@ export default function BookingSummaryScreen() {
 
           <View style={styles.row}>
             <View style={styles.iconBox}>
-              <Ionicons name="calendar" size={20} color="#555" />
+              <Ionicons
+                name="calendar"
+                size={20}
+                color={Colors.textSecondary}
+              />
             </View>
             <View style={styles.rowContent}>
               <Text style={styles.label}>Date & Time</Text>
@@ -515,7 +532,7 @@ export default function BookingSummaryScreen() {
                 <Ionicons
                   name="caret-forward"
                   size={16}
-                  color="#1a1a1a"
+                  color={Colors.black}
                   style={{ marginLeft: 4 }}
                 />
               )}
@@ -528,7 +545,7 @@ export default function BookingSummaryScreen() {
       {isVerifyingPayment && (
         <View style={styles.modalOverlay}>
           <View style={styles.loaderCard}>
-            <PulseLoader size={60} color="#C8F000" />
+            <PulseLoader size={60} color={Colors.primary} />
             <Text style={styles.loaderTitle}>Verifying Payment...</Text>
             <Text style={styles.loaderSubtitle}>
               Please wait while we confirm with the bank.
@@ -577,7 +594,9 @@ export default function BookingSummaryScreen() {
               style={{ flex: 1 }}
               onNavigationStateChange={(navState) => {}}
               startInLoadingState={true}
-              renderLoading={() => <PulseLoader size={40} color="#C8F000" />}
+              renderLoading={() => (
+                <PulseLoader size={40} color={Colors.primary} />
+              )}
             />
           ) : (
             <View
@@ -597,17 +616,17 @@ export default function BookingSummaryScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f9f9f9" },
+  container: { flex: 1, backgroundColor: Colors.background },
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 20,
     paddingVertical: 15,
-    backgroundColor: "#f9f9f9",
+    backgroundColor: Colors.background,
   },
   backButton: { padding: 5 },
-  headerTitle: { fontSize: 18, fontWeight: "bold", color: "#1a1a1a" },
+  headerTitle: { fontSize: 18, fontWeight: "bold", color: Colors.text },
 
   mapContainer: {
     height: 200,
@@ -644,21 +663,21 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: "#fff3e0",
+    backgroundColor: "#fff3e0", // Keep this one for contrast
     alignItems: "center",
     justifyContent: "center",
     marginRight: 10,
   },
-  pinShopName: { fontSize: 14, fontWeight: "bold", color: "#1a1a1a" },
-  pinShopAddress: { fontSize: 10, color: "#666", marginTop: 2 },
+  pinShopName: { fontSize: 14, fontWeight: "bold", color: Colors.text },
+  pinShopAddress: { fontSize: 10, color: Colors.textSecondary, marginTop: 2 },
 
   card: {
-    backgroundColor: "#fff",
+    backgroundColor: Colors.card,
     borderRadius: 20,
     marginHorizontal: 20,
     marginBottom: 15,
     padding: 20,
-    shadowColor: "#000",
+    shadowColor: Colors.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 5,
@@ -667,14 +686,14 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#1a1a1a",
+    color: Colors.text,
     marginBottom: 15,
   },
   paymentTitle: {
     marginLeft: 20,
     fontSize: 16,
     fontWeight: "bold",
-    color: "#1a1a1a",
+    color: Colors.text,
     marginBottom: 15,
   },
   row: {
@@ -686,7 +705,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 10,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: Colors.background,
     alignItems: "center",
     justifyContent: "center",
     marginRight: 15,
@@ -694,11 +713,11 @@ const styles = StyleSheet.create({
   rowContent: {
     flex: 1,
   },
-  label: { fontSize: 12, color: "#888", marginBottom: 2 },
-  value: { fontSize: 14, fontWeight: "600", color: "#1a1a1a" },
+  label: { fontSize: 12, color: Colors.textSecondary, marginBottom: 2 },
+  value: { fontSize: 14, fontWeight: "600", color: Colors.text },
   divider: {
     height: 1,
-    backgroundColor: "#f0f0f0",
+    backgroundColor: Colors.border,
     marginVertical: 12,
     marginLeft: 51,
   },
@@ -708,32 +727,32 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginBottom: 10,
   },
-  paymentLabel: { fontSize: 14, color: "#666" },
-  paymentValue: { fontSize: 14, fontWeight: "600", color: "#1a1a1a" },
+  paymentLabel: { fontSize: 14, color: Colors.textSecondary },
+  paymentValue: { fontSize: 14, fontWeight: "600", color: Colors.text },
   totalDivider: {
     height: 1,
-    backgroundColor: "#e0e0e0",
+    backgroundColor: Colors.border,
     marginVertical: 12,
     borderStyle: "dashed",
     borderWidth: 1,
-    borderColor: "#e0e0e0",
+    borderColor: Colors.border,
   },
-  totalTextLabel: { fontSize: 16, fontWeight: "bold", color: "#1a1a1a" },
-  totalTextValue: { fontSize: 18, fontWeight: "bold", color: "#1a1a1a" },
+  totalTextLabel: { fontSize: 16, fontWeight: "bold", color: Colors.text },
+  totalTextValue: { fontSize: 18, fontWeight: "bold", color: Colors.text },
 
   footer: {
     position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: "#fff",
+    backgroundColor: Colors.background,
 
     paddingHorizontal: 16,
     paddingVertical: 12,
     paddingBottom: 35,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    shadowColor: "#000",
+    shadowColor: Colors.black,
     shadowOffset: { width: 0, height: -5 },
     shadowOpacity: 0.1,
     shadowRadius: 10,
@@ -755,16 +774,16 @@ const styles = StyleSheet.create({
   payUsingText: {
     fontSize: 10,
     fontWeight: "bold",
-    color: "#888",
+    color: Colors.textSecondary,
     textTransform: "uppercase",
   },
   selectedMethodText: {
     fontSize: 15,
     fontWeight: "bold",
-    color: "#1a1a1a",
+    color: Colors.text,
   },
   payButton: {
-    backgroundColor: "#C8F000",
+    backgroundColor: Colors.primary,
     borderRadius: 12,
     paddingVertical: 10,
     paddingHorizontal: 16,
@@ -773,7 +792,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   payButtonDisabled: {
-    backgroundColor: "#f0f0f0",
+    backgroundColor: Colors.border,
     opacity: 0.7,
   },
   payButtonContent: {
@@ -788,12 +807,12 @@ const styles = StyleSheet.create({
   payButtonPriceText: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#1a1a1a",
+    color: Colors.black,
   },
   payButtonTotalLabel: {
     fontSize: 10,
     fontWeight: "bold",
-    color: "#1a1a1a",
+    color: Colors.black,
     opacity: 0.6,
   },
   payButtonActionContainer: {
@@ -801,146 +820,40 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   payButtonActionText: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: "bold",
-    color: "#1a1a1a",
+    color: Colors.black,
   },
-
-  // Modal Styles
   modalOverlay: {
     position: "absolute",
     top: 0,
-    bottom: 0,
     left: 0,
     right: 0,
-    zIndex: 999,
+    bottom: 0,
+    backgroundColor: "rgba(0,0,0,0.7)",
     justifyContent: "center",
-    backgroundColor: "rgba(0,0,0,0.5)",
+    alignItems: "center",
+    zIndex: 1000,
   },
   loaderCard: {
-    backgroundColor: "#fff",
-    borderRadius: 24,
-    marginHorizontal: 40,
-    marginBottom: "auto",
-    marginTop: "auto",
-    padding: 40,
+    backgroundColor: Colors.card,
+    borderRadius: 20,
+    padding: 30,
     alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.15,
-    shadowRadius: 20,
-    elevation: 10,
+    width: "80%",
   },
   loaderTitle: {
-    marginTop: 24,
     fontSize: 18,
-    fontWeight: "700",
-    color: "#111",
+    fontWeight: "bold",
+    marginTop: 20,
+    color: Colors.text,
     textAlign: "center",
   },
   loaderSubtitle: {
-    marginTop: 8,
     fontSize: 14,
-    color: "#64748B",
+    color: Colors.textSecondary,
+    marginTop: 10,
     textAlign: "center",
     lineHeight: 20,
   },
-  modalBackdrop: {
-    flex: 1,
-  },
-  modalContent: {
-    backgroundColor: "#fff",
-    borderTopLeftRadius: 25,
-    borderTopRightRadius: 25,
-    paddingTop: 20,
-    paddingBottom: 40,
-    maxHeight: "70%",
-  },
-  modalHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    marginBottom: 20,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#1a1a1a",
-  },
-  modalScroll: {
-    paddingBottom: 20,
-  },
-
-  optionCard: {
-    backgroundColor: "#fff",
-    borderRadius: 20,
-    marginHorizontal: 20,
-    marginBottom: 15,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: "#eee",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 3,
-    elevation: 1,
-    position: "relative",
-    overflow: "hidden",
-  },
-  optionCardSelected: {
-    borderColor: "#84c95c",
-    backgroundColor: "#f8fff5",
-  },
-  recommendedBadge: {
-    position: "absolute",
-    top: 0,
-    right: 0,
-    backgroundColor: "#FFEB3B",
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderBottomLeftRadius: 10,
-  },
-  recommendedText: { fontSize: 10, fontWeight: "bold", color: "#1a1a1a" },
-  optionRow: { flexDirection: "row", alignItems: "flex-start" },
-  radioContainer: { marginRight: 15, paddingTop: 2 },
-  radioInfo: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 2,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  radioUnselected: { borderColor: "#ddd" },
-  radioSelected: { borderColor: "#84c95c" },
-  radioDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: "#84c95c",
-  },
-  optionIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 10,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 15,
-  },
-  optionContent: { flex: 1 },
-  optionLabel: {
-    fontSize: 15,
-    fontWeight: "bold",
-    color: "#1a1a1a",
-    marginBottom: 2,
-  },
-  optionSubLabel: { fontSize: 12, color: "#888", marginBottom: 5 },
-  securityNote: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 20,
-  },
-  securityText: { fontSize: 12, color: "#999", marginLeft: 5 },
 });

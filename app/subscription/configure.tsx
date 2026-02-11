@@ -1,10 +1,10 @@
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { Colors } from "@/constants/Colors";
 import React, { useState, useEffect } from "react";
 import {
   ActivityIndicator,
   Alert,
-  NativeModules,
   ScrollView,
   StyleSheet,
   Text,
@@ -68,7 +68,7 @@ export default function SubscriptionConfigureScreen() {
     null,
   );
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string | null>(null);
-  const [startDate, setStartDate] = useState(new Date());
+  const [startDate] = useState(new Date());
 
   const [showAddCarModal, setShowAddCarModal] = useState(false);
   const [newCarNo, setNewCarNo] = useState("");
@@ -90,8 +90,9 @@ export default function SubscriptionConfigureScreen() {
 
   useEffect(() => {
     if (availableCars.length > 0 && !selectedVehicleId) {
+      // Logic if needed
     }
-  }, [availableCars.length]);
+  }, [availableCars.length, selectedVehicleId]);
 
   const handleAddCar = async () => {
     if (!newCarNo.trim()) {
@@ -151,10 +152,10 @@ export default function SubscriptionConfigureScreen() {
   }
 
   return (
-    <ScreenWrapper style={styles.container} backgroundColor="#f8f9fa">
+    <ScreenWrapper style={styles.container} backgroundColor={Colors.background}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={24} color="#333" />
+          <Ionicons name="arrow-back" size={24} color={Colors.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Configure Subscription</Text>
       </View>
@@ -182,7 +183,11 @@ export default function SubscriptionConfigureScreen() {
                 <MaterialCommunityIcons
                   name={getVehicleIconName(car.vehicleType) as any}
                   size={46}
-                  color={selectedVehicleId === car._id ? "#FFF" : "#666"}
+                  color={
+                    selectedVehicleId === car._id
+                      ? Colors.black
+                      : Colors.textSecondary
+                  }
                 />
                 <Text
                   style={[
@@ -208,8 +213,12 @@ export default function SubscriptionConfigureScreen() {
               style={[styles.optionCard, styles.addCarCard]}
               onPress={() => setShowAddCarModal(true)}
             >
-              <Ionicons name="add-circle-outline" size={28} color="#84c95c" />
-              <Text style={[styles.optionText, { color: "#84c95c" }]}>
+              <Ionicons
+                name="add-circle-outline"
+                size={28}
+                color={Colors.primary}
+              />
+              <Text style={[styles.optionText, { color: Colors.primary }]}>
                 Add New Car
               </Text>
             </TouchableOpacity>
@@ -241,7 +250,7 @@ export default function SubscriptionConfigureScreen() {
 
         <Text style={styles.sectionTitle}>Duration</Text>
         <View style={styles.dateCard}>
-          <Ionicons name="calendar" size={20} color="#666" />
+          <Ionicons name="calendar" size={20} color={Colors.textSecondary} />
           <Text style={styles.dateText}>
             Valid for 30 days starting {new Date().toLocaleDateString()}
           </Text>
@@ -319,58 +328,67 @@ export default function SubscriptionConfigureScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f8f9fa" },
+  container: { flex: 1, backgroundColor: Colors.background },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
   header: {
     flexDirection: "row",
     alignItems: "center",
     padding: 16,
-    backgroundColor: "#FFF",
+    backgroundColor: Colors.card,
   },
   backBtn: { padding: 4 },
-  headerTitle: { fontSize: 18, fontWeight: "bold", marginLeft: 16 },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginLeft: 16,
+    color: Colors.text,
+  },
   content: { padding: 20 },
   planSummary: {
-    backgroundColor: "#e8f5e9",
+    backgroundColor: "rgba(76, 175, 80, 0.1)",
     padding: 16,
     borderRadius: 12,
     marginBottom: 24,
   },
-  planName: { fontSize: 18, fontWeight: "bold", color: "#2e7d32" },
-  planPrice: { fontSize: 16, color: "#1b5e20", marginTop: 4 },
+  planName: { fontSize: 18, fontWeight: "bold", color: Colors.success },
+  planPrice: { fontSize: 16, color: Colors.success, marginTop: 4 },
   sectionTitle: {
     fontSize: 16,
     fontWeight: "600",
     marginBottom: 12,
     marginTop: 12,
-    color: "#333",
+    color: Colors.text,
   },
   optionsGrid: { flexDirection: "row", flexWrap: "wrap", gap: 12 },
   optionCard: {
     width: "48%",
-    backgroundColor: "#FFF",
+    backgroundColor: Colors.card,
     padding: 16,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#e0e0e0",
+    borderColor: Colors.border,
     alignItems: "center",
     marginBottom: 8,
   },
   addCarCard: {
-    borderColor: "#84c95c",
+    borderColor: Colors.primary,
     borderStyle: "dashed",
     justifyContent: "center",
   },
-  selectedOption: { backgroundColor: "#84c95c", borderColor: "#84c95c" },
-  selectedText: { color: "#FFF" },
+  selectedOption: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
+  selectedText: { color: Colors.black },
   optionText: {
     marginTop: 8,
     fontWeight: "600",
     textAlign: "center",
     fontSize: 12,
+    color: Colors.text,
   },
-  subText: { fontSize: 12, color: "#666", marginTop: 4 },
-  emptyText: { color: "#666", fontStyle: "italic" },
+  subText: { fontSize: 12, color: Colors.textSecondary, marginTop: 4 },
+  emptyText: { color: Colors.textSecondary, fontStyle: "italic" },
   optionsList: { gap: 10 },
   timeSlotGrid: {
     flexDirection: "row",
@@ -380,48 +398,48 @@ const styles = StyleSheet.create({
   timeSlotChip: {
     paddingVertical: 12,
     paddingHorizontal: 16,
-    backgroundColor: "#FFF",
+    backgroundColor: Colors.card,
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: "#e0e0e0",
+    borderColor: Colors.border,
     minWidth: "45%",
     alignItems: "center",
   },
   selectedTimeChip: {
-    backgroundColor: "#84c95c",
-    borderColor: "#84c95c",
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
   },
   timeSlotText: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#333",
+    color: Colors.text,
   },
   selectedTimeText: {
-    color: "#FFF",
+    color: Colors.black,
   },
   slotText: { fontSize: 14, fontWeight: "500" },
   dateCard: {
     flexDirection: "row",
-    backgroundColor: "#FFF",
+    backgroundColor: Colors.card,
     padding: 16,
     borderRadius: 12,
     alignItems: "center",
     gap: 10,
   },
-  dateText: { fontSize: 14, color: "#333" },
+  dateText: { fontSize: 14, color: Colors.text },
   footer: {
     padding: 20,
-    backgroundColor: "#FFF",
+    backgroundColor: Colors.card,
     borderTopWidth: 1,
-    borderColor: "#eee",
+    borderColor: Colors.border,
   },
   payBtn: {
-    backgroundColor: "#1a1a1a",
+    backgroundColor: Colors.primary,
     padding: 18,
     borderRadius: 16,
     alignItems: "center",
   },
-  payBtnText: { color: "#FFF", fontSize: 16, fontWeight: "bold" },
+  payBtnText: { color: Colors.black, fontSize: 16, fontWeight: "bold" },
   disabledBtn: { opacity: 0.7 },
 
   // Modal Styles
@@ -432,7 +450,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   modalContent: {
-    backgroundColor: "#FFF",
+    backgroundColor: Colors.card,
     borderRadius: 20,
     padding: 24,
   },
@@ -441,16 +459,23 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 20,
     textAlign: "center",
+    color: Colors.text,
   },
-  label: { fontSize: 14, fontWeight: "600", marginBottom: 8, color: "#333" },
+  label: {
+    fontSize: 14,
+    fontWeight: "600",
+    marginBottom: 8,
+    color: Colors.textSecondary,
+  },
   input: {
     borderWidth: 1,
-    borderColor: "#e0e0e0",
+    borderColor: Colors.border,
     borderRadius: 12,
     padding: 12,
     fontSize: 16,
     marginBottom: 20,
-    backgroundColor: "#f9f9f9",
+    backgroundColor: Colors.background,
+    color: Colors.text,
   },
   vehicleTypeGrid: {
     flexDirection: "row",
@@ -462,13 +487,13 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 20,
-    backgroundColor: "#f0f0f0",
+    backgroundColor: Colors.background,
   },
   selectedTypeChip: {
-    backgroundColor: "#84c95c",
+    backgroundColor: Colors.primary,
   },
-  typeText: { fontSize: 12, fontWeight: "600", color: "#666" },
-  selectedTypeText: { color: "#FFF" },
+  typeText: { fontSize: 12, fontWeight: "600", color: Colors.textSecondary },
+  selectedTypeText: { color: Colors.black },
 
   modalActions: {
     flexDirection: "row",
@@ -477,17 +502,17 @@ const styles = StyleSheet.create({
   cancelBtn: {
     flex: 1,
     padding: 14,
-    backgroundColor: "#f0f0f0",
+    backgroundColor: Colors.background,
     borderRadius: 12,
     alignItems: "center",
   },
   saveBtn: {
     flex: 1,
     padding: 14,
-    backgroundColor: "#1a1a1a",
+    backgroundColor: Colors.primary,
     borderRadius: 12,
     alignItems: "center",
   },
-  cancelText: { fontWeight: "600", color: "#333" },
-  saveBtnText: { fontWeight: "600", color: "#FFF" },
+  cancelText: { fontWeight: "600", color: Colors.text },
+  saveBtnText: { fontWeight: "600", color: Colors.black },
 });

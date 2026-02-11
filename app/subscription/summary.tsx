@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { Colors } from "@/constants/Colors";
 import React from "react";
 import {
   ActivityIndicator,
@@ -170,16 +171,16 @@ export default function SubscriptionSummaryScreen() {
   if (!selectedPlan || !selectedVehicle) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color="#84c95c" />
+        <ActivityIndicator size="large" color={Colors.primary} />
       </View>
     );
   }
 
   return (
-    <ScreenWrapper style={styles.container} backgroundColor="#f8f9fa">
+    <ScreenWrapper style={styles.container} backgroundColor={Colors.background}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={24} color="#333" />
+          <Ionicons name="arrow-back" size={24} color={Colors.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Subscription Summary</Text>
       </View>
@@ -233,7 +234,7 @@ export default function SubscriptionSummaryScreen() {
                 <Ionicons
                   name="information-circle-outline"
                   size={20}
-                  color="#1a73e8"
+                  color={Colors.primary}
                 />
                 <Text style={styles.addressInfoText}>
                   This subscription uses your{" "}
@@ -242,7 +243,7 @@ export default function SubscriptionSummaryScreen() {
                 </Text>
               </View>
               <View style={styles.selectedAddressCard}>
-                <Ionicons name="location" size={24} color="#84c95c" />
+                <Ionicons name="location" size={24} color={Colors.primary} />
                 <View style={styles.addressDetails}>
                   <Text style={styles.addressLabel}>
                     Current Default Address
@@ -288,29 +289,36 @@ export default function SubscriptionSummaryScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f8f9fa" },
+  container: { flex: 1, backgroundColor: Colors.background },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
   header: {
     flexDirection: "row",
     alignItems: "center",
     padding: 16,
-    backgroundColor: "#FFF",
+    backgroundColor: Colors.card,
     borderBottomWidth: 1,
-    borderBottomColor: "#eee",
+    borderBottomColor: Colors.border,
   },
   backBtn: { padding: 4 },
-  headerTitle: { fontSize: 18, fontWeight: "bold", marginLeft: 16 },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginLeft: 16,
+    color: Colors.text,
+  },
   content: { padding: 12 },
   card: {
-    backgroundColor: "#FFF",
+    backgroundColor: Colors.card,
     borderRadius: 8,
     padding: 10,
     marginBottom: 10,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.1,
     shadowRadius: 2,
     elevation: 1,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
   compactRow: {
     flexDirection: "row",
@@ -321,9 +329,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "bold",
     marginBottom: 8,
-    color: "#333",
+    color: Colors.text,
     borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
+    borderBottomColor: Colors.border,
     paddingBottom: 4,
   },
   row: {
@@ -331,42 +339,42 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginBottom: 4,
   },
-  label: { fontSize: 13, color: "#666" },
-  value: { fontSize: 13, fontWeight: "600", color: "#1a1a1a" },
-  addressText: { fontSize: 13, color: "#444", lineHeight: 18 },
+  label: { fontSize: 13, color: Colors.textSecondary },
+  value: { fontSize: 13, fontWeight: "600", color: Colors.text },
+  addressText: { fontSize: 13, color: Colors.textSecondary, lineHeight: 18 },
   priceContainer: { marginTop: 4, paddingHorizontal: 4 },
   priceRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     marginBottom: 4,
   },
-  priceLabel: { fontSize: 13, color: "#666" },
-  priceValue: { fontSize: 13, fontWeight: "600" },
+  priceLabel: { fontSize: 13, color: Colors.textSecondary },
+  priceValue: { fontSize: 13, fontWeight: "600", color: Colors.text },
   totalRow: {
     borderTopWidth: 1,
-    borderTopColor: "#eee",
+    borderTopColor: Colors.border,
     paddingTop: 8,
     marginTop: 4,
   },
-  totalLabel: { fontSize: 15, fontWeight: "bold", color: "#1a1a1a" },
-  totalPrice: { fontSize: 16, fontWeight: "bold", color: "#2e7d32" },
+  totalLabel: { fontSize: 15, fontWeight: "bold", color: Colors.text },
+  totalPrice: { fontSize: 16, fontWeight: "bold", color: Colors.primary },
   footer: {
     padding: 12,
-    backgroundColor: "#FFF",
+    backgroundColor: Colors.card,
     borderTopWidth: 1,
-    borderColor: "#eee",
+    borderColor: Colors.border,
   },
   payBtn: {
-    backgroundColor: "#1a1a1a",
+    backgroundColor: Colors.primary,
     padding: 14,
     borderRadius: 12,
     alignItems: "center",
   },
-  payBtnText: { color: "#FFF", fontSize: 15, fontWeight: "bold" },
+  payBtnText: { color: Colors.black, fontSize: 15, fontWeight: "bold" },
   disabledBtn: { opacity: 0.7 },
   addressInfoBox: {
     flexDirection: "row",
-    backgroundColor: "#e8f0fe",
+    backgroundColor: "rgba(37, 99, 235, 0.1)", // Light blue tint
     padding: 8,
     borderRadius: 6,
     marginBottom: 8,
@@ -374,7 +382,7 @@ const styles = StyleSheet.create({
   },
   addressInfoText: {
     fontSize: 11,
-    color: "#1a73e8",
+    color: Colors.text,
     marginLeft: 6,
     flex: 1,
     lineHeight: 16,
@@ -382,11 +390,11 @@ const styles = StyleSheet.create({
   selectedAddressCard: {
     flexDirection: "row",
     alignItems: "flex-start",
-    backgroundColor: "#f8f9fa",
+    backgroundColor: Colors.background,
     padding: 8,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: "#e0e0e0",
+    borderColor: Colors.border,
   },
   addressDetails: {
     marginLeft: 8,
@@ -394,7 +402,7 @@ const styles = StyleSheet.create({
   },
   addressLabel: {
     fontSize: 11,
-    color: "#666",
+    color: Colors.textSecondary,
     marginBottom: 2,
     fontWeight: "600",
   },

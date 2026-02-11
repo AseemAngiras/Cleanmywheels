@@ -8,6 +8,8 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { Colors } from "@/constants/Colors";
+
 interface ScreenWrapperProps {
   children: React.ReactNode;
   style?: ViewStyle;
@@ -23,9 +25,9 @@ interface ScreenWrapperProps {
 export const ScreenWrapper: React.FC<ScreenWrapperProps> = ({
   children,
   style,
-  backgroundColor = "transparent",
+  backgroundColor = Colors.background,
   statusBarColor = "transparent",
-  statusBarStyle = "dark-content",
+  statusBarStyle = "light-content",
   translucent = true,
   useSafeArea = true,
   background,

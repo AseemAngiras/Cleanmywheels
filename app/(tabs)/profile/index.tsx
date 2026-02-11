@@ -17,6 +17,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { Colors } from "@/constants/Colors";
 
 import { RootState } from "@/store";
 import { useSelector } from "react-redux";
@@ -262,8 +263,8 @@ export default function ProfileHome() {
   return (
     <ScreenWrapper
       style={styles.container}
-      backgroundColor="#fff"
-      statusBarStyle="dark-content"
+      backgroundColor={Colors.background}
+      statusBarStyle="light-content"
     >
       <ScrollView
         contentContainerStyle={{ paddingBottom: 100 }}
@@ -275,7 +276,7 @@ export default function ProfileHome() {
             style={styles.moreButton}
             onPress={() => router.back()}
           >
-            <Ionicons name="chevron-back" size={20} color="#111" />
+            <Ionicons name="chevron-back" size={20} color={Colors.text} />
           </TouchableOpacity>
           <Text style={styles.header}>Your Profile</Text>
           <View style={{ width: 36 }} />
@@ -300,14 +301,14 @@ export default function ProfileHome() {
                   position: "absolute",
                   bottom: 0,
                   right: 4,
-                  backgroundColor: "#fff",
+                  backgroundColor: Colors.card,
                   borderRadius: 15,
                   width: 20,
                   height: 20,
                   alignItems: "center",
                   justifyContent: "center",
                   borderWidth: 1,
-                  borderColor: "#f0f0f0",
+                  borderColor: Colors.border,
                   shadowColor: "#000",
                   shadowOffset: { width: 0, height: 2 },
                   shadowOpacity: 0.1,
@@ -315,7 +316,7 @@ export default function ProfileHome() {
                   elevation: 3,
                 }}
               >
-                <Ionicons name="pencil" size={10} color="#000000" />
+                <Ionicons name="pencil" size={10} color={Colors.text} />
               </View>
             </TouchableOpacity>
             <View>
@@ -327,14 +328,14 @@ export default function ProfileHome() {
                   <Ionicons
                     name="pencil-sharp"
                     size={16}
-                    color="#666"
+                    color={Colors.textSecondary}
                     style={{ marginLeft: 8 }}
                   />
                   {/* Premium Badge */}
                   {isPremiumUser && (
                     <View
                       style={{
-                        backgroundColor: "#D1F803",
+                        backgroundColor: Colors.primary,
                         paddingHorizontal: 8,
                         paddingVertical: 2,
                         borderRadius: 12,
@@ -376,7 +377,7 @@ export default function ProfileHome() {
                 fontWeight: "600",
                 marginBottom: 10,
                 paddingHorizontal: 16,
-                color: "#1a1a1a",
+                color: Colors.text,
               }}
             >
               Admin Dashboard
@@ -424,13 +425,19 @@ export default function ProfileHome() {
                   paddingHorizontal: 16,
                   paddingVertical: 10,
                   borderBottomWidth: 1,
-                  borderBottomColor: "#f0f0f0",
+                  borderBottomColor: Colors.border,
                   flexDirection: "row",
                   justifyContent: "space-between",
                   alignItems: "center",
                 }}
               >
-                <Text style={{ fontSize: 16, fontWeight: "600" }}>
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontWeight: "600",
+                    color: Colors.text,
+                  }}
+                >
                   Saved Addresses
                 </Text>
                 <TouchableOpacity
@@ -442,22 +449,31 @@ export default function ProfileHome() {
                     })
                   }
                 >
-                  <Ionicons name="add-circle" size={18} color="#84c95c" />
-                  <Text style={{ color: "#84c95c", fontWeight: "600" }}>
+                  <Ionicons
+                    name="add-circle"
+                    size={18}
+                    color={Colors.primary}
+                  />
+                  <Text style={{ color: Colors.primary, fontWeight: "600" }}>
                     Add
                   </Text>
                 </TouchableOpacity>
               </View>
               {savedAddresses.length === 0 ? (
                 <View style={{ padding: 16 }}>
-                  <Text style={{ color: "#888" }}>No addresses saved yet.</Text>
+                  <Text style={{ color: Colors.textSecondary }}>
+                    No addresses saved yet.
+                  </Text>
                 </View>
               ) : (
                 <View>
                   <TouchableOpacity
                     style={[
                       styles.addressRow,
-                      { borderBottomWidth: isAddressDropdownOpen ? 1 : 0 },
+                      {
+                        borderBottomWidth: isAddressDropdownOpen ? 1 : 0,
+                        borderColor: Colors.border,
+                      },
                     ]}
                     onPress={() =>
                       setIsAddressDropdownOpen(!isAddressDropdownOpen)
@@ -465,7 +481,7 @@ export default function ProfileHome() {
                     activeOpacity={0.7}
                   >
                     <View style={styles.iconBox}>
-                      <Ionicons name="location" size={18} color="#1a1a1a" />
+                      <Ionicons name="location" size={18} color={Colors.text} />
                     </View>
                     <View style={{ flex: 1 }}>
                       <Text style={styles.rowTitle}>
@@ -482,13 +498,13 @@ export default function ProfileHome() {
                         isAddressDropdownOpen ? "chevron-up" : "chevron-down"
                       }
                       size={20}
-                      color="#666"
+                      color={Colors.textSecondary}
                     />
                   </TouchableOpacity>
 
                   {/* Dropdown List */}
                   {isAddressDropdownOpen && (
-                    <View style={{ backgroundColor: "#F9F9F9" }}>
+                    <View style={{ backgroundColor: Colors.background }}>
                       {savedAddresses.map((addr: any, idx: number) => {
                         const isDefault =
                           profileState.defaultAddressId === addr.id;
@@ -502,9 +518,10 @@ export default function ProfileHome() {
                                 {
                                   paddingLeft: 24,
                                   backgroundColor: isDefault
-                                    ? "#F0FDF4"
-                                    : "#F9F9F9",
+                                    ? "rgba(200, 240, 0, 0.1)" // Slight primary tint
+                                    : Colors.background,
                                   borderBottomWidth: isExpanded ? 0 : 1,
+                                  borderColor: Colors.border,
                                 },
                               ]}
                               activeOpacity={0.7}
@@ -519,8 +536,8 @@ export default function ProfileHome() {
                                   styles.iconBox,
                                   {
                                     backgroundColor: isDefault
-                                      ? "#DCFCE7"
-                                      : "#EEEEEE",
+                                      ? "rgba(200, 240, 0, 0.2)"
+                                      : Colors.border,
                                   },
                                 ]}
                               >
@@ -529,14 +546,18 @@ export default function ProfileHome() {
                                     isDefault ? "checkmark" : "location-outline"
                                   }
                                   size={16}
-                                  color={isDefault ? "#166534" : "#666"}
+                                  color={
+                                    isDefault
+                                      ? Colors.primary
+                                      : Colors.textSecondary
+                                  }
                                 />
                               </View>
                               <View style={{ flex: 1 }}>
                                 <Text
                                   style={[
                                     styles.rowTitle,
-                                    isDefault && { color: "#166534" },
+                                    isDefault && { color: Colors.primary },
                                   ]}
                                 >
                                   {addr.addressType || "Home"}
@@ -556,7 +577,7 @@ export default function ProfileHome() {
                                   isExpanded ? "chevron-up" : "chevron-down"
                                 }
                                 size={16}
-                                color="#999"
+                                color={Colors.textSecondary}
                               />
                             </TouchableOpacity>
 
@@ -567,14 +588,14 @@ export default function ProfileHome() {
                                   flexDirection: "row",
                                   alignItems: "center",
                                   backgroundColor: isDefault
-                                    ? "#F0FDF4"
-                                    : "#F9F9F9",
+                                    ? "rgba(200, 240, 0, 0.05)"
+                                    : Colors.background,
                                   paddingLeft: 60,
                                   paddingBottom: 12,
                                   paddingRight: 16,
                                   gap: 16,
                                   borderBottomWidth: 1,
-                                  borderBottomColor: "#f0f0f0",
+                                  borderBottomColor: Colors.border,
                                 }}
                               >
                                 {!isDefault && (
@@ -593,12 +614,12 @@ export default function ProfileHome() {
                                     <Ionicons
                                       name="checkmark-circle-outline"
                                       size={18}
-                                      color="#166534"
+                                      color={Colors.primary}
                                     />
                                     <Text
                                       style={{
                                         fontSize: 14,
-                                        color: "#166534",
+                                        color: Colors.primary,
                                         fontWeight: "500",
                                       }}
                                     >
@@ -919,11 +940,14 @@ export default function ProfileHome() {
                     position: "absolute",
                     bottom: 0,
                     right: 0,
-                    backgroundColor: "#84c95c",
-                    padding: 6,
-                    borderRadius: 20,
+                    backgroundColor: Colors.primary,
+                    borderRadius: 15,
+                    width: 30,
+                    height: 30,
+                    alignItems: "center",
+                    justifyContent: "center",
                     borderWidth: 2,
-                    borderColor: "#FFF",
+                    borderColor: Colors.card,
                   }}
                 >
                   <Ionicons name="camera" size={14} color="#FFF" />
@@ -931,7 +955,7 @@ export default function ProfileHome() {
               </TouchableOpacity>
             </View>
 
-            <View style={{ marginBottom: 16 }}>
+            <View style={{ width: "100%", marginBottom: 20 }}>
               <Text style={styles.inputLabel}>Full Name</Text>
               <TextInput
                 style={styles.textInput}
@@ -941,55 +965,45 @@ export default function ProfileHome() {
                     setIsNameWarningVisible(true);
                     setTimeout(() => setIsNameWarningVisible(false), 3000);
                   }
-                  setTempName(text.replace(/[^a-zA-Z\s]/g, ""));
+                  // Allow only letters and spaces
+                  const val = text.replace(/[^a-zA-Z\s]/g, "");
+                  setTempName(val);
                 }}
                 placeholder="Enter your name"
-                maxLength={30}
+                placeholderTextColor={Colors.textSecondary}
               />
               {isNameWarningVisible && (
-                <Text
-                  style={{
-                    color: "red",
-                    fontSize: 12,
-                    marginTop: 4,
-                    marginLeft: 4,
-                  }}
-                >
-                  Only alphabets are allowed
+                <Text style={styles.warningText}>
+                  Only letters and spaces are allowed
                 </Text>
               )}
             </View>
 
-            <View style={{ marginBottom: 24 }}>
+            <View style={{ width: "100%", marginBottom: 20 }}>
               <Text style={styles.inputLabel}>Mobile Number</Text>
               <View
                 style={[
                   styles.textInput,
                   {
-                    backgroundColor: "#f0f0f0",
                     flexDirection: "row",
                     alignItems: "center",
+                    backgroundColor: Colors.background, // clearly disabled/read-only look
+                    opacity: 0.7,
                   },
                 ]}
               >
-                <Text style={{ fontSize: 16, color: "#888", marginRight: 8 }}>
-                  +91
-                </Text>
+                <Text style={{ color: Colors.text, marginRight: 8 }}>+91</Text>
                 <View
                   style={{
-                    height: "100%",
                     width: 1,
-                    backgroundColor: "#E5E7EB",
-                    marginRight: 12,
+                    height: 16,
+                    backgroundColor: Colors.textSecondary,
+                    marginRight: 8,
                   }}
                 />
-                <Text style={{ color: "#888", fontSize: 16, flex: 1 }}>
-                  {profileState?.phone ||
-                    userData?.phone ||
-                    userState?.user?.phone ||
-                    "N/A"}
+                <Text style={{ color: Colors.textSecondary, fontSize: 16 }}>
+                  {userData?.phone || profileState?.phone || ""}
                 </Text>
-                <Ionicons name="lock-closed" size={16} color="#aaa" />
               </View>
             </View>
 
@@ -1019,261 +1033,264 @@ const Row = ({
   icon,
   title,
   subtitle,
-  danger,
   onPress,
+  danger,
 }: {
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: any;
   title: string;
   subtitle?: string;
+  onPress: () => void;
   danger?: boolean;
-  onPress?: () => void;
 }) => (
-  <TouchableOpacity style={styles.row} onPress={onPress} activeOpacity={0.7}>
-    <View style={styles.rowLeft}>
+  <TouchableOpacity style={styles.row} onPress={onPress}>
+    <View style={[styles.iconBox, danger && styles.dangerIconBox]}>
       <Ionicons
         name={icon}
         size={20}
-        color={danger ? "#E53935" : "#111"}
-        style={styles.rowIcon}
+        color={danger ? Colors.error : Colors.text}
       />
-      <View>
-        <Text style={[styles.rowTitle, danger && { color: "#E53935" }]}>
-          {title}
-        </Text>
-        {subtitle && <Text style={styles.rowSubtitle}>{subtitle}</Text>}
-      </View>
     </View>
-
-    <Ionicons name="chevron-forward" size={18} color="#999" />
+    <View style={styles.rowContent}>
+      <Text style={[styles.rowTitle, danger && styles.dangerText]}>
+        {title}
+      </Text>
+      {subtitle && <Text style={styles.rowSubtitle}>{subtitle}</Text>}
+    </View>
+    <Ionicons name="chevron-forward" size={20} color={Colors.textSecondary} />
   </TouchableOpacity>
 );
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F3F4F7",
-    paddingHorizontal: 16,
-    // paddingTop: 30,
-    marginTop: 30,
   },
   headerRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
     marginBottom: 20,
-  },
-  header: {
-    fontSize: 26,
-    fontWeight: "500",
+    marginTop: 10,
   },
   moreButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: "#FFF",
-    justifyContent: "center",
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.card,
     alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  header: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: Colors.text,
   },
   profileCard: {
-    backgroundColor: "#FFF",
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
+    marginHorizontal: 20,
+    marginBottom: 24,
+    padding: 20,
+    borderRadius: 24,
+    backgroundColor: Colors.card,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderWidth: 1,
+    borderColor: Colors.border,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
   profileLeft: {
     flexDirection: "row",
     alignItems: "center",
+    gap: 16,
   },
   avatar: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    marginRight: 12,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    borderWidth: 2,
+    borderColor: Colors.border,
+    backgroundColor: Colors.background,
   },
   profileName: {
-    fontSize: 16,
-    fontWeight: "600",
+    fontSize: 18,
+    fontWeight: "700",
+    color: Colors.text,
+    marginBottom: 4,
   },
   profileSubtitle: {
-    fontSize: 13,
-    color: "#777",
-    marginTop: 2,
+    fontSize: 14,
+    color: Colors.textSecondary,
+    fontWeight: "500",
   },
   card: {
-    backgroundColor: "#FFF",
-    borderRadius: 16,
-    marginBottom: 16,
-    paddingVertical: 4,
+    marginHorizontal: 20,
+    marginBottom: 20,
+    paddingVertical: 12,
+    borderRadius: 24,
+    backgroundColor: Colors.card,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    overflow: "hidden",
   },
   row: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
     paddingVertical: 14,
     paddingHorizontal: 16,
+    // borderBottomWidth: 1,
+    // borderBottomColor: Colors.border,
   },
-  rowLeft: {
-    flexDirection: "row",
+  iconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: Colors.background,
     alignItems: "center",
+    justifyContent: "center",
+    marginRight: 14,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  dangerIconBox: {
+    backgroundColor: "rgba(239, 68, 68, 0.1)", // Red tint
+    borderColor: "rgba(239, 68, 68, 0.2)",
+  },
+  rowContent: {
     flex: 1,
   },
-  rowIcon: {
-    marginRight: 14,
-  },
   rowTitle: {
-    fontSize: 15,
-    fontWeight: "500",
+    fontSize: 16,
+    fontWeight: "600",
+    color: Colors.text,
+    marginBottom: 2,
+  },
+  dangerText: {
+    color: Colors.error,
   },
   rowSubtitle: {
     fontSize: 12,
-    color: "#777",
-    marginTop: 2,
+    color: Colors.textSecondary,
+    fontWeight: "500",
   },
   modalOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.4)",
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.6)",
   },
   bottomSheet: {
     position: "absolute",
     bottom: 0,
-    width: "100%",
-    backgroundColor: "#FFF",
-    padding: 20,
-    paddingBottom: 50,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    left: 0,
+    right: 0,
+    backgroundColor: Colors.card,
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    padding: 24,
+    paddingBottom: 40,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 20,
   },
   logoutTitle: {
-    fontSize: 18,
-    fontWeight: "600",
+    fontSize: 22,
+    fontWeight: "700",
+    color: Colors.text,
     textAlign: "center",
     marginBottom: 8,
   },
   logoutSubtitle: {
-    fontSize: 14,
-    color: "#666",
+    fontSize: 15,
+    color: Colors.textSecondary,
     textAlign: "center",
-    marginBottom: 20,
+    marginBottom: 24,
   },
   logoutActions: {
     flexDirection: "row",
     gap: 12,
   },
-  logoutBtn: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: "#B6E388",
-    paddingVertical: 12,
-    borderRadius: 30,
-    alignItems: "center",
-  },
   cancelBtn: {
     flex: 1,
-    backgroundColor: "#C8F000",
-    paddingVertical: 12,
-    borderRadius: 30,
+    paddingVertical: 16,
+    borderRadius: 16,
+    backgroundColor: Colors.background,
     alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
   cancelText: {
-    fontWeight: "500",
-    color: "#111",
+    fontSize: 16,
+    fontWeight: "600",
+    color: Colors.text,
+  },
+  logoutBtn: {
+    flex: 1,
+    paddingVertical: 16,
+    borderRadius: 16,
+    backgroundColor: Colors.primary,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
   },
   logoutText: {
-    fontWeight: "600",
-    color: "#111",
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#000", // Maintain black text on primary button
+  },
+  avatarGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
+    gap: 16,
+    marginTop: 20,
+  },
+  gridAvatar: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    borderWidth: 2,
+    borderColor: Colors.border,
   },
   addressRow: {
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 12,
     paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f9f9f9",
-  },
-  iconBox: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
-    backgroundColor: "#F3F4F7",
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 12,
-  },
-  sheetHeader: {
-    alignItems: "center",
-    marginBottom: 24,
-  },
-  sheetTitle: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#111",
-    marginBottom: 4,
-  },
-  sheetSubtitle: {
-    fontSize: 14,
-    color: "#888",
-  },
-  avatarGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "center",
-    gap: 20,
-    marginBottom: 30,
-  },
-  avatarOption: {
-    padding: 3,
-    borderRadius: 40,
-    borderWidth: 2,
-    borderColor: "transparent",
-  },
-  avatarOptionSelected: {
-    borderColor: "#84c95c",
-  },
-  avatarImage: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: "#f0f0f0",
-  },
-  checkmarkBadge: {
-    position: "absolute",
-    bottom: 0,
-    right: 0,
-    backgroundColor: "#84c95c",
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 2,
-    borderColor: "#fff",
-  },
-  closeBtn: {
-    backgroundColor: "#F3F4F7",
-    paddingVertical: 14,
-    borderRadius: 30,
-    alignItems: "center",
-  },
-  closeBtnText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#333",
+    borderBottomColor: Colors.border,
   },
   inputLabel: {
     fontSize: 14,
-    fontWeight: "500",
-    color: "#666",
-    marginBottom: 6,
+    fontWeight: "600",
+    color: Colors.textSecondary,
+    marginBottom: 8,
     marginLeft: 4,
   },
   textInput: {
-    backgroundColor: "#F9F9F9",
-    borderWidth: 1,
-    borderColor: "#E5E5E5",
-    borderRadius: 12,
+    backgroundColor: Colors.background,
+    borderRadius: 16,
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 14,
     fontSize: 16,
-    color: "#111",
+    color: Colors.text,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  warningText: {
+    color: Colors.error,
+    fontSize: 12,
+    marginTop: 6,
+    marginLeft: 4,
   },
 });

@@ -1,3 +1,4 @@
+import { Colors } from "@/constants/Colors";
 import { RootState } from "@/store";
 import {
   useCreateAddressMutation,
@@ -29,7 +30,7 @@ import {
 import MapView, { Marker, Region } from "react-native-maps";
 import { useDispatch, useSelector } from "react-redux";
 
-const { width, height } = Dimensions.get("window");
+// const { width, height } = Dimensions.get("window");
 
 export default function EnterLocationScreen() {
   const dispatch = useDispatch();
@@ -82,6 +83,13 @@ export default function EnterLocationScreen() {
     (state: RootState) => state.profile.defaultAddressId,
   );
 
+  const [flatNumber, setFlatNumber] = useState("");
+  const [locality, setLocality] = useState("");
+  const [landmark, setLandmark] = useState("");
+  const [city, setCity] = useState("");
+  const [postalCode, setPostalCode] = useState("");
+  const [addressType, setAddressType] = useState<"Home" | "Work">("Home");
+
   React.useEffect(() => {
     const isFormEmpty = !flatNumber && !locality && !city && !postalCode;
 
@@ -114,13 +122,6 @@ export default function EnterLocationScreen() {
     city,
     postalCode,
   ]);
-
-  const [flatNumber, setFlatNumber] = useState("");
-  const [locality, setLocality] = useState("");
-  const [landmark, setLandmark] = useState("");
-  const [city, setCity] = useState("");
-  const [postalCode, setPostalCode] = useState("");
-  const [addressType, setAddressType] = useState<"Home" | "Work">("Home");
 
   const [errorMsg, setErrorMsg] = useState("");
 
@@ -378,14 +379,17 @@ export default function EnterLocationScreen() {
   };
 
   return (
-    <ScreenWrapper backgroundColor="#fff" statusBarStyle="dark-content">
+    <ScreenWrapper
+      backgroundColor={Colors.background}
+      statusBarStyle="light-content"
+    >
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => router.back()}
           style={styles.backButton}
         >
-          <Ionicons name="arrow-back" size={24} color="#000" />
+          <Ionicons name="arrow-back" size={24} color={Colors.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Enter Location</Text>
         <View style={{ width: 40 }} />
@@ -408,9 +412,9 @@ export default function EnterLocationScreen() {
           >
             <View style={styles.locationIconBg}>
               {isLocating ? (
-                <ActivityIndicator size="small" color="#1a1a1a" />
+                <ActivityIndicator size="small" color={Colors.black} />
               ) : (
-                <Ionicons name="navigate" size={18} color="#1a1a1a" />
+                <Ionicons name="navigate" size={18} color={Colors.black} />
               )}
             </View>
             <View style={{ flex: 1 }}>
@@ -419,7 +423,11 @@ export default function EnterLocationScreen() {
               </Text>
               <Text style={styles.clSubtitle}>Enable location services</Text>
             </View>
-            <Ionicons name="chevron-forward" size={20} color="#ccc" />
+            <Ionicons
+              name="chevron-forward"
+              size={20}
+              color={Colors.textSecondary}
+            />
           </TouchableOpacity>
 
           <View style={styles.divider} />
@@ -432,7 +440,7 @@ export default function EnterLocationScreen() {
                   borderRadius: 12,
                   overflow: "hidden",
                   borderWidth: 1,
-                  borderColor: "#f0f0f0",
+                  borderColor: Colors.border,
                   marginBottom: 20,
                 }}
               >
@@ -448,7 +456,7 @@ export default function EnterLocationScreen() {
                   activeOpacity={0.7}
                 >
                   <View style={styles.iconBox}>
-                    <Ionicons name="location" size={18} color="#1a1a1a" />
+                    <Ionicons name="location" size={18} color={Colors.text} />
                   </View>
                   <View style={{ flex: 1 }}>
                     <Text style={styles.rowTitle}>
@@ -471,7 +479,7 @@ export default function EnterLocationScreen() {
 
                 {/* Dropdown List */}
                 {isAddressDropdownOpen && (
-                  <View style={{ backgroundColor: "#F9F9F9" }}>
+                  <View style={{ backgroundColor: Colors.card }}>
                     {savedAddresses.map((addr: any, idx: number) => {
                       const isSelected = selectedSavedAddressId === addr.id;
                       const isDefault = defaultAddressId === addr.id;
@@ -484,8 +492,8 @@ export default function EnterLocationScreen() {
                             {
                               paddingLeft: 24,
                               backgroundColor: isSelected
-                                ? "#F0FDF4"
-                                : "#F9F9F9",
+                                ? "rgba(200, 240, 0, 0.1)"
+                                : Colors.card,
                             },
                           ]}
                           onPress={() => {
@@ -501,8 +509,8 @@ export default function EnterLocationScreen() {
                               styles.iconBox,
                               {
                                 backgroundColor: isSelected
-                                  ? "#DCFCE7"
-                                  : "#EEEEEE",
+                                  ? "rgba(200, 240, 0, 0.2)"
+                                  : Colors.background,
                               },
                             ]}
                           >
@@ -517,10 +525,10 @@ export default function EnterLocationScreen() {
                               size={16}
                               color={
                                 isSelected
-                                  ? "#166534"
+                                  ? Colors.primary
                                   : isDefault
                                     ? "#EAB308"
-                                    : "#666"
+                                    : Colors.textSecondary
                               }
                             />
                           </View>
@@ -528,7 +536,7 @@ export default function EnterLocationScreen() {
                             <Text
                               style={[
                                 styles.rowTitle,
-                                isSelected && { color: "#166534" },
+                                isSelected && { color: Colors.primary },
                               ]}
                             >
                               {addr.addressType || "Home"}{" "}
@@ -569,7 +577,7 @@ export default function EnterLocationScreen() {
                   styles.inputError,
               ]}
               placeholder="House / Flat No."
-              placeholderTextColor="#ccc"
+              placeholderTextColor={Colors.textSecondary}
               value={flatNumber}
               onChangeText={handleInputChange(setFlatNumber)}
             />
@@ -582,7 +590,7 @@ export default function EnterLocationScreen() {
                   styles.inputError,
               ]}
               placeholder="Locality / Area"
-              placeholderTextColor="#ccc"
+              placeholderTextColor={Colors.textSecondary}
               value={locality}
               onChangeText={handleInputChange(setLocality)}
             />
@@ -591,7 +599,7 @@ export default function EnterLocationScreen() {
           <TextInput
             style={styles.input}
             placeholder="Landmark (Optional)"
-            placeholderTextColor="#ccc"
+            placeholderTextColor={Colors.textSecondary}
             value={landmark}
             onChangeText={handleInputChange(setLandmark)}
           />
@@ -603,7 +611,7 @@ export default function EnterLocationScreen() {
                 !city.trim() && errorMsg.includes("City") && styles.inputError,
               ]}
               placeholder="City"
-              placeholderTextColor="#ccc"
+              placeholderTextColor={Colors.textSecondary}
               value={city}
               onChangeText={handleInputChange(setCity)}
             />
@@ -616,7 +624,7 @@ export default function EnterLocationScreen() {
                   styles.inputError,
               ]}
               placeholder="Postal Code"
-              placeholderTextColor="#ccc"
+              placeholderTextColor={Colors.textSecondary}
               keyboardType="number-pad"
               maxLength={6}
               value={postalCode}
@@ -639,7 +647,9 @@ export default function EnterLocationScreen() {
               <Ionicons
                 name="home"
                 size={16}
-                color={addressType === "Home" ? "#1a1a1a" : "#666"}
+                color={
+                  addressType === "Home" ? Colors.black : Colors.textSecondary
+                }
                 style={{ marginRight: 5 }}
               />
               <Text
@@ -665,7 +675,9 @@ export default function EnterLocationScreen() {
               <Ionicons
                 name="briefcase"
                 size={16}
-                color={addressType === "Work" ? "#1a1a1a" : "#666"}
+                color={
+                  addressType === "Work" ? Colors.black : Colors.textSecondary
+                }
                 style={{ marginRight: 5 }}
               />
               <Text
@@ -690,7 +702,7 @@ export default function EnterLocationScreen() {
           disabled={isCreating}
         >
           {isCreating ? (
-            <ActivityIndicator color="#1a1a1a" />
+            <ActivityIndicator color={Colors.black} />
           ) : (
             <Text style={styles.confirmButtonText}>Confirm Address</Text>
           )}
@@ -748,7 +760,7 @@ export default function EnterLocationScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: Colors.background,
   },
   header: {
     flexDirection: "row",
@@ -756,12 +768,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 20,
     paddingVertical: 12,
-    backgroundColor: "#fff",
+    backgroundColor: Colors.background,
   },
   backButton: {
     width: 36,
     height: 36,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: Colors.card,
     borderRadius: 18,
     alignItems: "center",
     justifyContent: "center",
@@ -769,7 +781,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#1a1a1a",
+    color: Colors.text,
   },
   scrollContent: {
     paddingHorizontal: 20,
@@ -785,34 +797,34 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: "#FFF9C4",
+    backgroundColor: Colors.primary,
     alignItems: "center",
     justifyContent: "center",
     marginRight: 12,
   },
-  clTitle: { fontSize: 14, fontWeight: "bold", color: "#1a1a1a" },
-  clSubtitle: { fontSize: 12, color: "#888" },
+  clTitle: { fontSize: 14, fontWeight: "bold", color: Colors.text },
+  clSubtitle: { fontSize: 12, color: Colors.textSecondary },
   divider: {
     height: 1,
-    backgroundColor: "#f0f0f0",
+    backgroundColor: Colors.border,
     marginBottom: 15,
     marginTop: 10,
   },
   sectionHeader: {
     fontSize: 12,
-    color: "#666",
+    color: Colors.textSecondary,
     fontWeight: "bold",
     marginBottom: 12,
     letterSpacing: 0.5,
     textTransform: "uppercase",
   },
   input: {
-    backgroundColor: "#f5f5f5",
+    backgroundColor: Colors.card,
     borderRadius: 12,
     paddingHorizontal: 15,
     paddingVertical: 14,
     fontSize: 14,
-    color: "#1a1a1a",
+    color: Colors.text,
     marginBottom: 12,
   },
   tagRow: {
@@ -826,29 +838,29 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 20,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: Colors.card,
     marginRight: 12,
   },
   tagSelected: {
-    backgroundColor: "#fff",
+    backgroundColor: Colors.primary,
     borderWidth: 1,
-    borderColor: "#e0e0e0",
+    borderColor: Colors.primary,
     elevation: 1,
   },
-  tagText: { fontSize: 13, fontWeight: "600", color: "#666" },
-  tagTextSelected: { color: "#1a1a1a" },
+  tagText: { fontSize: 13, fontWeight: "600", color: Colors.textSecondary },
+  tagTextSelected: { color: Colors.black },
   footer: {
     position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: "#fff",
+    backgroundColor: Colors.background,
     padding: 20,
     borderTopWidth: 1,
-    borderTopColor: "#f0f0f0",
+    borderTopColor: Colors.border,
   },
   confirmButton: {
-    backgroundColor: "#C8F000",
+    backgroundColor: Colors.primary,
 
     borderRadius: 30,
     paddingVertical: 18,
@@ -863,10 +875,10 @@ const styles = StyleSheet.create({
   confirmButtonText: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#1a1a1a",
+    color: Colors.black,
   },
   errorText: {
-    color: "#d32f2f",
+    color: Colors.error,
     fontSize: 14,
     fontWeight: "bold",
     textAlign: "center",
@@ -874,8 +886,8 @@ const styles = StyleSheet.create({
   },
   inputError: {
     borderWidth: 1,
-    borderColor: "#d32f2f",
-    backgroundColor: "#ffebee",
+    borderColor: Colors.error,
+    backgroundColor: "rgba(239, 68, 68, 0.1)",
   },
 
   // Map Styles
@@ -889,7 +901,7 @@ const styles = StyleSheet.create({
     backgroundColor: "transparent",
   },
   closeMapButton: {
-    backgroundColor: "#fff",
+    backgroundColor: Colors.card,
     paddingVertical: 15,
     paddingHorizontal: 25,
     borderRadius: 30,
@@ -900,11 +912,11 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   closeMapText: {
-    color: "#1a1a1a",
+    color: Colors.text,
     fontWeight: "bold",
   },
   confirmMapButton: {
-    backgroundColor: "#C8F000",
+    backgroundColor: Colors.primary,
     paddingVertical: 15,
     paddingHorizontal: 25,
     borderRadius: 30,
@@ -915,21 +927,21 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   confirmMapText: {
-    color: "#1a1a1a",
+    color: Colors.black,
     fontWeight: "bold",
   },
   savedAddressCard: {
     flexDirection: "row",
     alignItems: "center",
     padding: 14,
-    backgroundColor: "#f7f7f7",
+    backgroundColor: Colors.card,
     borderRadius: 10,
     marginBottom: 10,
   },
 
   savedAddressSelected: {
-    borderColor: "#1a1a1a",
-    backgroundColor: "#f4f4f4",
+    borderColor: Colors.primary,
+    backgroundColor: "rgba(200, 240, 0, 0.1)",
   },
 
   savedAddressHeader: {
@@ -941,14 +953,14 @@ const styles = StyleSheet.create({
 
   savedAddressType: {
     fontSize: 12,
-    color: "#666",
+    color: Colors.textSecondary,
     textTransform: "uppercase",
     fontWeight: "600",
   },
 
   savedAddressText: {
     fontSize: 14,
-    color: "#111",
+    color: Colors.text,
     lineHeight: 20,
   },
 
@@ -959,14 +971,14 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#f9f9f9",
-    backgroundColor: "#fff",
+    borderBottomColor: Colors.border,
+    backgroundColor: Colors.background,
   },
   iconBox: {
     width: 32,
     height: 32,
     borderRadius: 8,
-    backgroundColor: "#F3F4F7",
+    backgroundColor: Colors.card,
     alignItems: "center",
     justifyContent: "center",
     marginRight: 12,
@@ -974,11 +986,11 @@ const styles = StyleSheet.create({
   rowTitle: {
     fontSize: 15,
     fontWeight: "500",
-    color: "#1a1a1a",
+    color: Colors.text,
   },
   rowSubtitle: {
     fontSize: 12,
-    color: "#777",
+    color: Colors.textSecondary,
     marginTop: 2,
   },
 });

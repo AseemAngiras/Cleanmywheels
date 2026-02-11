@@ -7,6 +7,7 @@ import SocketManager from "../components/SocketManager";
 import { persistor, store } from "../store/index";
 import { useEffect, useState } from "react";
 import { useFonts } from "expo-font";
+import { Colors } from "@/constants/Colors";
 
 const LoadingView = () => (
   <View
@@ -42,11 +43,15 @@ export default function RootLayout() {
     return <LoadingView />;
   }
 
+  // ... (imports)
+
+  // ...
+
   return (
     <Provider store={store}>
       <PersistGate loading={<LoadingView />} persistor={persistor}>
         <SafeAreaProvider>
-          <View style={{ flex: 1 }}>
+          <View style={{ flex: 1, backgroundColor: Colors.background }}>
             <SocketManager />
             <View style={{ flex: 1 }}>
               <Stack screenOptions={{ headerShown: false }}>

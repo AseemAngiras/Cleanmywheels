@@ -1,4 +1,5 @@
 import { RootState } from "@/store";
+import { Colors } from "@/constants/Colors";
 import { Ionicons } from "@expo/vector-icons";
 import { Slot, usePathname, useRouter } from "expo-router";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -23,13 +24,13 @@ export default function BookingsLayout() {
   return (
     <ScreenWrapper
       style={styles.container}
-      backgroundColor="#f5f5f5"
-      statusBarStyle="dark-content"
+      backgroundColor={Colors.background}
+      statusBarStyle="light-content"
     >
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="chevron-back" size={26} color="#000" />
+          <Ionicons name="chevron-back" size={26} color={Colors.text} />
         </TouchableOpacity>
 
         <Text style={styles.headerTitle}>My Bookings</Text>
@@ -65,7 +66,7 @@ export default function BookingsLayout() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: Colors.background,
   },
   header: {
     flexDirection: "row",
@@ -79,6 +80,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 22,
     fontWeight: "600",
+    color: Colors.text,
   },
   toggle: {
     flexDirection: "row",
@@ -86,8 +88,10 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     padding: 4,
     marginBottom: 8,
-    backgroundColor: "#fff",
+    backgroundColor: Colors.card,
     zIndex: 10,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
   toggleBtn: {
     flex: 1,
@@ -96,14 +100,15 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   activeToggle: {
-    backgroundColor: "#000",
+    backgroundColor: Colors.primary,
   },
   activeText: {
     fontSize: 15,
-    color: "#ebebeb",
+    color: Colors.black,
+    fontWeight: "600",
   },
   inactiveText: {
-    color: "#000",
+    color: Colors.text,
     fontSize: 15,
   },
 });

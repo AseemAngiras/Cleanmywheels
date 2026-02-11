@@ -1,6 +1,7 @@
 "use client";
 
 import { Ionicons } from "@expo/vector-icons";
+import { Colors } from "@/constants/Colors";
 import { LinearGradient } from "expo-linear-gradient";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
@@ -279,7 +280,7 @@ export default function UpcomingServices() {
         onPress={() => setActiveBooking(item)}
       >
         <LinearGradient
-          colors={["#FFFFFF", "#F5F8FF", "#F7FAE6"]}
+          colors={[Colors.card, Colors.card, Colors.card]}
           style={styles.sessionCard}
         >
           <View style={{ flex: 1 }}>
@@ -302,7 +303,7 @@ export default function UpcomingServices() {
               onPress={() => setActiveBooking(item)}
             >
               <Text style={styles.sessionButtonText}>Review details</Text>
-              <Ionicons name="chevron-forward" size={18} color="#FFF" />
+              <Ionicons name="chevron-forward" size={18} color={Colors.black} />
             </TouchableOpacity>
           </View>
         </LinearGradient>
@@ -339,16 +340,16 @@ export default function UpcomingServices() {
                 >
                   <View
                     style={{
-                      backgroundColor: "#fff",
+                      backgroundColor: Colors.card,
                       borderRadius: 16,
                       padding: 16,
                       shadowColor: "#000",
                       shadowOffset: { width: 0, height: 4 },
-                      shadowOpacity: 0.05,
+                      shadowOpacity: 0.1,
                       shadowRadius: 8,
                       elevation: 4,
                       borderWidth: 1,
-                      borderColor: "#F0F0F0",
+                      borderColor: Colors.border,
                     }}
                   >
                     {/* Header */}
@@ -361,7 +362,7 @@ export default function UpcomingServices() {
                     >
                       <View
                         style={{
-                          backgroundColor: "#E8F5E9",
+                          backgroundColor: "rgba(76, 175, 80, 0.1)",
                           paddingHorizontal: 8,
                           paddingVertical: 3,
                           borderRadius: 6,
@@ -369,7 +370,7 @@ export default function UpcomingServices() {
                       >
                         <Text
                           style={{
-                            color: "#2E7D32",
+                            color: Colors.success,
                             fontSize: 10,
                             fontWeight: "800",
                             letterSpacing: 0.5,
@@ -423,7 +424,7 @@ export default function UpcomingServices() {
                           marginBottom: 12,
                           flexDirection: "row",
                           alignItems: "center",
-                          backgroundColor: "#F0F9FF",
+                          backgroundColor: Colors.background,
                           padding: 8,
                           borderRadius: 8,
                         }}
@@ -455,12 +456,16 @@ export default function UpcomingServices() {
                           }
                           style={{
                             marginLeft: "auto",
-                            backgroundColor: "#fff",
+                            backgroundColor: Colors.card,
                             padding: 6,
                             borderRadius: 20,
                           }}
                         >
-                          <Ionicons name="call" size={16} color="#0284C7" />
+                          <Ionicons
+                            name="call"
+                            size={16}
+                            color={Colors.primary}
+                          />
                         </TouchableOpacity>
                       </View>
                     ) : (
@@ -525,7 +530,7 @@ export default function UpcomingServices() {
                           style={{
                             fontSize: 16,
                             fontWeight: "700",
-                            color: "#1a1a1a",
+                            color: Colors.text,
                             marginBottom: 2,
                           }}
                         >
@@ -534,7 +539,7 @@ export default function UpcomingServices() {
                         <Text
                           style={{
                             fontSize: 13,
-                            color: "#666",
+                            color: Colors.textSecondary,
                             fontWeight: "500",
                           }}
                         >
@@ -547,7 +552,7 @@ export default function UpcomingServices() {
                     <View
                       style={{
                         height: 1,
-                        backgroundColor: "#F0F0F0",
+                        backgroundColor: Colors.border,
                         marginBottom: 12,
                       }}
                     />
@@ -742,7 +747,7 @@ export default function UpcomingServices() {
                     {/* Action Button */}
                     <View
                       style={{
-                        backgroundColor: "#1a1a1a",
+                        backgroundColor: Colors.primary,
                         paddingVertical: 10,
                         borderRadius: 12,
                         flexDirection: "row",
@@ -752,7 +757,7 @@ export default function UpcomingServices() {
                     >
                       <Text
                         style={{
-                          color: "#fff",
+                          color: Colors.black,
                           fontSize: 13,
                           fontWeight: "700",
                           marginRight: 6,
@@ -763,7 +768,7 @@ export default function UpcomingServices() {
                       <Ionicons
                         name="arrow-forward"
                         size={14}
-                        color="#D1F803"
+                        color={Colors.black}
                       />
                     </View>
                   </View>
@@ -780,11 +785,22 @@ export default function UpcomingServices() {
           if (activeSubs.length > 0) return null;
           return (
             <View style={{ alignItems: "center", marginTop: 80 }}>
-              <Ionicons name="calendar-outline" size={60} color="#CBD5E1" />
-              <Text style={{ fontSize: 18, fontWeight: "600", marginTop: 16 }}>
+              <Ionicons
+                name="calendar-outline"
+                size={60}
+                color={Colors.textSecondary}
+              />
+              <Text
+                style={{
+                  fontSize: 18,
+                  fontWeight: "600",
+                  marginTop: 16,
+                  color: Colors.text,
+                }}
+              >
                 No upcoming bookings
               </Text>
-              <Text style={{ color: "#64748B", marginTop: 6 }}>
+              <Text style={{ color: Colors.textSecondary, marginTop: 6 }}>
                 Book a service to see it here
               </Text>
             </View>
@@ -1021,7 +1037,7 @@ const styles = StyleSheet.create({
   },
 
   cardContainer: {
-    marginBottom: 20,
+    marginBottom: 10,
   },
   sessionCard: {
     borderRadius: 20,
@@ -1030,31 +1046,34 @@ const styles = StyleSheet.create({
     margin: 12,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 5,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    backgroundColor: Colors.card,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
 
   sessionTitle: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#111",
+    color: Colors.text,
   },
 
   sessionSubtitle: {
     marginTop: 4,
     fontSize: 16,
     fontWeight: "600",
-    color: "#334155",
+    color: Colors.textSecondary,
   },
 
   sessionDuration: {
     marginTop: 6,
     fontSize: 14,
-    color: "#64748B",
+    color: Colors.textSecondary,
   },
 
   sessionActionRow: {
@@ -1069,7 +1088,7 @@ const styles = StyleSheet.create({
 
   sessionButton: {
     flex: 1,
-    backgroundColor: "#000",
+    backgroundColor: Colors.primary,
     borderRadius: 28,
     paddingVertical: 14,
     paddingHorizontal: 20,
@@ -1080,14 +1099,14 @@ const styles = StyleSheet.create({
   },
 
   sessionButtonText: {
-    color: "#FFF",
+    color: Colors.black,
     fontSize: 16,
     fontWeight: "600",
   },
 
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.5)",
+    backgroundColor: "rgba(0,0,0,0.7)",
   },
   backdropTouchable: { flex: 1 },
 
@@ -1096,7 +1115,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: "#000",
+    backgroundColor: Colors.card,
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
     padding: 16,
@@ -1104,11 +1123,13 @@ const styles = StyleSheet.create({
     elevation: 0,
     overflow: "hidden",
     paddingBottom: 40,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
   },
 
   // --- LIME CARD STYLES ---
   limeCard: {
-    backgroundColor: "#D1F803",
+    backgroundColor: Colors.primary,
     borderRadius: 20,
     padding: 12,
     marginBottom: 8,
@@ -1144,7 +1165,7 @@ const styles = StyleSheet.create({
   limeName: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#1a1a1a",
+    color: Colors.black,
     marginBottom: 0,
     letterSpacing: -0.5,
   },
@@ -1167,7 +1188,7 @@ const styles = StyleSheet.create({
   limeTagText: {
     fontSize: 12,
     fontWeight: "600",
-    color: "#1a1a1a",
+    color: Colors.black,
   },
   limeRoleText: {
     fontSize: 12,
@@ -1178,14 +1199,14 @@ const styles = StyleSheet.create({
   limeServiceTitle: {
     fontSize: 18,
     fontWeight: "800",
-    color: "#1a1a1a",
+    color: Colors.black,
     letterSpacing: -0.5,
     marginBottom: 0,
   },
   limePrice: {
     fontSize: 20,
     fontWeight: "800",
-    color: "#1a1a1a",
+    color: Colors.black,
     letterSpacing: -0.5,
   },
   limePerMonth: {
@@ -1197,20 +1218,20 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 16,
     right: 16,
-    backgroundColor: "#1a1a1a",
+    backgroundColor: Colors.black,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
   },
   limeActionBtnText: {
-    color: "#D1F803",
+    color: Colors.primary,
     fontWeight: "600",
     fontSize: 14,
   },
 
   // --- DARK CARD STYLES ---
   darkCard: {
-    backgroundColor: "#27272a",
+    backgroundColor: Colors.background,
     borderRadius: 24,
     padding: 16,
     paddingBottom: 20,
@@ -1224,22 +1245,22 @@ const styles = StyleSheet.create({
   darkTitle: {
     fontSize: 18,
     fontWeight: "600",
-    color: "#e2e8f0",
+    color: Colors.text,
   },
   darkDate: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#fff",
+    color: Colors.text,
     marginBottom: 12,
   },
   darkDescLabel: {
     fontSize: 12,
-    color: "#a1a1aa",
+    color: Colors.textSecondary,
     marginBottom: 2,
   },
   darkDesc: {
     fontSize: 13,
-    color: "#e4e4e7",
+    color: Colors.textSecondary,
     lineHeight: 16,
     marginBottom: 12,
   },
@@ -1249,13 +1270,15 @@ const styles = StyleSheet.create({
   },
   darkStatItem: {
     flex: 1,
-    backgroundColor: "#3f3f46",
+    backgroundColor: Colors.card,
     borderRadius: 12,
     padding: 10,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
   darkStatLabel: {
     fontSize: 11,
-    color: "#94a3b8",
+    color: Colors.textSecondary,
     marginBottom: 4,
   },
   darkStatValueRow: {
@@ -1266,7 +1289,7 @@ const styles = StyleSheet.create({
   darkStatValue: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#fff",
+    color: Colors.text,
   },
   sheetHeader: {
     flexDirection: "row",
@@ -1277,7 +1300,7 @@ const styles = StyleSheet.create({
   sheetTitle: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#111",
+    color: Colors.text,
   },
 
   detailRow: {
@@ -1286,15 +1309,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: "#F1F5F9",
+    borderBottomColor: Colors.border,
   },
   label: {
-    color: "#64748B",
+    color: Colors.textSecondary,
     fontSize: 14,
     fontWeight: "500",
   },
   value: {
-    color: "#1E293B",
+    color: Colors.text,
     fontSize: 14,
     fontWeight: "500",
     textAlign: "right",
@@ -1305,13 +1328,15 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-    backgroundColor: "#EFF6FF",
+    backgroundColor: Colors.card,
     borderRadius: 16,
     padding: 12,
     marginVertical: 10,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
   callText: {
-    color: "#2563EB",
+    color: Colors.primary,
     fontSize: 14,
     fontWeight: "600",
   },
@@ -1325,7 +1350,7 @@ const styles = StyleSheet.create({
   price: {
     fontSize: 20,
     fontWeight: "500",
-    color: "#111",
+    color: Colors.text,
   },
   cancelBtn: {
     flexDirection: "row",
@@ -1333,11 +1358,11 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingHorizontal: 16,
     paddingVertical: 10,
-    backgroundColor: "#FEE2E2",
+    backgroundColor: "rgba(239, 68, 68, 0.1)",
     borderRadius: 12,
   },
   cancelText: {
-    color: "#B91C1C",
+    color: Colors.error,
     fontSize: 14,
     fontWeight: "600",
   },
@@ -1427,7 +1452,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: "#fff",
+    backgroundColor: Colors.card,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 20,
@@ -1437,6 +1462,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 10,
     elevation: 20,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
   workerHeader: {
     flexDirection: "row",
@@ -1449,13 +1476,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
+    borderBottomColor: Colors.border,
   },
   workerAvatar: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "#F3F4F6",
+    backgroundColor: Colors.background,
     alignItems: "center",
     justifyContent: "center",
     marginRight: 12,
@@ -1463,25 +1490,25 @@ const styles = StyleSheet.create({
   workerInitials: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#4B5563",
+    color: Colors.textSecondary,
   },
   workerName: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#1a1a1a",
+    color: Colors.text,
   },
   workerPhone: {
     fontSize: 12,
-    color: "#6B7280",
+    color: Colors.textSecondary,
   },
   assignBtn: {
-    backgroundColor: "#e0f2fe",
+    backgroundColor: Colors.primary,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 8,
   },
   assignBtnText: {
-    color: "#0284c7",
+    color: Colors.black,
     fontWeight: "600",
     fontSize: 12,
   },

@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { Colors } from "@/constants/Colors";
 import { useMemo } from "react";
 import {
   ActivityIndicator,
@@ -89,7 +90,7 @@ export default function SubscriptionDetailsScreen() {
   if (isLoading || !subscription) {
     return (
       <View style={[styles.container, styles.center]}>
-        <ActivityIndicator size="large" color="#D1F803" />
+        <ActivityIndicator size="large" color={Colors.primary} />
       </View>
     );
   }
@@ -130,8 +131,12 @@ export default function SubscriptionDetailsScreen() {
               const uniqueAddons = Array.from(uniqueAddonsMap.values());
 
               return uniqueAddons.map((addon: any, idx: number) => (
-                <View key={idx} style={styles.addonRow}>
-                  <Ionicons name="add-circle-outline" size={16} color="#444" />
+                <View key={String(idx)} style={styles.addonRow}>
+                  <Ionicons
+                    name="add-circle-outline"
+                    size={16}
+                    color={Colors.textSecondary}
+                  />
                   <Text style={styles.addonText}>
                     {addon.name} - ₹{addon.price}
                   </Text>
@@ -145,10 +150,10 @@ export default function SubscriptionDetailsScreen() {
   );
 
   return (
-    <ScreenWrapper style={styles.container} backgroundColor="#F8F9FA">
+    <ScreenWrapper style={styles.container} backgroundColor={Colors.background}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={24} color="#1a1a1a" />
+          <Ionicons name="arrow-back" size={24} color={Colors.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Subscription Details</Text>
       </View>
@@ -156,7 +161,7 @@ export default function SubscriptionDetailsScreen() {
       <View style={styles.summaryCard}>
         <View style={styles.carRow}>
           <View style={styles.iconBox}>
-            <Ionicons name="car-sport" size={24} color="#000" />
+            <Ionicons name="car-sport" size={24} color={Colors.black} />
           </View>
           <View>
             <Text style={styles.vehicleType}>
@@ -200,50 +205,54 @@ export default function SubscriptionDetailsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F8F9FA" },
+  container: { flex: 1, backgroundColor: Colors.background },
   center: { justifyContent: "center", alignItems: "center" },
   header: {
     flexDirection: "row",
     alignItems: "center",
     padding: 20,
-    backgroundColor: "#fff",
+    backgroundColor: Colors.card,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
   },
   backBtn: { marginRight: 16 },
-  headerTitle: { fontSize: 20, fontWeight: "bold", color: "#1a1a1a" },
+  headerTitle: { fontSize: 20, fontWeight: "bold", color: Colors.text },
 
   summaryCard: {
     margin: 20,
-    backgroundColor: "#fff",
+    backgroundColor: Colors.card,
     borderRadius: 20,
     padding: 20,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 2,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
   carRow: { flexDirection: "row", alignItems: "center", marginBottom: 16 },
   iconBox: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: "#D1F803",
+    backgroundColor: Colors.primary,
     justifyContent: "center",
     alignItems: "center",
     marginRight: 16,
   },
-  vehicleType: { fontSize: 18, fontWeight: "bold", color: "#1a1a1a" },
-  vehicleNo: { fontSize: 14, color: "#666" },
-  divider: { height: 1, backgroundColor: "#eee", marginBottom: 16 },
+  vehicleType: { fontSize: 18, fontWeight: "bold", color: Colors.text },
+  vehicleNo: { fontSize: 14, color: Colors.textSecondary },
+  divider: { height: 1, backgroundColor: Colors.border, marginBottom: 16 },
   statRow: { flexDirection: "row", justifyContent: "space-between" },
-  statLabel: { fontSize: 12, color: "#888", marginBottom: 4 },
-  statValue: { fontSize: 16, fontWeight: "600", color: "#1a1a1a" },
+  statLabel: { fontSize: 12, color: Colors.textSecondary, marginBottom: 4 },
+  statValue: { fontSize: 16, fontWeight: "600", color: Colors.text },
 
   sectionTitle: {
     marginLeft: 20,
     fontSize: 18,
     fontWeight: "bold",
-    color: "#1a1a1a",
+    color: Colors.text,
     marginBottom: 16,
   },
 
@@ -254,48 +263,50 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: "#ddd",
+    backgroundColor: Colors.border,
     zIndex: 2,
   },
-  dotActive: { backgroundColor: "#D1F803" },
+  dotActive: { backgroundColor: Colors.primary },
   timelineLine: {
     width: 2,
     flex: 1,
-    backgroundColor: "#eee",
+    backgroundColor: Colors.border,
     marginVertical: 4,
   },
 
   logContent: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: Colors.card,
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
   logHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     marginBottom: 8,
   },
-  logDate: { fontSize: 14, fontWeight: "bold", color: "#444" },
+  logDate: { fontSize: 14, fontWeight: "bold", color: Colors.text },
   statusTag: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4 },
-  bgGreen: { backgroundColor: "#eaffea" },
-  bgGrey: { backgroundColor: "#f0f0f0" },
-  statusText: { fontSize: 10, fontWeight: "bold", color: "#333" },
-  serviceName: { fontSize: 16, color: "#1a1a1a", fontWeight: "500" },
+  bgGreen: { backgroundColor: "rgba(76, 175, 80, 0.1)" },
+  bgGrey: { backgroundColor: Colors.background },
+  statusText: { fontSize: 10, fontWeight: "bold", color: Colors.text },
+  serviceName: { fontSize: 16, color: Colors.text, fontWeight: "500" },
 
   addonsContainer: {
     marginTop: 12,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: "#f0f0f0",
+    borderTopColor: Colors.border,
   },
-  addonsLabel: { fontSize: 12, color: "#888", marginBottom: 6 },
+  addonsLabel: { fontSize: 12, color: Colors.textSecondary, marginBottom: 6 },
   addonRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
     marginBottom: 4,
   },
-  addonText: { fontSize: 13, color: "#1a1a1a" },
+  addonText: { fontSize: 13, color: Colors.text },
 });

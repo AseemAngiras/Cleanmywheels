@@ -628,6 +628,7 @@ const adminStyles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F5F7FA",
+    marginBottom: 90,
   },
   titleHeader: {
     alignItems: "center",

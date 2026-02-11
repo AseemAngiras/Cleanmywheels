@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { Colors } from "@/constants/Colors";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
@@ -69,7 +70,7 @@ export default function SubscriptionPlansScreen() {
   if (isLoading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color="#0F172A" />
+        <ActivityIndicator size="large" color={Colors.primary} />
       </View>
     );
   }
@@ -98,19 +99,19 @@ export default function SubscriptionPlansScreen() {
   return (
     <ScreenWrapper
       style={styles.container}
-      backgroundColor="#F8FAFC"
-      statusBarStyle="dark-content"
+      backgroundColor={Colors.background}
+      statusBarStyle="light-content"
     >
       {/* HEADER */}
       <View style={styles.headerContainer}>
         <View style={styles.headerContent}>
           {arePlansVisible ? (
             <TouchableOpacity onPress={togglePlans} style={styles.backBtn}>
-              <Ionicons name="chevron-back" size={24} color="#0F172A" />
+              <Ionicons name="chevron-back" size={24} color={Colors.text} />
             </TouchableOpacity>
           ) : (
             <View>
-              <Text style={styles.headerTitle}>My Garage</Text>
+              <Text style={styles.headerTitle}>My Subscriptions</Text>
               <Text style={styles.headerSubtitle}>Manage your clean rides</Text>
             </View>
           )}
@@ -176,32 +177,32 @@ export default function SubscriptionPlansScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8FAFC",
+    backgroundColor: Colors.background,
   },
   center: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#F8FAFC",
+    backgroundColor: Colors.background,
   },
   errorText: {
-    color: "#EF4444",
+    color: Colors.error,
     marginBottom: 16,
   },
   btnSecondary: {
     padding: 10,
     borderRadius: 8,
-    backgroundColor: "#E2E8F0",
+    backgroundColor: Colors.card,
   },
   btnSecondaryText: {
-    color: "#1E293B",
+    color: Colors.text,
   },
   headerContainer: {
-    backgroundColor: "#F8FAFC",
+    backgroundColor: Colors.background,
     paddingBottom: 16,
     paddingTop: 10,
     borderBottomWidth: 1,
-    borderBottomColor: "#F1F5F9",
+    borderBottomColor: Colors.border,
   },
   headerContent: {
     paddingHorizontal: 20,
@@ -213,19 +214,19 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 28,
     fontWeight: "800",
-    color: "#0F172A",
+    color: Colors.text,
     letterSpacing: -1,
   },
   headerSubtitle: {
     fontSize: 14,
-    color: "#64748B",
+    color: Colors.textSecondary,
     marginTop: 2,
     fontWeight: "500",
   },
   planHeaderTitle: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#0F172A",
+    color: Colors.text,
   },
   backBtn: {
     padding: 4,
@@ -246,7 +247,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#0F172A",
+    color: Colors.text,
     letterSpacing: -0.5,
   },
   plansContainer: {

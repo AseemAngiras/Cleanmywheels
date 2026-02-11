@@ -1,7 +1,8 @@
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useState, useEffect } from "react";
+import { Colors } from "@/constants/Colors";
+import { useState, useEffect, useMemo } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -17,9 +18,9 @@ import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import {
-  useGetAddonsQuery,
   useCreateAddonOrderMutation,
   useVerifyAddonPaymentMutation,
+  useGetAddonsQuery,
   useGetMySubscriptionQuery,
 } from "@/store/api/subscriptionApi";
 
@@ -33,11 +34,15 @@ export default function AddonsScreen() {
   const { data: subscriptions, isLoading: isSubLoading } =
     useGetMySubscriptionQuery(undefined);
 
-  const activeSubscriptions = Array.isArray(subscriptions)
-    ? subscriptions.filter((s: any) => ["active", "ongoing"].includes(s.status))
-    : ["active", "ongoing"].includes((subscriptions as any)?.status)
-      ? [subscriptions]
-      : [];
+  const activeSubscriptions = useMemo(() => {
+    return Array.isArray(subscriptions)
+      ? subscriptions.filter((s: any) =>
+          ["active", "ongoing"].includes(s.status),
+        )
+      : ["active", "ongoing"].includes((subscriptions as any)?.status)
+        ? [subscriptions]
+        : [];
+  }, [subscriptions]);
 
   const { data: addonsList, isLoading: isAddonsLoading } =
     useGetAddonsQuery(undefined);
@@ -173,17 +178,17 @@ export default function AddonsScreen() {
   if (isSubLoading || isAddonsLoading) {
     return (
       <View style={[styles.container, styles.center]}>
-        <ActivityIndicator size="large" color="#C8F000" />
+        <ActivityIndicator size="large" color={Colors.primary} />
       </View>
     );
   }
 
   return (
-    <ScreenWrapper style={styles.container} backgroundColor="#F8F9FA">
+    <ScreenWrapper style={styles.container} backgroundColor={Colors.background}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={24} color="#1a1a1a" />
+          <Ionicons name="arrow-back" size={24} color={Colors.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Add-ons</Text>
       </View>
@@ -197,7 +202,11 @@ export default function AddonsScreen() {
 
         {activeSubscriptions.length === 0 ? (
           <View style={styles.emptyCard}>
-            <Ionicons name="car-sport-outline" size={40} color="#666" />
+            <Ionicons
+              name="car-sport-outline"
+              size={40}
+              color={Colors.textSecondary}
+            />
             <Text style={styles.emptyText}>No Active Subscriptions Found</Text>
           </View>
         ) : (
@@ -267,9 +276,13 @@ export default function AddonsScreen() {
               style={styles.dateButton}
               onPress={() => setShowDatePicker(true)}
             >
-              <Ionicons name="calendar-outline" size={20} color="#1a1a1a" />
+              <Ionicons name="calendar-outline" size={20} color={Colors.text} />
               <Text style={styles.dateText}>{serviceDate.toDateString()}</Text>
-              <Ionicons name="chevron-down" size={16} color="#666" />
+              <Ionicons
+                name="chevron-down"
+                size={16}
+                color={Colors.textSecondary}
+              />
             </TouchableOpacity>
 
             {showDatePicker && (
@@ -397,7 +410,7 @@ export default function AddonsScreen() {
             disabled={isCreatingOrder || isVerifying}
           >
             {isCreatingOrder || isVerifying ? (
-              <ActivityIndicator color="#1a1a1a" />
+              <ActivityIndicator color={Colors.black} />
             ) : (
               <Text style={styles.payButtonText}>Proceed to Pay</Text>
             )}
@@ -409,20 +422,20 @@ export default function AddonsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F8F9FA" },
+  container: { flex: 1, backgroundColor: Colors.background },
   center: { justifyContent: "center", alignItems: "center" },
   header: {
     flexDirection: "row",
     alignItems: "center",
     padding: 16,
-    backgroundColor: "#fff",
+    backgroundColor: Colors.card,
   },
   backBtn: { padding: 4 },
   headerTitle: {
     fontSize: 18,
     fontWeight: "bold",
     marginLeft: 16,
-    color: "#1a1a1a",
+    color: Colors.text,
   },
   scrollContent: { padding: 20 },
 
@@ -433,23 +446,23 @@ const styles = StyleSheet.create({
   carCard: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#fff",
+    backgroundColor: Colors.card,
     padding: 12,
     borderRadius: 16,
     width: 220,
     borderWidth: 1,
-    borderColor: "#eee",
+    borderColor: Colors.border,
     marginRight: 10,
   },
   carCardSelected: {
-    backgroundColor: "#1a1a1a",
-    borderColor: "#1a1a1a",
+    backgroundColor: Colors.card,
+    borderColor: Colors.primary,
   },
   iconCircle: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: Colors.background,
     justifyContent: "center",
     alignItems: "center",
     marginRight: 12,
@@ -457,17 +470,17 @@ const styles = StyleSheet.create({
   carName: {
     fontSize: 14,
     fontWeight: "bold",
-    color: "#1a1a1a",
+    color: Colors.text,
   },
   carNumber: {
     fontSize: 12,
-    color: "#666",
+    color: Colors.textSecondary,
   },
   checkBadge: {
     position: "absolute",
     top: 10,
     right: 10,
-    backgroundColor: "#C8F000",
+    backgroundColor: Colors.primary,
     width: 18,
     height: 18,
     borderRadius: 9,
@@ -478,32 +491,32 @@ const styles = StyleSheet.create({
     padding: 30,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#fff",
+    backgroundColor: Colors.card,
     borderRadius: 16,
   },
   emptyText: {
     marginTop: 10,
-    color: "#666",
+    color: Colors.textSecondary,
     fontWeight: "500",
   },
 
-  sectionTitle: { fontSize: 18, fontWeight: "bold", color: "#1a1a1a" },
+  sectionTitle: { fontSize: 18, fontWeight: "bold", color: Colors.text },
   sectionSubtitle: {
     fontSize: 14,
-    color: "#666",
+    color: Colors.textSecondary,
     marginBottom: 16,
     marginTop: 4,
   },
 
   listContainer: { gap: 12 },
   addonCard: {
-    backgroundColor: "#fff",
+    backgroundColor: Colors.card,
     borderRadius: 16,
     padding: 12,
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#eee",
+    borderColor: Colors.border,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
@@ -511,38 +524,39 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   addonCardSelected: {
-    backgroundColor: "#1a1a1a",
-    borderColor: "#1a1a1a",
+    backgroundColor: Colors.card,
+    borderColor: Colors.primary,
+    borderWidth: 2,
   },
   addonIcon: {
     width: 48,
     height: 48,
     borderRadius: 12,
-    backgroundColor: "#f0f0f0",
+    backgroundColor: Colors.background,
   },
   addonContent: { flex: 1, marginLeft: 12 },
-  addonName: { fontSize: 16, fontWeight: "600", color: "#1a1a1a" },
-  addonDesc: { fontSize: 12, color: "#666", marginTop: 2 },
-  textSelected: { color: "#fff" },
-  textDetailSelected: { color: "#ccc" },
+  addonName: { fontSize: 16, fontWeight: "600", color: Colors.text },
+  addonDesc: { fontSize: 12, color: Colors.textSecondary, marginTop: 2 },
+  textSelected: { color: Colors.text },
+  textDetailSelected: { color: Colors.textSecondary },
 
   priceContainer: { alignItems: "flex-end", minWidth: 60 },
-  addonPrice: { fontSize: 16, fontWeight: "bold", color: "#1a1a1a" },
+  addonPrice: { fontSize: 16, fontWeight: "bold", color: Colors.text },
 
   dateButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#fff",
+    backgroundColor: Colors.card,
     padding: 16,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#eee",
+    borderColor: Colors.border,
     gap: 12,
   },
   dateText: {
     flex: 1,
     fontSize: 16,
-    color: "#1a1a1a",
+    color: Colors.text,
     fontWeight: "500",
   },
 
@@ -551,7 +565,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: "#fff",
+    backgroundColor: Colors.card,
     padding: 20,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
@@ -564,13 +578,13 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
   },
-  totalLabel: { fontSize: 12, color: "#666" },
-  totalValue: { fontSize: 24, fontWeight: "bold", color: "#1a1a1a" },
+  totalLabel: { fontSize: 12, color: Colors.textSecondary },
+  totalValue: { fontSize: 24, fontWeight: "bold", color: Colors.text },
   payButton: {
-    backgroundColor: "#C8F000",
+    backgroundColor: Colors.primary,
     paddingHorizontal: 32,
     paddingVertical: 14,
     borderRadius: 30,
   },
-  payButtonText: { fontSize: 16, fontWeight: "bold", color: "#1a1a1a" },
+  payButtonText: { fontSize: 16, fontWeight: "bold", color: Colors.black },
 });

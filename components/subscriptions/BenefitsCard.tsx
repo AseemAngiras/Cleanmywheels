@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { Colors } from "@/constants/Colors";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
@@ -28,11 +29,11 @@ export const BenefitsCard = ({ onExplore }: BenefitsCardProps) => {
 
   return (
     <View style={styles.container}>
-      <LinearGradient colors={["#FFFFFF", "#F8FAFC"]} style={styles.card}>
+      <LinearGradient colors={[Colors.card, Colors.card]} style={styles.card}>
         <View style={styles.content}>
           <View style={styles.header}>
             <View style={styles.iconContainer}>
-              <Ionicons name="car-sport" size={28} color="#0F172A" />
+              <Ionicons name="car-sport" size={28} color={Colors.text} />
             </View>
             <View>
               <Text style={styles.title}>Premium Car Care</Text>
@@ -51,7 +52,7 @@ export const BenefitsCard = ({ onExplore }: BenefitsCardProps) => {
                   <Ionicons
                     name={benefit.icon as any}
                     size={18}
-                    color="#0F172A"
+                    color={Colors.text}
                   />
                 </View>
                 <View style={styles.benefitText}>
@@ -68,7 +69,7 @@ export const BenefitsCard = ({ onExplore }: BenefitsCardProps) => {
             activeOpacity={0.9}
           >
             <Text style={styles.btnText}>View Plans</Text>
-            <Ionicons name="arrow-forward" size={16} color="#FFF" />
+            <Ionicons name="arrow-forward" size={16} color={Colors.black} />
           </TouchableOpacity>
         </View>
       </LinearGradient>
@@ -85,12 +86,12 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 4,
     marginBottom: 24,
-    backgroundColor: "#FFF",
+    backgroundColor: Colors.card,
   },
   card: {
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: Colors.border,
     overflow: "hidden",
   },
   content: {
@@ -105,7 +106,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: "#F1F5F9",
+    backgroundColor: Colors.background,
     alignItems: "center",
     justifyContent: "center",
     marginRight: 14,
@@ -113,18 +114,18 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: "800",
-    color: "#0F172A",
+    color: Colors.text,
     marginBottom: 2,
     letterSpacing: -0.5,
   },
   subtitle: {
     fontSize: 13,
-    color: "#64748B",
+    color: Colors.textSecondary,
     fontWeight: "500",
   },
   divider: {
     height: 1,
-    backgroundColor: "#E2E8F0",
+    backgroundColor: Colors.border,
     marginBottom: 20,
   },
   benefitsList: {
@@ -139,7 +140,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 10,
-    backgroundColor: "#F1F5F9",
+    backgroundColor: Colors.background,
     alignItems: "center",
     justifyContent: "center",
     marginRight: 12,
@@ -150,15 +151,15 @@ const styles = StyleSheet.create({
   benefitTitle: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#1E293B",
+    color: Colors.text,
     marginBottom: 1,
   },
   benefitDesc: {
     fontSize: 12,
-    color: "#64748B",
+    color: Colors.textSecondary,
   },
   exploreBtn: {
-    backgroundColor: "#0F172A",
+    backgroundColor: Colors.primary,
     borderRadius: 14,
     paddingVertical: 14,
     flexDirection: "row",
@@ -167,7 +168,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   btnText: {
-    color: "#FFF",
+    color: Colors.black,
     fontSize: 14,
     fontWeight: "700",
   },

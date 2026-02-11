@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import { Colors } from "@/constants/Colors";
 import { useRouter } from "expo-router";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -39,7 +40,7 @@ export const ActiveSubscriptionCard = ({
       style={styles.container}
     >
       <LinearGradient
-        colors={["#FFFFFF", "#F8FAFC"]}
+        colors={[Colors.card, Colors.card]}
         style={styles.cardGradient}
       >
         <View style={styles.cardContent}>
@@ -91,7 +92,7 @@ export const ActiveSubscriptionCard = ({
 
           <View style={styles.actionButton}>
             <Text style={styles.actionButtonText}>View Details</Text>
-            <Ionicons name="arrow-forward" size={12} color="#1E293B" />
+            <Ionicons name="arrow-forward" size={12} color={Colors.text} />
           </View>
         </View>
       </LinearGradient>
@@ -113,7 +114,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     overflow: "hidden",
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: Colors.border,
   },
   cardContent: {
     padding: 20,
@@ -126,18 +127,18 @@ const styles = StyleSheet.create({
   planName: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#0F172A",
+    color: Colors.text,
     marginBottom: 4,
   },
   subId: {
     fontSize: 12,
-    color: "#64748B",
+    color: Colors.textSecondary,
     fontFamily: "monospace",
   },
   activeBadge: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#DCFCE7",
+    backgroundColor: "rgba(220, 252, 231, 0.1)",
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 12,
@@ -157,7 +158,7 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: "#E2E8F0",
+    backgroundColor: Colors.border,
     marginVertical: 16,
   },
   detailsRow: {
@@ -169,7 +170,7 @@ const styles = StyleSheet.create({
   },
   detailLabel: {
     fontSize: 10,
-    color: "#64748B",
+    color: Colors.textSecondary,
     fontWeight: "700",
     marginBottom: 4,
     letterSpacing: 0.5,
@@ -177,19 +178,19 @@ const styles = StyleSheet.create({
   detailValue: {
     fontSize: 15,
     fontWeight: "700",
-    color: "#1E293B",
+    color: Colors.text,
     marginBottom: 2,
   },
   detailSubValue: {
     fontSize: 12,
-    color: "#64748B",
+    color: Colors.textSecondary,
   },
   actionButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     marginTop: 16,
-    backgroundColor: "#F1F5F9",
+    backgroundColor: Colors.background,
     paddingVertical: 10,
     borderRadius: 12,
     gap: 6,
@@ -197,6 +198,6 @@ const styles = StyleSheet.create({
   actionButtonText: {
     fontSize: 12,
     fontWeight: "600",
-    color: "#1E293B",
+    color: Colors.text,
   },
 });

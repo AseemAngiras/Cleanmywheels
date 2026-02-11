@@ -18,6 +18,7 @@ import { useDispatch, useSelector } from "react-redux";
 
 import BookingStepper from "@/components/BookingStepper";
 import { RootState } from "@/store";
+import { Colors } from "@/constants/Colors";
 import { Ionicons } from "@expo/vector-icons";
 import {
   Alert,
@@ -328,13 +329,17 @@ export default function SelectSlotScreen() {
   };
 
   return (
-    <ScreenWrapper style={styles.safeArea} backgroundColor="#f9f9f9">
+    <ScreenWrapper
+      style={styles.safeArea}
+      backgroundColor={Colors.background}
+      statusBarStyle="light-content"
+    >
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => router.back()}
           style={styles.backButton}
         >
-          <Ionicons name="chevron-back" size={24} color="#000" />
+          <Ionicons name="chevron-back" size={24} color={Colors.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Select Slot</Text>
         <View style={{ width: 24 }} />
@@ -404,12 +409,6 @@ export default function SelectSlotScreen() {
             {timeSlots.map((slot) => {
               const isSelected = selectedSlot === slot.id;
               const isUnavailable = !slot.available;
-              const offer =
-                slot.id === "2"
-                  ? "5% OFF"
-                  : slot.id === "3" || slot.id === "4"
-                    ? "10% OFF"
-                    : null;
 
               return (
                 <TouchableOpacity
@@ -419,18 +418,13 @@ export default function SelectSlotScreen() {
                     styles.timeGridItem,
                     isSelected && styles.timeGridItemSelected,
                     isUnavailable && {
-                      opacity: 0.5,
-                      backgroundColor: "#f5f5f5",
-                      borderColor: "#eee",
+                      opacity: 0.3,
+                      backgroundColor: Colors.card,
+                      borderColor: Colors.border,
                     },
                   ]}
                   onPress={() => setSelectedSlot(slot.id)}
                 >
-                  {offer && (
-                    <View style={styles.offerBadge}>
-                      <Text style={styles.offerText}>{offer}</Text>
-                    </View>
-                  )}
                   <Text
                     style={[
                       styles.timeGridText,
@@ -516,7 +510,7 @@ export default function SelectSlotScreen() {
                   <TextInput
                     style={styles.inputField}
                     placeholder="Full Name"
-                    placeholderTextColor="#ccc"
+                    placeholderTextColor={Colors.textSecondary}
                     value={name}
                     onChangeText={(text) => {
                       if (/[^a-zA-Z\s]/.test(text)) {
@@ -551,7 +545,7 @@ export default function SelectSlotScreen() {
                   <TextInput
                     style={styles.inputField}
                     placeholder="Mobile Number"
-                    placeholderTextColor="#ccc"
+                    placeholderTextColor={Colors.textSecondary}
                     keyboardType="phone-pad"
                     maxLength={10}
                     value={phoneNumber}
@@ -576,9 +570,9 @@ export default function SelectSlotScreen() {
                     onPress={() => setModalStep("details")}
                     style={{ marginRight: 10 }}
                   >
-                    <Ionicons name="arrow-back" size={24} color="#1a1a1a" />
+                    <Ionicons name="arrow-back" size={24} color={Colors.text} />
                   </TouchableOpacity>
-                  <Text style={{ fontSize: 14, color: "#666" }}>
+                  <Text style={{ fontSize: 14, color: Colors.textSecondary }}>
                     Change Number
                   </Text>
                 </View>
@@ -636,7 +630,7 @@ export default function SelectSlotScreen() {
                 {isOtpWarningVisible && (
                   <Text
                     style={{
-                      color: "red",
+                      color: Colors.error,
                       fontSize: 12,
                       marginTop: -15,
                       marginBottom: 10,
@@ -666,28 +660,28 @@ export default function SelectSlotScreen() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: "#f9f9f9" },
+  safeArea: { flex: 1, backgroundColor: Colors.background },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 20,
     paddingVertical: 15,
-    backgroundColor: "#f9f9f9",
+    backgroundColor: Colors.background,
   },
   backButton: { padding: 5 },
-  headerTitle: { fontSize: 18, fontWeight: "bold" },
+  headerTitle: { fontSize: 18, fontWeight: "bold", color: Colors.text },
 
   pageTitle: {
     fontSize: 24,
     fontWeight: "bold",
-    color: "#1a1a1a",
+    color: Colors.text,
     paddingHorizontal: 20,
     marginTop: 10,
   },
   pageSubtitle: {
     fontSize: 14,
-    color: "#666",
+    color: Colors.textSecondary,
     paddingHorizontal: 20,
     marginTop: 5,
     marginBottom: 20,
@@ -699,13 +693,13 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#1a1a1a",
+    color: Colors.text,
     paddingHorizontal: 20,
     marginBottom: 15,
   },
   durationHint: {
     fontSize: 13,
-    color: "#888",
+    color: Colors.textSecondary,
     paddingHorizontal: 20,
     marginTop: -10,
     marginBottom: 15,
@@ -719,32 +713,32 @@ const styles = StyleSheet.create({
     width: 70,
     height: 90,
     borderRadius: 15,
-    backgroundColor: "#fff",
+    backgroundColor: Colors.card,
     alignItems: "center",
     justifyContent: "center",
     marginRight: 10,
     borderWidth: 1,
-    borderColor: "#eee",
+    borderColor: Colors.border,
   },
   dateItemSelected: {
-    backgroundColor: "#1a1a1a",
-    borderColor: "#1a1a1a",
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
     transform: [{ scale: 1.05 }],
   },
   monthText: {
     fontSize: 12,
-    color: "#888",
+    color: Colors.textSecondary,
     marginBottom: 4,
     textTransform: "uppercase",
   },
   dateNumberText: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "#1a1a1a",
+    color: Colors.text,
     marginBottom: 2,
   },
-  dayText: { fontSize: 12, color: "#666" },
-  textSelected: { color: "#fff" },
+  dayText: { fontSize: 12, color: Colors.textSecondary },
+  textSelected: { color: Colors.black },
 
   // Time Grid
   gridContainer: {
@@ -756,35 +750,35 @@ const styles = StyleSheet.create({
   timeGridItem: {
     width: "31%",
     paddingVertical: 15,
-    backgroundColor: "#fff",
+    backgroundColor: Colors.card,
     borderRadius: 12,
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#eee",
+    borderColor: Colors.border,
     marginBottom: 5,
     position: "relative",
   },
   timeGridItemSelected: {
-    backgroundColor: "#1a1a1a",
-    borderColor: "#1a1a1a",
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
   },
   timeGridText: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#1a1a1a",
+    color: Colors.text,
   },
   timeGridTextSelected: {
-    color: "#fff",
+    color: Colors.black,
   },
   timeGridTextUnavailable: {
-    color: "#ccc",
+    color: Colors.textSecondary,
     textDecorationLine: "line-through",
   },
   offerBadge: {
     position: "absolute",
     top: -6,
     right: -6,
-    backgroundColor: "#C8F000",
+    backgroundColor: Colors.primary,
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 6,
@@ -793,7 +787,7 @@ const styles = StyleSheet.create({
   offerText: {
     fontSize: 8,
     fontWeight: "bold",
-    color: "#1a1a1a",
+    color: Colors.black,
   },
 
   // Footer
@@ -802,7 +796,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: "#fff",
+    backgroundColor: Colors.card,
     paddingHorizontal: 20,
     paddingVertical: 10,
     paddingBottom: 40,
@@ -810,20 +804,24 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     borderTopWidth: 1,
-    borderTopColor: "#f0f0f0",
-    shadowColor: "#000",
+    borderTopColor: Colors.border,
+    shadowColor: Colors.text,
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.05,
     shadowRadius: 10,
     elevation: 10,
   },
   selectionSummary: { flex: 1, justifyContent: "center" },
-  summaryLabel: { fontSize: 12, color: "#888" },
-  summaryValue: { fontSize: 15, fontWeight: "bold", color: "#1a1a1a" },
-  placeholderSummary: { fontSize: 14, color: "#ccc", fontStyle: "italic" },
+  summaryLabel: { fontSize: 12, color: Colors.textSecondary },
+  summaryValue: { fontSize: 15, fontWeight: "bold", color: Colors.text },
+  placeholderSummary: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    fontStyle: "italic",
+  },
 
   continueButton: {
-    backgroundColor: "#C8F000",
+    backgroundColor: Colors.primary,
     paddingVertical: 15,
     paddingHorizontal: 25,
     borderRadius: 30,
@@ -833,7 +831,7 @@ const styles = StyleSheet.create({
   continueButtonText: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#1a1a1a",
+    color: Colors.black,
   },
 
   // Modal
@@ -844,12 +842,12 @@ const styles = StyleSheet.create({
   },
   modalOverlayTouch: { flex: 1 },
   modalContent: {
-    backgroundColor: "#fff",
+    backgroundColor: Colors.card,
     borderTopLeftRadius: 25,
     borderTopRightRadius: 25,
     padding: 25,
     paddingBottom: 40,
-    shadowColor: "#000",
+    shadowColor: Colors.text,
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.1,
     shadowRadius: 10,
@@ -858,7 +856,7 @@ const styles = StyleSheet.create({
   dragHandle: {
     width: 40,
     height: 4,
-    backgroundColor: "#e0e0e0",
+    backgroundColor: Colors.border,
     borderRadius: 2,
     alignSelf: "center",
     marginBottom: 20,
@@ -866,52 +864,52 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 22,
     fontWeight: "bold",
-    color: "#1a1a1a",
+    color: Colors.text,
     marginBottom: 5,
   },
   modalSubtitle: {
     fontSize: 14,
-    color: "#888",
+    color: Colors.textSecondary,
     marginBottom: 20,
   },
   inputLabel: {
     fontSize: 12,
     fontWeight: "600",
-    color: "#1a1a1a",
+    color: Colors.text,
     marginBottom: 8,
   },
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#f9f9f9",
+    backgroundColor: Colors.background,
     borderRadius: 30,
     paddingHorizontal: 20,
     paddingVertical: 12,
     marginBottom: 15,
     borderWidth: 1,
-    borderColor: "#f0f0f0",
+    borderColor: Colors.border,
   },
   inputField: {
     flex: 1,
     fontSize: 14,
-    color: "#1a1a1a",
+    color: Colors.text,
   },
   phoneContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#f9f9f9",
+    backgroundColor: Colors.background,
     borderRadius: 30,
     paddingHorizontal: 20,
     paddingVertical: 12,
     marginBottom: 25,
     borderWidth: 1,
-    borderColor: "#f0f0f0",
+    borderColor: Colors.border,
   },
   countryCode: { marginRight: 10 },
-  countryCodeText: { fontSize: 14, fontWeight: "bold", color: "#1a1a1a" },
+  countryCodeText: { fontSize: 14, fontWeight: "bold", color: Colors.text },
 
   modalContinueButton: {
-    backgroundColor: "#C8F000",
+    backgroundColor: Colors.primary,
     paddingVertical: 16,
     borderRadius: 30,
     flexDirection: "row",
@@ -935,11 +933,11 @@ const styles = StyleSheet.create({
     height: 55,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#f0f0f0",
+    borderColor: Colors.border,
     fontSize: 20,
     fontWeight: "bold",
-    color: "#1a1a1a",
-    backgroundColor: "#f9f9f9",
+    color: Colors.text,
+    backgroundColor: Colors.background,
     textAlign: "center",
   },
 });

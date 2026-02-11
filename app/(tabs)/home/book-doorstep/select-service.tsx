@@ -14,7 +14,7 @@ import {
   useNavigation,
   useRouter,
 } from "expo-router";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -35,6 +35,7 @@ import {
   View,
 } from "react-native";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
+import { Colors } from "@/constants/Colors";
 import { useSelector } from "react-redux";
 import BookingStepper from "../../../../components/BookingStepper";
 import { ListSkeleton } from "../../../../components/SkeletonLoader";
@@ -92,7 +93,7 @@ const ExpandableDetails = ({
               <Ionicons
                 name="checkmark-circle"
                 size={14}
-                color="#84c95c"
+                color={Colors.primary}
                 style={{ marginRight: 6 }}
               />
               <Text style={expandableStyles.featureTagText}>
@@ -111,7 +112,7 @@ const expandableStyles = StyleSheet.create({
     marginTop: 15,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: "#f0f0f0",
+    borderTopColor: Colors.border,
   },
   featureTagsContainer: {
     flexDirection: "row",
@@ -121,16 +122,16 @@ const expandableStyles = StyleSheet.create({
   featureTag: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#f0f8e8",
+    backgroundColor: "rgba(200, 240, 0, 0.1)",
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: "#84c95c20",
+    borderColor: "rgba(200, 240, 0, 0.2)",
   },
   featureTagText: {
     fontSize: 12,
-    color: "#2d5a1a",
+    color: Colors.primary,
     fontWeight: "500",
   },
 });
@@ -173,20 +174,27 @@ export default function SelectServiceScreen() {
   } = useGetWashPackagesQuery({ page: 1, perPage: 10 });
   const [updateWashPackage, { isLoading: isUpdating }] =
     useUpdateWashPackageMutation();
-  const servicesFromApi = washPackagesData?.data?.washPackageList || [];
+  const servicesFromApi = useMemo(
+    () => washPackagesData?.data?.washPackageList || [],
+    [washPackagesData],
+  );
 
-  const services = servicesFromApi.map((pkg) => ({
-    id: pkg._id,
-    name: pkg.name,
-    price: pkg.price,
-    description: pkg.tag || "Professional car wash service",
-    details: pkg.features?.join(", ") || "Interior and exterior cleaning",
-    features: pkg.features || [],
-    image:
-      pkg.logo ||
-      "https://images.unsplash.com/photo-1552930294-6b595f4c2974?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80",
-    isBestseller: pkg.tag?.toLowerCase().includes("best"),
-  }));
+  const services = useMemo(
+    () =>
+      servicesFromApi.map((pkg: any) => ({
+        id: pkg._id,
+        name: pkg.name,
+        price: pkg.price,
+        description: pkg.tag || "Professional car wash service",
+        details: pkg.features?.join(", ") || "Interior and exterior cleaning",
+        features: pkg.features || [],
+        image:
+          pkg.logo ||
+          "https://images.unsplash.com/photo-1552930294-6b595f4c2974?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80",
+        isBestseller: pkg.tag?.toLowerCase().includes("best"),
+      })),
+    [servicesFromApi],
+  );
 
   useEffect(() => {
     if (washPackagesData) {
@@ -420,13 +428,13 @@ export default function SelectServiceScreen() {
   };
 
   return (
-    <ScreenWrapper style={styles.safeArea} backgroundColor="#f9f9f9">
+    <ScreenWrapper style={styles.safeArea} backgroundColor={Colors.background}>
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => router.back()}
           style={styles.backButton}
         >
-          <Ionicons name="chevron-back" size={24} color="#000" />
+          <Ionicons name="chevron-back" size={24} color={Colors.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Select Service</Text>
         <View style={{ width: 24 }} />
@@ -446,7 +454,11 @@ export default function SelectServiceScreen() {
                 <ListSkeleton type="service" count={3} />
               ) : services.length === 0 ? (
                 <Text
-                  style={{ textAlign: "center", marginTop: 20, color: "#888" }}
+                  style={{
+                    textAlign: "center",
+                    marginTop: 20,
+                    color: Colors.textSecondary,
+                  }}
                 >
                   No wash packages available
                 </Text>
@@ -516,7 +528,7 @@ export default function SelectServiceScreen() {
                                       <Ionicons
                                         name="pencil"
                                         size={16}
-                                        color="#84c95c"
+                                        color={Colors.primary}
                                       />
                                     </TouchableOpacity>
                                   )}
@@ -536,13 +548,13 @@ export default function SelectServiceScreen() {
                                   <Ionicons
                                     name="radio-button-on"
                                     size={24}
-                                    color="#84c95c"
+                                    color={Colors.primary}
                                   />
                                 ) : (
                                   <Ionicons
                                     name="radio-button-off"
                                     size={24}
-                                    color="#ccc"
+                                    color={Colors.textSecondary}
                                   />
                                 )}
                                 <TouchableOpacity
@@ -556,7 +568,7 @@ export default function SelectServiceScreen() {
                                         : "chevron-down"
                                     }
                                     size={24}
-                                    color="#84c95c"
+                                    color={Colors.primary}
                                   />
                                 </TouchableOpacity>
                               </View>
@@ -587,7 +599,11 @@ export default function SelectServiceScreen() {
                                   : "radio-button-off"
                               }
                               size={20}
-                              color={isSelected ? "#84c95c" : "#ccc"}
+                              color={
+                                isSelected
+                                  ? Colors.primary
+                                  : Colors.textSecondary
+                              }
                               style={{ marginRight: 12 }}
                             />
                             <Text style={styles.collapsedName}>
@@ -964,17 +980,17 @@ export default function SelectServiceScreen() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: "#f9f9f9" },
+  safeArea: { flex: 1, backgroundColor: Colors.background },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 20,
     paddingVertical: 10,
-    backgroundColor: "#f9f9f9",
+    backgroundColor: Colors.background,
   },
   backButton: { padding: 5 },
-  headerTitle: { fontSize: 18, fontWeight: "bold" },
+  headerTitle: { fontSize: 18, fontWeight: "bold", color: Colors.text },
   container: { paddingBottom: 100 },
 
   servicesContainer: {
@@ -983,26 +999,28 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   serviceCard: {
-    backgroundColor: "#fff",
+    backgroundColor: Colors.card,
     borderRadius: 16,
     marginBottom: 10,
     overflow: "hidden",
-    shadowColor: "#000",
+    shadowColor: Colors.text,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
   serviceCardExpandedLayout: { padding: 15 },
   serviceCardCollapsedLayout: { paddingVertical: 15, paddingHorizontal: 15 },
   serviceCardSelectedBorder: {
-    borderColor: "#84c95c",
-    backgroundColor: "#fbfdfa",
+    borderColor: Colors.primary,
+    backgroundColor: Colors.card,
     borderWidth: 2,
   },
   serviceCardUnselectedBorder: {
-    borderColor: "#eee",
-    backgroundColor: "#fff",
+    borderColor: Colors.border,
+    backgroundColor: Colors.card,
     borderWidth: 1,
   },
 
@@ -1012,27 +1030,27 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 10,
-    backgroundColor: "#eee",
+    backgroundColor: Colors.background,
   },
   expandedContent: { flex: 1, flexDirection: "row" },
-  expandedName: { fontSize: 16, fontWeight: "bold", color: "#1a1a1a" },
+  expandedName: { fontSize: 16, fontWeight: "bold", color: Colors.text },
   expandedPrice: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#84c95c",
+    color: Colors.primary,
     marginVertical: 4,
   },
-  expandedDesc: { fontSize: 12, color: "#666", lineHeight: 16 },
+  expandedDesc: { fontSize: 12, color: Colors.textSecondary, lineHeight: 16 },
 
   detailsContainer: {
     marginTop: 15,
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: "#f0f0f0",
+    borderTopColor: Colors.border,
   },
   detailsText: {
     fontSize: 13,
-    color: "#555",
+    color: Colors.textSecondary,
     lineHeight: 20,
     fontStyle: "italic",
   },
@@ -1042,27 +1060,27 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
   },
-  collapsedName: { fontSize: 15, fontWeight: "500", color: "#333" },
-  collapsedPrice: { fontSize: 15, fontWeight: "600", color: "#1a1a1a" },
+  collapsedName: { fontSize: 15, fontWeight: "500", color: Colors.text },
+  collapsedPrice: { fontSize: 15, fontWeight: "600", color: Colors.text },
 
   bestsellerBadge: {
     position: "absolute",
     top: -6,
     left: -4,
-    backgroundColor: "#C8F000",
+    backgroundColor: Colors.primary,
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
     zIndex: 1,
   },
-  bestsellerText: { color: "#1a1a1a", fontSize: 7, fontWeight: "bold" },
+  bestsellerText: { color: Colors.black, fontSize: 7, fontWeight: "bold" },
 
   sectionTitle: {
     fontSize: 16,
     fontWeight: "bold",
     // marginTop: 5,
     marginBottom: 10,
-    color: "#1a1a1a",
+    color: Colors.text,
     paddingHorizontal: 20,
   },
 
@@ -1076,23 +1094,31 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 8,
     paddingHorizontal: 16,
-    backgroundColor: "#fff",
+    backgroundColor: Colors.card,
     borderRadius: 20,
     marginRight: 10,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: "#eee",
+    borderColor: Colors.border,
   },
-  addonChipSelected: { backgroundColor: "#84c95c", borderColor: "#84c95c" },
-  addonName: { fontSize: 13, fontWeight: "600", color: "#555", marginRight: 5 },
-  addonPrice: { fontSize: 13, fontWeight: "700", color: "#84c95c" },
+  addonChipSelected: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
+  addonName: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: Colors.textSecondary,
+    marginRight: 5,
+  },
+  addonPrice: { fontSize: 13, fontWeight: "700", color: Colors.primary },
 
   subSectionTitle: {
     fontSize: 16,
     fontWeight: "bold",
     // marginTop: 5,
     marginBottom: 10,
-    color: "#1a1a1a",
+    color: Colors.text,
     paddingHorizontal: 20,
   },
 
@@ -1107,39 +1133,40 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     width: "23%",
     paddingVertical: 12,
-    backgroundColor: "#fff",
+    backgroundColor: Colors.card,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#eee",
+    borderColor: Colors.border,
   },
   vehicleIconBtnSelected: {
-    backgroundColor: "#1a1a1aff",
-    borderColor: "#1a1a1a",
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
   },
   savedCarCard: {
-    backgroundColor: "#f9f9f9",
+    backgroundColor: Colors.card,
     borderRadius: 16,
     padding: 8,
     marginRight: 12,
     marginLeft: 12,
     borderWidth: 1,
-    borderColor: "#eee",
+    borderColor: Colors.border,
     minWidth: 120,
     alignItems: "flex-start",
   },
   savedCarCardSelected: {
-    backgroundColor: "#1a1a1a",
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
     marginLeft: 15,
   },
   savedCarNumber: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#333",
+    color: Colors.text,
     marginBottom: 4,
   },
   savedCarType: {
     fontSize: 12,
-    color: "#666",
+    color: Colors.textSecondary,
     textTransform: "uppercase",
   },
   selectedCheck: {
@@ -1150,19 +1177,19 @@ const styles = StyleSheet.create({
   vehicleTypeName: {
     fontSize: 10,
     fontWeight: "500",
-    color: "#999",
+    color: Colors.textSecondary,
     marginTop: 4,
   },
 
   input: {
-    backgroundColor: "#fff",
+    backgroundColor: Colors.card,
     borderRadius: 15,
     paddingHorizontal: 20,
     paddingVertical: 15,
     fontSize: 14,
-    color: "#1a1a1a",
+    color: Colors.text,
     borderWidth: 1,
-    borderColor: "#f0f0f0",
+    borderColor: Colors.border,
     marginBottom: 20,
     marginHorizontal: 20,
   },
@@ -1172,7 +1199,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: "#fff",
+    backgroundColor: Colors.card,
     paddingHorizontal: 20,
     paddingVertical: 10,
     paddingBottom: 40,
@@ -1180,7 +1207,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     borderTopWidth: 1,
-    borderTopColor: "#f0f0f0",
+    borderTopColor: Colors.border,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.05,
@@ -1188,15 +1215,15 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
   totalContainer: { justifyContent: "center" },
-  totalLabel: { fontSize: 12, color: "#888", marginLeft: 6 },
+  totalLabel: { fontSize: 12, color: Colors.textSecondary, marginLeft: 6 },
   totalPrice: {
     fontSize: 24,
     fontWeight: "bold",
-    color: "#84c95c",
+    color: Colors.primary,
     marginLeft: 6,
   },
   nextButton: {
-    backgroundColor: "#C8F000",
+    backgroundColor: Colors.primary,
     paddingVertical: 15,
     paddingHorizontal: 0,
     borderRadius: 30,
@@ -1204,7 +1231,7 @@ const styles = StyleSheet.create({
     marginLeft: 30,
     alignItems: "center",
   },
-  nextButtonText: { fontSize: 16, fontWeight: "bold", color: "#1a1a1a" },
+  nextButtonText: { fontSize: 16, fontWeight: "bold", color: Colors.black },
 
   // Modal Styles
   modalOverlay: {
@@ -1215,12 +1242,12 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   modalContent: {
-    backgroundColor: "#fff",
+    backgroundColor: Colors.card,
     borderRadius: 20,
     padding: 25,
     width: "100%",
     maxWidth: 400,
-    shadowColor: "#000",
+    shadowColor: Colors.text,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 10,
@@ -1229,23 +1256,23 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "#1a1a1a",
+    color: Colors.text,
     marginBottom: 8,
   },
   modalSubtitle: {
     fontSize: 14,
-    color: "#666",
+    color: Colors.textSecondary,
     marginBottom: 20,
   },
   priceInput: {
-    backgroundColor: "#f5f5f5",
+    backgroundColor: Colors.background,
     borderRadius: 12,
     padding: 15,
     fontSize: 18,
     fontWeight: "bold",
-    color: "#1a1a1a",
+    color: Colors.text,
     borderWidth: 1,
-    borderColor: "#eee",
+    borderColor: Colors.border,
     marginBottom: 25,
   },
   modalActions: {
@@ -1259,17 +1286,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   cancelButton: {
-    backgroundColor: "#f5f5f5",
+    backgroundColor: Colors.background,
   },
   saveButton: {
-    backgroundColor: "#84c95c",
+    backgroundColor: Colors.primary,
   },
   cancelButtonText: {
-    color: "#666",
+    color: Colors.text,
     fontWeight: "bold",
   },
   saveButtonText: {
-    color: "#fff",
+    color: Colors.black,
     fontWeight: "bold",
   },
 });

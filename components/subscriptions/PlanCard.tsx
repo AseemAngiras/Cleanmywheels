@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { Colors } from "@/constants/Colors";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
@@ -38,7 +39,11 @@ export const PlanCard = ({
       <View style={styles.features}>
         {plan.features?.slice(0, 3).map((feature: string, idx: number) => (
           <View key={idx} style={styles.featureRow}>
-            <Ionicons name="checkmark-circle" size={14} color="#65A30D" />
+            <Ionicons
+              name="checkmark-circle"
+              size={14}
+              color={Colors.primary}
+            />
             <Text style={styles.featureText} numberOfLines={1}>
               {feature}
             </Text>
@@ -48,7 +53,7 @@ export const PlanCard = ({
 
       <View style={styles.selectBtn}>
         <Text style={styles.selectBtnText}>Select</Text>
-        <Ionicons name="chevron-forward" size={14} color="#FFF" />
+        <Ionicons name="chevron-forward" size={14} color={Colors.black} />
       </View>
     </TouchableOpacity>
   );
@@ -57,12 +62,12 @@ export const PlanCard = ({
 const styles = StyleSheet.create({
   container: {
     width: "100%",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: Colors.card,
     borderRadius: 16,
     padding: 16,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: Colors.border,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
@@ -70,15 +75,15 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   popularBorder: {
-    borderColor: "#84CC16",
+    borderColor: Colors.primary,
     borderWidth: 1.5,
-    backgroundColor: "#F7FEE7",
+    backgroundColor: "rgba(200, 240, 0, 0.1)",
   },
   popularBadge: {
     position: "absolute",
     top: -10,
     alignSelf: "center",
-    backgroundColor: "#84CC16",
+    backgroundColor: Colors.primary,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
@@ -87,7 +92,7 @@ const styles = StyleSheet.create({
   popularText: {
     fontSize: 9,
     fontWeight: "800",
-    color: "#FFF",
+    color: Colors.black,
     letterSpacing: 0.5,
   },
   header: {
@@ -98,7 +103,7 @@ const styles = StyleSheet.create({
   planName: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#1E293B",
+    color: Colors.text,
     marginBottom: 4,
     textAlign: "center",
   },
@@ -110,17 +115,17 @@ const styles = StyleSheet.create({
   currency: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#64748B",
+    color: Colors.textSecondary,
     marginRight: 2,
   },
   price: {
     fontSize: 28,
     fontWeight: "800",
-    color: "#0F172A",
+    color: Colors.text,
   },
   divider: {
     height: 1,
-    backgroundColor: "rgba(0,0,0,0.05)",
+    backgroundColor: Colors.border,
     width: "100%",
     marginBottom: 12,
   },
@@ -134,13 +139,13 @@ const styles = StyleSheet.create({
   },
   featureText: {
     marginLeft: 6,
-    color: "#475569",
+    color: Colors.textSecondary,
     fontSize: 12,
     fontWeight: "500",
   },
   selectBtn: {
     marginTop: 16,
-    backgroundColor: "#1E293B",
+    backgroundColor: Colors.primary,
     borderRadius: 12,
     paddingVertical: 10,
     flexDirection: "row",
@@ -149,7 +154,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   selectBtnText: {
-    color: "#FFF",
+    color: Colors.black,
     fontSize: 12,
     fontWeight: "700",
   },

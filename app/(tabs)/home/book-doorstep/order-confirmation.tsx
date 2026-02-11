@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { Colors } from "@/constants/Colors";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect } from "react";
 import {
@@ -40,7 +41,11 @@ export default function OrderConfirmationScreen() {
   }, []);
 
   return (
-    <ScreenWrapper style={styles.container} backgroundColor="#fff">
+    <ScreenWrapper
+      style={styles.container}
+      backgroundColor={Colors.background}
+      statusBarStyle="light-content"
+    >
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 100 }}
@@ -48,7 +53,7 @@ export default function OrderConfirmationScreen() {
         {/* Status Header */}
         <View style={styles.statusHeader}>
           <View style={styles.successIcon}>
-            <Ionicons name="checkmark" size={50} color="#1a1a1a" />
+            <Ionicons name="checkmark" size={50} color={Colors.white} />
           </View>
           <Text style={styles.statusTitle}>Booking Confirmed!</Text>
         </View>
@@ -59,21 +64,29 @@ export default function OrderConfirmationScreen() {
           <View style={styles.stepsRow}>
             <View style={styles.stepItem}>
               <View style={styles.stepIconBox}>
-                <Ionicons name="briefcase-outline" size={24} color="#1a1a1a" />
+                <Ionicons
+                  name="briefcase-outline"
+                  size={24}
+                  color={Colors.text}
+                />
               </View>
               <Text style={styles.stepText}>Assigning Professional</Text>
             </View>
             <View style={styles.stepLine} />
             <View style={styles.stepItem}>
               <View style={styles.stepIconBox}>
-                <Ionicons name="navigate-outline" size={24} color="#1a1a1a" />
+                <Ionicons
+                  name="navigate-outline"
+                  size={24}
+                  color={Colors.text}
+                />
               </View>
               <Text style={styles.stepText}>On the Way</Text>
             </View>
             <View style={styles.stepLine} />
             <View style={styles.stepItem}>
               <View style={styles.stepIconBox}>
-                <Ionicons name="list-outline" size={24} color="#1a1a1a" />
+                <Ionicons name="list-outline" size={24} color={Colors.text} />
               </View>
               <Text style={styles.stepText}>Your Service </Text>
             </View>
@@ -136,11 +149,11 @@ export default function OrderConfirmationScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
+  container: { flex: 1, backgroundColor: Colors.background },
   statusHeader: {
     alignItems: "center",
     paddingVertical: 30,
-    backgroundColor: "#f9f9f9",
+    backgroundColor: Colors.card,
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
     // marginBottom: 10,
@@ -149,11 +162,11 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: "#4CAF50",
+    backgroundColor: Colors.success,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 20,
-    shadowColor: "#4CAF50",
+    shadowColor: Colors.success,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 10,
@@ -162,21 +175,22 @@ const styles = StyleSheet.create({
   statusTitle: {
     fontSize: 24,
     fontWeight: "bold",
-    color: "#1a1a1a",
+    color: Colors.text,
     marginBottom: 5,
   },
-  statusSubtitle: { fontSize: 14, color: "#888" },
+  statusSubtitle: { fontSize: 14, color: Colors.textSecondary },
 
   sectionTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#1a1a1a",
+    color: Colors.text,
     marginBottom: 15,
   },
 
   nextStepsContainer: {
     marginHorizontal: 20,
     marginBottom: 25,
+    marginTop: 20,
   },
   stepsRow: {
     flexDirection: "row",
@@ -191,16 +205,16 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: "#F5F5F5",
+    backgroundColor: Colors.card,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 8,
     borderWidth: 1,
-    borderColor: "#E0E0E0",
+    borderColor: Colors.border,
   },
   stepText: {
     fontSize: 10,
-    color: "#666",
+    color: Colors.textSecondary,
     textAlign: "center",
     fontWeight: "600",
     lineHeight: 14,
@@ -208,14 +222,14 @@ const styles = StyleSheet.create({
   stepLine: {
     flex: 1,
     height: 2,
-    backgroundColor: "#EEE",
+    backgroundColor: Colors.border,
     marginTop: 24,
     marginHorizontal: 5,
   },
 
   detailsCard: {
     marginHorizontal: 20,
-    backgroundColor: "#fff",
+    backgroundColor: Colors.card,
     borderRadius: 0,
     padding: 24,
     paddingTop: 10,
@@ -242,7 +256,7 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: "#f9f9f9",
+    backgroundColor: Colors.background,
   },
   detailRow: {
     flexDirection: "row",
@@ -251,13 +265,13 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
     marginBottom: 8,
     borderBottomWidth: 1,
-    borderBottomColor: "#f3f3f3",
+    borderBottomColor: Colors.border,
   },
-  detailLabel: { fontSize: 14, color: "#666", width: "30%" },
+  detailLabel: { fontSize: 14, color: Colors.textSecondary, width: "30%" },
   detailValue: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#1a1a1a",
+    color: Colors.text,
     flex: 1,
     flexShrink: 1,
     textAlign: "right",
@@ -265,7 +279,7 @@ const styles = StyleSheet.create({
   detailValueVisible: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#1a1a1a",
+    color: Colors.text,
     flex: 1,
     flexShrink: 1,
     textAlign: "right",
@@ -276,25 +290,25 @@ const styles = StyleSheet.create({
     marginTop: 10,
     paddingTop: 10,
   },
-  totalLabel: { fontSize: 16, fontWeight: "bold", color: "#1a1a1a" },
-  totalValue: { fontSize: 18, fontWeight: "bold", color: "#4CAF50" },
+  totalLabel: { fontSize: 16, fontWeight: "bold", color: Colors.text },
+  totalValue: { fontSize: 18, fontWeight: "bold", color: Colors.success },
 
   footer: {
     position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: "#fff",
+    backgroundColor: Colors.background,
     padding: 20,
     paddingBottom: 40,
     borderTopWidth: 1,
-    borderTopColor: "#f0f0f0",
+    borderTopColor: Colors.border,
   },
   homeButton: {
-    backgroundColor: "#1a1a1a",
+    backgroundColor: Colors.primary,
     borderRadius: 30,
     paddingVertical: 16,
     alignItems: "center",
   },
-  homeButtonText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
+  homeButtonText: { color: Colors.black, fontSize: 16, fontWeight: "bold" },
 });

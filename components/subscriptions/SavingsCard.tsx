@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { Colors } from "@/constants/Colors";
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 
@@ -35,12 +36,12 @@ export const SavingsCard = () => {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: Colors.card,
     borderRadius: 16,
     padding: 16,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: Colors.border,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
@@ -50,7 +51,7 @@ const styles = StyleSheet.create({
   headerText: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#64748B",
+    color: Colors.textSecondary,
     marginBottom: 16,
     textAlign: "center",
   },
@@ -69,7 +70,7 @@ const styles = StyleSheet.create({
   divider: {
     width: 1,
     height: 30,
-    backgroundColor: "#E2E8F0",
+    backgroundColor: Colors.border,
   },
   iconBox: {
     width: 32,
@@ -81,11 +82,11 @@ const styles = StyleSheet.create({
   value: {
     fontSize: 16,
     fontWeight: "800",
-    color: "#0F172A",
+    color: Colors.text,
   },
   label: {
     fontSize: 11,
-    color: "#64748B",
+    color: Colors.textSecondary,
     fontWeight: "500",
   },
 });

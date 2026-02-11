@@ -1,6 +1,7 @@
 "use client";
 
 import { Ionicons } from "@expo/vector-icons";
+import { Colors } from "@/constants/Colors";
 import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from "expo-linear-gradient";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -200,7 +201,7 @@ export default function PastServices() {
         onPress={() => setActiveBooking(item)}
       >
         <LinearGradient
-          colors={["#FFFFFF", "#F5F8FF", "#F7FAE6"]}
+          colors={[Colors.card, Colors.card, Colors.card]}
           style={styles.sessionCard}
         >
           <View style={{ flex: 1 }}>
@@ -226,7 +227,7 @@ export default function PastServices() {
                     : "close-circle-outline"
                 }
                 size={14}
-                color={isCompleted ? "#15803D" : "#B91C1C"}
+                color={isCompleted ? Colors.success : Colors.error}
               />
               <Text
                 style={[
@@ -243,7 +244,11 @@ export default function PastServices() {
               style={styles.complaintButton}
               onPress={() => handleComplaint(item)}
             >
-              <Ionicons name="alert-circle-outline" size={14} color="#EF4444" />
+              <Ionicons
+                name="alert-circle-outline"
+                size={14}
+                color={Colors.error}
+              />
               <Text style={styles.complaintText}>Complaint</Text>
             </TouchableOpacity>
           </View>
@@ -269,8 +274,18 @@ export default function PastServices() {
         refreshing={isFetching}
         ListEmptyComponent={
           <View style={{ marginTop: 80, alignItems: "center" }}>
-            <Ionicons name="time-outline" size={48} color="#CBD5E1" />
-            <Text style={{ marginTop: 12, color: "#64748B", fontSize: 16 }}>
+            <Ionicons
+              name="time-outline"
+              size={48}
+              color={Colors.textSecondary}
+            />
+            <Text
+              style={{
+                marginTop: 12,
+                color: Colors.textSecondary,
+                fontSize: 16,
+              }}
+            >
               No past services yet
             </Text>
           </View>
@@ -508,37 +523,39 @@ const styles = StyleSheet.create({
   },
 
   sessionCard: {
-    backgroundColor: "#F5F8FF",
+    backgroundColor: Colors.card,
     borderRadius: 20,
     padding: 20,
     // paddingBottom: 90,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.1,
     shadowRadius: 12,
     elevation: 5,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
 
   sessionTitle: {
     fontSize: 20,
     fontWeight: "700",
-    color: "#111",
+    color: Colors.text,
   },
 
   sessionSubtitle: {
     marginTop: 4,
     fontSize: 16,
     fontWeight: "600",
-    color: "#334155",
+    color: Colors.textSecondary,
   },
 
   sessionDuration: {
     marginTop: 6,
     fontSize: 14,
-    color: "#64748B",
+    color: Colors.textSecondary,
   },
 
   completedBadge: {
@@ -549,11 +566,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
-    backgroundColor: "#DCFCE7",
+    backgroundColor: "rgba(76, 175, 80, 0.1)",
     alignSelf: "flex-start",
   },
   completedText: {
-    color: "#15803D",
+    color: Colors.success,
     fontSize: 13,
     fontWeight: "600",
   },
@@ -582,7 +599,7 @@ const styles = StyleSheet.create({
 
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.5)",
+    backgroundColor: "rgba(0,0,0,0.7)",
   },
 
   bottomSheet: {
@@ -590,7 +607,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: "#000",
+    backgroundColor: Colors.card,
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
     padding: 16,
@@ -598,10 +615,12 @@ const styles = StyleSheet.create({
     elevation: 0,
     overflow: "hidden",
     paddingBottom: 40,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
   },
 
   limeCard: {
-    backgroundColor: "#D1F803",
+    backgroundColor: Colors.primary,
     borderRadius: 20,
     padding: 12,
     marginBottom: 8,
@@ -631,7 +650,7 @@ const styles = StyleSheet.create({
   limeName: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#1a1a1a",
+    color: Colors.black,
     marginBottom: 0,
     letterSpacing: -0.5,
   },
@@ -654,7 +673,7 @@ const styles = StyleSheet.create({
   limeTagText: {
     fontSize: 12,
     fontWeight: "600",
-    color: "#1a1a1a",
+    color: Colors.black,
   },
   limeRoleText: {
     fontSize: 12,
@@ -665,14 +684,14 @@ const styles = StyleSheet.create({
   limeServiceTitle: {
     fontSize: 18,
     fontWeight: "800",
-    color: "#1a1a1a",
+    color: Colors.black,
     letterSpacing: -0.5,
     marginBottom: 0,
   },
   limePrice: {
     fontSize: 20,
     fontWeight: "800",
-    color: "#1a1a1a",
+    color: Colors.black,
     letterSpacing: -0.5,
   },
   limePerMonth: {
@@ -682,7 +701,7 @@ const styles = StyleSheet.create({
   },
 
   darkCard: {
-    backgroundColor: "#27272a",
+    backgroundColor: Colors.background,
     borderRadius: 24,
     padding: 16,
     paddingBottom: 20,
@@ -696,22 +715,22 @@ const styles = StyleSheet.create({
   darkTitle: {
     fontSize: 18,
     fontWeight: "600",
-    color: "#e2e8f0",
+    color: Colors.text,
   },
   darkDate: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#fff",
+    color: Colors.text,
     marginBottom: 12,
   },
   darkDescLabel: {
     fontSize: 12,
-    color: "#a1a1aa",
+    color: Colors.textSecondary,
     marginBottom: 2,
   },
   darkDesc: {
     fontSize: 13,
-    color: "#e4e4e7",
+    color: Colors.textSecondary,
     lineHeight: 16,
     marginBottom: 12,
   },
@@ -721,13 +740,15 @@ const styles = StyleSheet.create({
   },
   darkStatItem: {
     flex: 1,
-    backgroundColor: "#3f3f46",
+    backgroundColor: Colors.card,
     borderRadius: 12,
     padding: 10,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
   darkStatLabel: {
     fontSize: 11,
-    color: "#94a3b8",
+    color: Colors.textSecondary,
     marginBottom: 4,
   },
   darkStatValueRow: {
@@ -738,7 +759,7 @@ const styles = StyleSheet.create({
   darkStatValue: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#fff",
+    color: Colors.text,
   },
 
   sheetHeader: {

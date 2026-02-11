@@ -11,6 +11,7 @@ import { useGetBookingsQuery } from "@/store/api/bookingApi";
 import { useGetMySubscriptionQuery } from "@/store/api/subscriptionApi";
 import { loginSuccess, logout } from "@/store/slices/authSlice";
 import { Booking } from "@/store/slices/bookingSlice";
+import { Colors } from "@/constants/Colors";
 import { setUser } from "@/store/slices/userSlice";
 
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
@@ -801,7 +802,7 @@ const styles = StyleSheet.create({
   recentPrice: {
     fontSize: 16,
     fontWeight: "800",
-    color: "#C8F000",
+    color: Colors.primary,
   },
 
   modalOverlay: {
@@ -813,13 +814,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   modalContent: {
-    backgroundColor: "#121212",
+    backgroundColor: Colors.background,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 24,
     paddingBottom: 40,
     borderTopWidth: 1,
-    borderColor: "#333",
+    borderColor: Colors.border,
   },
   modalHeader: {
     alignItems: "center",
@@ -829,17 +830,17 @@ const styles = StyleSheet.create({
     width: 40,
     height: 4,
     borderRadius: 2,
-    backgroundColor: "#333",
+    backgroundColor: Colors.border,
   },
   modalTitle: {
     fontSize: 24,
     fontWeight: "700",
-    color: "#FFF",
+    color: Colors.text,
     marginBottom: 8,
   },
   modalSubtitle: {
     fontSize: 14,
-    color: "#888",
+    color: Colors.textSecondary,
     marginBottom: 32,
   },
   inputWrapper: {
@@ -848,38 +849,38 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#FFF",
+    color: Colors.text,
     marginBottom: 8,
   },
   phoneInputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#1A1A1A",
+    backgroundColor: Colors.card,
     borderWidth: 1,
-    borderColor: "#333",
+    borderColor: Colors.border,
     borderRadius: 12,
     height: 52,
     paddingHorizontal: 16,
   },
   prefixText: {
     fontSize: 16,
-    color: "#FFF",
+    color: Colors.text,
     fontWeight: "600",
   },
   verticalDivider: {
     width: 1,
     height: 24,
-    backgroundColor: "#333",
+    backgroundColor: Colors.border,
     marginHorizontal: 12,
   },
   phoneInput: {
     flex: 1,
     fontSize: 16,
-    color: "#FFF",
+    color: Colors.text,
     fontWeight: "600",
   },
   primaryModalBtn: {
-    backgroundColor: "#C8F000",
+    backgroundColor: Colors.primary,
     height: 52,
     borderRadius: 12,
     alignItems: "center",
@@ -901,16 +902,16 @@ const styles = StyleSheet.create({
     height: 50,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#333",
-    backgroundColor: "#1A1A1A",
+    borderColor: Colors.border,
+    backgroundColor: Colors.card,
     textAlign: "center",
     fontSize: 20,
     fontWeight: "700",
-    color: "#FFF",
+    color: Colors.text,
   },
   otpBoxFilled: {
-    borderColor: "#DFFF00",
-    backgroundColor: "rgba(223, 255, 0, 0.1)",
+    borderColor: Colors.primary,
+    backgroundColor: "rgba(200, 240, 0, 0.1)",
   },
   resendContainer: {
     flexDirection: "row",
@@ -919,11 +920,11 @@ const styles = StyleSheet.create({
   },
   resendText: {
     fontSize: 14,
-    color: "#888",
+    color: Colors.textSecondary,
   },
   resendLink: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#DFFF00",
+    color: Colors.primary,
   },
 });

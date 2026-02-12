@@ -265,7 +265,7 @@ export default function AdminBookingsScreen() {
       >
         <View style={adminStyles.cardHeader}>
           <View style={adminStyles.userInfo}>
-            <Image source={{ uri: item.avatar }} style={adminStyles.avatar} />
+            {/* <Image source={{ uri: item.avatar }} style={adminStyles.avatar} /> */}
             <View>
               <Text style={adminStyles.userName}>{item.customerName}</Text>
               <View style={adminStyles.timeRow}>

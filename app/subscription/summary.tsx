@@ -19,6 +19,7 @@ import {
   useGetPlansQuery,
   useVerifySubscriptionMutation,
 } from "../../store/api/subscriptionApi";
+import { useGetProfileQuery } from "../../store/api/authApi";
 import { useGetVehiclesQuery } from "../../store/api/vehicleApi";
 import { useGetAddressesQuery } from "../../store/api/addressApi";
 
@@ -34,6 +35,7 @@ export default function SubscriptionSummaryScreen() {
   const { data: vehicles } = useGetVehiclesQuery();
   const { data: addressesResponse, isLoading: isLoadingAddresses } =
     useGetAddressesQuery();
+  const { data: userProfile } = useGetProfileQuery({});
 
   const [createSubscription, { isLoading: isCreating }] =
     useCreateSubscriptionMutation();
@@ -100,18 +102,28 @@ export default function SubscriptionSummaryScreen() {
         }
       }
 
-      const options = {
+      const user = userProfile?.data || userProfile;
+
+      const options: any = {
         description: `Subscription for ${selectedPlan.name}`,
-        image: "https://your-logo-url.png",
+        image: "https://placehold.co/400?text=CleanMyWheels", // TODO: Replace with actual Logo URL
         currency: "INR",
         key: RAZORPAY_KEY,
-        amount: response.amount || selectedPlan.price * 100,
         name: APP_NAME,
-        order_id: orderId,
-        subscription_id: razorpaySubscriptionId,
         theme: { color: "#84c95c" },
-        recurring: isAutoPay === "true",
+        prefill: {
+          email: user?.email || "test@example.com",
+          contact: user?.phone || "9999999999",
+        },
       };
+
+      if (razorpaySubscriptionId) {
+        options.subscription_id = razorpaySubscriptionId;
+      } else {
+        options.order_id = orderId;
+        options.amount = response.amount || selectedPlan.price * 100;
+        options.recurring = isAutoPay === "true";
+      }
 
       if (!NativeModules.RazorpayCheckout) {
         Alert.alert(

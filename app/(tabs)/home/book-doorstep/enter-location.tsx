@@ -27,7 +27,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import MapView, { Marker, Region } from "react-native-maps";
+import { WebView } from "react-native-webview";
+import { getLeafletHtml } from "@/app/utils/leafletHtml";
 import { useDispatch, useSelector } from "react-redux";
 
 // const { width, height } = Dimensions.get("window");
@@ -125,18 +126,90 @@ export default function EnterLocationScreen() {
 
   const [errorMsg, setErrorMsg] = useState("");
 
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const mapRef = React.useRef<WebView>(null);
+
   const [mapVisible, setMapVisible] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
-  const [region, setRegion] = useState<Region>({
-    latitude: 37.78825,
-    longitude: -122.4324,
-    latitudeDelta: 0.0922,
-    longitudeDelta: 0.0421,
-  });
+
   const [selectedCoord, setSelectedCoord] = useState<{
     lat: number;
     long: number;
   } | null>(null);
+
+  const initialMapHtml = React.useMemo(() => {
+    if (!mapVisible) return "";
+    return getLeafletHtml(
+      selectedCoord?.lat || 51.505,
+      selectedCoord?.long || -0.09,
+    );
+  }, [mapVisible]);
+
+  React.useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      if (searchQuery.length > 2) {
+        searchPlaces(searchQuery);
+      } else {
+        setSearchResults([]);
+      }
+    }, 1000);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchQuery]);
+
+  const searchPlaces = async (query: string) => {
+    setIsSearching(true);
+    try {
+      const response = await fetch(
+        `https://us1.locationiq.com/v1/search.php?key=${process.env.EXPO_PUBLIC_LOCATIONIQ_API_KEY}&q=${encodeURIComponent(
+          query,
+        )}&format=json&addressdetails=1&limit=5`,
+      );
+      const data = await response.json();
+      setSearchResults(data);
+    } catch (error) {
+      console.log("Search error", error);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleSelectPlace = (place: any) => {
+    setSearchQuery("");
+    setSearchResults([]);
+
+    const lat = parseFloat(place.lat);
+    const lon = parseFloat(place.lon);
+
+    setSelectedCoord({ lat, long: lon });
+
+    const addr = place.address;
+    setFlatNumber(addr.house_number || "");
+    setLocality(addr.suburb || addr.neighbourhood || addr.residential || "");
+    setCity(addr.city || addr.town || addr.village || "");
+    setPostalCode(addr.postcode || "");
+
+    setMapVisible(true);
+
+    setTimeout(() => {
+      if (mapRef.current) {
+        console.log("Sending updateLocation message to map:", {
+          lat,
+          lng: lon,
+        });
+        mapRef.current.postMessage(
+          JSON.stringify({
+            type: "updateLocation",
+            payload: { lat: lat, lng: lon },
+          }),
+        );
+      } else {
+        console.log("Map ref is null, cannot send updateLocation");
+      }
+    }, 500);
+  };
 
   const fillAddressInputs = (addr: Address) => {
     setFlatNumber(addr.houseOrFlatNo);
@@ -176,12 +249,6 @@ export default function EnterLocationScreen() {
       let location = await Location.getCurrentPositionAsync({});
       const { latitude, longitude } = location.coords;
 
-      setRegion({
-        latitude,
-        longitude,
-        latitudeDelta: 0.005,
-        longitudeDelta: 0.005,
-      });
       setSelectedCoord({ lat: latitude, long: longitude });
       setMapVisible(true);
     } catch (error) {
@@ -193,6 +260,7 @@ export default function EnterLocationScreen() {
   };
 
   const confirmMapLocation = async () => {
+    console.log("Confirming map location with coords:", selectedCoord);
     if (!selectedCoord) return;
     setMapVisible(false);
     setIsLocating(true);
@@ -202,17 +270,44 @@ export default function EnterLocationScreen() {
     }
 
     try {
-      let addressResponse = await Location.reverseGeocodeAsync({
-        latitude: selectedCoord.lat,
-        longitude: selectedCoord.long,
-      });
+      console.log(
+        "Using API Key:",
+        process.env.EXPO_PUBLIC_LOCATIONIQ_API_KEY
+          ? process.env.EXPO_PUBLIC_LOCATIONIQ_API_KEY.substring(0, 5) + "..."
+          : "UNDEFINED",
+      );
 
-      if (addressResponse && addressResponse.length > 0) {
-        const addr = addressResponse[0];
-        setFlatNumber(addr.name || "");
-        setLocality(addr.district || addr.subregion || "");
-        setCity(addr.city || addr.region || "");
-        setPostalCode(addr.postalCode || "");
+      const response = await fetch(
+        `https://us1.locationiq.com/v1/reverse.php?key=${process.env.EXPO_PUBLIC_LOCATIONIQ_API_KEY}&lat=${selectedCoord.lat}&lon=${selectedCoord.long}&format=json&addressdetails=1`,
+      );
+
+      if (response.status === 429) {
+        setErrorMsg("Location service busy. Please fill address manually.");
+        setIsLocating(false);
+        return;
+      }
+
+      const text = await response.text();
+      console.log("Geocoding response text:", text);
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        console.error("Failed to parse geocoding response", text);
+        setErrorMsg("Error fetching address. Please enter manually.");
+        return;
+      }
+
+      if (data && data.address) {
+        const addr = data.address;
+        setFlatNumber(addr.house_number || addr.building || addr.name || "");
+        setLocality(
+          addr.suburb || addr.neighbourhood || addr.residential || "",
+        );
+        setCity(
+          addr.city || addr.town || addr.village || addr.city_district || "",
+        );
+        setPostalCode(addr.postcode || "");
       }
     } catch (e) {
       console.log("Geocoding error", e);
@@ -715,27 +810,123 @@ export default function EnterLocationScreen() {
         animationType="slide"
         onRequestClose={() => setMapVisible(false)}
       >
-        <View style={{ flex: 1 }}>
-          <MapView
-            style={{ flex: 1 }}
-            region={region}
-            onRegionChangeComplete={setRegion}
-            onPress={(e) =>
-              setSelectedCoord({
-                lat: e.nativeEvent.coordinate.latitude,
-                long: e.nativeEvent.coordinate.longitude,
-              })
-            }
+        <View style={{ flex: 1, backgroundColor: "white" }}>
+          {/* Header in Modal */}
+          <View
+            style={{
+              position: "absolute",
+              top: 50,
+              left: 20,
+              right: 20,
+              zIndex: 100,
+            }}
           >
-            {selectedCoord && (
-              <Marker
-                coordinate={{
-                  latitude: selectedCoord.lat,
-                  longitude: selectedCoord.long,
-                }}
+            <View
+              style={[
+                styles.searchContainer,
+                {
+                  backgroundColor: "white",
+                  shadowColor: "#000",
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.2,
+                  shadowRadius: 4,
+                  elevation: 5,
+                },
+              ]}
+            >
+              <Ionicons
+                name="search"
+                size={20}
+                color={Colors.textSecondary}
+                style={{ marginRight: 10 }}
               />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Search for a location..."
+                placeholderTextColor={Colors.textSecondary}
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+              />
+              {isSearching && (
+                <ActivityIndicator size="small" color={Colors.primary} />
+              )}
+              {searchQuery.length > 0 && (
+                <TouchableOpacity
+                  onPress={() => {
+                    setSearchQuery("");
+                    setSearchResults([]);
+                  }}
+                >
+                  <Ionicons
+                    name="close-circle"
+                    size={18}
+                    color={Colors.textSecondary}
+                  />
+                </TouchableOpacity>
+              )}
+            </View>
+
+            {/* Search Results */}
+            {searchResults.length > 0 && (
+              <View
+                style={[
+                  styles.searchResultsContainer,
+                  { top: 60, maxHeight: 250 },
+                ]}
+              >
+                <ScrollView keyboardShouldPersistTaps="handled">
+                  {searchResults.map((place, index) => (
+                    <TouchableOpacity
+                      key={place.place_id || index}
+                      style={styles.searchResultItem}
+                      onPress={() => handleSelectPlace(place)}
+                    >
+                      <Ionicons
+                        name="location-outline"
+                        size={16}
+                        color={Colors.textSecondary}
+                        style={{ marginTop: 2 }}
+                      />
+                      <Text style={styles.searchResultText}>
+                        {place.display_name}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
             )}
-          </MapView>
+          </View>
+
+          <WebView
+            ref={mapRef}
+            source={{
+              html: initialMapHtml,
+            }}
+            style={{ flex: 1 }}
+            onMessage={(event) => {
+              try {
+                const data = JSON.parse(event.nativeEvent.data);
+                if (data.type === "log") {
+                  console.log("WebView Log:", data.payload);
+                  return;
+                }
+                if (data.type === "locationSelected") {
+                  console.log("Location selected from map:", data.payload);
+                  /* 
+                    We tracks 'selectedCoord' for the final confirmation.
+                    The HTML source is memoized so it won't reload.
+                    Map 'lng' from Leaflet to 'long' in our state.
+                   */
+                  setSelectedCoord({
+                    lat: data.payload.lat,
+                    long: data.payload.lng,
+                  });
+                }
+              } catch (e) {
+                console.error("JSON Parse error in onMessage", e);
+              }
+            }}
+          />
 
           <View style={[styles.mapFooter, { bottom: 30 + insets.bottom }]}>
             <TouchableOpacity
@@ -992,5 +1183,51 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: Colors.textSecondary,
     marginTop: 2,
+  },
+
+  searchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: Colors.card,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  searchInput: {
+    flex: 1,
+    paddingVertical: 12,
+    fontSize: 14,
+    color: "#000",
+  },
+  searchResultsContainer: {
+    position: "absolute",
+    top: 60,
+    left: 12,
+    right: 12,
+    backgroundColor: "white",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    maxHeight: 250,
+    zIndex: 1001,
+    elevation: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+  },
+  searchResultItem: {
+    flexDirection: "row",
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+    alignItems: "flex-start",
+    gap: 10,
+  },
+  searchResultText: {
+    fontSize: 14,
+    color: "#000",
+    flex: 1,
   },
 });

@@ -1,8 +1,5 @@
-"use client";
-
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/constants/Colors";
-import { LinearGradient } from "expo-linear-gradient";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Alert,
@@ -13,7 +10,6 @@ import {
   Linking,
   Modal,
   ScrollView,
-  StyleSheet,
   Text,
   TouchableOpacity,
   View,
@@ -28,11 +24,8 @@ import {
   useAssignSubscriptionWorkerMutation,
   useGetMySubscriptionQuery,
 } from "../../../store/api/subscriptionApi";
-import { useAppDispatch, useAppSelector } from "../../../store/hooks";
-import {
-  type Booking,
-  cancelBooking,
-} from "../../../store/slices/bookingSlice";
+import { useAppSelector } from "../../../store/hooks";
+import { type Booking } from "../../../store/slices/bookingSlice";
 
 // Helper to map backend booking to display format
 const mapBackendBooking = (booking: any): Booking => ({
@@ -69,11 +62,9 @@ const mapBackendBooking = (booking: any): Booking => ({
 
 export default function UpcomingServices() {
   const router = useRouter();
-  const dispatch = useAppDispatch();
 
   const {
     data: bookingsResponse,
-    isLoading,
     isFetching,
     refetch,
   } = useGetBookingsQuery({ page: 1, perPage: 100 });
@@ -172,7 +163,7 @@ export default function UpcomingServices() {
         Alert.alert("Success", `Assigned ${worker.name} to subscription!`);
         setWorkerModalVisible(false);
         setIsAssigningSubWorker(false);
-      } catch (err) {
+      } catch {
         Alert.alert("Error", "Failed to assign worker");
       }
       return;
@@ -228,7 +219,7 @@ export default function UpcomingServices() {
         }),
       ]).start();
     }
-  }, [activeBooking]);
+  }, [activeBooking, slideAnim, scaleAnim, opacityAnim]);
 
   console.log("active bookings :", activeBooking);
 
@@ -254,61 +245,8 @@ export default function UpcomingServices() {
     ]).start(() => setActiveBooking(null));
   };
 
-  const handleDelete = (id: string) => {
-    Alert.alert("Cancel Booking", "Are you sure you want to cancel?", [
-      { text: "No", style: "cancel" },
-      {
-        text: "Yes",
-        style: "destructive",
-        onPress: () => {
-          dispatch(cancelBooking(id));
-          closeSheet();
-        },
-      },
-    ]);
-  };
-
   const handleCall = (phone: string) => {
     Linking.openURL(`tel:${phone}`);
-  };
-
-  const renderItem = ({ item }: any) => {
-    return (
-      <TouchableOpacity
-        activeOpacity={0.9}
-        style={styles.cardContainer}
-        onPress={() => setActiveBooking(item)}
-      >
-        <LinearGradient
-          colors={[Colors.card, Colors.card, Colors.card]}
-          style={styles.sessionCard}
-        >
-          <View style={{ flex: 1 }}>
-            <Text style={styles.sessionTitle}>{item.center}</Text>
-            <Text style={styles.sessionSubtitle}>
-              {item.date} - {item.timeSlot}
-            </Text>
-            <Text style={styles.sessionDuration}>{item.car}</Text>
-          </View>
-
-          <Image
-            source={{ uri: item.carImage }}
-            style={{ width: 90, height: 90, borderRadius: 12, marginLeft: 16 }}
-          />
-
-          {/* ACTION ROW */}
-          <View style={styles.sessionActionRow}>
-            <TouchableOpacity
-              style={styles.sessionButton}
-              onPress={() => setActiveBooking(item)}
-            >
-              <Text style={styles.sessionButtonText}>Review details</Text>
-              <Ionicons name="chevron-forward" size={18} color={Colors.black} />
-            </TouchableOpacity>
-          </View>
-        </LinearGradient>
-      </TouchableOpacity>
-    );
   };
 
   const subsArray = Array.isArray(subscription)
@@ -321,7 +259,7 @@ export default function UpcomingServices() {
   );
 
   return (
-    <>
+    <View className="flex-1 bg-background">
       <FlatList
         data={bookings}
         keyExtractor={(item) => item.id}
@@ -332,64 +270,26 @@ export default function UpcomingServices() {
               {activeSubs.map((sub: any) => (
                 <TouchableOpacity
                   key={sub._id}
-                  style={{ marginBottom: 24, marginHorizontal: 20 }}
+                  className="mb-6 mx-5"
                   activeOpacity={0.9}
                   onPress={() =>
                     router.push(`/subscription/details/${sub._id}` as any)
                   }
                 >
-                  <View
-                    style={{
-                      backgroundColor: Colors.card,
-                      borderRadius: 16,
-                      padding: 16,
-                      shadowColor: "#000",
-                      shadowOffset: { width: 0, height: 4 },
-                      shadowOpacity: 0.1,
-                      shadowRadius: 8,
-                      elevation: 4,
-                      borderWidth: 1,
-                      borderColor: Colors.border,
-                    }}
-                  >
+                  <View className="bg-card rounded-[16px] p-4 shadow-md shadow-black/10 border border-border">
                     {/* Header */}
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        justifyContent: "space-between",
-                        marginBottom: 12,
-                      }}
-                    >
-                      <View
-                        style={{
-                          backgroundColor: "rgba(76, 175, 80, 0.1)",
-                          paddingHorizontal: 8,
-                          paddingVertical: 3,
-                          borderRadius: 6,
-                        }}
-                      >
-                        <Text
-                          style={{
-                            color: Colors.success,
-                            fontSize: 10,
-                            fontWeight: "800",
-                            letterSpacing: 0.5,
-                          }}
-                        >
+                    <View className="flex-row justify-between mb-3">
+                      <View className="bg-success/10 px-2 py-[3px] rounded-md">
+                        <Text className="text-success text-[10px] font-[800] tracking-[0.5px]">
                           SUBSCRIPTION
                         </Text>
                       </View>
                       <View
-                        style={{
-                          backgroundColor:
-                            sub.status === "ongoing" ? "#DBEAFE" : "#FFF7ED", // Blue for Ongoing, Orange for Waiting
-                          paddingHorizontal: 8,
-                          paddingVertical: 3,
-                          borderRadius: 6,
-                          flexDirection: "row",
-                          alignItems: "center",
-                          gap: 3,
-                        }}
+                        className={`px-2 py-[3px] rounded-md flex-row items-center gap-[3px] ${
+                          sub.status === "ongoing"
+                            ? "bg-[#DBEAFE]"
+                            : "bg-[#FFF7ED]"
+                        }`}
                       >
                         <Ionicons
                           name={
@@ -403,12 +303,11 @@ export default function UpcomingServices() {
                           }
                         />
                         <Text
-                          style={{
-                            color:
-                              sub.status === "ongoing" ? "#1E40AF" : "#C2410C",
-                            fontSize: 10,
-                            fontWeight: "700",
-                          }}
+                          className={`text-[10px] font-[700] ${
+                            sub.status === "ongoing"
+                              ? "text-[#1E40AF]"
+                              : "text-[#C2410C]"
+                          }`}
                         >
                           {sub.status === "ongoing"
                             ? "ONGOING"
@@ -419,32 +318,17 @@ export default function UpcomingServices() {
 
                     {/* Worker Info (If Assigned) */}
                     {(sub.worker && sub.worker.name) || sub.workerName ? (
-                      <View
-                        style={{
-                          marginBottom: 12,
-                          flexDirection: "row",
-                          alignItems: "center",
-                          backgroundColor: Colors.background,
-                          padding: 8,
-                          borderRadius: 8,
-                        }}
-                      >
+                      <View className="mb-3 flex-row items-center bg-background p-2 rounded-lg">
                         <Ionicons
                           name="person-circle"
                           size={24}
                           color="#0284C7"
                         />
-                        <View style={{ marginLeft: 8 }}>
-                          <Text
-                            style={{
-                              fontSize: 13,
-                              fontWeight: "600",
-                              color: "#0F172A",
-                            }}
-                          >
+                        <View className="ml-2 flex-1">
+                          <Text className="text-[13px] font-[600] text-text">
                             {sub.worker?.name || sub.workerName}
                           </Text>
-                          <Text style={{ fontSize: 11, color: "#64748B" }}>
+                          <Text className="text-[11px] text-textSecondary">
                             Assigned Valet
                           </Text>
                         </View>
@@ -454,12 +338,7 @@ export default function UpcomingServices() {
                               `tel:${sub.worker?.phone || sub.workerPhone}`,
                             )
                           }
-                          style={{
-                            marginLeft: "auto",
-                            backgroundColor: Colors.card,
-                            padding: 6,
-                            borderRadius: 20,
-                          }}
+                          className="bg-card p-[6px] rounded-full"
                         >
                           <Ionicons
                             name="call"
@@ -469,33 +348,17 @@ export default function UpcomingServices() {
                         </TouchableOpacity>
                       </View>
                     ) : (
-                      /* Unassigned Warning */
-                      <View
-                        style={{
-                          marginBottom: 12,
-                          flexDirection: "row",
-                          alignItems: "center",
-                          backgroundColor: "#FFF7ED",
-                          padding: 8,
-                          borderRadius: 8,
-                        }}
-                      >
+                      <View className="mb-3 flex-row items-center bg-[#FFF7ED] p-2 rounded-lg">
                         <Ionicons
                           name="alert-circle"
                           size={20}
                           color="#EA580C"
                         />
-                        <View style={{ marginLeft: 8, flex: 1 }}>
-                          <Text
-                            style={{
-                              fontSize: 12,
-                              fontWeight: "600",
-                              color: "#9A3412",
-                            }}
-                          >
+                        <View className="ml-2 flex-1">
+                          <Text className="text-[12px] font-[600] text-[#9A3412]">
                             Worker Assignment Pending
                           </Text>
-                          <Text style={{ fontSize: 11, color: "#C2410C" }}>
+                          <Text className="text-[11px] text-[#C2410C]">
                             You will see the valet details here once assigned.
                           </Text>
                         </View>
@@ -503,97 +366,36 @@ export default function UpcomingServices() {
                     )}
 
                     {/* Vehicle Info */}
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        marginBottom: 12,
-                      }}
-                    >
-                      <View
-                        style={{
-                          width: 44,
-                          height: 44,
-                          borderRadius: 22,
-                          backgroundColor: "#F8F9FA",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          marginRight: 12,
-                          borderWidth: 1,
-                          borderColor: "#eee",
-                        }}
-                      >
+                    <View className="flex-row items-center mb-3">
+                      <View className="w-11 h-11 rounded-full bg-[#F8F9FA] items-center justify-center mr-3 border border-[#eee]">
                         <Ionicons name="car-sport" size={22} color="#1a1a1a" />
                       </View>
                       <View>
-                        <Text
-                          style={{
-                            fontSize: 16,
-                            fontWeight: "700",
-                            color: Colors.text,
-                            marginBottom: 2,
-                          }}
-                        >
+                        <Text className="text-base font-[700] text-text mb-[2px]">
                           {sub.vehicle?.vehicleType || "Vehicle"}
                         </Text>
-                        <Text
-                          style={{
-                            fontSize: 13,
-                            color: Colors.textSecondary,
-                            fontWeight: "500",
-                          }}
-                        >
+                        <Text className="text-[13px] text-textSecondary font-[500]">
                           {sub.vehicle?.vehicleNo || "No Number"}
                         </Text>
                       </View>
                     </View>
 
                     {/* Divider */}
-                    <View
-                      style={{
-                        height: 1,
-                        backgroundColor: Colors.border,
-                        marginBottom: 12,
-                      }}
-                    />
+                    <View className="h-[1px] bg-border mb-3" />
 
                     {/* Schedule Info */}
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        justifyContent: "space-between",
-                        marginBottom: 12,
-                      }}
-                    >
+                    <View className="flex-row justify-between mb-3">
                       <View>
-                        <Text
-                          style={{
-                            fontSize: 11,
-                            color: "#888",
-                            marginBottom: 4,
-                          }}
-                        >
+                        <Text className="text-[11px] text-[#888] mb-1">
                           NEXT SERVICE
                         </Text>
-                        <View
-                          style={{
-                            flexDirection: "row",
-                            alignItems: "center",
-                            gap: 4,
-                          }}
-                        >
+                        <View className="flex-row items-center gap-1">
                           <Ionicons
                             name="calendar-outline"
                             size={14}
-                            color="#1a1a1a"
+                            color="#FFFFFF"
                           />
-                          <Text
-                            style={{
-                              fontSize: 13,
-                              fontWeight: "600",
-                              color: "#1a1a1a",
-                            }}
-                          >
+                          <Text className="text-[13px] font-[600] text-white">
                             {(() => {
                               const startDate = new Date(
                                 sub.startDate || new Date(),
@@ -617,34 +419,16 @@ export default function UpcomingServices() {
                         </View>
                       </View>
                       <View>
-                        <Text
-                          style={{
-                            fontSize: 11,
-                            color: "#888",
-                            marginBottom: 4,
-                          }}
-                        >
+                        <Text className="text-[11px] text-[#888] mb-1">
                           TIME SLOT
                         </Text>
-                        <View
-                          style={{
-                            flexDirection: "row",
-                            alignItems: "center",
-                            gap: 4,
-                          }}
-                        >
+                        <View className="flex-row items-center gap-1">
                           <Ionicons
                             name="time-outline"
                             size={14}
-                            color="#1a1a1a"
+                            color="#FFFFFF"
                           />
-                          <Text
-                            style={{
-                              fontSize: 13,
-                              fontWeight: "600",
-                              color: "#1a1a1a",
-                            }}
-                          >
+                          <Text className="text-[13px] font-[600] text-white">
                             {sub.timeSlot || "09:00 AM"}
                           </Text>
                         </View>
@@ -680,61 +464,23 @@ export default function UpcomingServices() {
                         return null;
 
                       return (
-                        <View
-                          style={{
-                            marginBottom: 12,
-                            backgroundColor: "#FAFAFA",
-                            padding: 8,
-                            borderRadius: 8,
-                            borderWidth: 1,
-                            borderColor: "#EEE",
-                          }}
-                        >
-                          <Text
-                            style={{
-                              fontSize: 10,
-                              color: "#888",
-                              marginBottom: 6,
-                              fontWeight: "700",
-                              letterSpacing: 0.5,
-                            }}
-                          >
+                        <View className="mb-3 bg-[#FAFAFA] p-2 rounded-lg border border-[#EEE]">
+                          <Text className="text-[10px] text-[#888] mb-[6px] font-[700] tracking-[0.5px]">
                             ADD-ONS INCLUDED IN NEXT SERVICE
                           </Text>
-                          <View
-                            style={{
-                              flexDirection: "row",
-                              flexWrap: "wrap",
-                              gap: 4,
-                            }}
-                          >
+                          <View className="flex-row flex-wrap gap-1">
                             {uniqueAddons.map((addon: any, idx: number) => (
                               <View
                                 key={idx}
-                                style={{
-                                  flexDirection: "row",
-                                  alignItems: "center",
-                                  backgroundColor: "#fff",
-                                  paddingHorizontal: 8,
-                                  paddingVertical: 4,
-                                  borderRadius: 6,
-                                  borderWidth: 1,
-                                  borderColor: "#E0E0E0",
-                                }}
+                                className="flex-row items-center bg-white px-2 py-1 rounded-md border border-[#E0E0E0]"
                               >
                                 <Ionicons
                                   name="add-circle"
                                   size={14}
                                   color="#2E7D32"
-                                  style={{ marginRight: 4 }}
+                                  className="mr-1"
                                 />
-                                <Text
-                                  style={{
-                                    fontSize: 12,
-                                    color: "#1a1a1a",
-                                    fontWeight: "600",
-                                  }}
-                                >
+                                <Text className="text-[12px] text-[#1a1a1a] font-[600]">
                                   {addon.name}
                                 </Text>
                               </View>
@@ -745,62 +491,78 @@ export default function UpcomingServices() {
                     })()}
 
                     {/* Action Button */}
-                    <View
-                      style={{
-                        backgroundColor: Colors.primary,
-                        paddingVertical: 10,
-                        borderRadius: 12,
-                        flexDirection: "row",
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                    >
-                      <Text
-                        style={{
-                          color: Colors.black,
-                          fontSize: 13,
-                          fontWeight: "700",
-                          marginRight: 6,
-                        }}
-                      >
+                    <View className="bg-primary py-[10px] rounded-[12px] flex-row items-center justify-center">
+                      <Text className="text-black text-[13px] font-[700] mr-[6px]">
                         View Full Schedule
                       </Text>
                       <Ionicons
                         name="arrow-forward"
                         size={14}
-                        color={Colors.black}
+                        color="#000000"
                       />
                     </View>
                   </View>
                 </TouchableOpacity>
-                /* End Subscription Card */
               ))}
             </>
           );
         }}
-        renderItem={renderItem}
+        renderItem={({ item }: any) => {
+          return (
+            <TouchableOpacity
+              activeOpacity={0.9}
+              className="mb-[10px]"
+              onPress={() => setActiveBooking(item)}
+            >
+              <View className="bg-card rounded-[20px] p-5 pb-20 m-3 border border-border shadow-lg shadow-black/10 flex-row items-center justify-between">
+                <View className="flex-1">
+                  <Text className="text-lg font-[700] text-text">
+                    {item.center}
+                  </Text>
+                  <Text className="mt-1 text-base font-[600] text-textSecondary">
+                    {item.date} - {item.timeSlot}
+                  </Text>
+                  <Text className="mt-[6px] text-sm text-textSecondary">
+                    {item.car}
+                  </Text>
+                </View>
+
+                <Image
+                  source={{ uri: item.carImage }}
+                  className="w-[90px] h-[90px] rounded-[12px] ml-4"
+                />
+
+                {/* ACTION ROW */}
+                <View className="absolute bottom-4 left-4 right-4 flex-row items-center gap-3">
+                  <TouchableOpacity
+                    className="flex-1 bg-primary rounded-[28px] py-[14px] px-5 flex-row items-center justify-center gap-[10px]"
+                    onPress={() => setActiveBooking(item)}
+                  >
+                    <Text className="text-black text-base font-[600]">
+                      Review details
+                    </Text>
+                    <Ionicons name="chevron-forward" size={18} color="#000" />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </TouchableOpacity>
+          );
+        }}
         onRefresh={refetch}
         refreshing={isFetching}
         ListEmptyComponent={() => {
           if (activeSubs.length > 0) return null;
           return (
-            <View style={{ alignItems: "center", marginTop: 80 }}>
+            <View className="items-center mt-20">
               <Ionicons
                 name="calendar-outline"
                 size={60}
                 color={Colors.textSecondary}
               />
-              <Text
-                style={{
-                  fontSize: 18,
-                  fontWeight: "600",
-                  marginTop: 16,
-                  color: Colors.text,
-                }}
-              >
+              <Text className="text-lg font-[600] mt-4 text-text">
                 No upcoming bookings
               </Text>
-              <Text style={{ color: Colors.textSecondary, marginTop: 6 }}>
+              <Text className="text-textSecondary mt-[6px]">
                 Book a service to see it here
               </Text>
             </View>
@@ -810,60 +572,50 @@ export default function UpcomingServices() {
 
       {/* Bottom Sheet */}
       <Modal visible={!!activeBooking} transparent animationType="none">
-        <Animated.View style={[styles.backdrop, { opacity: opacityAnim }]}>
-          <TouchableOpacity
-            style={styles.backdropTouchable}
-            onPress={closeSheet}
-          />
+        <Animated.View
+          className="absolute inset-0 bg-black/70"
+          style={[{ opacity: opacityAnim }]}
+        >
+          <TouchableOpacity className="flex-1" onPress={closeSheet} />
         </Animated.View>
 
         <Animated.View
+          className="absolute left-0 right-0 bottom-0 bg-card rounded-t-[28px] p-4 pb-10 border-t border-border overflow-hidden"
           style={[
-            styles.bottomSheet,
             {
               transform: [{ translateY: slideAnim }, { scale: scaleAnim }],
+              maxHeight: "60%",
             },
           ]}
         >
           {activeBooking && (
-            <View style={{ flex: 1, overflow: "hidden" }}>
+            <View className="flex-1">
               <ScrollView
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={{ paddingBottom: 20 }}
               >
-                <View style={styles.limeCard}>
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      justifyContent: "space-between",
-                    }}
-                  >
-                    <View
-                      style={{
-                        flex: 1,
-                        paddingRight: 12,
-                        justifyContent: "space-between",
-                      }}
-                    >
+                <View className="bg-primary rounded-[20px] p-3 mb-2 z-[2]">
+                  <View className="flex-row justify-between">
+                    <View className="flex-1 pr-3 justify-between">
                       <View>
-                        <Text style={styles.limeName}>
+                        <Text className="text-lg font-[700] text-black tracking-[-0.5px]">
                           {activeBooking.workerName || "Valet Assigning..."}
                         </Text>
 
-                        <View style={styles.limeTagsRow}>
-                          <View style={styles.limeTag}>
+                        <View className="flex-row flex-wrap gap-[6px] mt-1 mb-2">
+                          <View className="flex-row items-center bg-black/5 px-2 py-1 rounded-full gap-1">
                             <Ionicons
                               name="location"
                               size={12}
                               color="#1a1a1a"
                             />
-                            <Text style={styles.limeTagText}>
+                            <Text className="text-[12px] font-[600] text-black">
                               {activeBooking.address.split(",")[0]}
                             </Text>
                           </View>
-                          <View style={styles.limeTag}>
+                          <View className="flex-row items-center bg-black/5 px-2 py-1 rounded-full gap-1">
                             <Ionicons name="time" size={12} color="#1a1a1a" />
-                            <Text style={styles.limeTagText}>
+                            <Text className="text-[12px] font-[600] text-black">
                               {activeBooking.status}
                             </Text>
                           </View>
@@ -871,23 +623,25 @@ export default function UpcomingServices() {
                       </View>
 
                       <View>
-                        <Text style={styles.limeRoleText}>Service Type</Text>
-                        <Text style={styles.limeServiceTitle}>
+                        <Text className="text-[12px] font-[600] text-black/60">
+                          Service Type
+                        </Text>
+                        <Text className="text-lg font-[800] text-black tracking-[-0.5px]">
                           {activeBooking.serviceName}
                         </Text>
-                        <Text style={styles.limePrice}>
+                        <Text className="text-xl font-[800] text-black tracking-[-0.5px]">
                           ₹{activeBooking.price}
                         </Text>
                       </View>
                     </View>
 
-                    <View style={{ alignItems: "flex-end" }}>
-                      <View style={styles.limeHeaderActions}>
+                    <View className="items-end">
+                      <View className="flex-row gap-2">
                         {!isAdmin &&
                           activeBooking.workerName &&
                           activeBooking.workerPhone && (
                             <TouchableOpacity
-                              style={styles.limeIconBtn}
+                              className="w-8 h-8 rounded-full bg-black/10 justify-center items-center mr-2"
                               onPress={() =>
                                 handleCall(activeBooking.workerPhone)
                               }
@@ -896,7 +650,7 @@ export default function UpcomingServices() {
                             </TouchableOpacity>
                           )}
                         <TouchableOpacity
-                          style={styles.limeIconBtn}
+                          className="w-8 h-8 rounded-full bg-black/10 justify-center items-center mr-2"
                           onPress={closeSheet}
                         >
                           <Ionicons name="close" size={20} color="#1a1a1a" />
@@ -905,17 +659,17 @@ export default function UpcomingServices() {
 
                       <Image
                         source={{ uri: activeBooking.carImage }}
-                        style={[styles.limeAvatar, { marginTop: 12 }]}
+                        className="w-20 h-20 rounded-[30px] border-2 border-black/10 mt-3 mr-2"
                       />
                     </View>
                   </View>
 
                   {isAdmin && (
                     <TouchableOpacity
-                      style={styles.limeActionBtn}
+                      className="absolute bottom-4 right-4 bg-black px-4 py-2 rounded-full"
                       onPress={() => setWorkerModalVisible(true)}
                     >
-                      <Text style={styles.limeActionBtnText}>
+                      <Text className="text-primary font-[600] text-[14px]">
                         {activeBooking.workerName
                           ? "Reassign Worker"
                           : "Assign Worker"}
@@ -924,41 +678,54 @@ export default function UpcomingServices() {
                   )}
                 </View>
 
-                <View style={styles.darkCard}>
-                  <View style={styles.darkHeader}>
-                    <Text style={styles.darkTitle}>Service Schedule</Text>
+                <View className="bg-background rounded-[24px] p-4 pb-5">
+                  <View className="flex-row justify-between items-center mb-2">
+                    <Text className="text-lg font-[600] text-text">
+                      Service Schedule
+                    </Text>
                     <Ionicons name="calendar" size={20} color="#a78bfa" />
                   </View>
 
-                  <Text style={styles.darkDate}>
+                  <Text className="text-lg font-[700] text-text mb-3">
                     {activeBooking.date} — {activeBooking.timeSlot}
                   </Text>
 
-                  <Text style={styles.darkDescLabel}>Location</Text>
-                  <Text style={styles.darkDesc} numberOfLines={2}>
+                  <Text className="text-[12px] text-textSecondary mb-[2px]">
+                    Location
+                  </Text>
+                  <Text
+                    className="text-[13px] text-textSecondary leading-4 mb-3"
+                    numberOfLines={2}
+                  >
                     {activeBooking.address}
                   </Text>
 
-                  <View style={styles.darkStatsRow}>
-                    <View style={styles.darkStatItem}>
-                      <Text style={styles.darkStatLabel}>Vehicle</Text>
-                      <View style={styles.darkStatValueRow}>
-                        <Text style={styles.darkStatValue}>
+                  <View className="flex-row gap-2">
+                    <View className="flex-1 bg-card rounded-[12px] p-2 pr-3 border border-border">
+                      <Text className="text-[11px] text-textSecondary mb-1">
+                        Vehicle
+                      </Text>
+                      <View className="flex-row items-center gap-1">
+                        <Text className="text-[14px] font-[700] text-text">
                           {activeBooking.car}
                         </Text>
                       </View>
                     </View>
 
-                    <View style={styles.darkStatItem}>
-                      <Text style={styles.darkStatLabel}>Plate No.</Text>
-                      <Text style={styles.darkStatValue}>
+                    <View className="flex-1 bg-card rounded-[12px] p-2 pr-3 border border-border">
+                      <Text className="text-[11px] text-textSecondary mb-1">
+                        Plate No.
+                      </Text>
+                      <Text className="text-[14px] font-[700] text-text">
                         {activeBooking.plate}
                       </Text>
                     </View>
 
-                    <View style={styles.darkStatItem}>
-                      <Text style={styles.darkStatLabel}>Booking ID</Text>
-                      <Text style={styles.darkStatValue}>
+                    <View className="flex-1 bg-card rounded-[12px] p-2 pr-3 border border-border">
+                      <Text className="text-[11px] text-textSecondary mb-1">
+                        Booking ID
+                      </Text>
+                      <Text className="text-[14px] font-[700] text-text">
                         #{activeBooking.id.slice(-4)}
                       </Text>
                     </View>
@@ -973,12 +740,12 @@ export default function UpcomingServices() {
       {/* Worker Selection Modal */}
       <Modal visible={workerModalVisible} animationType="slide" transparent>
         <TouchableOpacity
-          style={styles.backdrop}
+          className="flex-1 bg-black/70"
           onPress={() => setWorkerModalVisible(false)}
         />
-        <View style={styles.workerModalContainer}>
-          <View style={styles.workerHeader}>
-            <Text style={styles.sheetTitle}>Select Worker</Text>
+        <View className="absolute bottom-0 left-0 right-0 bg-card rounded-t-[24px] p-5 h-1/2 shadow-2xl border border-border">
+          <View className="flex-row justify-between items-center mb-5">
+            <Text className="text-lg font-[700] text-text">Select Worker</Text>
             <TouchableOpacity onPress={() => setWorkerModalVisible(false)}>
               <Ionicons name="close" size={24} color="#666" />
             </TouchableOpacity>
@@ -986,530 +753,52 @@ export default function UpcomingServices() {
           <FlatList
             data={workers}
             keyExtractor={(item) => item._id}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                style={styles.workerRow}
-                onPress={() => handleAssignWorker(item)}
-              >
-                <View style={styles.workerAvatar}>
-                  {item.profileImage ? (
-                    <Image
-                      source={{ uri: item.profileImage }}
-                      style={{ width: 40, height: 40, borderRadius: 20 }}
-                    />
-                  ) : (
-                    <Text style={styles.workerInitials}>
-                      {item.name.charAt(0)}
+            renderItem={({ item }) => {
+              return (
+                <TouchableOpacity
+                  className="flex-row items-center py-3 border-b border-border"
+                  onPress={() => handleAssignWorker(item)}
+                >
+                  <View className="w-10 h-10 rounded-full bg-background items-center justify-center mr-3">
+                    {item.profileImage ? (
+                      <Image
+                        source={{ uri: item.profileImage }}
+                        className="w-10 h-10 rounded-full"
+                      />
+                    ) : (
+                      <Text className="text-base font-[600] text-textSecondary">
+                        {item.name.charAt(0)}
+                      </Text>
+                    )}
+                  </View>
+                  <View className="flex-1">
+                    <Text className="text-base font-[600] text-text">
+                      {item.name}
                     </Text>
-                  )}
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.workerName}>{item.name}</Text>
-                  <Text style={styles.workerPhone}>{item.phone}</Text>
-                  <Text
-                    style={[
-                      styles.workerPhone,
-                      {
-                        fontSize: 10,
-                        color: item.status === "Active" ? "green" : "gray",
-                      },
-                    ]}
-                  >
-                    {item.status}
-                  </Text>
-                </View>
-                <View style={styles.assignBtn}>
-                  <Text style={styles.assignBtnText}>Assign</Text>
-                </View>
-              </TouchableOpacity>
-            )}
+                    <Text className="text-[12px] text-textSecondary">
+                      {item.phone}
+                    </Text>
+                    <Text
+                      className={`text-[10px] ${
+                        item.status === "Active"
+                          ? "text-green-500"
+                          : "text-gray-500"
+                      }`}
+                    >
+                      {item.status}
+                    </Text>
+                  </View>
+                  <View className="bg-primary px-3 py-[6px] rounded-lg">
+                    <Text className="text-black font-[600] text-[12px]">
+                      Assign
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              );
+            }}
           />
         </View>
       </Modal>
-    </>
+    </View>
   );
 }
-
-const styles = StyleSheet.create({
-  listContent: {
-    padding: 16,
-    paddingBottom: 100,
-  },
-
-  cardContainer: {
-    marginBottom: 10,
-  },
-  sessionCard: {
-    borderRadius: 20,
-    paddingBottom: 80,
-    padding: 20,
-    margin: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: Colors.card,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-
-  sessionTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: Colors.text,
-  },
-
-  sessionSubtitle: {
-    marginTop: 4,
-    fontSize: 16,
-    fontWeight: "600",
-    color: Colors.textSecondary,
-  },
-
-  sessionDuration: {
-    marginTop: 6,
-    fontSize: 14,
-    color: Colors.textSecondary,
-  },
-
-  sessionActionRow: {
-    position: "absolute",
-    bottom: 16,
-    left: 16,
-    right: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-
-  sessionButton: {
-    flex: 1,
-    backgroundColor: Colors.primary,
-    borderRadius: 28,
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 10,
-  },
-
-  sessionButtonText: {
-    color: Colors.black,
-    fontSize: 16,
-    fontWeight: "600",
-  },
-
-  backdrop: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.7)",
-  },
-  backdropTouchable: { flex: 1 },
-
-  bottomSheet: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: Colors.card,
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    padding: 16,
-    maxHeight: "60%",
-    elevation: 0,
-    overflow: "hidden",
-    paddingBottom: 40,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-  },
-
-  // --- LIME CARD STYLES ---
-  limeCard: {
-    backgroundColor: Colors.primary,
-    borderRadius: 20,
-    padding: 12,
-    marginBottom: 8,
-    zIndex: 2,
-  },
-  limeHeaderRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: 0,
-  },
-  limeAvatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 30,
-    borderWidth: 2,
-    borderColor: "rgba(0,0,0,0.1)",
-    marginRight: 7,
-  },
-  limeHeaderActions: {
-    flexDirection: "row",
-    gap: 8,
-  },
-  limeIconBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "rgba(0,0,0,0.08)",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 7,
-  },
-  limeName: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: Colors.black,
-    marginBottom: 0,
-    letterSpacing: -0.5,
-  },
-  limeTagsRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 6,
-    marginBottom: 8,
-    marginTop: 4,
-  },
-  limeTag: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.06)",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 16,
-    gap: 4,
-  },
-  limeTagText: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: Colors.black,
-  },
-  limeRoleText: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "rgba(0,0,0,0.6)",
-    marginBottom: 0,
-  },
-  limeServiceTitle: {
-    fontSize: 18,
-    fontWeight: "800",
-    color: Colors.black,
-    letterSpacing: -0.5,
-    marginBottom: 0,
-  },
-  limePrice: {
-    fontSize: 20,
-    fontWeight: "800",
-    color: Colors.black,
-    letterSpacing: -0.5,
-  },
-  limePerMonth: {
-    fontSize: 12,
-    fontWeight: "500",
-    color: "rgba(0,0,0,0.6)",
-  },
-  limeActionBtn: {
-    position: "absolute",
-    bottom: 16,
-    right: 16,
-    backgroundColor: Colors.black,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-  },
-  limeActionBtnText: {
-    color: Colors.primary,
-    fontWeight: "600",
-    fontSize: 14,
-  },
-
-  // --- DARK CARD STYLES ---
-  darkCard: {
-    backgroundColor: Colors.background,
-    borderRadius: 24,
-    padding: 16,
-    paddingBottom: 20,
-  },
-  darkHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  darkTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: Colors.text,
-  },
-  darkDate: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: Colors.text,
-    marginBottom: 12,
-  },
-  darkDescLabel: {
-    fontSize: 12,
-    color: Colors.textSecondary,
-    marginBottom: 2,
-  },
-  darkDesc: {
-    fontSize: 13,
-    color: Colors.textSecondary,
-    lineHeight: 16,
-    marginBottom: 12,
-  },
-  darkStatsRow: {
-    flexDirection: "row",
-    gap: 8,
-  },
-  darkStatItem: {
-    flex: 1,
-    backgroundColor: Colors.card,
-    borderRadius: 12,
-    padding: 10,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  darkStatLabel: {
-    fontSize: 11,
-    color: Colors.textSecondary,
-    marginBottom: 4,
-  },
-  darkStatValueRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-  darkStatValue: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: Colors.text,
-  },
-  sheetHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  sheetTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: Colors.text,
-  },
-
-  detailRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
-  label: {
-    color: Colors.textSecondary,
-    fontSize: 14,
-    fontWeight: "500",
-  },
-  value: {
-    color: Colors.text,
-    fontSize: 14,
-    fontWeight: "500",
-    textAlign: "right",
-    flex: 1,
-  },
-
-  callBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    backgroundColor: Colors.card,
-    borderRadius: 16,
-    padding: 12,
-    marginVertical: 10,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  callText: {
-    color: Colors.primary,
-    fontSize: 14,
-    fontWeight: "600",
-  },
-
-  sheetFooter: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: 8,
-  },
-  price: {
-    fontSize: 20,
-    fontWeight: "500",
-    color: Colors.text,
-  },
-  cancelBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    backgroundColor: "rgba(239, 68, 68, 0.1)",
-    borderRadius: 12,
-  },
-  cancelText: {
-    color: Colors.error,
-    fontSize: 14,
-    fontWeight: "600",
-  },
-
-  scannerContainer: {
-    flex: 1,
-    backgroundColor: "#000",
-  },
-  permissionView: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 40,
-  },
-  permissionText: {
-    fontSize: 18,
-    color: "#FFF",
-    textAlign: "center",
-    marginBottom: 20,
-  },
-  allowButton: {
-    backgroundColor: "#2563EB",
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 12,
-  },
-  allowText: {
-    color: "#FFF",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  scanBoxContainer: {
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  scanBox: {
-    width: 260,
-    height: 260,
-    borderWidth: 2,
-    borderColor: "#22C55E",
-    borderRadius: 16,
-    overflow: "hidden",
-    position: "relative",
-  },
-  scanLine: {
-    position: "absolute",
-    width: "100%",
-    height: 4,
-    backgroundColor: "#22C55E",
-  },
-  scanHint: {
-    marginTop: 20,
-    color: "#FFF",
-    fontSize: 15,
-    textAlign: "center",
-    opacity: 0.9,
-  },
-  scannerCloseButton: {
-    position: "absolute",
-    top: 50,
-    right: 20,
-    zIndex: 10,
-    backgroundColor: "rgba(0, 0, 0, 0.31)",
-    borderRadius: 10,
-    padding: 8,
-  },
-
-  flashButton: {
-    position: "absolute",
-    bottom: 80,
-    alignSelf: "center",
-    backgroundColor: "rgba(0,0,0,0.6)",
-    padding: 16,
-    borderRadius: 50,
-    borderWidth: 2,
-  },
-
-  // WORKER MODAL STYLES
-  workerModalContainer: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: Colors.card,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 20,
-    height: "50%",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 20,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  workerHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  workerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
-  workerAvatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: Colors.background,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 12,
-  },
-  workerInitials: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: Colors.textSecondary,
-  },
-  workerName: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: Colors.text,
-  },
-  workerPhone: {
-    fontSize: 12,
-    color: Colors.textSecondary,
-  },
-  assignBtn: {
-    backgroundColor: Colors.primary,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-  },
-  assignBtnText: {
-    color: Colors.black,
-    fontWeight: "600",
-    fontSize: 12,
-  },
-});

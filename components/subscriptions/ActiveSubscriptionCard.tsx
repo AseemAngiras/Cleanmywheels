@@ -1,9 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
 import { Colors } from "@/constants/Colors";
 import { useRouter } from "expo-router";
 import React from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 
 interface ActiveSubscriptionCardProps {
   subscription: any;
@@ -37,167 +36,70 @@ export const ActiveSubscriptionCard = ({
       onPress={() =>
         router.push(`/subscription/details/${subscription._id}` as any)
       }
-      style={styles.container}
+      className="mb-4 bg-card rounded-[24px] border border-border overflow-hidden shadow-sm"
     >
-      <LinearGradient
-        colors={[Colors.card, Colors.card]}
-        style={styles.cardGradient}
-      >
-        <View style={styles.cardContent}>
-          <View style={styles.header}>
-            <View>
-              <Text style={styles.planName}>
-                {subscription.plan?.name || "Premium Plan"}
-              </Text>
-              <Text style={styles.subId}>
-                #{subscription._id.slice(-6).toUpperCase()}
-              </Text>
-            </View>
-            <View style={styles.activeBadge}>
-              <View style={styles.activeDot} />
-              <Text style={styles.activeText}>ACTIVE</Text>
-            </View>
+      <View className="p-5">
+        <View className="flex-row justify-between items-start">
+          <View>
+            <Text className="text-[18px] font-[700] text-text mb-1">
+              {subscription.plan?.name || "Premium Plan"}
+            </Text>
+            <Text className="text-[12px] color-textSecondary font-mono">
+              #{subscription._id.slice(-6).toUpperCase()}
+            </Text>
           </View>
-
-          <View style={styles.divider} />
-
-          <View style={styles.detailsRow}>
-            <View style={styles.detailItem}>
-              <Text style={styles.detailLabel}>VEHICLE</Text>
-              <Text style={styles.detailValue}>
-                {subscription.vehicle?.vehicleType || "-"}
-              </Text>
-              <Text style={styles.detailSubValue}>
-                {subscription.vehicle?.vehicleNo ||
-                  subscription.vehicle?.number ||
-                  "-"}
-              </Text>
-            </View>
-
-            <View style={[styles.detailItem, { alignItems: "flex-end" }]}>
-              <Text style={styles.detailLabel}>EXPIRES</Text>
-              <Text style={styles.detailValue}>
-                {formatDate(subscription.endDate)}
-              </Text>
-              <Text
-                style={[
-                  styles.detailSubValue,
-                  { color: daysLeft < 5 ? "#EF4444" : "#64748B" },
-                ]}
-              >
-                {daysLeft} days left
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.actionButton}>
-            <Text style={styles.actionButtonText}>View Details</Text>
-            <Ionicons name="arrow-forward" size={12} color={Colors.text} />
+          <View className="flex-row items-center bg-green-500/10 px-3 py-1.5 rounded-full border border-green-500/20">
+            <View className="w-1.5 h-1.5 rounded-full bg-green-500 mr-2" />
+            <Text className="text-[10px] font-[800] color-green-500 tracking-widest">
+              ACTIVE
+            </Text>
           </View>
         </View>
-      </LinearGradient>
+
+        <View className="h-[1px] bg-border/50 my-4" />
+
+        <View className="flex-row justify-between">
+          <View className="flex-1">
+            <Text className="text-[10px] color-textSecondary font-[700] mb-1.5 tracking-widest uppercase">
+              VEHICLE
+            </Text>
+            <Text
+              className="text-[15px] font-[700] text-text mb-0.5"
+              numberOfLines={1}
+            >
+              {subscription.vehicle?.vehicleType || "-"}
+            </Text>
+            <Text className="text-[12px] color-textSecondary font-[500]">
+              {subscription.vehicle?.vehicleNo ||
+                subscription.vehicle?.number ||
+                "-"}
+            </Text>
+          </View>
+
+          <View className="flex-1 items-end">
+            <Text className="text-[10px] color-textSecondary font-[700] mb-1.5 tracking-widest uppercase">
+              EXPIRES
+            </Text>
+            <Text className="text-[15px] font-[700] text-text mb-0.5">
+              {formatDate(subscription.endDate)}
+            </Text>
+            <Text
+              className={`text-[12px] font-[600] ${
+                daysLeft < 5 ? "color-red-500" : "color-textSecondary"
+              }`}
+            >
+              {daysLeft} days left
+            </Text>
+          </View>
+        </View>
+
+        <View className="flex-row items-center justify-center mt-5 bg-background py-3.5 rounded-2xl border border-border/50">
+          <Text className="text-[13px] font-[700] text-text mr-2">
+            View Details
+          </Text>
+          <Ionicons name="arrow-forward" size={14} color={Colors.text} />
+        </View>
+      </View>
     </TouchableOpacity>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    marginBottom: 16,
-    borderRadius: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.06,
-    shadowRadius: 10,
-    elevation: 4,
-  },
-  cardGradient: {
-    borderRadius: 20,
-    overflow: "hidden",
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  cardContent: {
-    padding: 20,
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-  },
-  planName: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: Colors.text,
-    marginBottom: 4,
-  },
-  subId: {
-    fontSize: 12,
-    color: Colors.textSecondary,
-    fontFamily: "monospace",
-  },
-  activeBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "rgba(220, 252, 231, 0.1)",
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 12,
-  },
-  activeDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: "#166534",
-    marginRight: 6,
-  },
-  activeText: {
-    fontSize: 10,
-    fontWeight: "800",
-    color: "#166534",
-    letterSpacing: 0.5,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: Colors.border,
-    marginVertical: 16,
-  },
-  detailsRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  detailItem: {
-    flex: 1,
-  },
-  detailLabel: {
-    fontSize: 10,
-    color: Colors.textSecondary,
-    fontWeight: "700",
-    marginBottom: 4,
-    letterSpacing: 0.5,
-  },
-  detailValue: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: Colors.text,
-    marginBottom: 2,
-  },
-  detailSubValue: {
-    fontSize: 12,
-    color: Colors.textSecondary,
-  },
-  actionButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 16,
-    backgroundColor: Colors.background,
-    paddingVertical: 10,
-    borderRadius: 12,
-    gap: 6,
-  },
-  actionButtonText: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: Colors.text,
-  },
-});

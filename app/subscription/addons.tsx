@@ -2,31 +2,23 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { Colors } from "@/constants/Colors";
-import { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   ActivityIndicator,
   Alert,
   Image,
-  NativeModules,
   ScrollView,
-  StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
-import { useSelector } from "react-redux";
-import { RootState } from "@/store";
 import {
   useCreateAddonOrderMutation,
   useVerifyAddonPaymentMutation,
   useGetAddonsQuery,
   useGetMySubscriptionQuery,
 } from "@/store/api/subscriptionApi";
-
-const RAZORPAY_KEY =
-  process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_1DP5mmOlF5G5ag";
-const APP_NAME = "CleanMyWheels";
 
 export default function AddonsScreen() {
   const router = useRouter();
@@ -55,6 +47,7 @@ export default function AddonsScreen() {
   const [selectedSubId, setSelectedSubId] = useState<string | null>(null);
   const [serviceDate, setServiceDate] = useState<Date>(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
+
   useEffect(() => {
     if (activeSubscriptions.length > 0 && !selectedSubId) {
       setSelectedSubId(activeSubscriptions[0]?._id ?? null);
@@ -110,10 +103,8 @@ export default function AddonsScreen() {
         serviceDate: serviceDate.toISOString(),
       };
 
-      console.log("Creating Addon Order:", orderPayload);
       const response = await createAddonOrder(orderPayload).unwrap();
       const { paymentLinkUrl, subscriptionId, referenceId } = response;
-      console.log("Order Created:", response);
 
       if (paymentLinkUrl) {
         router.push({
@@ -137,454 +128,294 @@ export default function AddonsScreen() {
 
       Alert.alert("Error", "Failed to generate payment link.");
     } catch (err: any) {
-      console.error("Payment Start Error:", err);
       Alert.alert("Error", err?.data?.message || "Failed to create order");
-    }
-  };
-
-  const processVerification = async (
-    paymentId: string,
-    orderId: string,
-    signature: string,
-  ) => {
-    try {
-      console.log("Verifying Payment:", { paymentId, orderId, signature });
-      await verifyAddonPayment({
-        razorpay_payment_id: paymentId,
-        razorpay_order_id: orderId,
-        razorpay_signature: signature,
-        subscriptionId: activeSubscription!._id,
-        addons: selectedAddons,
-      }).unwrap();
-
-      Alert.alert("Success!", "Add-ons added to your upcoming service.", [
-        {
-          text: "OK",
-          onPress: () => {
-            setSelectedAddons([]);
-            router.back();
-          },
-        },
-      ]);
-    } catch (err: any) {
-      console.error("Verification Error:", err);
-      Alert.alert(
-        "Verification Failed",
-        `Payment verification failed: ${err?.data?.message || "Unknown error"}. Please contact support.`,
-      );
     }
   };
 
   if (isSubLoading || isAddonsLoading) {
     return (
-      <View style={[styles.container, styles.center]}>
+      <View className="flex-1 bg-background items-center justify-center">
         <ActivityIndicator size="large" color={Colors.primary} />
       </View>
     );
   }
 
   return (
-    <ScreenWrapper style={styles.container} backgroundColor={Colors.background}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={24} color={Colors.text} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Add-ons</Text>
-      </View>
-
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Car Selection */}
-        <Text style={styles.sectionTitle}>Select Vehicle</Text>
-        <Text style={styles.sectionSubtitle}>
-          Which car would you like to add services for?
-        </Text>
-
-        {activeSubscriptions.length === 0 ? (
-          <View style={styles.emptyCard}>
-            <Ionicons
-              name="car-sport-outline"
-              size={40}
-              color={Colors.textSecondary}
-            />
-            <Text style={styles.emptyText}>No Active Subscriptions Found</Text>
-          </View>
-        ) : (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.carList}
-            contentContainerStyle={{ gap: 12 }}
+    <ScreenWrapper
+      backgroundColor={Colors.background}
+      statusBarStyle="light-content"
+    >
+      <View className="flex-1 bg-background">
+        {/* Header */}
+        <View className="flex-row items-center px-5 pt-4 pb-6 bg-card border-b border-border/50">
+          <TouchableOpacity
+            onPress={() => router.back()}
+            className="w-10 h-10 rounded-full bg-background items-center justify-center border border-border"
           >
-            {activeSubscriptions.map((sub: any) => {
-              const isSelected = sub._id === selectedSubId;
-              const vehicleName = sub.vehicle?.vehicleType || "Vehicle";
-              const vehicleNo = sub.vehicle?.vehicleNo || "No Number";
+            <Ionicons name="arrow-back" size={20} color={Colors.text} />
+          </TouchableOpacity>
+          <Text className="text-[20px] font-[700] color-text ml-4">
+            Add-ons
+          </Text>
+        </View>
 
-              return (
-                <TouchableOpacity
-                  key={sub._id}
-                  style={[styles.carCard, isSelected && styles.carCardSelected]}
-                  onPress={() => setSelectedSubId(sub._id)}
-                  activeOpacity={0.8}
-                >
-                  <View style={styles.iconCircle}>
-                    <Ionicons
-                      name="car"
-                      size={24}
-                      color={isSelected ? "#C8F000" : "#666"}
-                    />
-                  </View>
-                  <View>
-                    <Text
-                      style={[
-                        styles.carName,
-                        isSelected && styles.textSelected,
-                      ]}
-                    >
-                      {vehicleName}
-                    </Text>
-                    <Text
-                      style={[
-                        styles.carNumber,
-                        isSelected && styles.textDetailSelected,
-                      ]}
-                    >
-                      {vehicleNo}
-                    </Text>
-                  </View>
-                  {isSelected && (
-                    <View style={styles.checkBadge}>
-                      <Ionicons name="checkmark" size={12} color="#000" />
-                    </View>
-                  )}
-                </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
-        )}
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ padding: 20 }}
+        >
+          {/* Car Selection */}
+          <Text className="text-[18px] font-[700] color-text">
+            Select Vehicle
+          </Text>
+          <Text className="text-[14px] color-textSecondary mb-5 mt-1">
+            Which car would you like to add services for?
+          </Text>
 
-        {/* Date Selection */}
-        {activeSubscription && (
-          <View style={{ marginTop: 24 }}>
-            <Text style={styles.sectionTitle}>Select Date</Text>
-            <Text style={styles.sectionSubtitle}>
-              When do you want this service?
-            </Text>
-
-            <TouchableOpacity
-              style={styles.dateButton}
-              onPress={() => setShowDatePicker(true)}
-            >
-              <Ionicons name="calendar-outline" size={20} color={Colors.text} />
-              <Text style={styles.dateText}>{serviceDate.toDateString()}</Text>
+          {activeSubscriptions.length === 0 ? (
+            <View className="p-8 bg-card rounded-[24px] items-center justify-center border border-border">
               <Ionicons
-                name="chevron-down"
-                size={16}
+                name="car-sport-outline"
+                size={48}
                 color={Colors.textSecondary}
               />
-            </TouchableOpacity>
+              <Text className="mt-4 color-textSecondary font-[600]">
+                No Active Subscriptions Found
+              </Text>
+            </View>
+          ) : (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              className="mb-4"
+              contentContainerStyle={{ gap: 12 }}
+            >
+              {activeSubscriptions.map((sub: any) => {
+                const isSelected = sub._id === selectedSubId;
+                const vehicleName = sub.vehicle?.vehicleType || "Vehicle";
+                const vehicleNo = sub.vehicle?.vehicleNo || "No Number";
 
-            {showDatePicker && (
-              <DateTimePicker
-                value={serviceDate}
-                mode="date"
-                display="default"
-                minimumDate={new Date()}
-                maximumDate={new Date(activeSubscription.endDate)}
-                onChange={(event, date) => {
-                  setShowDatePicker(false);
-                  if (date) {
-                    const isDone = activeSubscription.serviceHistory?.some(
-                      (h: any) =>
-                        new Date(h.date).toDateString() ===
-                          date.toDateString() && h.status === "completed",
-                    );
-
-                    if (isDone) {
-                      Alert.alert(
-                        "Service Completed",
-                        "Service for this date is already marked as done.",
-                      );
-                      return;
-                    }
-                    setServiceDate(date);
-                  }
-                }}
-              />
-            )}
-          </View>
-        )}
-
-        {/* Add-ons List */}
-        {activeSubscription && (
-          <>
-            <Text style={[styles.sectionTitle, { marginTop: 24 }]}>
-              Select Services
-            </Text>
-            <Text style={styles.sectionSubtitle}>
-              For {activeSubscription.vehicle?.brand || "your vehicle"}
-            </Text>
-
-            <View style={styles.listContainer}>
-              {addonsList?.map((addon: any) => {
-                const isSelected = selectedAddons.some(
-                  (a) => a._id === addon._id,
-                );
                 return (
                   <TouchableOpacity
-                    key={addon._id}
-                    style={[
-                      styles.addonCard,
-                      isSelected && styles.addonCardSelected,
-                    ]}
-                    onPress={() => toggleAddon(addon)}
+                    key={sub._id}
+                    className={`flex-row items-center p-4 rounded-[24px] border ${
+                      isSelected
+                        ? "bg-primary/5 border-primary"
+                        : "bg-card border-border"
+                    }`}
+                    style={{ width: 220 }}
+                    onPress={() => setSelectedSubId(sub._id)}
                     activeOpacity={0.8}
                   >
-                    <Image
-                      source={{
-                        uri:
-                          addon.icon ||
-                          "https://cdn-icons-png.flaticon.com/512/2099/2099192.png",
-                      }}
-                      style={styles.addonIcon}
-                    />
-                    <View style={styles.addonContent}>
+                    <View className="w-11 h-11 rounded-full bg-background items-center justify-center mr-3 border border-border/50">
+                      <Ionicons
+                        name="car"
+                        size={22}
+                        color={
+                          isSelected ? Colors.primary : Colors.textSecondary
+                        }
+                      />
+                    </View>
+                    <View className="flex-1">
                       <Text
-                        style={[
-                          styles.addonName,
-                          isSelected && styles.textSelected,
-                        ]}
+                        className={`text-[14px] font-[700] ${
+                          isSelected ? "text-text" : "text-textSecondary"
+                        }`}
+                        numberOfLines={1}
                       >
-                        {addon.name}
+                        {vehicleName}
                       </Text>
                       <Text
-                        style={[
-                          styles.addonDesc,
-                          isSelected && styles.textDetailSelected,
-                        ]}
-                        numberOfLines={2}
+                        className={`text-[12px] ${
+                          isSelected
+                            ? "text-textSecondary"
+                            : "text-textSecondary/70"
+                        }`}
                       >
-                        {addon.description}
+                        {vehicleNo}
                       </Text>
                     </View>
-                    <View style={styles.priceContainer}>
-                      <Text
-                        style={[
-                          styles.addonPrice,
-                          isSelected && styles.textSelected,
-                        ]}
-                      >
-                        ₹{addon.price}
-                      </Text>
-                      {isSelected && (
-                        <Ionicons
-                          name="checkmark-circle"
-                          size={20}
-                          color="#C8F000"
-                          style={{ marginTop: 4 }}
-                        />
-                      )}
-                    </View>
+                    {isSelected && (
+                      <View className="absolute top-3 right-3 bg-primary w-5 h-5 rounded-full items-center justify-center border border-black/10">
+                        <Ionicons name="checkmark" size={12} color="#000" />
+                      </View>
+                    )}
                   </TouchableOpacity>
                 );
               })}
+            </ScrollView>
+          )}
+
+          {/* Date Selection */}
+          {activeSubscription && (
+            <View className="mt-8">
+              <View className="flex-row items-center justify-between">
+                <View>
+                  <Text className="text-[18px] font-[700] color-text">
+                    Select Date
+                  </Text>
+                  <Text className="text-[14px] color-textSecondary mt-1">
+                    When do you want this service?
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  onPress={() => setShowDatePicker(true)}
+                  className="bg-card px-5 py-3.5 rounded-[20px] border border-border flex-row items-center"
+                >
+                  <Ionicons
+                    name="calendar-outline"
+                    size={18}
+                    color={Colors.primary}
+                    className="mr-3"
+                  />
+                  <Text className="color-text font-[600] ml-2">
+                    {serviceDate.toLocaleDateString("en-IN", {
+                      day: "numeric",
+                      month: "short",
+                    })}
+                  </Text>
+                  <Ionicons
+                    name="chevron-down"
+                    size={16}
+                    color={Colors.textSecondary}
+                    className="ml-3"
+                  />
+                </TouchableOpacity>
+              </View>
+
+              {showDatePicker && (
+                <DateTimePicker
+                  value={serviceDate}
+                  mode="date"
+                  display="default"
+                  minimumDate={new Date()}
+                  maximumDate={new Date(activeSubscription.endDate)}
+                  onChange={(event, date) => {
+                    setShowDatePicker(false);
+                    if (date) {
+                      const isDone = activeSubscription.serviceHistory?.some(
+                        (h: any) =>
+                          new Date(h.date).toDateString() ===
+                            date.toDateString() && h.status === "completed",
+                      );
+
+                      if (isDone) {
+                        Alert.alert(
+                          "Service Completed",
+                          "Service for this date is already marked as done.",
+                        );
+                        return;
+                      }
+                      setServiceDate(date);
+                    }
+                  }}
+                />
+              )}
             </View>
-          </>
-        )}
+          )}
 
-        {/* Spacer for bottom bar */}
-        <View style={{ height: 100 }} />
-      </ScrollView>
+          {/* Add-ons List */}
+          {activeSubscription && (
+            <View className="mt-10">
+              <Text className="text-[18px] font-[700] color-text">
+                Select Services
+              </Text>
+              <Text className="text-[14px] color-textSecondary mb-6 mt-1">
+                For {activeSubscription.vehicle?.brand || "your vehicle"}
+              </Text>
 
-      {/* Bottom Bar */}
-      {selectedAddons.length > 0 && activeSubscription && (
-        <View style={styles.bottomBar}>
-          <View>
-            <Text style={styles.totalLabel}>Total Amount</Text>
-            <Text style={styles.totalValue}>₹{totalAmount}</Text>
+              <View className="gap-4">
+                {addonsList?.map((addon: any) => {
+                  const isSelected = selectedAddons.some(
+                    (a) => a._id === addon._id,
+                  );
+                  return (
+                    <TouchableOpacity
+                      key={addon._id}
+                      className={`p-4 rounded-[24px] flex-row items-center border ${
+                        isSelected
+                          ? "bg-primary/5 border-primary"
+                          : "bg-card border-border"
+                      }`}
+                      onPress={() => toggleAddon(addon)}
+                      activeOpacity={0.8}
+                    >
+                      <Image
+                        source={{
+                          uri:
+                            addon.icon ||
+                            "https://cdn-icons-png.flaticon.com/512/2099/2099192.png",
+                        }}
+                        className="w-14 h-14 rounded-2xl bg-background border border-border/50"
+                      />
+                      <View className="flex-1 ml-4">
+                        <Text
+                          className={`text-[16px] font-[700] ${
+                            isSelected ? "text-text" : "text-textSemi"
+                          }`}
+                        >
+                          {addon.name}
+                        </Text>
+                        <Text
+                          className="text-[12px] color-textSecondary mt-1 leading-4"
+                          numberOfLines={2}
+                        >
+                          {addon.description}
+                        </Text>
+                      </View>
+                      <View className="items-end ml-4">
+                        <Text
+                          className={`text-[16px] font-[800] ${
+                            isSelected ? "text-primary" : "text-text"
+                          }`}
+                        >
+                          ₹{addon.price}
+                        </Text>
+                        {isSelected && (
+                          <Ionicons
+                            name="checkmark-circle"
+                            size={22}
+                            color={Colors.primary}
+                            className="mt-2"
+                          />
+                        )}
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+          )}
+
+          <View className="h-32" />
+        </ScrollView>
+
+        {/* Bottom Bar */}
+        {selectedAddons.length > 0 && activeSubscription && (
+          <View className="absolute bottom-0 left-0 right-0 bg-card p-6 rounded-t-[40px] border-t border-border shadow-2xl flex-row justify-between items-center">
+            <View>
+              <Text className="text-[12px] color-textSecondary font-[600] tracking-wider uppercase">
+                TOTAL
+              </Text>
+              <Text className="text-[28px] font-[800] color-text">
+                ₹{totalAmount}
+              </Text>
+            </View>
+            <TouchableOpacity
+              className="bg-primary px-10 py-4 rounded-2xl shadow-lg shadow-primary/30"
+              onPress={handlePayment}
+              disabled={isCreatingOrder || isVerifying}
+            >
+              {isCreatingOrder || isVerifying ? (
+                <ActivityIndicator color="#000" />
+              ) : (
+                <Text className="color-black font-[800] text-[16px]">
+                  Pay Now
+                </Text>
+              )}
+            </TouchableOpacity>
           </View>
-          <TouchableOpacity
-            style={styles.payButton}
-            onPress={handlePayment}
-            disabled={isCreatingOrder || isVerifying}
-          >
-            {isCreatingOrder || isVerifying ? (
-              <ActivityIndicator color={Colors.black} />
-            ) : (
-              <Text style={styles.payButtonText}>Proceed to Pay</Text>
-            )}
-          </TouchableOpacity>
-        </View>
-      )}
+        )}
+      </View>
     </ScreenWrapper>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
-  center: { justifyContent: "center", alignItems: "center" },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 16,
-    backgroundColor: Colors.card,
-  },
-  backBtn: { padding: 4 },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginLeft: 16,
-    color: Colors.text,
-  },
-  scrollContent: { padding: 20 },
-
-  carList: {
-    flexGrow: 0,
-    marginBottom: 10,
-  },
-  carCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: Colors.card,
-    padding: 12,
-    borderRadius: 16,
-    width: 220,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    marginRight: 10,
-  },
-  carCardSelected: {
-    backgroundColor: Colors.card,
-    borderColor: Colors.primary,
-  },
-  iconCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: Colors.background,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
-  },
-  carName: {
-    fontSize: 14,
-    fontWeight: "bold",
-    color: Colors.text,
-  },
-  carNumber: {
-    fontSize: 12,
-    color: Colors.textSecondary,
-  },
-  checkBadge: {
-    position: "absolute",
-    top: 10,
-    right: 10,
-    backgroundColor: Colors.primary,
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  emptyCard: {
-    padding: 30,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: Colors.card,
-    borderRadius: 16,
-  },
-  emptyText: {
-    marginTop: 10,
-    color: Colors.textSecondary,
-    fontWeight: "500",
-  },
-
-  sectionTitle: { fontSize: 18, fontWeight: "bold", color: Colors.text },
-  sectionSubtitle: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    marginBottom: 16,
-    marginTop: 4,
-  },
-
-  listContainer: { gap: 12 },
-  addonCard: {
-    backgroundColor: Colors.card,
-    borderRadius: 16,
-    padding: 12,
-    flexDirection: "row",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: Colors.border,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  addonCardSelected: {
-    backgroundColor: Colors.card,
-    borderColor: Colors.primary,
-    borderWidth: 2,
-  },
-  addonIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    backgroundColor: Colors.background,
-  },
-  addonContent: { flex: 1, marginLeft: 12 },
-  addonName: { fontSize: 16, fontWeight: "600", color: Colors.text },
-  addonDesc: { fontSize: 12, color: Colors.textSecondary, marginTop: 2 },
-  textSelected: { color: Colors.text },
-  textDetailSelected: { color: Colors.textSecondary },
-
-  priceContainer: { alignItems: "flex-end", minWidth: 60 },
-  addonPrice: { fontSize: 16, fontWeight: "bold", color: Colors.text },
-
-  dateButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: Colors.card,
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    gap: 12,
-  },
-  dateText: {
-    flex: 1,
-    fontSize: 16,
-    color: Colors.text,
-    fontWeight: "500",
-  },
-
-  bottomBar: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: Colors.card,
-    padding: 20,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 10,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  totalLabel: { fontSize: 12, color: Colors.textSecondary },
-  totalValue: { fontSize: 24, fontWeight: "bold", color: Colors.text },
-  payButton: {
-    backgroundColor: Colors.primary,
-    paddingHorizontal: 32,
-    paddingVertical: 14,
-    borderRadius: 30,
-  },
-  payButtonText: { fontSize: 16, fontWeight: "bold", color: Colors.black },
-});

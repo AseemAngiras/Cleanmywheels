@@ -1,18 +1,17 @@
 import AdminWorkerScreen from "@/components/admin/AdminWorkerScreen";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
-import { StyleSheet, View } from "react-native";
+import { View } from "react-native";
+import { Colors } from "@/constants/Colors";
 
 export default function DashboardScreen() {
   return (
-    <ScreenWrapper style={styles.container} backgroundColor="#fff">
-      <View style={styles.content}>
+    <ScreenWrapper
+      backgroundColor={Colors.background}
+      statusBarStyle="light-content"
+    >
+      <View className="flex-1">
         <AdminWorkerScreen />
       </View>
     </ScreenWrapper>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
-  content: { flex: 1 },
-});

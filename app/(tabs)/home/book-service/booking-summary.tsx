@@ -8,7 +8,6 @@ import {
   Alert,
   Modal,
   ScrollView,
-  StyleSheet,
   Text,
   TouchableOpacity,
   TouchableWithoutFeedback,
@@ -17,6 +16,7 @@ import {
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { useDispatch, useSelector } from "react-redux";
 import BookingStepper from "../../../../components/BookingStepper";
+import { Colors } from "@/constants/Colors";
 
 export default function BookingSummaryScreen() {
   const dispatch = useDispatch();
@@ -27,12 +27,8 @@ export default function BookingSummaryScreen() {
   const parsedBooking = bookingDraft
     ? JSON.parse(bookingDraft as string)
     : null;
-
   const user = useSelector((state: RootState) => state.user);
   const { service, vehicle, shop, slot } = parsedBooking || {};
-
-  const lat = shop?.location?.lat || 37.7749;
-  const long = shop?.location?.long || -122.4194;
 
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<
     string | null
@@ -41,12 +37,6 @@ export default function BookingSummaryScreen() {
 
   // API Mutation
   const [createBooking, { isLoading }] = useCreateBookingMutation();
-
-  // Set default payment method if available (optional)
-  useEffect(() => {
-    // Example: Default to first option
-    // setSelectedPaymentMethod('upi');
-  }, []);
 
   const itemTotal = service?.totalPrice || 0;
   const taxAmount = Math.round(itemTotal * 0.18);
@@ -58,7 +48,6 @@ export default function BookingSummaryScreen() {
       label: "UPI",
       subLabel: "Google Pay, PhonePe, Paytm",
       icon: "wallet-outline",
-      recommended: true,
     },
     {
       id: "card",
@@ -90,290 +79,334 @@ export default function BookingSummaryScreen() {
     });
   }, [navigation]);
 
+  const handleBooking = async () => {
+    if (!selectedPaymentMethod) {
+      Alert.alert("Payment Required", "Please select a payment option");
+      return;
+    }
+
+    try {
+      const bookingPayload = {
+        center: shop.name,
+        address: shop.address,
+        phone: user.user?.phone || "",
+        serviceName: service.name,
+        price: grandTotal,
+        date: new Date(slot.date).toDateString(),
+        timeSlot: slot.time,
+        car: `${vehicle.type} - ${vehicle.number}`,
+        plate: vehicle.number,
+        carImage: shop.image,
+        status: "upcoming",
+        shopId: shop.id,
+        userId: user.user?._id || "guest",
+        paymentMethod: selectedPaymentMethod,
+        isPaid: selectedPaymentMethod !== "cash",
+      };
+
+      await createBooking(bookingPayload).unwrap();
+      dispatch(addBooking(bookingPayload));
+
+      router.replace({
+        pathname: "/(tabs)/home/book-service/order-confirmation",
+        params: {
+          shopName: shop.name,
+          shopAddress: shop.address,
+          shopImage: shop.image,
+          shopRating: shop.rating,
+          date: new Date(slot.date).toDateString(),
+          time: slot.time,
+          shopLat: shop.location?.lat,
+          shopLong: shop.location?.long,
+          serviceName: service.name,
+        },
+      });
+    } catch (err: any) {
+      Alert.alert(
+        "Error",
+        err?.data?.message || "Failed to create booking. Please try again.",
+      );
+    }
+  };
+
   return (
-    <ScreenWrapper style={styles.container} backgroundColor="#f9f9f9">
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => router.back()}
-          style={styles.backButton}
-        >
-          <Ionicons name="arrow-back" size={24} color="#1a1a1a" />
+    <ScreenWrapper backgroundColor={Colors.background}>
+      <View className="flex-row justify-between items-center px-5 py-4 bg-background">
+        <TouchableOpacity onPress={() => router.back()} className="p-1">
+          <Ionicons name="chevron-back" size={24} color={Colors.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Booking Summary</Text>
-        <View style={{ width: 40 }} />
+        <Text className="text-[18px] font-[800] color-text tracking-tight">
+          Booking Summary
+        </Text>
+        <View className="w-8" />
       </View>
 
       <BookingStepper currentStep={3} />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 110 }}
+        contentContainerStyle={{ paddingBottom: 120 }}
       >
-        {/* Map */}
-        {/* Shop Details (No Map) */}
-        <View style={[styles.card, { marginTop: 10 }]}>
-          <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <View style={styles.shopIconContainer}>
-              <Ionicons name="location" size={20} color="#fbc02d" />
+        {/* Shop Info Card */}
+        <View className="mx-5 mt-6 mb-6 bg-card rounded-[32px] p-5 flex-row items-center border border-border/50 shadow-sm">
+          <View className="w-12 h-12 rounded-full bg-primary/10 items-center justify-center mr-4">
+            <Ionicons name="location" size={22} color={Colors.primary} />
+          </View>
+          <View className="flex-1">
+            <Text
+              className="text-[16px] font-[800] color-text"
+              numberOfLines={1}
+            >
+              {shop?.name}
+            </Text>
+            <Text
+              className="text-[12px] color-textSecondary font-[500] mt-0.5"
+              numberOfLines={1}
+            >
+              {shop?.address}
+            </Text>
+          </View>
+        </View>
+
+        {/* Booking Details Card */}
+        <View className="mx-5 mb-6 bg-card rounded-[32px] p-6 border border-border/50 shadow-sm">
+          <Text className="text-[14px] font-[800] color-textSecondary uppercase tracking-widest mb-6 px-1">
+            Booking Info
+          </Text>
+
+          <View className="flex-row items-center mb-6">
+            <View className="w-10 h-10 rounded-xl bg-background items-center justify-center mr-4 border border-border/50">
+              <Ionicons
+                name="car-sport"
+                size={20}
+                color={Colors.textSecondary}
+              />
             </View>
-            <View>
-              <Text style={styles.pinShopName}>{shop?.name}</Text>
-              <Text style={styles.pinShopAddress} numberOfLines={1}>
-                {shop?.address}
+            <View className="flex-1">
+              <Text className="text-[11px] font-[700] color-textSecondary uppercase tracking-tighter mb-0.5">
+                Vehicle
+              </Text>
+              <Text className="text-[15px] font-[800] color-text">
+                {vehicle?.type?.toUpperCase()} • {vehicle?.number}
+              </Text>
+            </View>
+          </View>
+
+          <View className="flex-row items-center mb-6">
+            <View className="w-10 h-10 rounded-xl bg-background items-center justify-center mr-4 border border-border/50">
+              <Ionicons
+                name="calendar"
+                size={20}
+                color={Colors.textSecondary}
+              />
+            </View>
+            <View className="flex-1">
+              <Text className="text-[11px] font-[700] color-textSecondary uppercase tracking-tighter mb-0.5">
+                Scheduled For
+              </Text>
+              <Text className="text-[15px] font-[800] color-text">
+                {new Date(slot?.date).toLocaleDateString("en-GB", {
+                  day: "numeric",
+                  month: "short",
+                })}{" "}
+                • {slot?.time}
+              </Text>
+            </View>
+          </View>
+
+          <View className="flex-row items-center">
+            <View className="w-10 h-10 rounded-xl bg-background items-center justify-center mr-4 border border-border/50">
+              <Ionicons name="call" size={20} color={Colors.textSecondary} />
+            </View>
+            <View className="flex-1">
+              <Text className="text-[11px] font-[700] color-textSecondary uppercase tracking-tighter mb-0.5">
+                Contact
+              </Text>
+              <Text className="text-[15px] font-[800] color-text">
+                +91 {user.user?.phone}
               </Text>
             </View>
           </View>
         </View>
 
-        {/* Booking Details */}
-        <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Booking Details</Text>
+        {/* Payment Summary Card */}
+        <View className="mx-5 mb-6 bg-card rounded-[32px] p-6 border border-border/50 shadow-sm">
+          <Text className="text-[14px] font-[800] color-textSecondary uppercase tracking-widest mb-6 px-1">
+            Cost Breakdown
+          </Text>
 
-          <View style={styles.row}>
-            <View style={styles.iconBox}>
-              <Ionicons name="car-sport" size={20} color="#555" />
-            </View>
-            <View style={styles.rowContent}>
-              <Text style={styles.label}>Vehicle</Text>
-              <Text style={styles.value}>
-                {vehicle?.type?.toUpperCase()} - {vehicle?.number}
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.divider} />
-
-          <View style={styles.row}>
-            <View style={styles.iconBox}>
-              <Ionicons name="calendar" size={20} color="#555" />
-            </View>
-            <View style={styles.rowContent}>
-              <Text style={styles.label}>Date & Time</Text>
-              <Text style={styles.value}>
-                {new Date(slot?.date).toLocaleDateString()} • {slot?.time}
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.divider} />
-
-          <View style={styles.row}>
-            <View style={styles.iconBox}>
-              <Ionicons name="call" size={20} color="#555" />
-            </View>
-            <View style={styles.rowContent}>
-              <Text style={styles.label}>Contact Number</Text>
-              <Text style={styles.value}>+91 {user.user?.phone}</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Payment Summary */}
-        <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Payment Summary</Text>
-
-          <View style={styles.paymentRow}>
-            <Text style={styles.paymentLabel}>{service?.name}</Text>
-            <Text style={styles.paymentValue}>₹{service?.basePrice}</Text>
+          <View className="flex-row justify-between items-center mb-4">
+            <Text className="text-[14px] color-textSecondary font-[600]">
+              {service?.name}
+            </Text>
+            <Text className="text-[14px] color-text font-[800]">
+              ₹{service?.basePrice}
+            </Text>
           </View>
 
           {service?.addons &&
             Array.isArray(service.addons) &&
             service.addons.map((addon: any) => (
-              <View key={addon.id} style={styles.paymentRow}>
-                <Text style={styles.paymentLabel}>{addon.name}</Text>
-                <Text style={styles.paymentValue}>+₹{addon.price}</Text>
+              <View
+                key={addon.id}
+                className="flex-row justify-between items-center mb-4"
+              >
+                <Text className="text-[14px] color-textSecondary font-[600]">
+                  {addon.name}
+                </Text>
+                <Text className="text-[14px] color-primary font-[800]">
+                  +₹{addon.price}
+                </Text>
               </View>
             ))}
 
-          <View style={styles.totalDivider} />
+          <View className="h-[1px] bg-border/50 my-4 border-dashed border border-border/50" />
 
-          <View style={styles.paymentRow}>
-            <Text style={styles.totalTextLabel}>Tax (18% GST)</Text>
-            <Text style={styles.totalTextValue}>₹{taxAmount}</Text>
+          <View className="flex-row justify-between items-center mb-4">
+            <Text className="text-[14px] color-textSecondary font-[600]">
+              Tax (18% GST)
+            </Text>
+            <Text className="text-[14px] color-text font-[800]">
+              ₹{taxAmount}
+            </Text>
           </View>
 
-          <View style={styles.totalDivider} />
-
-          <View style={styles.paymentRow}>
-            <Text style={styles.totalTextLabel}>Grand Total</Text>
-            <Text style={styles.totalTextValue}>₹{grandTotal}</Text>
+          <View className="flex-row justify-between items-center pt-4 border-t border-border/50">
+            <Text className="text-[17px] font-[900] color-text">
+              Grand Total
+            </Text>
+            <Text className="text-[20px] font-[900] color-primary">
+              ₹{grandTotal}
+            </Text>
           </View>
         </View>
       </ScrollView>
 
-      {/* Footer */}
-      <View style={styles.footer}>
+      {/* Footer Checkout */}
+      <View className="absolute bottom-0 left-0 right-0 bg-card px-6 pt-6 pb-12 rounded-t-[40px] border-t border-border shadow-2xl flex-row justify-between items-center">
         <TouchableOpacity
-          style={styles.paymentMethodSelector}
+          className="flex-1 mr-6"
           onPress={() => setShowPaymentModal(true)}
         >
-          <View style={styles.payUsingRow}>
+          <View className="flex-row items-center mb-1">
+            <Text className="text-[10px] font-[900] color-textSecondary uppercase tracking-widest mr-1">
+              Pay via
+            </Text>
+            <Ionicons name="caret-up" size={10} color={Colors.textSecondary} />
+          </View>
+          <View className="flex-row items-center">
             {selectedPaymentOption && (
               <Ionicons
                 name={selectedPaymentOption.icon as any}
-                size={14}
-                color="#666"
-                style={{ marginRight: 4 }}
+                size={16}
+                color={Colors.primary}
+                className="mr-2"
               />
             )}
-            <Text style={styles.payUsingText}>PAY USING</Text>
-            <Ionicons
-              name="caret-up"
-              size={10}
-              color="#666"
-              style={{ marginLeft: 4 }}
-            />
+            <Text
+              className="text-[15px] font-[800] color-text"
+              numberOfLines={1}
+            >
+              {selectedPaymentOption?.label || "Select Mode"}
+            </Text>
           </View>
-          <Text style={styles.selectedMethodText} numberOfLines={1}>
-            {selectedPaymentOption
-              ? selectedPaymentOption.label
-              : "Select Payment Mode"}
-          </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[
-            styles.payButton,
-            (!selectedPaymentMethod || isLoading) && styles.payButtonDisabled,
-          ]}
+          className={`bg-primary h-14 w-[180px] rounded-2xl flex-row items-center justify-center shadow-lg shadow-primary/30 ${isLoading ? "opacity-70" : ""}`}
           disabled={!selectedPaymentMethod || isLoading}
-          onPress={async () => {
-            if (!selectedPaymentMethod) {
-              Alert.alert("Payment Required", "Please select a payment option");
-              return;
-            }
-
-            try {
-              const bookingPayload = {
-                center: shop.name,
-                address: shop.address,
-                phone: user.user?.phone || "",
-                serviceName: service.name, // Ensure this is passed!
-                price: grandTotal,
-                date: new Date(slot.date).toDateString(),
-                timeSlot: slot.time,
-                car: `${vehicle.type} - ${vehicle.number}`,
-                plate: vehicle.number,
-                carImage: shop.image,
-                status: "upcoming",
-                shopId: shop.id,
-                userId: user.user?._id || "guest",
-                paymentMethod: selectedPaymentMethod,
-                isPaid: selectedPaymentMethod !== "cash",
-              };
-
-              console.log("Creating Shop Booking:", bookingPayload);
-
-              // 1. Create Booking in Backend
-              await createBooking(bookingPayload).unwrap();
-
-              // 2. Update Redux (Optional, for local cache if needed)
-              dispatch(addBooking(bookingPayload));
-
-              // 3. Navigate with Display Params
-              router.replace({
-                pathname: "/(tabs)/home/book-service/order-confirmation",
-                params: {
-                  shopName: shop.name,
-                  shopAddress: shop.address,
-                  shopImage: shop.image,
-                  shopRating: shop.rating,
-                  date: new Date(slot.date).toDateString(),
-                  time: slot.time,
-                  shopLat: shop.location?.lat,
-                  shopLong: shop.location?.long,
-                  serviceName: service.name,
-                },
-              });
-            } catch (err: any) {
-              console.error("Booking Failed:", err);
-              Alert.alert(
-                "Error",
-                err?.data?.message ||
-                  "Failed to create booking. Please try again.",
-              );
-            }
-          }}
+          onPress={handleBooking}
         >
-          <View style={styles.payButtonContent}>
-            <View style={styles.payButtonPriceContainer}>
-              <Text style={styles.payButtonPriceText}>₹{grandTotal}</Text>
-              <Text style={styles.payButtonTotalLabel}>TOTAL</Text>
-            </View>
-            <View style={styles.payButtonActionContainer}>
-              <Text style={styles.payButtonActionText}>
-                {isLoading ? "Processing..." : "Pay Now"}
-              </Text>
-              {!isLoading && (
-                <Ionicons
-                  name="caret-forward"
-                  size={16}
-                  color="#1a1a1a"
-                  style={{ marginLeft: 4 }}
-                />
-              )}
-            </View>
+          <View className="flex-row items-center">
+            <Text className="text-[16px] font-[900] color-black">
+              {isLoading ? "Processing" : "Pay ₹" + grandTotal}
+            </Text>
+            {!isLoading && (
+              <Ionicons
+                name="arrow-forward"
+                size={18}
+                color="#000"
+                style={{ marginLeft: 6 }}
+              />
+            )}
           </View>
         </TouchableOpacity>
       </View>
 
-      {/* Payment Options Modal */}
+      {/* Payment Options Bottom Sheet */}
       <Modal
         visible={showPaymentModal}
         transparent
         animationType="slide"
         onRequestClose={() => setShowPaymentModal(false)}
       >
-        <View style={styles.modalOverlay}>
+        <View className="flex-1 justify-end">
           <TouchableWithoutFeedback onPress={() => setShowPaymentModal(false)}>
-            <View style={styles.modalBackdrop} />
+            <View className="flex-1 bg-black/60" />
           </TouchableWithoutFeedback>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Payment Options</Text>
-              <TouchableOpacity onPress={() => setShowPaymentModal(false)}>
-                <Ionicons name="close" size={24} color="#1a1a1a" />
+          <View className="bg-card rounded-t-[40px] px-8 pt-4 pb-12 shadow-2xl border-t border-border">
+            <View className="w-10 h-1 bg-border/50 rounded-full self-center mb-8" />
+
+            <View className="flex-row justify-between items-center mb-8">
+              <Text className="text-[22px] font-[900] color-text">
+                Payment Method
+              </Text>
+              <TouchableOpacity
+                onPress={() => setShowPaymentModal(false)}
+                className="p-1"
+              >
+                <Ionicons name="close" size={24} color={Colors.text} />
               </TouchableOpacity>
             </View>
-            <ScrollView contentContainerStyle={styles.modalScroll}>
+
+            <ScrollView showsVerticalScrollIndicator={false}>
               {paymentOptions.map((option) => (
                 <TouchableOpacity
                   key={option.id}
-                  style={[
-                    styles.optionCard,
-                    selectedPaymentMethod === option.id &&
-                      styles.optionCardSelected,
-                  ]}
+                  className={`flex-row items-center p-5 rounded-[24px] mb-4 border ${
+                    selectedPaymentMethod === option.id
+                      ? "bg-primary/10 border-primary"
+                      : "bg-background/50 border-border"
+                  }`}
                   onPress={() => {
                     setSelectedPaymentMethod(option.id);
                     setShowPaymentModal(false);
                   }}
                 >
-                  <View style={styles.optionRow}>
-                    <View style={styles.radioContainer}>
-                      <View
-                        style={[
-                          styles.radioInfo,
-                          selectedPaymentMethod === option.id
-                            ? styles.radioSelected
-                            : styles.radioUnselected,
-                        ]}
-                      >
-                        {selectedPaymentMethod === option.id && (
-                          <View style={styles.radioDot} />
-                        )}
-                      </View>
-                    </View>
-
-                    <View style={styles.optionContent}>
-                      <Text style={styles.optionLabel}>{option.label}</Text>
-                      <Text style={styles.optionSubLabel}>
-                        {option.subLabel}
-                      </Text>
+                  <View className="mr-5">
+                    <View
+                      className={`w-6 h-6 rounded-full border-2 items-center justify-center ${
+                        selectedPaymentMethod === option.id
+                          ? "border-primary"
+                          : "border-border"
+                      }`}
+                    >
+                      {selectedPaymentMethod === option.id && (
+                        <View className="w-3 h-3 rounded-full bg-primary" />
+                      )}
                     </View>
                   </View>
+
+                  <View className="flex-1">
+                    <Text
+                      className={`text-[15px] font-[800] ${selectedPaymentMethod === option.id ? "color-text" : "color-text"}`}
+                    >
+                      {option.label}
+                    </Text>
+                    <Text className="text-[12px] color-textSecondary font-[500] mt-0.5">
+                      {option.subLabel}
+                    </Text>
+                  </View>
+
+                  <Ionicons
+                    name={option.icon as any}
+                    size={22}
+                    color={
+                      selectedPaymentMethod === option.id
+                        ? Colors.primary
+                        : Colors.textSecondary
+                    }
+                  />
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -383,287 +416,3 @@ export default function BookingSummaryScreen() {
     </ScreenWrapper>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f9f9f9" },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-    backgroundColor: "#f9f9f9",
-  },
-  backButton: { padding: 5 },
-  headerTitle: { fontSize: 18, fontWeight: "bold", color: "#1a1a1a" },
-
-  // Map
-  mapContainer: {
-    height: 200,
-    marginHorizontal: 20,
-    borderRadius: 20,
-    overflow: "hidden",
-    marginTop: 10,
-    marginBottom: 20,
-    position: "relative",
-    // Shadow
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 5,
-  },
-  map: {
-    width: "100%",
-    height: "100%",
-  },
-  mapOverlay: {
-    position: "absolute",
-    bottom: 15,
-    left: 15,
-    right: 15,
-  },
-  shopPinCard: {
-    backgroundColor: "rgba(255, 255, 255, 0.95)",
-    borderRadius: 15,
-    padding: 12,
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  shopIconContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "#FFF9C4",
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 10,
-  },
-  pinShopName: { fontSize: 14, fontWeight: "bold", color: "#1a1a1a" },
-  pinShopAddress: { fontSize: 10, color: "#666", marginTop: 2 },
-
-  // Card
-  card: {
-    backgroundColor: "#fff",
-    borderRadius: 20,
-    marginHorizontal: 20,
-    marginBottom: 20,
-    padding: 20,
-    // Shadow
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 5,
-    elevation: 2,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#1a1a1a",
-    marginBottom: 15,
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 5,
-  },
-  iconBox: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: "#f5f5f5",
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 15,
-  },
-  rowContent: {
-    flex: 1,
-  },
-  label: { fontSize: 12, color: "#888", marginBottom: 2 },
-  value: { fontSize: 14, fontWeight: "600", color: "#1a1a1a" },
-  divider: {
-    height: 1,
-    backgroundColor: "#f0f0f0",
-    marginVertical: 12,
-    marginLeft: 51, // offset icon width
-  },
-
-  // Payment
-  paymentRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 10,
-  },
-  paymentLabel: { fontSize: 14, color: "#666" },
-  paymentValue: { fontSize: 14, fontWeight: "600", color: "#1a1a1a" },
-  totalDivider: {
-    height: 1,
-    backgroundColor: "#e0e0e0",
-    marginVertical: 12,
-    borderStyle: "dashed",
-    borderWidth: 1,
-    borderColor: "#e0e0e0",
-  },
-  totalTextLabel: { fontSize: 16, fontWeight: "bold", color: "#1a1a1a" },
-  totalTextValue: { fontSize: 18, fontWeight: "bold", color: "#1a1a1a" },
-
-  // Footer & Payment Selector
-  footer: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: "#fff",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    paddingBottom: 24,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    // Shadow
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: -5 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 20,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  paymentMethodSelector: {
-    flex: 1,
-    marginRight: 15,
-    justifyContent: "center",
-  },
-  payUsingRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 2,
-  },
-  payUsingText: {
-    fontSize: 10,
-    fontWeight: "bold",
-    color: "#888",
-    textTransform: "uppercase",
-  },
-  selectedMethodText: {
-    fontSize: 15,
-    fontWeight: "bold",
-    color: "#1a1a1a",
-  },
-  payButton: {
-    backgroundColor: "#C8F000",
-    borderRadius: 12,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    flex: 1.2, // Give button more space
-    height: 50,
-    justifyContent: "center",
-  },
-  payButtonDisabled: {
-    backgroundColor: "#f0f0f0",
-    opacity: 0.7,
-  },
-  payButtonContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  payButtonPriceContainer: {
-    flexDirection: "column",
-    alignItems: "flex-start",
-  },
-  payButtonPriceText: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#1a1a1a",
-  },
-  payButtonTotalLabel: {
-    fontSize: 10,
-    fontWeight: "bold",
-    color: "#1a1a1a",
-    opacity: 0.6,
-  },
-  payButtonActionContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  payButtonActionText: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#1a1a1a",
-  },
-
-  // Modal Styles
-  modalOverlay: {
-    flex: 1,
-    justifyContent: "flex-end",
-    backgroundColor: "rgba(0,0,0,0.5)",
-  },
-  modalBackdrop: {
-    flex: 1,
-  },
-  modalContent: {
-    backgroundColor: "#fff",
-    borderTopLeftRadius: 25,
-    borderTopRightRadius: 25,
-    paddingTop: 20,
-    paddingBottom: 40,
-    maxHeight: "70%",
-  },
-  modalHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    marginBottom: 20,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#1a1a1a",
-  },
-  modalScroll: {
-    paddingBottom: 20,
-  },
-  // Reusing Option Card Styles
-  optionCard: {
-    backgroundColor: "#fff",
-    borderRadius: 15,
-    marginHorizontal: 20,
-    marginBottom: 15,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: "#eee",
-    // Minimal shadow for list items
-  },
-  optionCardSelected: {
-    borderColor: "#84c95c",
-    backgroundColor: "#f8fff5",
-  },
-  optionRow: { flexDirection: "row", alignItems: "flex-start" },
-  radioContainer: { marginRight: 15, paddingTop: 2 },
-  radioInfo: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 2,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  radioUnselected: { borderColor: "#ddd" },
-  radioSelected: { borderColor: "#84c95c" },
-  radioDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: "#84c95c",
-  },
-  optionContent: { flex: 1 },
-  optionLabel: {
-    fontSize: 15,
-    fontWeight: "bold",
-    color: "#1a1a1a",
-    marginBottom: 2,
-  },
-  optionSubLabel: { fontSize: 12, color: "#666" },
-});

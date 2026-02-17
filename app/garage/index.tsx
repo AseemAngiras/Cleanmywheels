@@ -1,8 +1,6 @@
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Colors } from "@/constants/Colors";
-
-import { LinearGradient } from "expo-linear-gradient";
-import { useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   Alert,
   Animated,
@@ -13,14 +11,12 @@ import {
   LayoutAnimation,
   Modal,
   Platform,
-  ScrollView,
-  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  TouchableWithoutFeedback,
   UIManager,
   View,
+  ActivityIndicator,
 } from "react-native";
 
 import {
@@ -35,6 +31,7 @@ import { RootState } from "@/store";
 import { useSelector } from "react-redux";
 import AdminSubscriptionsScreen from "../(tabs)/admin/subscriptions";
 import { useRouter } from "expo-router";
+import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 
 if (
   Platform.OS === "android" &&
@@ -50,9 +47,12 @@ export default function MyCarsScreen() {
   const user = useSelector((state: RootState) => state.user.user);
   const isAdmin = user?.accountType === "Super Admin";
 
-  const { data: cars = [], isLoading } = useGetVehiclesQuery(undefined, {
-    skip: isAdmin,
-  });
+  const { data: cars = [], isLoading: isLoadingCars } = useGetVehiclesQuery(
+    undefined,
+    {
+      skip: isAdmin,
+    },
+  );
   const { data: subscriptions } = useGetMySubscriptionQuery(undefined, {
     skip: isAdmin,
   });
@@ -70,9 +70,7 @@ export default function MyCarsScreen() {
   const [number, setNumber] = useState("");
   const [expandedCarId, setExpandedCarId] = useState<string | null>(null);
 
-  if (isAdmin) {
-    return <AdminSubscriptionsScreen />;
-  }
+  if (isAdmin) return <AdminSubscriptionsScreen />;
 
   const toggleCard = (id: string) => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -89,7 +87,6 @@ export default function MyCarsScreen() {
       setType("");
       setNumber("");
     }
-
     setModalVisible(true);
     Animated.parallel([
       Animated.timing(slideAnim, {
@@ -128,32 +125,16 @@ export default function MyCarsScreen() {
       Alert.alert("Error", "Vehicle type and number are required");
       return;
     }
-
-    const vehicleNumberPattern = /^[A-Z]{2,3}\d{2}[A-Z]{1,2}\d{4}$/i;
     const cleanedNumber = number.trim().replace(/\s+/g, "").toUpperCase();
-
-    if (!vehicleNumberPattern.test(cleanedNumber)) {
-      Alert.alert(
-        "Invalid Vehicle Number",
-        "Please enter a valid vehicle number (e.g., CH01GH4321, PB10QH3210)",
-      );
-      return;
-    }
-
     const payload = {
       vehicleType: type,
       vehicleNo: cleanedNumber,
       isDefault: false,
     };
-
     try {
-      if (editingCarId) {
+      if (editingCarId)
         await updateVehicle({ id: editingCarId, data: payload }).unwrap();
-        Alert.alert("Success", "Vehicle updated");
-      } else {
-        await createVehicle(payload).unwrap();
-        Alert.alert("Success", "Vehicle added");
-      }
+      else await createVehicle(payload).unwrap();
       closeModal();
     } catch (err: any) {
       Alert.alert("Error", err?.data?.message || "Failed to save vehicle");
@@ -172,14 +153,10 @@ export default function MyCarsScreen() {
 
   const handleRemoveCar = (id: string) => {
     if (isVehicleSubscribed(id)) {
-      Alert.alert(
-        "Cannot Remove",
-        "This vehicle has an active subscription. Please cancel the subscription first to remove it.",
-      );
+      Alert.alert("Cannot Remove", "This vehicle has an active subscription.");
       return;
     }
-
-    Alert.alert("Remove Car", "Are you sure?", [
+    Alert.alert("Remove Car", "Are you sure you want to remove this vehicle?", [
       { text: "Cancel", style: "cancel" },
       {
         text: "Remove",
@@ -187,24 +164,18 @@ export default function MyCarsScreen() {
         onPress: async () => {
           try {
             await deleteVehicle(id).unwrap();
-          } catch (e: any) {
-            console.log("Delete failed", e);
-            Alert.alert(
-              "Cannot Remove",
-              e?.data?.message || "Failed to remove vehicle",
-            );
+          } catch {
+            Alert.alert("Error", "Failed to remove");
           }
         },
       },
     ]);
   };
 
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  const [isTypePickerVisible, setIsTypePickerVisible] = useState(false);
   const VEHICLE_TYPES = ["Sedan", "SUV", "Hatchback", "Two Wheeler"];
 
-  const getVehicleIconName = (type: string) => {
-    switch (type?.toLowerCase()) {
+  const getVehicleIconName = (typeValue: string) => {
+    switch (typeValue?.toLowerCase()) {
       case "hatchback":
         return "car-hatchback";
       case "sedan":
@@ -219,90 +190,82 @@ export default function MyCarsScreen() {
     }
   };
 
-  const handleDismiss = () => {
-    if (expandedCarId) {
-      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-      setExpandedCarId(null);
-    }
-    Keyboard.dismiss();
-  };
-
   const renderCar = ({ item }: { item: any }) => {
-    const isExpanded = expandedCarId === (item._id || item.id);
     const id = item._id || item.id;
+    const isExpanded = expandedCarId === id;
     const isSubscribed = isVehicleSubscribed(id);
 
     return (
       <TouchableOpacity
-        style={[styles.card, isExpanded && styles.cardExpanded]}
+        className={`mb-4 rounded-[28px] border overflow-hidden bg-card ${isExpanded ? "border-primary" : "border-border/50 shadow-sm"}`}
         activeOpacity={0.9}
         onPress={() => toggleCard(id)}
       >
-        <LinearGradient
-          colors={[Colors.card, Colors.card]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={{ padding: 20 }}
-        >
-          <View style={styles.cardHeader}>
-            <View style={styles.carInfo}>
-              <View
-                style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
-              >
-                <Text style={styles.carName}>{item.vehicleType}</Text>
+        <View className="p-5">
+          <View className="flex-row justify-between items-start mb-5">
+            <View className="flex-1">
+              <View className="flex-row items-center gap-2 mb-1">
+                <Text className="text-[18px] font-[800] color-text leading-tight">
+                  {item.vehicleType}
+                </Text>
                 {isSubscribed && (
-                  <View style={styles.premiumBadge}>
-                    <Text style={styles.premiumText}>SUBSCRIPTION</Text>
+                  <View className="bg-primary/10 px-2 py-0.5 rounded-md border border-primary/20">
+                    <Text className="text-[8px] font-[900] color-primary">
+                      SUBSCRIPTION
+                    </Text>
                   </View>
                 )}
               </View>
-              <Text style={styles.carType}>{item.vehicleType}</Text>
+              <Text className="text-[12px] color-textSecondary font-[700] uppercase tracking-widest">
+                {item.vehicleType}
+              </Text>
             </View>
-          </View>
-
-          <View style={styles.cardBody}>
-            <View style={styles.plateContainer}>
-              <View style={styles.plateInd}>
-                <Text style={styles.plateIndText}>IND</Text>
-              </View>
-              <Text style={styles.plateNumber}>{item.vehicleNo}</Text>
-            </View>
-
-            <View style={[styles.carImage, styles.imagePlaceholder]}>
+            <View className="bg-background w-12 h-12 rounded-2xl items-center justify-center">
               <MaterialCommunityIcons
                 name={getVehicleIconName(item.vehicleType) as any}
-                size={34}
-                color={Colors.textSecondary}
+                size={28}
+                color={isExpanded ? Colors.primary : Colors.textSecondary}
               />
             </View>
           </View>
 
+          <View className="flex-row items-center justify-between">
+            <View className="bg-white border-[1.5px] border-black rounded-lg overflow-hidden flex-row items-center h-10 px-3">
+              <View className="bg-[#003399] -ml-3 h-full px-2 justify-center">
+                <Text className="text-white text-[8px] font-[900]">IND</Text>
+              </View>
+              <Text className="text-black text-[16px] font-[900] tracking-[2px] ml-3">
+                {item.vehicleNo}
+              </Text>
+            </View>
+            {isExpanded ? (
+              <Ionicons name="chevron-up" size={20} color={Colors.primary} />
+            ) : (
+              <Ionicons
+                name="chevron-down"
+                size={20}
+                color={Colors.textSecondary}
+              />
+            )}
+          </View>
+
           {isExpanded && (
-            <View style={styles.cardFooter}>
+            <View className="mt-6 pt-5 border-t border-border/20 flex-row gap-3">
               <TouchableOpacity
-                style={[styles.actionBtn, styles.editBtn]}
+                className="flex-1 h-12 bg-background border border-border/50 rounded-xl flex-row items-center justify-center"
                 onPress={() => openModal(item)}
               >
                 <Ionicons name="create-outline" size={16} color={Colors.text} />
-                <Text style={styles.editText}>Edit Vehicle</Text>
+                <Text className="text-[13px] font-[700] color-text ml-2">
+                  Edit
+                </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={[
-                  styles.actionBtn,
-                  isSubscribed ? styles.disabledBtn : styles.removeBtn,
-                ]}
+                className={`flex-1 h-12 border rounded-xl flex-row items-center justify-center ${isSubscribed ? "bg-background border-border/30 opacity-50" : "bg-red-500/10 border-red-500/20"}`}
                 onPress={() => {
-                  if (isSubscribed) {
-                    Alert.alert(
-                      "Cannot Remove",
-                      "This vehicle has an active subscription. Please cancel the subscription first to remove it.",
-                    );
-                    return;
-                  }
-                  handleRemoveCar(id);
+                  if (!isSubscribed) handleRemoveCar(id);
                 }}
-                activeOpacity={isSubscribed ? 1 : 0.7}
               >
                 <Ionicons
                   name="trash-outline"
@@ -310,534 +273,195 @@ export default function MyCarsScreen() {
                   color={isSubscribed ? Colors.textSecondary : Colors.error}
                 />
                 <Text
-                  style={[
-                    styles.removeText,
-                    isSubscribed && { color: Colors.textSecondary },
-                  ]}
+                  className={`text-[13px] font-[700] ml-2 ${isSubscribed ? "color-textSecondary" : "color-error"}`}
                 >
                   Remove
                 </Text>
               </TouchableOpacity>
             </View>
           )}
-        </LinearGradient>
+        </View>
       </TouchableOpacity>
     );
   };
 
   return (
-    <TouchableWithoutFeedback onPress={handleDismiss} accessible={false}>
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity
-            onPress={() => router.back()}
-            style={styles.backButton}
-          >
-            <Ionicons name="arrow-back" size={24} color={Colors.text} />
-          </TouchableOpacity>
-          <View>
-            <Text style={styles.headerTitle}>My Garage</Text>
-            <Text style={styles.headerSubtitle}>
-              {cars.length} {cars.length === 1 ? "Vehicle" : "Vehicles"} Managed
-            </Text>
-          </View>
-
-          <TouchableOpacity style={styles.addBtn} onPress={() => openModal()}>
-            <Ionicons name="add" size={24} color={Colors.black} />
-          </TouchableOpacity>
+    <ScreenWrapper backgroundColor={Colors.background}>
+      <View className="flex-row justify-between items-center px-6 py-5 bg-background">
+        <TouchableOpacity
+          onPress={() => router.back()}
+          className="p-2 bg-card rounded-xl border border-border/50"
+        >
+          <Ionicons name="chevron-back" size={20} color={Colors.text} />
+        </TouchableOpacity>
+        <View className="items-center">
+          <Text className="text-[18px] font-[800] color-text tracking-tight">
+            My Garage
+          </Text>
+          <Text className="text-[10px] color-textSecondary font-[800] uppercase tracking-widest mt-0.5">
+            {cars.length} {cars.length === 1 ? "Vehicle" : "Vehicles"} Saved
+          </Text>
         </View>
+        <TouchableOpacity
+          className="w-10 h-10 bg-primary rounded-xl items-center justify-center shadow-lg shadow-primary/20"
+          onPress={() => openModal()}
+        >
+          <Ionicons name="add" size={24} color="#000" />
+        </TouchableOpacity>
+      </View>
 
-        <FlatList
-          data={cars}
-          keyExtractor={(item) => item._id || item.id}
-          renderItem={renderCar}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 100 }}
-          onScrollBeginDrag={handleDismiss}
-          ListEmptyComponent={
-            <View style={styles.emptyState}>
-              <Ionicons
-                name="car-sport-outline"
-                size={64}
-                color={Colors.textSecondary}
-              />
-              <Text style={styles.emptyText}>No cars added yet</Text>
-              <TouchableOpacity onPress={() => openModal()}>
-                <Text style={styles.emptyAction}>Add your first vehicle</Text>
+      <FlatList
+        data={cars}
+        keyExtractor={(item) => item._id || item.id}
+        renderItem={renderCar}
+        contentContainerStyle={{ padding: 20, paddingBottom: 120 }}
+        showsVerticalScrollIndicator={false}
+        ListEmptyComponent={
+          !isLoadingCars ? (
+            <View className="items-center justify-center mt-20">
+              <View className="w-32 h-32 bg-card rounded-[48px] items-center justify-center mb-8 border border-border/30">
+                <Ionicons
+                  name="car-outline"
+                  size={64}
+                  color={Colors.textSecondary}
+                />
+              </View>
+              <Text className="text-[20px] font-[800] color-text text-center">
+                Your garage is empty
+              </Text>
+              <Text className="text-[14px] color-textSecondary text-center mt-2 leading-5 px-10">
+                Add your vehicles to enjoy faster bookings and personalized
+                service.
+              </Text>
+              <TouchableOpacity
+                className="mt-10 bg-primary px-8 py-4 rounded-2xl shadow-lg shadow-primary/30"
+                onPress={() => openModal()}
+              >
+                <Text className="text-[15px] font-[900] color-black uppercase tracking-tight">
+                  Add New Vehicle
+                </Text>
               </TouchableOpacity>
             </View>
-          }
-        />
+          ) : (
+            <View className="flex-1 items-center justify-center py-20">
+              <ActivityIndicator color={Colors.primary} size="large" />
+            </View>
+          )
+        }
+      />
 
-        {/* ADD/EDIT MODAL */}
-        <Modal visible={modalVisible} transparent animationType="none">
-          <View style={styles.modalContainer}>
-            <Animated.View style={[styles.backdrop, { opacity: fadeAnim }]}>
-              <TouchableOpacity
-                style={StyleSheet.absoluteFill}
-                onPress={closeModal}
-              />
-            </Animated.View>
+      {/* FAB for Adding (Optional, depending on UI Preference) */}
+      {!modalVisible && cars.length > 0 && (
+        <TouchableOpacity
+          className="absolute bottom-10 right-6 w-16 h-16 bg-primary rounded-full items-center justify-center shadow-xl shadow-primary/40 z-50 border-[4px] border-background"
+          onPress={() => openModal()}
+        >
+          <Ionicons name="add" size={32} color="#000" />
+        </TouchableOpacity>
+      )}
 
-            <Animated.View
-              style={[
-                styles.bottomSheet,
-                { transform: [{ translateY: slideAnim }] },
-              ]}
-            >
-              <View style={styles.sheetHeader}>
-                <Text style={styles.sheetTitle}>
-                  {editingCarId ? "Edit Vehicle" : "Add Vehicle"}
+      {/* Add/Edit Modal */}
+      <Modal visible={modalVisible} transparent animationType="none">
+        <View className="flex-1 bg-black/60 justify-end">
+          <TouchableOpacity className="absolute inset-0" onPress={closeModal} />
+          <Animated.View
+            style={{
+              transform: [{ translateY: slideAnim }],
+              opacity: fadeAnim,
+            }}
+            className="bg-card rounded-t-[44px] p-8 pb-12 border-t border-border shadow-2xl"
+          >
+            <View className="w-14 h-1.5 bg-border/50 rounded-full self-center mb-10" />
+
+            <View className="flex-row justify-between items-center mb-8">
+              <View>
+                <Text className="text-[26px] font-[900] color-text tracking-tighter">
+                  {editingCarId ? "Update Vehicle" : "Add New Vehicle"}
                 </Text>
-                <TouchableOpacity onPress={closeModal} style={styles.closeBtn}>
-                  <Ionicons name="close" size={20} color={Colors.text} />
-                </TouchableOpacity>
+                <Text className="text-[13px] color-textSecondary font-[600] mt-1">
+                  Enter your vehicle details below
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={closeModal}
+                className="w-10 h-10 bg-background rounded-full items-center justify-center border border-border"
+              >
+                <Ionicons name="close" size={20} color={Colors.text} />
+              </TouchableOpacity>
+            </View>
+
+            <View className="gap-6">
+              <View>
+                <Text className="text-[11px] font-[800] color-textSecondary uppercase tracking-widest mb-4 ml-1">
+                  Vehicle Type
+                </Text>
+                <View className="flex-row flex-wrap justify-between">
+                  {VEHICLE_TYPES.map((vType) => {
+                    const isSelected = type === vType;
+                    return (
+                      <TouchableOpacity
+                        key={vType}
+                        className={`w-[48%] mb-4 p-4 rounded-2xl flex-row items-center border ${
+                          isSelected
+                            ? "bg-primary/10 border-primary shadow-sm"
+                            : "bg-background border-border/50"
+                        }`}
+                        onPress={() => setType(vType)}
+                      >
+                        <MaterialCommunityIcons
+                          name={getVehicleIconName(vType) as any}
+                          size={20}
+                          color={
+                            isSelected ? Colors.primary : Colors.textSecondary
+                          }
+                          style={{ marginRight: 10 }}
+                        />
+                        <Text
+                          className={`text-[13px] font-[800] ${isSelected ? "color-text" : "color-textSecondary"}`}
+                        >
+                          {vType}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
               </View>
 
-              <ScrollView contentContainerStyle={styles.formScroll}>
-                <View style={styles.limeAccentBox}>
-                  <Ionicons name="car-sport" size={24} color="#1a1a1a" />
-                  <Text style={styles.limeBoxText}>
-                    {editingCarId
-                      ? "Update your vehicle details"
-                      : "Enter details for your new ride"}
-                  </Text>
-                </View>
-
-                {/* Removed Name Input */}
-
-                <View style={styles.row}>
-                  <View style={{ flex: 1, marginRight: 8 }}>
-                    <Text style={styles.fieldLabel}>Type</Text>
-                    <TouchableOpacity
-                      style={styles.darkInput}
-                      onPress={() => setIsTypePickerVisible(true)}
-                    >
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                        }}
-                      >
-                        <Text
-                          style={{
-                            color: type ? Colors.text : Colors.textSecondary,
-                            fontSize: 16,
-                          }}
-                        >
-                          {type || "Select Type"}
-                        </Text>
-                        <Ionicons name="chevron-down" size={20} color="#666" />
-                      </View>
-                    </TouchableOpacity>
-                  </View>
-                  <View style={{ flex: 1, marginLeft: 8 }}>
-                    <Text style={styles.fieldLabel}>Reg. Number</Text>
-                    <TextInput
-                      placeholder="DL10AB1234"
-                      placeholderTextColor={Colors.textSecondary}
-                      value={number}
-                      onChangeText={setNumber}
-                      style={styles.darkInput}
-                      autoCapitalize="characters"
-                    />
-                  </View>
-                </View>
-
-                <TouchableOpacity
-                  style={styles.saveBtn}
-                  onPress={handleSaveCar}
-                >
-                  <Text style={styles.saveBtnText}>
-                    {editingCarId ? "Update Vehicle" : "Add Vehicle"}
-                  </Text>
-                  <Ionicons
-                    name="arrow-forward"
-                    size={18}
-                    color={Colors.black}
+              <View>
+                <Text className="text-[11px] font-[800] color-textSecondary uppercase tracking-widest mb-4 ml-1">
+                  Registration Number
+                </Text>
+                <View className="bg-background border border-border rounded-2xl px-5 h-16 flex-row items-center">
+                  <MaterialCommunityIcons
+                    name="numeric"
+                    size={24}
+                    color={Colors.textSecondary}
+                    style={{ marginRight: 12 }}
                   />
-                </TouchableOpacity>
-              </ScrollView>
-            </Animated.View>
-          </View>
-        </Modal>
+                  <TextInput
+                    className="flex-1 text-[16px] color-text font-[700]"
+                    placeholder="E.G. MH01CK1234"
+                    placeholderTextColor="#64748B"
+                    value={number}
+                    onChangeText={setNumber}
+                    autoCapitalize="characters"
+                    maxLength={10}
+                  />
+                </View>
+              </View>
 
-        {/* TYPE PICKER MODAL */}
-        <Modal visible={isTypePickerVisible} transparent animationType="fade">
-          <View style={styles.pickerOverlay}>
-            <TouchableOpacity
-              style={StyleSheet.absoluteFill}
-              onPress={() => setIsTypePickerVisible(false)}
-            />
-            <View style={styles.pickerContainer}>
-              <Text style={styles.pickerTitle}>Select Vehicle Type</Text>
-              <FlatList
-                data={VEHICLE_TYPES}
-                keyExtractor={(item) => item}
-                renderItem={({ item }) => (
-                  <TouchableOpacity
-                    style={[
-                      styles.pickerItem,
-                      type === item && styles.pickerItemSelected,
-                    ]}
-                    onPress={() => {
-                      setType(item);
-                      setIsTypePickerVisible(false);
-                    }}
-                  >
-                    <Text
-                      style={[
-                        styles.pickerItemText,
-                        type === item && styles.pickerItemTextSelected,
-                      ]}
-                    >
-                      {item}
-                    </Text>
-                    {type === item && (
-                      <Ionicons name="checkmark" size={20} color="#000" />
-                    )}
-                  </TouchableOpacity>
-                )}
-                style={{ maxHeight: 300 }}
-              />
+              <TouchableOpacity
+                className="bg-primary h-14 rounded-2xl items-center justify-center shadow-lg shadow-primary/30 mt-4"
+                onPress={handleSaveCar}
+              >
+                <Text className="text-[16px] font-[900] color-black uppercase tracking-tight">
+                  {editingCarId ? "Update Garage" : "Add to Garage"}
+                </Text>
+              </TouchableOpacity>
             </View>
-          </View>
-        </Modal>
-      </View>
-    </TouchableWithoutFeedback>
+          </Animated.View>
+        </View>
+      </Modal>
+    </ScreenWrapper>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-    paddingHorizontal: 20,
-    paddingTop: 60,
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 24,
-  },
-  backButton: {
-    marginRight: 10,
-    padding: 8,
-    borderRadius: 8,
-    backgroundColor: Colors.card,
-  },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: "800",
-    color: Colors.text,
-    letterSpacing: -0.5,
-  },
-  headerSubtitle: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    fontWeight: "500",
-    marginTop: 2,
-  },
-  addBtn: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: Colors.primary,
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-
-  card: {
-    borderRadius: 24,
-    marginBottom: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 2,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    overflow: "hidden",
-  },
-  cardExpanded: {
-    borderColor: Colors.primary,
-    borderWidth: 1.5,
-  },
-  cardHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: 16,
-  },
-  carInfo: { flex: 1 },
-  carName: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: Colors.text,
-    marginBottom: 2,
-  },
-  carType: {
-    fontSize: 13,
-    color: Colors.textSecondary,
-    fontWeight: "600",
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-  },
-  cardBody: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 0,
-  },
-  plateContainer: {
-    flexDirection: "row",
-    backgroundColor: "#fff",
-    borderWidth: 2,
-    borderColor: "#000",
-    borderRadius: 6,
-    overflow: "hidden",
-    alignItems: "center",
-    height: 36,
-  },
-  plateInd: {
-    backgroundColor: "#003399",
-    height: "100%",
-    justifyContent: "center",
-    paddingHorizontal: 4,
-  },
-  plateIndText: {
-    color: "#fff",
-    fontSize: 8,
-    fontWeight: "bold",
-  },
-  plateNumber: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#000",
-    paddingHorizontal: 8,
-    letterSpacing: 1,
-  },
-  carImage: {
-    width: 80,
-    height: 50,
-    borderRadius: 8,
-    resizeMode: "cover",
-  },
-  imagePlaceholder: {
-    backgroundColor: Colors.card,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-
-  cardFooter: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "flex-start",
-    marginTop: 20,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-    gap: 12,
-  },
-  actionBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 20,
-  },
-  editBtn: {
-    backgroundColor: Colors.card,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  removeBtn: {
-    backgroundColor: "rgba(239, 68, 68, 0.1)",
-    borderWidth: 1,
-    borderColor: "rgba(239, 68, 68, 0.2)",
-  },
-  disabledBtn: {
-    backgroundColor: Colors.background,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  editText: {
-    marginLeft: 6,
-    fontSize: 13,
-    fontWeight: "600",
-    color: Colors.text,
-  },
-  removeText: {
-    marginLeft: 6,
-    fontSize: 13,
-    fontWeight: "600",
-    color: Colors.error,
-  },
-
-  emptyState: {
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 80,
-  },
-  emptyText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: Colors.textSecondary,
-    fontWeight: "500",
-  },
-  emptyAction: {
-    marginTop: 8,
-    fontSize: 14,
-    color: Colors.text,
-    fontWeight: "700",
-    textDecorationLine: "underline",
-  },
-
-  modalContainer: {
-    flex: 1,
-    justifyContent: "flex-end",
-  },
-  backdrop: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.6)",
-  },
-  bottomSheet: {
-    backgroundColor: Colors.card,
-    borderTopLeftRadius: 32,
-    borderTopRightRadius: 32,
-    padding: 24,
-    paddingBottom: 40,
-    height: "50%",
-  },
-  sheetHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  sheetTitle: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: Colors.text,
-  },
-  closeBtn: {
-    padding: 4,
-    backgroundColor: "rgba(255,255,255,0.1)",
-    borderRadius: 20,
-  },
-  formScroll: {
-    paddingBottom: 20,
-  },
-  limeAccentBox: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: Colors.primary,
-    padding: 16,
-    borderRadius: 20,
-    marginBottom: 24,
-  },
-  limeBoxText: {
-    marginLeft: 12,
-    fontSize: 14,
-    fontWeight: "700",
-    color: Colors.black,
-    flex: 1,
-  },
-  fieldLabel: {
-    fontSize: 13,
-    color: Colors.textSecondary,
-    marginBottom: 8,
-    marginLeft: 4,
-    fontWeight: "500",
-  },
-  darkInput: {
-    backgroundColor: Colors.background,
-    borderRadius: 16,
-    padding: 16,
-    fontSize: 16,
-    color: Colors.text,
-    marginBottom: 16,
-  },
-  row: {
-    flexDirection: "row",
-  },
-  saveBtn: {
-    backgroundColor: Colors.primary,
-    borderRadius: 20,
-    paddingVertical: 18,
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 4,
-  },
-  saveBtnText: {
-    color: Colors.black,
-    fontSize: 16,
-    fontWeight: "800",
-    letterSpacing: 0.5,
-  },
-  premiumBadge: {
-    backgroundColor: Colors.primary,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  premiumText: {
-    fontSize: 10,
-    fontWeight: "bold",
-    color: Colors.black,
-  },
-
-  // PICKER
-  pickerOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "center",
-    padding: 24,
-  },
-  pickerContainer: {
-    backgroundColor: Colors.card,
-    borderRadius: 24,
-    padding: 24,
-  },
-  pickerTitle: {
-    fontSize: 20,
-    fontWeight: "700",
-    marginBottom: 16,
-    textAlign: "center",
-    color: Colors.text,
-  },
-  pickerItem: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
-  pickerItemSelected: {
-    backgroundColor: "rgba(76, 175, 80, 0.1)",
-    marginLeft: -24,
-    marginRight: -24,
-    paddingHorizontal: 24,
-  },
-  pickerItemText: {
-    fontSize: 16,
-    color: Colors.text,
-  },
-  pickerItemTextSelected: {
-    color: Colors.success,
-    fontWeight: "600",
-  },
-});

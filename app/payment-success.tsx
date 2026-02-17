@@ -1,9 +1,8 @@
-import { Colors } from "@/constants/Colors";
 import { useLazyGetBookingByIdQuery } from "@/store/api/bookingApi";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { Text, View, StyleSheet, ActivityIndicator } from "react-native";
+import { Text, View, ActivityIndicator } from "react-native";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 
 export default function PaymentSuccessBridge() {
@@ -60,12 +59,12 @@ export default function PaymentSuccessBridge() {
 
   if (error) {
     return (
-      <ScreenWrapper style={styles.container} statusBarStyle="light-content">
-        <View style={styles.content}>
-          <Ionicons name="alert-circle" size={60} color={Colors.error} />
-          <Text style={styles.errorText}>{error}</Text>
+      <ScreenWrapper className="bg-background" statusBarStyle="light-content">
+        <View className="flex-1 justify-center items-center p-5">
+          <Ionicons name="alert-circle" size={60} color="#EF4444" />
+          <Text className="mt-5 text-lg text-text text-center">{error}</Text>
           <Text
-            style={styles.retryText}
+            className="mt-5 text-base text-primary underline"
             onPress={() => router.replace("/(tabs)/home")}
           >
             Go back to Home
@@ -76,41 +75,13 @@ export default function PaymentSuccessBridge() {
   }
 
   return (
-    <ScreenWrapper style={styles.container} statusBarStyle="light-content">
-      <View style={styles.content}>
-        <ActivityIndicator size="large" color={Colors.primary} />
-        <Text style={styles.loadingText}>Finalizing your booking...</Text>
+    <ScreenWrapper className="bg-background" statusBarStyle="light-content">
+      <View className="flex-1 justify-center items-center p-5">
+        <ActivityIndicator size="large" color="#C8F000" />
+        <Text className="mt-5 text-base text-text">
+          Finalizing your booking...
+        </Text>
       </View>
     </ScreenWrapper>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  content: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-  },
-  loadingText: {
-    marginTop: 20,
-    fontSize: 16,
-    color: Colors.text,
-  },
-  errorText: {
-    marginTop: 20,
-    fontSize: 18,
-    color: Colors.text,
-    textAlign: "center",
-  },
-  retryText: {
-    marginTop: 20,
-    fontSize: 16,
-    color: Colors.primary,
-    textDecorationLine: "underline",
-  },
-});

@@ -3,7 +3,6 @@ import React, { useState } from "react";
 import {
   ActivityIndicator,
   Alert,
-  StyleSheet,
   Text,
   TouchableOpacity,
   View,
@@ -15,6 +14,7 @@ import {
   useVerifyAddonPaymentMutation,
   useVerifySubscriptionMutation,
 } from "@/store/api/subscriptionApi";
+import { Colors } from "@/constants/Colors";
 
 export default function PaymentWebViewScreen() {
   const router = useRouter();
@@ -178,91 +178,55 @@ export default function PaymentWebViewScreen() {
   };
 
   return (
-    <ScreenWrapper style={styles.container} backgroundColor="#fff">
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.closeBtn}>
-          <Ionicons name="close" size={26} color="#000" />
+    <ScreenWrapper
+      className="flex-1 bg-background"
+      statusBarStyle="dark-content"
+    >
+      {/* Header */}
+      <View className="flex-row items-center justify-between px-5 py-4 bg-background border-b border-border/50">
+        <TouchableOpacity
+          onPress={() => router.back()}
+          className="w-10 h-10 items-center justify-center rounded-full bg-card border border-border/50"
+          activeOpacity={0.8}
+        >
+          <Ionicons name="close" size={24} color={Colors.text} />
         </TouchableOpacity>
-        <Text style={styles.title}>Secure Payment</Text>
-        <View style={{ width: 26 }} />
+        <View className="flex-row items-center gap-2">
+          <Ionicons name="lock-closed" size={16} color={Colors.primary} />
+          <Text className="text-[17px] font-[900] color-text tracking-tight">
+            Secure Payment
+          </Text>
+        </View>
+        <View className="w-10" />
       </View>
 
-      <WebView
-        source={{ uri: paymentUrl }}
-        style={{ flex: 1 }}
-        onLoadStart={() => setIsLoading(true)}
-        onLoadEnd={() => setIsLoading(false)}
-        onNavigationStateChange={handleNavigationStateChange}
-        onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
-        originWhitelist={["*"]}
-      />
+      {/* WebView Container */}
+      <View className="flex-1 bg-white">
+        <WebView
+          source={{ uri: paymentUrl }}
+          style={{ flex: 1 }}
+          onLoadStart={() => setIsLoading(true)}
+          onLoadEnd={() => setIsLoading(false)}
+          onNavigationStateChange={handleNavigationStateChange}
+          onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
+          originWhitelist={["*"]}
+        />
+      </View>
 
+      {/* Loading Overlay */}
       {isLoading && (
-        <View style={styles.loader}>
-          <ActivityIndicator size="large" color="#C8F000" />
+        <View className="absolute inset-0 bg-background/80 items-center justify-center z-50">
+          <View className="bg-card p-8 rounded-[40px] border border-border/50 items-center shadow-2xl">
+            <ActivityIndicator size="large" color={Colors.primary} />
+            <Text className="text-[15px] font-[800] color-text mt-6 uppercase tracking-widest text-center">
+              {verifying ? "Verifying Transaction" : "Loading Payment Hub"}
+            </Text>
+            <Text className="text-[11px] color-textSecondary font-[500] mt-2 text-center px-4">
+              Please do not refresh or close the app
+            </Text>
+          </View>
         </View>
       )}
     </ScreenWrapper>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
-  },
-  closeBtn: { padding: 5 },
-  title: { fontSize: 18, fontWeight: "bold" },
-  loader: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(255,255,255,0.8)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  successContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 24,
-  },
-  successIconBox: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: "#4CAF50",
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 24,
-  },
-  successTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#1a1a1a",
-    marginBottom: 8,
-  },
-  successSubtitle: {
-    fontSize: 16,
-    color: "#666",
-    textAlign: "center",
-    marginBottom: 32,
-  },
-  continueBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#D1F803",
-    paddingVertical: 16,
-    paddingHorizontal: 32,
-    borderRadius: 16,
-    gap: 8,
-  },
-  continueBtnText: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#000",
-  },
-});

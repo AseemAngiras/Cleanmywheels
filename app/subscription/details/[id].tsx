@@ -1,11 +1,10 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Colors } from "@/constants/Colors";
-import { useMemo } from "react";
+import React, { useMemo } from "react";
 import {
   ActivityIndicator,
   FlatList,
-  StyleSheet,
   Text,
   TouchableOpacity,
   View,
@@ -84,45 +83,55 @@ export default function SubscriptionDetailsScreen() {
       nextService.isNext = true;
     }
 
-    return sortedLogs.sort((a, b) => a.date.getTime() - b.date.getTime()); // Return Oldest first for display
+    return sortedLogs.sort((a, b) => a.date.getTime() - b.date.getTime());
   }, [subscription]);
 
   if (isLoading || !subscription) {
     return (
-      <View style={[styles.container, styles.center]}>
+      <View className="flex-1 bg-background items-center justify-center">
         <ActivityIndicator size="large" color={Colors.primary} />
       </View>
     );
   }
 
   const renderLogItem = ({ item }: { item: any }) => (
-    <View style={styles.logCard}>
-      <View style={styles.logLeft}>
+    <View className="flex-row mb-0">
+      <View className="items-center mr-4 w-5">
         <View
-          style={[
-            styles.timelineDot,
-            (item.status === "Completed" || item.isNext) && styles.dotActive,
-          ]}
+          className={`w-3 h-3 rounded-full z-10 ${
+            item.status === "Completed" || item.isNext
+              ? "bg-primary"
+              : "bg-border"
+          }`}
         />
-        <View style={styles.timelineLine} />
+        <View className="w-[2px] flex-1 bg-border my-1" />
       </View>
-      <View style={styles.logContent}>
-        <View style={styles.logHeader}>
-          <Text style={styles.logDate}>{item.date.toDateString()}</Text>
+      <View className="flex-1 bg-card rounded-[24px] p-4 mb-4 border border-border">
+        <View className="flex-row justify-between mb-2 items-center">
+          <Text className="text-[14px] font-[700] color-text">
+            {item.date.toDateString()}
+          </Text>
           <View
-            style={[
-              styles.statusTag,
-              item.status === "Completed" ? styles.bgGreen : styles.bgGrey,
-            ]}
+            className={`px-2.5 py-1 rounded-full ${
+              item.status === "Completed" ? "bg-green-500/10" : "bg-background"
+            }`}
           >
-            <Text style={styles.statusText}>{item.status}</Text>
+            <Text
+              className={`text-[10px] font-[800] uppercase ${item.status === "Completed" ? "color-green-500" : "color-textSecondary"}`}
+            >
+              {item.status}
+            </Text>
           </View>
         </View>
-        <Text style={styles.serviceName}>Daily Wash Service</Text>
+        <Text className="text-[15px] color-text font-[600]">
+          Daily Wash Service
+        </Text>
 
         {item.addons && item.addons.length > 0 && (
-          <View style={styles.addonsContainer}>
-            <Text style={styles.addonsLabel}>Add-ons Purchased:</Text>
+          <View className="mt-3 pt-3 border-t border-border/50">
+            <Text className="text-[11px] font-[700] color-textSecondary mb-2 tracking-widest uppercase">
+              Add-ons Purchased
+            </Text>
             {(() => {
               const uniqueAddonsMap = new Map();
               item.addons.forEach((addon: any) => {
@@ -131,14 +140,16 @@ export default function SubscriptionDetailsScreen() {
               const uniqueAddons = Array.from(uniqueAddonsMap.values());
 
               return uniqueAddons.map((addon: any, idx: number) => (
-                <View key={String(idx)} style={styles.addonRow}>
-                  <Ionicons
-                    name="add-circle-outline"
-                    size={16}
-                    color={Colors.textSecondary}
-                  />
-                  <Text style={styles.addonText}>
-                    {addon.name} - ₹{addon.price}
+                <View
+                  key={String(idx)}
+                  className="flex-row items-center gap-2 mb-1"
+                >
+                  <Ionicons name="sparkles" size={12} color={Colors.primary} />
+                  <Text className="text-[13px] color-text font-[500]">
+                    {addon.name} -{" "}
+                    <Text className="color-primary font-[700]">
+                      ₹{addon.price}
+                    </Text>
                   </Text>
                 </View>
               ));
@@ -150,163 +161,76 @@ export default function SubscriptionDetailsScreen() {
   );
 
   return (
-    <ScreenWrapper style={styles.container} backgroundColor={Colors.background}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={24} color={Colors.text} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Subscription Details</Text>
-      </View>
+    <ScreenWrapper
+      backgroundColor={Colors.background}
+      statusBarStyle="light-content"
+    >
+      <View className="flex-1 bg-background">
+        <View className="flex-row items-center px-5 pt-4 pb-6 bg-card border-b border-border/50">
+          <TouchableOpacity
+            onPress={() => router.back()}
+            className="w-10 h-10 rounded-full bg-background items-center justify-center border border-border"
+          >
+            <Ionicons name="arrow-back" size={20} color={Colors.text} />
+          </TouchableOpacity>
+          <Text className="text-[20px] font-[700] color-text ml-4">
+            Subscription Log
+          </Text>
+        </View>
 
-      <View style={styles.summaryCard}>
-        <View style={styles.carRow}>
-          <View style={styles.iconBox}>
-            <Ionicons name="car-sport" size={24} color={Colors.black} />
+        <View className="m-5 bg-card rounded-[32px] p-5 shadow-sm border border-border">
+          <View className="flex-row items-center mb-5">
+            <View className="w-12 h-12 rounded-full bg-primary items-center justify-center mr-4">
+              <Ionicons name="car-sport" size={24} color="#000" />
+            </View>
+            <View>
+              <Text className="text-[18px] font-[800] color-text">
+                {subscription.vehicle?.brand || "Vehicle"}
+              </Text>
+              <Text className="text-[14px] font-[600] color-textSecondary">
+                {subscription.vehicle?.vehicleNo || "No Number"}
+              </Text>
+            </View>
           </View>
-          <View>
-            <Text style={styles.vehicleType}>
-              {subscription.vehicle?.brand || "Vehicle"}
-            </Text>
-            <Text style={styles.vehicleNo}>
-              {subscription.vehicle?.vehicleNo || "No Number"}
-            </Text>
+
+          <View className="h-[1px] bg-border mb-5" />
+
+          <View className="flex-row justify-between">
+            <View>
+              <Text className="text-[11px] font-[700] color-textSecondary mb-1 tracking-widest uppercase">
+                Plan
+              </Text>
+              <Text className="text-[15px] font-[700] color-text">
+                {subscription.plan?.name || "Monthly"}
+              </Text>
+            </View>
+            <View className="items-end">
+              <Text className="text-[11px] font-[700] color-textSecondary mb-1 tracking-widest uppercase">
+                Expiring On
+              </Text>
+              <Text className="text-[15px] font-[700] color-text">
+                {new Date(subscription.endDate).toLocaleDateString("en-IN", {
+                  day: "numeric",
+                  month: "short",
+                  year: "numeric",
+                })}
+              </Text>
+            </View>
           </View>
         </View>
 
-        <View style={styles.divider} />
+        <Text className="ml-5 text-[18px] font-[700] color-text mb-4">
+          Service Timeline
+        </Text>
 
-        <View style={styles.statRow}>
-          <View>
-            <Text style={styles.statLabel}>Plan</Text>
-            <Text style={styles.statValue}>
-              {subscription.plan?.name || "Monthly"}
-            </Text>
-          </View>
-          <View>
-            <Text style={styles.statLabel}>Expiring On</Text>
-            <Text style={styles.statValue}>
-              {new Date(subscription.endDate).toLocaleDateString()}
-            </Text>
-          </View>
-        </View>
+        <FlatList
+          data={dailyLogs}
+          renderItem={renderLogItem}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }}
+          showsVerticalScrollIndicator={false}
+        />
       </View>
-
-      <Text style={styles.sectionTitle}>Service History</Text>
-
-      <FlatList
-        data={dailyLogs}
-        renderItem={renderLogItem}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-      />
     </ScreenWrapper>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
-  center: { justifyContent: "center", alignItems: "center" },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 20,
-    backgroundColor: Colors.card,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
-  backBtn: { marginRight: 16 },
-  headerTitle: { fontSize: 20, fontWeight: "bold", color: Colors.text },
-
-  summaryCard: {
-    margin: 20,
-    backgroundColor: Colors.card,
-    borderRadius: 20,
-    padding: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 2,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  carRow: { flexDirection: "row", alignItems: "center", marginBottom: 16 },
-  iconBox: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: Colors.primary,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 16,
-  },
-  vehicleType: { fontSize: 18, fontWeight: "bold", color: Colors.text },
-  vehicleNo: { fontSize: 14, color: Colors.textSecondary },
-  divider: { height: 1, backgroundColor: Colors.border, marginBottom: 16 },
-  statRow: { flexDirection: "row", justifyContent: "space-between" },
-  statLabel: { fontSize: 12, color: Colors.textSecondary, marginBottom: 4 },
-  statValue: { fontSize: 16, fontWeight: "600", color: Colors.text },
-
-  sectionTitle: {
-    marginLeft: 20,
-    fontSize: 18,
-    fontWeight: "bold",
-    color: Colors.text,
-    marginBottom: 16,
-  },
-
-  listContent: { paddingHorizontal: 20, paddingBottom: 40 },
-  logCard: { flexDirection: "row", marginBottom: 0 },
-  logLeft: { alignItems: "center", marginRight: 16, width: 20 },
-  timelineDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: Colors.border,
-    zIndex: 2,
-  },
-  dotActive: { backgroundColor: Colors.primary },
-  timelineLine: {
-    width: 2,
-    flex: 1,
-    backgroundColor: Colors.border,
-    marginVertical: 4,
-  },
-
-  logContent: {
-    flex: 1,
-    backgroundColor: Colors.card,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  logHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 8,
-  },
-  logDate: { fontSize: 14, fontWeight: "bold", color: Colors.text },
-  statusTag: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4 },
-  bgGreen: { backgroundColor: "rgba(76, 175, 80, 0.1)" },
-  bgGrey: { backgroundColor: Colors.background },
-  statusText: { fontSize: 10, fontWeight: "bold", color: Colors.text },
-  serviceName: { fontSize: 16, color: Colors.text, fontWeight: "500" },
-
-  addonsContainer: {
-    marginTop: 12,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-  },
-  addonsLabel: { fontSize: 12, color: Colors.textSecondary, marginBottom: 6 },
-  addonRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    marginBottom: 4,
-  },
-  addonText: { fontSize: 13, color: Colors.text },
-});

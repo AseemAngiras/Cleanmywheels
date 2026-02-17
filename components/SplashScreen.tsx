@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { StyleSheet, View } from "react-native";
+import { View } from "react-native";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -48,36 +48,19 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
   }, []);
 
   return (
-    <View style={styles.container}>
-      <Animated.View style={[styles.logoContainer, animatedStyle]}>
+    <View className="absolute inset-0 bg-[#ffffff] justify-center items-center z-[99999]">
+      <Animated.View
+        className="w-[200px] h-[200px] justify-center items-center"
+        style={[animatedStyle]}
+      >
         <Image
           source={require("../assets/images/splash-icon.png")}
-          style={styles.logo}
+          className="w-full h-full"
           contentFit="contain"
         />
       </Animated.View>
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "#ffffff",
-    justifyContent: "center",
-    alignItems: "center",
-    zIndex: 99999,
-  },
-  logoContainer: {
-    width: 200,
-    height: 200,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  logo: {
-    width: "100%",
-    height: "100%",
-  },
-});
 
 export default SplashScreen;

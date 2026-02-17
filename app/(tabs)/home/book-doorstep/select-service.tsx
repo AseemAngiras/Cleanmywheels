@@ -25,9 +25,7 @@ import {
   LayoutAnimation,
   Modal,
   Platform,
-  // Platform,
   ScrollView,
-  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
@@ -39,7 +37,6 @@ import { Colors } from "@/constants/Colors";
 import { useSelector } from "react-redux";
 import BookingStepper from "../../../../components/BookingStepper";
 import { ListSkeleton } from "../../../../components/SkeletonLoader";
-
 import { useGetMySubscriptionQuery } from "@/store/api/subscriptionApi";
 
 const SERVICE_ADDONS: Record<
@@ -86,17 +83,20 @@ const ExpandableDetails = ({
         overflow: "hidden",
       }}
     >
-      <View style={expandableStyles.detailsContainer}>
-        <View style={expandableStyles.featureTagsContainer}>
+      <View className="mt-4 pt-4 border-t border-border/30">
+        <View className="flex-row flex-wrap gap-2">
           {features.map((feature, index) => (
-            <View key={index} style={expandableStyles.featureTag}>
+            <View
+              key={index}
+              className="flex-row items-center bg-primary/10 px-3 py-2 rounded-full border border-primary/20"
+            >
               <Ionicons
                 name="checkmark-circle"
                 size={14}
                 color={Colors.primary}
                 style={{ marginRight: 6 }}
               />
-              <Text style={expandableStyles.featureTagText}>
+              <Text className="text-[11px] color-primary font-[700] uppercase">
                 {feature.trim()}
               </Text>
             </View>
@@ -107,35 +107,6 @@ const ExpandableDetails = ({
   );
 };
 
-const expandableStyles = StyleSheet.create({
-  detailsContainer: {
-    marginTop: 15,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-  },
-  featureTagsContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-  },
-  featureTag: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "rgba(200, 240, 0, 0.1)",
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: "rgba(200, 240, 0, 0.2)",
-  },
-  featureTagText: {
-    fontSize: 12,
-    color: Colors.primary,
-    fontWeight: "500",
-  },
-});
-
 export default function SelectServiceScreen() {
   const user = useSelector((state: RootState) => state.user.user);
   const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
@@ -145,22 +116,16 @@ export default function SelectServiceScreen() {
   const { data: subscriptions } = useGetMySubscriptionQuery();
 
   // Filter out subscribed vehicle from the list
-  const cars = allCars.filter((car) => {
-    // If no subscriptions or not an array, return all cars
+  const cars = allCars.filter((car: any) => {
     if (!subscriptions || !Array.isArray(subscriptions)) return true;
-
-    // Check if this car is in any active subscription
-    const isSubscribed = subscriptions.some((sub: any) => {
+    return !subscriptions.some((sub: any) => {
       if (sub.status !== "active" || !sub.vehicle) return false;
       const subCarId = sub.vehicle._id || sub.vehicle;
       return (car._id || car.id) === subCarId;
     });
-
-    return !isSubscribed;
   });
 
   const [createVehicle] = useCreateVehicleMutation();
-
   const router = useRouter();
   const navigation = useNavigation();
   const { address, latitude, longitude, addressId } = useLocalSearchParams();
@@ -172,8 +137,10 @@ export default function SelectServiceScreen() {
     isLoading: isLoadingPackages,
     error: loadError,
   } = useGetWashPackagesQuery({ page: 1, perPage: 10 });
+
   const [updateWashPackage, { isLoading: isUpdating }] =
     useUpdateWashPackageMutation();
+
   const servicesFromApi = useMemo(
     () => washPackagesData?.data?.washPackageList || [],
     [washPackagesData],
@@ -197,38 +164,10 @@ export default function SelectServiceScreen() {
   );
 
   useEffect(() => {
-    if (washPackagesData) {
-      console.log(
-        "🔍 [SelectService] RAW API RESPONSE:",
-        JSON.stringify(washPackagesData, null, 2),
-      );
+    if (services.length > 0 && !selectedService) {
+      setSelectedService(services[0].id);
     }
-
-    if (loadError) {
-      console.error(
-        "❌ [SelectService] API LOAD ERROR:",
-        JSON.stringify(loadError, null, 2),
-      );
-    }
-
-    if (servicesFromApi.length > 0) {
-      console.log(
-        "📦 [SelectService] API packages found:",
-        servicesFromApi.length,
-      );
-      servicesFromApi.forEach((pkg) =>
-        console.log(`   - ${pkg.name}: ${pkg._id}`),
-      );
-    } else if (!isLoadingPackages && !loadError) {
-      console.warn(
-        "⚠️ [SelectService] No packages found in API database! (washPackageList is empty)",
-      );
-    }
-  }, [washPackagesData, servicesFromApi, isLoadingPackages, loadError]);
-
-  if (!selectedService && services.length > 0) {
-    setSelectedService(services[0].id);
-  }
+  }, [services, selectedService]);
 
   const [detailsExpanded, setDetailsExpanded] = useState<Set<string>>(
     new Set(),
@@ -245,11 +184,8 @@ export default function SelectServiceScreen() {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setDetailsExpanded((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
       return next;
     });
   };
@@ -258,26 +194,6 @@ export default function SelectServiceScreen() {
   const [vehicleNumber, setVehicleNumber] = useState("");
   const [selectedCarId, setSelectedCarId] = useState<string | null>(null);
 
-  // Auto-fill form updates when selectedCarId changes
-  useEffect(() => {
-    if (selectedCarId) {
-      const selectedCar = cars.find(
-        (c: any) => (c._id || c.id) === selectedCarId,
-      );
-      if (selectedCar) {
-        // Match against our supported types
-        const matchedType = vehicleTypes.find(
-          (vt) =>
-            vt.id.toLowerCase() ===
-            (selectedCar.vehicleType || selectedCar.type || "").toLowerCase(),
-        );
-        // Default to "Other" if no match found (e.g. if it was a Bike/Scooter previously)
-        setVehicleType(matchedType ? matchedType.id : "Other");
-        setVehicleNumber(selectedCar.vehicleNo || selectedCar.number || "");
-      }
-    }
-  }, [selectedCarId, cars]);
-
   const vehicleTypes = [
     { id: "Hatchback", name: "Hatchback", icon: "car-hatchback" },
     { id: "Sedan", name: "Sedan", icon: "car-side" },
@@ -285,109 +201,28 @@ export default function SelectServiceScreen() {
     { id: "Two Wheeler", name: "Two Wheeler", icon: "motorbike" },
   ];
 
-  const getVehicleIconName = (type: string) => {
-    switch (type?.toLowerCase()) {
-      case "hatchback":
-        return "car-hatchback";
-      case "sedan":
-        return "car-side";
-      case "suv":
-        return "car-estate";
-      case "two wheeler":
-      case "bike":
-        return "motorbike";
-      default:
-        return "car";
+  useEffect(() => {
+    if (selectedCarId) {
+      const selectedCar = cars.find(
+        (c: any) => (c._id || c.id) === selectedCarId,
+      );
+      if (selectedCar) {
+        const matchedType = vehicleTypes.find(
+          (vt) =>
+            vt.id.toLowerCase() ===
+            (selectedCar.vehicleType || selectedCar.type || "").toLowerCase(),
+        );
+        setVehicleType(matchedType ? matchedType.id : "Other");
+        setVehicleNumber(selectedCar.vehicleNo || selectedCar.number || "");
+      }
     }
-  };
+  }, [selectedCarId, cars]);
 
   useFocusEffect(
     useCallback(() => {
-      navigation.getParent()?.setOptions({
-        tabBarStyle: { display: "none" },
-      });
+      navigation.getParent()?.setOptions({ tabBarStyle: { display: "none" } });
     }, [navigation]),
   );
-
-  const currentAddons = selectedService
-    ? SERVICE_ADDONS[selectedService] || []
-    : [];
-
-  const toggleAddon = (id: string) => {
-    setAddons((prev) => ({ ...prev, [id]: !prev[id] }));
-  };
-
-  const validateVehicleNumber = (
-    number: string,
-  ): { isValid: boolean; message: string } => {
-    if (!number || !number.trim()) {
-      return { isValid: false, message: "Please enter your vehicle number." };
-    }
-
-    const cleaned = number.replace(/[\s-]/g, "").toUpperCase();
-
-    const indianVehicleRegex = /^[A-Z]{2}[0-9]{1,2}[A-Z]{1,3}[0-9]{1,4}$/;
-
-    const alternateRegex = /^[A-Z]{2}[0-9]{2}[A-Z]{1,2}[0-9]{4}$/;
-
-    if (!indianVehicleRegex.test(cleaned) && !alternateRegex.test(cleaned)) {
-      return {
-        isValid: false,
-        message:
-          "Please enter a valid vehicle number.\n\nExamples:\n• MH01AB1234\n• DL12CA5678\n• KA09MA1234",
-      };
-    }
-
-    const validStateCodes = [
-      "AN",
-      "AP",
-      "AR",
-      "AS",
-      "BH",
-      "BR",
-      "CG",
-      "CH",
-      "DD",
-      "DL",
-      "GA",
-      "GJ",
-      "HP",
-      "HR",
-      "JH",
-      "JK",
-      "KA",
-      "KL",
-      "LA",
-      "LD",
-      "MH",
-      "ML",
-      "MN",
-      "MP",
-      "MZ",
-      "NL",
-      "OD",
-      "OR",
-      "PB",
-      "PY",
-      "RJ",
-      "SK",
-      "TN",
-      "TR",
-      "TS",
-      "UK",
-      "UP",
-      "WB",
-    ];
-    const stateCode = cleaned.substring(0, 2);
-    if (!validStateCodes.includes(stateCode)) {
-      return {
-        isValid: false,
-        message: `'${stateCode}' is not a valid Indian state code.`,
-      };
-    }
-
-    return { isValid: true, message: "" };
-  };
 
   const handleServiceSelect = (id: string) => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -397,7 +232,6 @@ export default function SelectServiceScreen() {
 
   const handleUpdatePrice = async () => {
     if (!editingService || !newPrice) return;
-
     try {
       await updateWashPackage({
         id: editingService.id,
@@ -407,7 +241,6 @@ export default function SelectServiceScreen() {
       setEditingService(null);
       setNewPrice("");
     } catch (err: any) {
-      console.error("Update failed:", err);
       Alert.alert("Error", err?.data?.message || "Failed to update price");
     }
   };
@@ -415,217 +248,201 @@ export default function SelectServiceScreen() {
   const calculateTotal = () => {
     let servicePrice =
       services.find((s) => s.id === selectedService)?.price || 0;
+    return servicePrice; // Add-ons are currently empty in record according to the file
+  };
 
-    let addonTotal = 0;
+  const handleNext = () => {
+    if (!selectedService) {
+      Alert.alert("Error", "Please select a service package");
+      return;
+    }
+    if (!vehicleNumber.trim()) {
+      Alert.alert("Error", "Please enter vehicle number");
+      return;
+    }
 
-    currentAddons.forEach((addon) => {
-      if (addons[addon.id]) {
-        addonTotal += addon.price;
-      }
+    router.push({
+      pathname: "/(tabs)/home/book-doorstep/select-slot",
+      params: {
+        serviceId: selectedService,
+        vehicleNumber,
+        vehicleType,
+        address,
+        latitude,
+        longitude,
+        addressId,
+        totalPrice: calculateTotal(),
+      },
     });
-
-    return servicePrice + addonTotal;
   };
 
   return (
-    <ScreenWrapper style={styles.safeArea} backgroundColor={Colors.background}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => router.back()}
-          style={styles.backButton}
-        >
+    <ScreenWrapper backgroundColor={Colors.background}>
+      <View className="flex-row justify-between items-center px-5 py-4 bg-background">
+        <TouchableOpacity onPress={() => router.back()} className="p-1">
           <Ionicons name="chevron-back" size={24} color={Colors.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Select Service</Text>
-        <View style={{ width: 24 }} />
+        <Text className="text-[18px] font-[800] color-text tracking-tight">
+          Select Service
+        </Text>
+        <View className="w-8" />
       </View>
 
       <BookingStepper currentStep={1} />
 
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={{ flex: 1 }}
+        className="flex-1"
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <ScrollView contentContainerStyle={styles.container}>
-            {/* Services - Vertical Accordion */}
-            <View style={styles.servicesContainer}>
+          <ScrollView
+            contentContainerStyle={{ padding: 20, paddingBottom: 140 }}
+            showsVerticalScrollIndicator={false}
+          >
+            <Text className="text-[14px] font-[800] color-textSecondary uppercase tracking-widest mb-6 px-1">
+              Wash Packages
+            </Text>
+
+            <View className="mb-8">
               {isLoadingPackages ? (
                 <ListSkeleton type="service" count={3} />
               ) : services.length === 0 ? (
-                <Text
-                  style={{
-                    textAlign: "center",
-                    marginTop: 20,
-                    color: Colors.textSecondary,
-                  }}
-                >
-                  No wash packages available
-                </Text>
+                <View className="bg-card p-8 rounded-[32px] items-center border border-border/50">
+                  <Ionicons
+                    name="alert-circle-outline"
+                    size={40}
+                    color={Colors.textSecondary}
+                  />
+                  <Text className="color-textSecondary font-[600] mt-3">
+                    No packages available
+                  </Text>
+                </View>
               ) : (
                 services.map((service) => {
                   const isSelected = selectedService === service.id;
-                  const isServiceExpanded = isSelected;
-
+                  const isExpanded = isSelected;
                   return (
                     <TouchableOpacity
                       key={service.id}
-                      style={[
-                        styles.serviceCard,
-                        isServiceExpanded
-                          ? styles.serviceCardExpandedLayout
-                          : styles.serviceCardCollapsedLayout,
+                      className={`mb-4 rounded-[32px] overflow-hidden border p-5 ${
                         isSelected
-                          ? styles.serviceCardSelectedBorder
-                          : styles.serviceCardUnselectedBorder,
-                      ]}
+                          ? "bg-card border-primary"
+                          : "bg-card border-border/50"
+                      }`}
                       onPress={() => handleServiceSelect(service.id)}
                       activeOpacity={0.9}
                     >
-                      {isServiceExpanded ? (
+                      {isExpanded ? (
                         <View>
-                          <View style={styles.expandedHeader}>
-                            <View style={styles.expandedImageContainer}>
+                          <View className="flex-row">
+                            <View className="w-24 h-24 rounded-2xl overflow-hidden mr-4">
                               <Image
                                 source={{ uri: service.image }}
-                                style={styles.expandedImage}
+                                className="w-full h-full"
                               />
                               {service.isBestseller && (
-                                <View style={styles.bestsellerBadge}>
-                                  <Text style={styles.bestsellerText}>
+                                <View className="absolute top-1 left-1 bg-primary px-2 py-0.5 rounded-md">
+                                  <Text className="text-[8px] font-[900] color-black">
                                     BESTSELLER
                                   </Text>
                                 </View>
                               )}
                             </View>
-                            <View style={styles.expandedContent}>
-                              <View style={{ flex: 1, marginRight: 10 }}>
-                                <Text style={styles.expandedName}>
+                            <View className="flex-1 justify-center">
+                              <View className="flex-row items-center justify-between mb-1">
+                                <Text
+                                  className="text-[18px] font-[800] color-text flex-1"
+                                  numberOfLines={1}
+                                >
                                   {service.name}
                                 </Text>
-                                <View
-                                  style={{
-                                    flexDirection: "row",
-                                    alignItems: "center",
-                                  }}
-                                >
-                                  <Text style={styles.expandedPrice}>
-                                    ₹{service.price}
-                                  </Text>
-                                  {isAdmin && (
-                                    <TouchableOpacity
-                                      onPress={(e) => {
-                                        e.stopPropagation();
-                                        setEditingService({
-                                          id: service.id,
-                                          name: service.name,
-                                          price: service.price,
-                                        });
-                                        setNewPrice(service.price.toString());
-                                      }}
-                                      style={{ marginLeft: 10, padding: 5 }}
-                                    >
-                                      <Ionicons
-                                        name="pencil"
-                                        size={16}
-                                        color={Colors.primary}
-                                      />
-                                    </TouchableOpacity>
-                                  )}
-                                </View>
-                                <Text style={styles.expandedDesc}>
-                                  {service.description}
-                                </Text>
-                              </View>
-
-                              <View
-                                style={{
-                                  alignItems: "flex-end",
-                                  justifyContent: "space-between",
-                                }}
-                              >
-                                {isSelected ? (
+                                <View className="bg-primary/20 w-6 h-6 rounded-full items-center justify-center">
                                   <Ionicons
                                     name="radio-button-on"
-                                    size={24}
+                                    size={18}
                                     color={Colors.primary}
                                   />
-                                ) : (
-                                  <Ionicons
-                                    name="radio-button-off"
-                                    size={24}
-                                    color={Colors.textSecondary}
-                                  />
-                                )}
-                                <TouchableOpacity
-                                  onPress={(e) => toggleDetails(service.id, e)}
-                                  style={{ padding: 5, marginTop: 15 }}
-                                >
-                                  <Ionicons
-                                    name={
-                                      detailsExpanded.has(service.id)
-                                        ? "chevron-up"
-                                        : "chevron-down"
-                                    }
-                                    size={24}
-                                    color={Colors.primary}
-                                  />
-                                </TouchableOpacity>
+                                </View>
                               </View>
+                              <View className="flex-row items-center mb-1">
+                                <Text className="text-[20px] font-[900] color-primary">
+                                  ₹{service.price}
+                                </Text>
+                                {isAdmin && (
+                                  <TouchableOpacity
+                                    onPress={(e) => {
+                                      e.stopPropagation();
+                                      setEditingService({
+                                        id: service.id,
+                                        name: service.name,
+                                        price: service.price,
+                                      });
+                                      setNewPrice(service.price.toString());
+                                    }}
+                                    className="ml-3 p-1"
+                                  >
+                                    <Ionicons
+                                      name="pencil-outline"
+                                      size={16}
+                                      color={Colors.primary}
+                                    />
+                                  </TouchableOpacity>
+                                )}
+                              </View>
+                              <Text
+                                className="text-[12px] color-textSecondary font-[600]"
+                                numberOfLines={2}
+                              >
+                                {service.description}
+                              </Text>
                             </View>
                           </View>
 
+                          <TouchableOpacity
+                            onPress={(e) => toggleDetails(service.id, e)}
+                            className="flex-row items-center justify-center mt-4 border-t border-border/20 pt-3"
+                          >
+                            <Text className="text-[12px] font-[800] color-primary mr-1">
+                              {detailsExpanded.has(service.id)
+                                ? "Hide details"
+                                : "Show details"}
+                            </Text>
+                            <Ionicons
+                              name={
+                                detailsExpanded.has(service.id)
+                                  ? "chevron-up"
+                                  : "chevron-down"
+                              }
+                              size={16}
+                              color={Colors.primary}
+                            />
+                          </TouchableOpacity>
+
                           <ExpandableDetails
                             isExpanded={detailsExpanded.has(service.id)}
-                            features={
-                              service.features ||
-                              service.details?.split(", ") ||
-                              []
-                            }
+                            features={service.features || []}
                           />
                         </View>
                       ) : (
-                        <View style={styles.collapsedRow}>
-                          <View
-                            style={{
-                              flexDirection: "row",
-                              alignItems: "center",
-                            }}
-                          >
-                            <Ionicons
-                              name={
-                                isSelected
-                                  ? "radio-button-on"
-                                  : "radio-button-off"
-                              }
-                              size={20}
-                              color={
-                                isSelected
-                                  ? Colors.primary
-                                  : Colors.textSecondary
-                              }
-                              style={{ marginRight: 12 }}
-                            />
-                            <Text style={styles.collapsedName}>
+                        <View className="flex-row items-center justify-between">
+                          <View className="flex-row items-center flex-1">
+                            <View className="bg-background w-5 h-5 rounded-full items-center justify-center mr-3 border border-border/50">
+                              {isSelected && (
+                                <View className="w-3 h-3 rounded-full bg-primary" />
+                              )}
+                            </View>
+                            <Text className="text-[15px] font-[700] color-text mr-2">
                               {service.name}
                             </Text>
                             {service.isBestseller && (
-                              <View
-                                style={[
-                                  styles.bestsellerBadge,
-                                  {
-                                    marginLeft: 8,
-                                    position: "relative",
-                                    top: 0,
-                                    left: 0,
-                                  },
-                                ]}
-                              >
-                                <Text style={styles.bestsellerText}>BEST</Text>
+                              <View className="bg-primary/20 px-2 py-0.5 rounded-md">
+                                <Text className="text-[10px] font-[800] color-primary">
+                                  BEST
+                                </Text>
                               </View>
                             )}
                           </View>
-                          <Text style={styles.collapsedPrice}>
+                          <Text className="text-[16px] font-[800] color-textSecondary">
                             ₹{service.price}
                           </Text>
                         </View>
@@ -636,104 +453,58 @@ export default function SelectServiceScreen() {
               )}
             </View>
 
-            {/* Dynamic Add-ons Section */}
-            {selectedService && currentAddons.length > 0 && (
-              <View>
-                <Text style={styles.sectionTitle}>Make it Shine (Add-ons)</Text>
-                <View style={styles.addonsContainer}>
-                  {currentAddons.map((addon) => {
-                    const isSelected = !!addons[addon.id];
-                    return (
-                      <TouchableOpacity
-                        key={addon.id}
-                        style={[
-                          styles.addonChip,
-                          isSelected && styles.addonChipSelected,
-                        ]}
-                        onPress={() => toggleAddon(addon.id)}
-                      >
-                        <Text
-                          style={[
-                            styles.addonName,
-                            isSelected && { color: "#fff" },
-                          ]}
-                        >
-                          {addon.name}
-                        </Text>
-                        <Text
-                          style={[
-                            styles.addonPrice,
-                            isSelected && { color: "#fff" },
-                          ]}
-                        >
-                          +₹{addon.price}
-                        </Text>
-                        {isSelected && (
-                          <Ionicons
-                            name="checkmark-circle"
-                            size={16}
-                            color="#fff"
-                            style={{ marginLeft: 5 }}
-                          />
-                        )}
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
-              </View>
-            )}
-
-            {/* MY SAVED CARS SECTION */}
+            {/* MY SAVED CARS */}
             {cars.length > 0 && (
-              <View style={{ marginBottom: 24 }}>
-                <Text style={styles.sectionTitle}>My Saved Vehicles</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <View className="mb-10">
+                <Text className="text-[14px] font-[800] color-textSecondary uppercase tracking-widest mb-6 px-1">
+                  My Vehicles
+                </Text>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  className="overflow-visible"
+                >
                   {cars.map((car: any) => {
                     const isSelected = selectedCarId === (car._id || car.id);
                     return (
                       <TouchableOpacity
                         key={car._id || car.id}
-                        style={[
-                          styles.savedCarCard,
-                          isSelected && styles.savedCarCardSelected,
-                        ]}
+                        className={`w-40 mr-4 p-5 rounded-[28px] border items-center relative ${
+                          isSelected
+                            ? "bg-primary border-primary shadow-xl shadow-primary/30"
+                            : "bg-card border-border/50"
+                        }`}
                         onPress={() => setSelectedCarId(car._id || car.id)}
                       >
-                        <MaterialCommunityIcons
-                          name={
-                            getVehicleIconName(
-                              car.vehicleType || car.type || "",
-                            ) as any
-                          }
-                          size={24}
-                          color={isSelected ? "#D1F803" : "#666"}
-                          style={{ marginBottom: 8 }}
-                        />
+                        {isSelected && (
+                          <View className="absolute top-3 right-3 bg-black/20 w-6 h-6 rounded-full items-center justify-center">
+                            <Ionicons name="checkmark" size={14} color="#000" />
+                          </View>
+                        )}
+                        <View
+                          className={`w-14 h-14 rounded-2xl items-center justify-center mb-3 ${isSelected ? "bg-black/10" : "bg-background"}`}
+                        >
+                          <MaterialCommunityIcons
+                            name={
+                              getVehicleIconName(
+                                car.vehicleType || car.type || "",
+                              ) as any
+                            }
+                            size={32}
+                            color={isSelected ? "#000" : Colors.textSecondary}
+                          />
+                        </View>
                         <Text
-                          style={[
-                            styles.savedCarNumber,
-                            isSelected && { color: "#fff" },
-                          ]}
+                          className={`text-[14px] font-[800] text-center ${isSelected ? "color-black" : "color-text"}`}
+                          numberOfLines={1}
                         >
                           {car.vehicleNo || car.number}
                         </Text>
                         <Text
-                          style={[
-                            styles.savedCarType,
-                            isSelected && { color: "#rgba(255,255,255,0.7)" },
-                          ]}
+                          className={`text-[11px] font-[600] mt-0.5 ${isSelected ? "color-black/60" : "color-textSecondary"}`}
                         >
                           {car.vehicleType || car.type}
                         </Text>
-                        {isSelected && (
-                          <View style={styles.selectedCheck}>
-                            <Ionicons
-                              name="checkmark-circle"
-                              size={20}
-                              color="#D1F803"
-                            />
-                          </View>
-                        )}
                       </TouchableOpacity>
                     );
                   })}
@@ -741,34 +512,34 @@ export default function SelectServiceScreen() {
               </View>
             )}
 
-            {/* Vehicle Selection Section */}
-            <Text style={styles.sectionTitle}>Vehicle Details</Text>
-            <View style={styles.vehicleRow}>
+            {/* Manual Vehicle Selection */}
+            <Text className="text-[14px] font-[800] color-textSecondary uppercase tracking-widest mb-6 px-1">
+              Vehicle Details
+            </Text>
+            <View className="flex-row flex-wrap justify-between mb-8">
               {vehicleTypes.map((type) => {
                 const isSelected = vehicleType === type.id;
                 return (
                   <TouchableOpacity
                     key={type.id}
-                    style={[
-                      styles.vehicleIconBtn,
-                      isSelected && styles.vehicleIconBtnSelected,
-                    ]}
+                    className={`w-[48%] mb-4 p-4 rounded-2xl flex-row items-center border ${
+                      isSelected
+                        ? "bg-primary/10 border-primary"
+                        : "bg-card border-border/50"
+                    }`}
                     onPress={() => {
                       setSelectedCarId(null);
-                      setVehicleNumber("");
                       setVehicleType(type.id);
                     }}
                   >
                     <MaterialCommunityIcons
                       name={type.icon as any}
-                      size={24}
-                      color={isSelected ? "#fff" : "#999"}
+                      size={20}
+                      color={isSelected ? Colors.primary : Colors.textSecondary}
+                      style={{ marginRight: 10 }}
                     />
                     <Text
-                      style={[
-                        styles.vehicleTypeName,
-                        isSelected && { color: "#fff", fontWeight: "bold" },
-                      ]}
+                      className={`text-[13px] font-[800] ${isSelected ? "color-text" : "color-textSecondary"}`}
                     >
                       {type.name}
                     </Text>
@@ -777,198 +548,98 @@ export default function SelectServiceScreen() {
               })}
             </View>
 
-            <Text style={styles.subSectionTitle}>
-              Vehicle Number <Text style={{ color: "#e74c3c" }}> *</Text>
-            </Text>
-            <TextInput
-              style={styles.input}
-              placeholder="E.G. MH01CK1234"
-              placeholderTextColor="#ccc"
-              value={vehicleNumber}
-              onChangeText={setVehicleNumber}
-              autoCapitalize="characters"
-            />
+            <View className="bg-card border border-border rounded-[20px] px-5 h-16 flex-row items-center shadow-sm">
+              <MaterialCommunityIcons
+                name="numeric"
+                size={24}
+                color={Colors.textSecondary}
+                style={{ marginRight: 12 }}
+              />
+              <TextInput
+                className="flex-1 text-[16px] color-text font-[700]"
+                placeholder="E.G. MH01CK1234"
+                placeholderTextColor="#64748B"
+                value={vehicleNumber}
+                onChangeText={setVehicleNumber}
+                autoCapitalize="characters"
+              />
+            </View>
           </ScrollView>
         </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
 
-      <View style={styles.footer}>
-        <View style={styles.totalContainer}>
-          <Text style={styles.totalLabel}>Total</Text>
-          <Text style={styles.totalPrice}>₹{calculateTotal()}</Text>
+      {/* Footer */}
+      <View className="absolute bottom-0 left-0 right-0 bg-card px-6 pt-5 pb-10 rounded-t-[40px] border-t border-border shadow-2xl">
+        <View className="flex-row justify-between items-center mb-5 px-1">
+          <View>
+            <Text className="text-[12px] font-[800] color-textSecondary uppercase tracking-wider">
+              Total Amount
+            </Text>
+            <Text className="text-[28px] font-[900] color-primary">
+              ₹{calculateTotal()}
+            </Text>
+          </View>
+          <View className="bg-primary/10 px-4 py-2 rounded-full border border-primary/20">
+            <Text className="text-[11px] font-[900] color-primary">
+              DOORSTEP SERVICE
+            </Text>
+          </View>
         </View>
+
         <TouchableOpacity
-          style={[
-            styles.nextButton,
-            (services.length === 0 || !selectedService) && {
-              opacity: 0.5,
-              backgroundColor: "#ccc",
-            },
-          ]}
-          disabled={services.length === 0 || !selectedService}
-          onPress={async () => {
-            if (!selectedService) {
-              Alert.alert(
-                "Selection Required",
-                "Please select a service to proceed.",
-              );
-              return;
-            }
-
-            const validation = validateVehicleNumber(vehicleNumber);
-            if (!validation.isValid) {
-              Alert.alert("Invalid Vehicle Number", validation.message);
-              return;
-            }
-
-            const cleanNumber = vehicleNumber
-              .replace(/[^a-zA-Z0-9]/g, "")
-              .toUpperCase();
-
-            if (cleanNumber.length < 6 || cleanNumber.length > 10) {
-              Alert.alert(
-                "Invalid Vehicle Number",
-                "Please enter a valid vehicle number (e.g., KA01AB1234).",
-              );
-              return;
-            }
-
-            if (!/^[A-Z]{2}[0-9A-Z]{4,8}$/.test(cleanNumber)) {
-              Alert.alert(
-                "Invalid Vehicle Number",
-                "Please enter a valid vehicle number (e.g., KA01AB1234).",
-              );
-              return;
-            }
-
-            // Check if this vehicle number is already subscribed
-            if (subscriptions && Array.isArray(subscriptions)) {
-              const duplicate = subscriptions.find((sub: any) => {
-                if (sub.status !== "active" || !sub.vehicle) return false;
-                // Normalize and compare (assuming sub.vehicle.vehicleNo exists)
-                const subNo = (
-                  sub.vehicle.vehicleNo ||
-                  sub.vehicle.number ||
-                  ""
-                )
-                  .replace(/[^a-zA-Z0-9]/g, "")
-                  .toUpperCase();
-                return subNo === cleanNumber;
-              });
-
-              if (duplicate) {
-                Alert.alert(
-                  "Already Subscribed",
-                  "You already have an active subscription for this vehicle. Please use the Add-on service to modify your booking or choose a different vehicle.",
-                );
-                return;
-              }
-            }
-
-            const service = services.find((s) => s.id === selectedService);
-            if (!service) {
-              Alert.alert("Error", "Selected service is no longer available.");
-              return;
-            }
-
-            const selectedAddons = currentAddons.filter(
-              (addon) => addons[addon.id],
-            );
-
-            const normalizedNumber = vehicleNumber
-              .replace(/[\s-]/g, "")
-              .toUpperCase();
-
-            let existingCar = cars.find(
-              (car: any) => (car.vehicleNo || car.number) === normalizedNumber,
-            );
-
-            if (!existingCar) {
-              // Only save to backend if user is logged in
-              if (isLoggedIn) {
-                try {
-                  const response = await createVehicle({
-                    vehicleType,
-                    vehicleNo: normalizedNumber,
-                    isDefault: false,
-                  }).unwrap();
-
-                  if (response?.data) {
-                    existingCar = response.data;
-                    setSelectedCarId(existingCar._id);
-                  }
-                } catch (err) {
-                  console.error("Vehicle Creation Failed", err);
-                  Alert.alert(
-                    "Note",
-                    "Could not save vehicle to your profile, but you can proceed with booking.",
-                  );
-                }
-              }
-            }
-
-            const params = {
-              serviceId: service.id,
-              serviceName: service.name,
-              basePrice: service.price,
-              totalPrice: calculateTotal(),
-              vehicleType,
-              vehicleNumber: normalizedNumber,
-              address,
-              latitude,
-              longitude,
-              addressId,
-              vehicleId: existingCar?._id || selectedCarId,
-            };
-
-            router.push({
-              pathname: "/(tabs)/home/book-doorstep/select-slot",
-              params,
-            });
-          }}
+          className="bg-primary h-14 rounded-2xl flex-row items-center justify-center shadow-lg shadow-primary/30"
+          onPress={handleNext}
         >
-          <Text style={styles.nextButtonText}>Next</Text>
+          <Text className="text-[16px] font-[900] color-black">Continue</Text>
+          <Ionicons
+            name="arrow-forward"
+            size={18}
+            color="#000"
+            style={{ marginLeft: 8 }}
+          />
         </TouchableOpacity>
       </View>
 
-      {/* Price Edit Modal */}
-      <Modal
-        visible={!!editingService}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setEditingService(null)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Update Price</Text>
-            <Text style={styles.modalSubtitle}>
-              Change price for {editingService?.name}
+      {/* Admin Edit Modal */}
+      <Modal visible={editingService !== null} transparent animationType="fade">
+        <View className="flex-1 bg-black/60 justify-center items-center px-6">
+          <View className="bg-card w-full rounded-[32px] p-6 border border-border shadow-2xl">
+            <Text className="text-[18px] font-[800] color-text mb-2">
+              Edit Price
+            </Text>
+            <Text className="text-[14px] color-textSecondary mb-6">
+              {editingService?.name}
             </Text>
 
-            <TextInput
-              style={styles.priceInput}
-              keyboardType="numeric"
-              value={newPrice}
-              onChangeText={setNewPrice}
-              placeholder="Enter new price"
-            />
+            <View className="bg-background border border-border rounded-2xl px-4 h-14 flex-row items-center mb-6">
+              <Text className="text-[18px] font-[800] color-textSecondary mr-2">
+                ₹
+              </Text>
+              <TextInput
+                className="flex-1 text-[18px] font-[800] color-text"
+                keyboardType="numeric"
+                value={newPrice}
+                onChangeText={setNewPrice}
+                autoFocus
+              />
+            </View>
 
-            <View style={styles.modalActions}>
+            <View className="flex-row gap-4">
               <TouchableOpacity
-                style={[styles.modalButton, styles.cancelButton]}
+                className="flex-1 h-12 rounded-xl items-center justify-center border border-border"
                 onPress={() => setEditingService(null)}
               >
-                <Text style={styles.cancelButtonText}>Cancel</Text>
+                <Text className="color-textSecondary font-[700]">Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.modalButton, styles.saveButton]}
+                className="flex-1 h-12 bg-primary rounded-xl items-center justify-center"
                 onPress={handleUpdatePrice}
                 disabled={isUpdating}
               >
                 {isUpdating ? (
-                  <ActivityIndicator color="#fff" />
+                  <ActivityIndicator color="#000" />
                 ) : (
-                  <Text style={styles.saveButtonText}>Save Changes</Text>
+                  <Text className="color-black font-[900]">Update</Text>
                 )}
               </TouchableOpacity>
             </View>
@@ -979,324 +650,17 @@ export default function SelectServiceScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: Colors.background },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    backgroundColor: Colors.background,
-  },
-  backButton: { padding: 5 },
-  headerTitle: { fontSize: 18, fontWeight: "bold", color: Colors.text },
-  container: { paddingBottom: 100 },
-
-  servicesContainer: {
-    paddingHorizontal: 20,
-    marginBottom: 10,
-    marginTop: 12,
-  },
-  serviceCard: {
-    backgroundColor: Colors.card,
-    borderRadius: 16,
-    marginBottom: 10,
-    overflow: "hidden",
-    shadowColor: Colors.text,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  serviceCardExpandedLayout: { padding: 15 },
-  serviceCardCollapsedLayout: { paddingVertical: 15, paddingHorizontal: 15 },
-  serviceCardSelectedBorder: {
-    borderColor: Colors.primary,
-    backgroundColor: Colors.card,
-    borderWidth: 2,
-  },
-  serviceCardUnselectedBorder: {
-    borderColor: Colors.border,
-    backgroundColor: Colors.card,
-    borderWidth: 1,
-  },
-
-  expandedHeader: { flexDirection: "row" },
-  expandedImageContainer: { marginRight: 15, position: "relative" },
-  expandedImage: {
-    width: 60,
-    height: 60,
-    borderRadius: 10,
-    backgroundColor: Colors.background,
-  },
-  expandedContent: { flex: 1, flexDirection: "row" },
-  expandedName: { fontSize: 16, fontWeight: "bold", color: Colors.text },
-  expandedPrice: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: Colors.primary,
-    marginVertical: 4,
-  },
-  expandedDesc: { fontSize: 12, color: Colors.textSecondary, lineHeight: 16 },
-
-  detailsContainer: {
-    marginTop: 15,
-    paddingTop: 10,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-  },
-  detailsText: {
-    fontSize: 13,
-    color: Colors.textSecondary,
-    lineHeight: 20,
-    fontStyle: "italic",
-  },
-
-  collapsedRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  collapsedName: { fontSize: 15, fontWeight: "500", color: Colors.text },
-  collapsedPrice: { fontSize: 15, fontWeight: "600", color: Colors.text },
-
-  bestsellerBadge: {
-    position: "absolute",
-    top: -6,
-    left: -4,
-    backgroundColor: Colors.primary,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-    zIndex: 1,
-  },
-  bestsellerText: { color: Colors.black, fontSize: 7, fontWeight: "bold" },
-
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    // marginTop: 5,
-    marginBottom: 10,
-    color: Colors.text,
-    paddingHorizontal: 20,
-  },
-
-  addonsContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    paddingHorizontal: 20,
-  },
-  addonChip: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    backgroundColor: Colors.card,
-    borderRadius: 20,
-    marginRight: 10,
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  addonChipSelected: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
-  },
-  addonName: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: Colors.textSecondary,
-    marginRight: 5,
-  },
-  addonPrice: { fontSize: 13, fontWeight: "700", color: Colors.primary },
-
-  subSectionTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    // marginTop: 5,
-    marginBottom: 10,
-    color: Colors.text,
-    paddingHorizontal: 20,
-  },
-
-  vehicleRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    marginBottom: 15,
-  },
-  vehicleIconBtn: {
-    alignItems: "center",
-    justifyContent: "center",
-    width: "23%",
-    paddingVertical: 12,
-    backgroundColor: Colors.card,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  vehicleIconBtnSelected: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
-  },
-  savedCarCard: {
-    backgroundColor: Colors.card,
-    borderRadius: 16,
-    padding: 8,
-    marginRight: 12,
-    marginLeft: 12,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    minWidth: 120,
-    alignItems: "flex-start",
-  },
-  savedCarCardSelected: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
-    marginLeft: 15,
-  },
-  savedCarNumber: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: Colors.text,
-    marginBottom: 4,
-  },
-  savedCarType: {
-    fontSize: 12,
-    color: Colors.textSecondary,
-    textTransform: "uppercase",
-  },
-  selectedCheck: {
-    position: "absolute",
-    top: 8,
-    right: 8,
-  },
-  vehicleTypeName: {
-    fontSize: 10,
-    fontWeight: "500",
-    color: Colors.textSecondary,
-    marginTop: 4,
-  },
-
-  input: {
-    backgroundColor: Colors.card,
-    borderRadius: 15,
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-    fontSize: 14,
-    color: Colors.text,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    marginBottom: 20,
-    marginHorizontal: 20,
-  },
-
-  footer: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: Colors.card,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    paddingBottom: 40,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 10,
-  },
-  totalContainer: { justifyContent: "center" },
-  totalLabel: { fontSize: 12, color: Colors.textSecondary, marginLeft: 6 },
-  totalPrice: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: Colors.primary,
-    marginLeft: 6,
-  },
-  nextButton: {
-    backgroundColor: Colors.primary,
-    paddingVertical: 15,
-    paddingHorizontal: 0,
-    borderRadius: 30,
-    width: 150,
-    marginLeft: 30,
-    alignItems: "center",
-  },
-  nextButtonText: { fontSize: 16, fontWeight: "bold", color: Colors.black },
-
-  // Modal Styles
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-  },
-  modalContent: {
-    backgroundColor: Colors.card,
-    borderRadius: 20,
-    padding: 25,
-    width: "100%",
-    maxWidth: 400,
-    shadowColor: Colors.text,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 10,
-    elevation: 5,
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: Colors.text,
-    marginBottom: 8,
-  },
-  modalSubtitle: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    marginBottom: 20,
-  },
-  priceInput: {
-    backgroundColor: Colors.background,
-    borderRadius: 12,
-    padding: 15,
-    fontSize: 18,
-    fontWeight: "bold",
-    color: Colors.text,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    marginBottom: 25,
-  },
-  modalActions: {
-    flexDirection: "row",
-    gap: 12,
-  },
-  modalButton: {
-    flex: 1,
-    paddingVertical: 15,
-    borderRadius: 30,
-    alignItems: "center",
-  },
-  cancelButton: {
-    backgroundColor: Colors.background,
-  },
-  saveButton: {
-    backgroundColor: Colors.primary,
-  },
-  cancelButtonText: {
-    color: Colors.text,
-    fontWeight: "bold",
-  },
-  saveButtonText: {
-    color: Colors.black,
-    fontWeight: "bold",
-  },
-});
+const getVehicleIconName = (type: string) => {
+  switch (type?.toLowerCase()) {
+    case "hatchback":
+      return "car-hatchback";
+    case "sedan":
+      return "car-side";
+    case "suv":
+      return "car-estate";
+    case "two wheeler":
+      return "motorbike";
+    default:
+      return "car";
+  }
+};

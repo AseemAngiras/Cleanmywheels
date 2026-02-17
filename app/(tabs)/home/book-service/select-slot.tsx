@@ -1,14 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
-import React, { useState } from "react";
-import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import React, { useState, useEffect } from "react";
+import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
+import { Colors } from "@/constants/Colors";
 
 // Types
 type TimeSlot = {
@@ -24,8 +19,6 @@ export default function SelectSlotScreen() {
   const params = useLocalSearchParams();
   const { shopId, shopName, shopAddress, shopLat, shopLong } = params;
 
-  // Tab bar hidden via global layout
-
   // --- State ---
   const [selectedDate, setSelectedDate] = useState<number>(0); // Index of selected date
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null); // ID of selected slot
@@ -40,12 +33,10 @@ export default function SelectSlotScreen() {
       id: i,
       day: d.toLocaleDateString("en-US", { weekday: "short" }).toUpperCase(),
       date: d.getDate(),
-      fullDate: d, // for footer display
+      fullDate: d,
     };
   });
 
-  // Mock Slots (12:00 format)
-  // Use robust date comparison
   const now = new Date();
   const selectedDateObj = dates[selectedDate].fullDate;
   const isToday =
@@ -78,7 +69,6 @@ export default function SelectSlotScreen() {
     const typedSlot = slot as TimeSlot;
     if (!isToday) return typedSlot;
 
-    // Parse time
     const [timeStr, modifier] = typedSlot.time.trim().split(/\s+/);
     let [hours, minutes] = timeStr.split(":").map(Number);
     if (modifier === "PM" && hours < 12) hours += 12;
@@ -101,19 +91,32 @@ export default function SelectSlotScreen() {
     Evening: timeSlots.filter((s) => s.period === "Evening"),
   };
 
-  // --- Components ---
+  useEffect(() => {
+    navigation.getParent()?.setOptions({
+      tabBarStyle: { display: "none" },
+    });
+  }, [navigation]);
 
   const DateItem = ({ item, index }: { item: any; index: number }) => {
     const isSelected = selectedDate === index;
     return (
       <TouchableOpacity
-        style={[styles.dateItem, isSelected && styles.dateItemSelected]}
+        className={`w-[68px] h-[85px] rounded-[30px] items-center justify-center mr-3 border ${
+          isSelected
+            ? "bg-primary border-primary shadow-lg shadow-primary/30"
+            : "bg-card border-border/50"
+        }`}
+        activeOpacity={0.8}
         onPress={() => setSelectedDate(index)}
       >
-        <Text style={[styles.dayText, isSelected && styles.textSelected]}>
+        <Text
+          className={`text-[10px] uppercase font-[700] mb-2 ${isSelected ? "color-black" : "color-textSecondary"}`}
+        >
           {item.day}
         </Text>
-        <Text style={[styles.dateText, isSelected && styles.textSelected]}>
+        <Text
+          className={`text-[20px] font-[900] ${isSelected ? "color-black" : "color-text"}`}
+        >
           {item.date}
         </Text>
       </TouchableOpacity>
@@ -126,23 +129,32 @@ export default function SelectSlotScreen() {
 
     if (isUnavailable) {
       return (
-        <View style={[styles.slotItem, styles.slotUnavailable]}>
-          <Text style={styles.slotTextUnavailable}>{item.time}</Text>
+        <View className="w-[31%] h-12 bg-background/30 rounded-2xl items-center justify-center mb-4 border border-border/20 opacity-40">
+          <Text className="text-[13px] font-[600] color-textSecondary line-through">
+            {item.time}
+          </Text>
         </View>
       );
     }
 
     return (
       <TouchableOpacity
-        style={[styles.slotItem, isSelected && styles.slotSelected]}
+        className={`w-[31%] h-12 rounded-2xl items-center justify-center mb-4 border ${
+          isSelected
+            ? "bg-primary border-primary shadow-sm"
+            : "bg-card border-border/50"
+        }`}
+        activeOpacity={0.7}
         onPress={() => setSelectedSlot(item.id)}
       >
-        <Text style={[styles.slotText, isSelected && styles.slotTextSelected]}>
+        <Text
+          className={`text-[13px] font-[800] ${isSelected ? "color-black" : "color-text"}`}
+        >
           {item.time}
         </Text>
         {isSelected && (
-          <View style={styles.checkIcon}>
-            <Ionicons name="checkmark-circle" size={16} color="#1a1a1a" />
+          <View className="absolute -top-2 -right-2 bg-text w-5 h-5 rounded-full items-center justify-center border-2 border-primary">
+            <Ionicons name="checkmark" size={12} color={Colors.primary} />
           </View>
         )}
       </TouchableOpacity>
@@ -150,92 +162,104 @@ export default function SelectSlotScreen() {
   };
 
   const getSelectedDateTimeString = () => {
-    if (!selectedSlot) return "Select a time";
+    if (!selectedSlot) return "Select a convenient time";
     const dateObj = dates[selectedDate].fullDate;
     const dateStr = dateObj.toLocaleDateString("en-US", {
-      weekday: "long",
+      weekday: "short",
       day: "numeric",
+      month: "short",
     });
     const timeStr = timeSlots.find((s) => s.id === selectedSlot)?.time;
     return `${dateStr}, ${timeStr}`;
   };
 
   return (
-    <ScreenWrapper style={styles.container} backgroundColor="#f9f9f9">
+    <ScreenWrapper backgroundColor={Colors.background}>
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => router.back()}
-          style={styles.backButton}
-        >
-          <Ionicons name="arrow-back" size={24} color="#1a1a1a" />
+      <View className="flex-row items-center px-5 py-4 bg-background">
+        <TouchableOpacity onPress={() => router.back()} className="p-1">
+          <Ionicons name="chevron-back" size={24} color={Colors.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Select Time Slot</Text>
-        <View style={{ width: 40 }} />
+        <Text className="flex-1 text-center text-[18px] font-[800] color-text tracking-tight ml-[-32px]">
+          Select Time Slot
+        </Text>
       </View>
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 150 }}
+        contentContainerStyle={{ paddingBottom: 160 }}
       >
         {/* Shop Info Card */}
-        <View style={styles.shopCard}>
-          <View style={styles.shopIconContainer}>
-            <Ionicons name="car-sport" size={24} color="#fbc02d" />
+        <View className="mx-5 my-6 bg-card rounded-[32px] p-5 flex-row items-center border border-border/50 shadow-sm">
+          <View className="w-12 h-12 rounded-full bg-primary/10 items-center justify-center mr-4">
+            <Ionicons name="car-sport" size={22} color={Colors.primary} />
           </View>
-          <View>
-            <Text style={styles.shopName}>{shopName || "Shop Name"}</Text>
-            <Text style={styles.shopAddress}>
-              {shopAddress || "123 Location St."}
+          <View className="flex-1">
+            <Text
+              className="text-[16px] font-[800] color-text"
+              numberOfLines={1}
+            >
+              {shopName || "Service Center"}
+            </Text>
+            <Text
+              className="text-[12px] color-textSecondary font-[500] mt-0.5"
+              numberOfLines={1}
+            >
+              {shopAddress || "Cleaning Location"}
             </Text>
           </View>
         </View>
 
         {/* Date Selector */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.dateList}
-          contentContainerStyle={{ paddingHorizontal: 20 }}
-        >
-          {dates.map((item, index) => (
-            <DateItem key={index} item={item} index={index} />
-          ))}
-        </ScrollView>
+        <View className="mb-8">
+          <Text className="text-[14px] font-[800] color-textSecondary uppercase tracking-widest mb-6 px-6">
+            Choose Date
+          </Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ paddingHorizontal: 20 }}
+          >
+            {dates.map((item, index) => (
+              <DateItem key={index} item={item} index={index} />
+            ))}
+          </ScrollView>
+        </View>
 
         {/* Legend */}
-        <View style={styles.legendContainer}>
-          <View style={styles.legendItem}>
-            <View
-              style={[
-                styles.legendDot,
-                { borderColor: "#ddd", borderWidth: 1 },
-              ]}
-            />
-            <Text style={styles.legendText}>Available</Text>
+        <View className="flex-row justify-center items-center mb-10 gap-6">
+          <View className="flex-row items-center">
+            <View className="w-2.5 h-2.5 rounded-full border border-border/50 bg-card mr-2" />
+            <Text className="text-[11px] font-[700] color-textSecondary uppercase tracking-tighter">
+              Available
+            </Text>
           </View>
-          <View style={styles.legendItem}>
-            <View style={[styles.legendDot, { backgroundColor: "#C8F000" }]} />
-            <Text style={styles.legendText}>Selected</Text>
+          <View className="flex-row items-center">
+            <View className="w-2.5 h-2.5 rounded-full bg-primary mr-2" />
+            <Text className="text-[11px] font-[700] color-textSecondary uppercase tracking-tighter">
+              Selected
+            </Text>
           </View>
-          <View style={styles.legendItem}>
-            <View style={[styles.legendDot, { backgroundColor: "#f5f5f5" }]} />
-            <Text style={styles.legendText}>Unavailable</Text>
+          <View className="flex-row items-center">
+            <View className="w-2.5 h-2.5 rounded-full bg-background/40 mr-2 border border-border/10" />
+            <Text className="text-[11px] font-[700] color-textSecondary uppercase tracking-tighter">
+              Sold Out
+            </Text>
           </View>
         </View>
 
         {/* Time Slots - Morning */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Morning</Text>
-            <View style={styles.greenBadge}>
-              <Text style={styles.greenBadgeText}>
+        <View className="px-5 mb-8">
+          <View className="flex-row justify-between items-center mb-6 px-1">
+            <Text className="text-[16px] font-[900] color-text">Morning</Text>
+            <View className="bg-primary/10 px-3 py-1 rounded-full border border-primary/20">
+              <Text className="text-[10px] font-[900] color-primary">
                 {slotsByPeriod.Morning.filter((s) => s.available).length} Slots
                 Left
               </Text>
             </View>
           </View>
-          <View style={styles.grid}>
+          <View className="flex-row flex-wrap justify-between">
             {slotsByPeriod.Morning.map((slot) => (
               <SlotItem key={slot.id} item={slot} />
             ))}
@@ -243,9 +267,11 @@ export default function SelectSlotScreen() {
         </View>
 
         {/* Time Slots - Afternoon */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Afternoon</Text>
-          <View style={styles.grid}>
+        <View className="px-5 mb-8">
+          <Text className="text-[16px] font-[900] color-text mb-6 px-1">
+            Afternoon
+          </Text>
+          <View className="flex-row flex-wrap justify-between">
             {slotsByPeriod.Afternoon.map((slot) => (
               <SlotItem key={slot.id} item={slot} />
             ))}
@@ -253,14 +279,16 @@ export default function SelectSlotScreen() {
         </View>
 
         {/* Time Slots - Evening */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Evening</Text>
-            <View style={styles.greenBadge}>
-              <Text style={styles.greenBadgeText}>High Demand</Text>
+        <View className="px-5 mb-8">
+          <View className="flex-row justify-between items-center mb-6 px-1">
+            <Text className="text-[16px] font-[900] color-text">Evening</Text>
+            <View className="bg-red-500/10 px-3 py-1 rounded-full border border-red-500/20">
+              <Text className="text-[10px] font-[900] color-red-500">
+                High Demand
+              </Text>
             </View>
           </View>
-          <View style={styles.grid}>
+          <View className="flex-row flex-wrap justify-between">
             {slotsByPeriod.Evening.map((slot) => (
               <SlotItem key={slot.id} item={slot} />
             ))}
@@ -269,18 +297,27 @@ export default function SelectSlotScreen() {
       </ScrollView>
 
       {/* Footer */}
-      <View style={styles.footer}>
-        <Text style={styles.footerLabel}>You selected</Text>
-        <Text style={styles.footerValue}>{getSelectedDateTimeString()}</Text>
+      <View className="absolute bottom-0 left-0 right-0 p-6 pb-12 bg-card rounded-t-[40px] border-t border-border shadow-2xl">
+        <View className="flex-row justify-between items-center mb-6">
+          <View>
+            <Text className="text-[10px] font-[900] color-textSecondary uppercase tracking-widest mb-1">
+              Schedule
+            </Text>
+            <Text className="text-[15px] font-[800] color-text">
+              {getSelectedDateTimeString()}
+            </Text>
+          </View>
+          {selectedSlot && (
+            <View className="bg-primary/20 w-10 h-10 rounded-full items-center justify-center">
+              <Ionicons name="time" size={20} color={Colors.primary} />
+            </View>
+          )}
+        </View>
 
         <TouchableOpacity
-          style={[styles.confirmButton, !selectedSlot && { opacity: 0.6 }]}
+          className={`bg-primary h-14 rounded-2xl flex-row items-center justify-center shadow-lg shadow-primary/30 ${!selectedSlot ? "opacity-50" : ""}`}
           disabled={!selectedSlot}
           onPress={() => {
-            console.log(
-              "Navigating to booking-summary with params:",
-              selectedSlot,
-            );
             router.push({
               pathname: "/(tabs)/home/book-service/booking-summary",
               params: {
@@ -293,203 +330,12 @@ export default function SelectSlotScreen() {
             });
           }}
         >
-          <Text style={styles.confirmButtonText}>Review Summary</Text>
-          <Ionicons name="arrow-forward" size={20} color="#1a1a1a" />
+          <Text className="text-[16px] font-[900] color-black mr-2">
+            Review Summary
+          </Text>
+          <Ionicons name="arrow-forward" size={18} color="#000" />
         </TouchableOpacity>
       </View>
     </ScreenWrapper>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f9f9f9" },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-    backgroundColor: "#f9f9f9",
-  },
-  backButton: { padding: 5 },
-  headerTitle: { fontSize: 18, fontWeight: "bold", color: "#1a1a1a" },
-
-  // Shop Card
-  shopCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#fff",
-    marginHorizontal: 20,
-    marginTop: 10,
-    marginBottom: 20,
-    padding: 15,
-    borderRadius: 20,
-    // Shadow
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 5,
-    elevation: 2,
-  },
-  shopIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#FFF9C4", // Light yellow
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 15,
-  },
-  shopName: { fontSize: 16, fontWeight: "bold", color: "#1a1a1a" },
-  shopAddress: { fontSize: 12, color: "#888", marginTop: 2 },
-
-  // Date Selector
-  dateList: { marginBottom: 20 },
-  dateItem: {
-    width: 60,
-    height: 70,
-    backgroundColor: "#fff",
-    borderRadius: 30, // Capsule shape
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 10,
-    borderWidth: 1,
-    borderColor: "#eee",
-  },
-  dateItemSelected: {
-    backgroundColor: "#C8F000",
-    borderColor: "#C8F000",
-    // Shadow
-    shadowColor: "#C8F000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    elevation: 5,
-  },
-  dayText: { fontSize: 10, color: "#888", marginBottom: 4, fontWeight: "600" },
-  dateText: { fontSize: 18, color: "#1a1a1a", fontWeight: "bold" },
-  textSelected: { color: "#1a1a1a" },
-
-  // Legend
-  legendContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    marginBottom: 20,
-  },
-  legendItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginHorizontal: 10,
-  },
-  legendDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    marginRight: 6,
-  },
-  legendText: { fontSize: 12, color: "#666" },
-
-  // Sections
-  section: { paddingHorizontal: 20, marginBottom: 25 },
-  sectionHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 15,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#1a1a1a",
-    marginBottom: 10,
-  },
-  greenBadge: {
-    backgroundColor: "#e6f7e0",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  greenBadgeText: { fontSize: 10, color: "#4CAF50", fontWeight: "bold" },
-
-  grid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-  },
-
-  // Slot Item
-  slotItem: {
-    width: "31%", // 3 columns
-    paddingVertical: 12,
-    borderRadius: 20, // Pill shape
-    backgroundColor: "#fff",
-    borderWidth: 1,
-    borderColor: "#eee",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 10,
-    position: "relative",
-  },
-  slotSelected: {
-    backgroundColor: "#C8F000",
-    borderColor: "#C8F000",
-  },
-  slotUnavailable: {
-    backgroundColor: "#f5f5f5", // Very light grey
-    borderColor: "#f5f5f5",
-  },
-  slotText: { fontSize: 13, fontWeight: "600", color: "#1a1a1a" },
-  slotTextSelected: { fontWeight: "bold" },
-  slotTextUnavailable: {
-    fontSize: 13,
-    color: "#bbb",
-    textDecorationLine: "line-through",
-  },
-  checkIcon: {
-    position: "absolute",
-    top: -6,
-    right: -6,
-    backgroundColor: "#fff",
-    borderRadius: 8,
-  },
-
-  // Footer
-  footer: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: "#fff",
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-    padding: 25,
-    paddingBottom: 30,
-    // Shadow
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: -5 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 20,
-  },
-  footerLabel: { fontSize: 12, color: "#888", marginBottom: 4 },
-  footerValue: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#1a1a1a",
-    marginBottom: 20,
-  },
-  confirmButton: {
-    backgroundColor: "#C8F000",
-    borderRadius: 30,
-    paddingVertical: 16,
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  confirmButtonText: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#1a1a1a",
-    marginRight: 8,
-  },
-});

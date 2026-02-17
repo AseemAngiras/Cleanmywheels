@@ -1,92 +1,36 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/constants/Colors";
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Text, View } from "react-native";
 
 export const SavingsCard = () => {
   return (
-    <View style={styles.container}>
-      <Text style={styles.headerText}>With subscription you save monthly:</Text>
-      <View style={styles.row}>
-        <View style={styles.item}>
-          <View style={[styles.iconBox, { backgroundColor: "#ECFCCB" }]}>
-            <Ionicons name="time" size={18} color="#4D7C0F" />
+    <View className="bg-card rounded-[24px] p-5 mb-5 border border-border shadow-sm">
+      <Text className="text-[13px] font-[600] color-textSecondary mb-5 text-center px-4">
+        With subscription you save monthly:
+      </Text>
+
+      <View className="flex-row items-center justify-between">
+        <View className="flex-1 flex-row items-center justify-center">
+          <View className="w-9 h-9 rounded-full bg-green-500/10 items-center justify-center mr-3 border border-green-500/20">
+            <Ionicons name="time" size={18} color="#4ADE80" />
           </View>
           <View>
-            <Text style={styles.value}>4 hrs</Text>
-            {/* <Text style={styles.label}>Time Saved</Text> */}
+            <Text className="text-[16px] font-[800] text-text">4 hrs</Text>
           </View>
         </View>
 
-        <View style={styles.divider} />
+        <View className="w-[1px] h-8 bg-border/50" />
 
-        <View style={styles.item}>
-          <View style={[styles.iconBox, { backgroundColor: "#FEF9C3" }]}>
-            <Ionicons name="wallet" size={18} color="#A16207" />
+        <View className="flex-1 flex-row items-center justify-center">
+          <View className="w-9 h-9 rounded-full bg-yellow-500/10 items-center justify-center mr-3 border border-yellow-500/20">
+            <Ionicons name="wallet" size={18} color="#FACC15" />
           </View>
           <View>
-            <Text style={styles.value}>₹1,200</Text>
-            {/* <Text style={styles.label}>Money Saved</Text> */}
+            <Text className="text-[16px] font-[800] text-text">₹1,200</Text>
           </View>
         </View>
       </View>
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: Colors.card,
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  headerText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: Colors.textSecondary,
-    marginBottom: 16,
-    textAlign: "center",
-  },
-  row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  item: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 10,
-  },
-  divider: {
-    width: 1,
-    height: 30,
-    backgroundColor: Colors.border,
-  },
-  iconBox: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  value: {
-    fontSize: 16,
-    fontWeight: "800",
-    color: Colors.text,
-  },
-  label: {
-    fontSize: 11,
-    color: Colors.textSecondary,
-    fontWeight: "500",
-  },
-});

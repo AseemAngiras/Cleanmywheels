@@ -2,40 +2,30 @@ import React, { useState } from "react";
 import {
   View,
   Text,
-  StyleSheet,
-  SafeAreaView,
   TouchableOpacity,
-  Image,
   FlatList,
   ActivityIndicator,
   Modal,
-  Alert,
+  ScrollView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { Stack, useRouter } from "expo-router";
-import { useSelector } from "react-redux";
-import { RootState } from "@/store";
+import { Colors } from "@/constants/Colors";
 import { useGetAllSubscriptionsQuery } from "@/store/api/subscriptionApi";
 import { UserSubscription } from "@/types/subscription";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 
 export default function AdminSubscriptionScreen() {
-  const router = useRouter();
-  const [page, setPage] = useState(1);
   const [filterStatus, setFilterStatus] = useState<string | undefined>(
     undefined,
   );
-  const perPage = 20;
 
   const { data, isLoading, isFetching, refetch } = useGetAllSubscriptionsQuery({
-    page,
-    perPage,
+    page: 1,
+    perPage: 50,
     status: filterStatus,
   });
 
   const subscriptions = data?.subscriptions || [];
-  const total = data?.total || 0;
-
   const [selectedSub, setSelectedSub] = useState<UserSubscription | null>(null);
   const [detailsVisible, setDetailsVisible] = useState(false);
 
@@ -50,32 +40,40 @@ export default function AdminSubscriptionScreen() {
   };
 
   const renderStatusBadge = (status: string) => {
-    let color = "#6B7280";
-    let bg = "#F3F4F6";
+    let color = "#64748B";
+    let bg = "bg-slate-500/10";
+    let border = "border-slate-500/20";
 
     switch (status) {
       case "active":
         color = "#10B981";
-        bg = "#D1FAE5";
+        bg = "bg-green-500/10";
+        border = "border-green-500/20";
         break;
       case "pending":
         color = "#F59E0B";
-        bg = "#FEF3C7";
+        bg = "bg-yellow-500/10";
+        border = "border-yellow-500/20";
         break;
       case "expired":
         color = "#EF4444";
-        bg = "#FEE2E2";
+        bg = "bg-red-500/10";
+        border = "border-red-500/20";
         break;
       case "cancelled":
         color = "#6B7280";
-        bg = "#E5E7EB";
+        bg = "bg-gray-500/10";
+        border = "border-gray-500/20";
         break;
     }
 
     return (
-      <View style={[styles.statusBadge, { backgroundColor: bg }]}>
-        <Text style={[styles.statusText, { color }]}>
-          {status.charAt(0).toUpperCase() + status.slice(1)}
+      <View className={`${bg} ${border} border px-3 py-1 rounded-full`}>
+        <Text
+          style={{ color }}
+          className="text-[10px] font-[900] uppercase tracking-wider"
+        >
+          {status}
         </Text>
       </View>
     );
@@ -83,48 +81,61 @@ export default function AdminSubscriptionScreen() {
 
   const renderItem = ({ item }: { item: UserSubscription }) => (
     <TouchableOpacity
-      style={styles.card}
+      className="bg-card rounded-[32px] p-6 mb-4 border border-border/50 shadow-sm"
       onPress={() => openDetails(item)}
       activeOpacity={0.9}
     >
-      <View style={styles.cardHeader}>
-        <View style={styles.userInfo}>
-          {/* If user object exists in item (it should from population), use it */}
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>
+      <View className="flex-row justify-between items-center mb-5">
+        <View className="flex-row items-center flex-1 mr-3">
+          <View className="w-12 h-12 rounded-2xl bg-primary/10 items-center justify-center mr-4 border border-primary/20">
+            <Text className="text-[20px] font-[900] color-primary">
               {(item as any).user?.name?.charAt(0) || "U"}
             </Text>
           </View>
-          <View>
-            <Text style={styles.userName}>
+          <View className="flex-1">
+            <Text
+              className="text-[17px] font-[800] color-text"
+              numberOfLines={1}
+            >
               {(item as any).user?.name || "Unknown User"}
             </Text>
-            <Text style={styles.userPhone}>
-              {(item as any).user?.phone || ""}
+            <Text className="text-[13px] color-textSecondary font-[600] mt-0.5">
+              {(item as any).user?.phone || "No phone"}
             </Text>
           </View>
         </View>
         {renderStatusBadge(item.status)}
       </View>
 
-      <View style={styles.divider} />
+      <View className="h-[1px] bg-border/20 mb-5" />
 
-      <View style={styles.cardBody}>
-        <View style={styles.row}>
-          <Text style={styles.label}>Vehicle:</Text>
-          <Text style={styles.value}>
+      <View className="gap-3">
+        <View className="flex-row justify-between items-center">
+          <Text className="text-[12px] font-[700] color-textSecondary uppercase tracking-widest">
+            Vehicle
+          </Text>
+          <Text
+            className="text-[14px] font-[800] color-text flex-1 text-right ml-4"
+            numberOfLines={1}
+          >
             {item.vehicle
-              ? `${item.vehicle.brand} ${item.vehicle.model} (${item.vehicle.vehicleNo})`
+              ? `${item.vehicle.brand} ${item.vehicle.model}`
               : "N/A"}
           </Text>
         </View>
-        <View style={styles.row}>
-          <Text style={styles.label}>Plan:</Text>
-          <Text style={styles.value}>{item.plan?.name || "N/A"}</Text>
+        <View className="flex-row justify-between items-center">
+          <Text className="text-[12px] font-[700] color-textSecondary uppercase tracking-widest">
+            Plan
+          </Text>
+          <Text className="text-[14px] font-[800] color-primary uppercase">
+            {item.plan?.name || "N/A"}
+          </Text>
         </View>
-        <View style={styles.row}>
-          <Text style={styles.label}>Valid Until:</Text>
-          <Text style={styles.value}>
+        <View className="flex-row justify-between items-center">
+          <Text className="text-[12px] font-[700] color-textSecondary uppercase tracking-widest">
+            Valid Until
+          </Text>
+          <Text className="text-[14px] font-[800] color-text">
             {new Date(item.endDate).toLocaleDateString()}
           </Text>
         </View>
@@ -133,321 +144,241 @@ export default function AdminSubscriptionScreen() {
   );
 
   return (
-    <ScreenWrapper style={styles.container}>
+    <ScreenWrapper
+      backgroundColor={Colors.background}
+      statusBarStyle="light-content"
+    >
       {/* Header */}
-      <View style={styles.header}>
+      <View className="flex-row justify-between items-center px-6 py-5 bg-background">
         <View>
-          <Text style={styles.headerTitle}>Subscription Management</Text>
-          <Text style={styles.headerSubtitle}>
-            Manage all user subscriptions
+          <Text className="text-[24px] font-[900] color-text tracking-tighter">
+            Subscriptions
+          </Text>
+          <Text className="text-[12px] color-textSecondary font-[800] uppercase tracking-widest mt-0.5">
+            Admin Dashboard
           </Text>
         </View>
-        <TouchableOpacity onPress={() => refetch()} style={styles.refreshBtn}>
-          <Ionicons name="refresh" size={20} color="#000" />
+        <TouchableOpacity
+          onPress={() => refetch()}
+          className="w-10 h-10 bg-card rounded-xl border border-border/50 items-center justify-center"
+        >
+          <Ionicons name="refresh" size={20} color={Colors.text} />
         </TouchableOpacity>
       </View>
 
-      {/* Filters (Optional - simplified for now) */}
-      <View style={styles.filterContainer}>
-        {["active", "pending", "expired", undefined].map((status) => (
-          <TouchableOpacity
-            key={status || "all"}
-            style={[
-              styles.filterChip,
-              filterStatus === status && styles.filterChipActive,
-            ]}
-            onPress={() => setFilterStatus(status)}
-          >
-            <Text
-              style={[
-                styles.filterText,
-                filterStatus === status && styles.filterTextActive,
-              ]}
+      {/* Filters */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 15 }}
+        className="flex-none"
+      >
+        {["All", "Active", "Pending", "Expired"].map((label) => {
+          const status = label === "All" ? undefined : label.toLowerCase();
+          const isActive = filterStatus === status;
+          return (
+            <TouchableOpacity
+              key={label}
+              className={`mr-3 px-6 py-2.5 rounded-2xl border ${isActive ? "bg-primary border-primary shadow-lg shadow-primary/20" : "bg-card border-border/50"}`}
+              onPress={() => setFilterStatus(status)}
             >
-              {status
-                ? status.charAt(0).toUpperCase() + status.slice(1)
-                : "All"}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+              <Text
+                className={`text-[13px] font-[800] ${isActive ? "color-black" : "color-text"}`}
+              >
+                {label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
 
       {/* List */}
       <FlatList
         data={subscriptions}
         renderItem={renderItem}
         keyExtractor={(item) => item._id}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={{ padding: 20, paddingBottom: 120 }}
         refreshing={isFetching}
         onRefresh={refetch}
+        showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           !isLoading ? (
-            <View style={styles.emptyState}>
-              <Ionicons name="documents-outline" size={48} color="#ccc" />
-              <Text style={styles.emptyText}>No subscriptions found.</Text>
+            <View className="items-center justify-center mt-20">
+              <View className="w-24 h-24 bg-card rounded-[40px] items-center justify-center mb-6 border border-border/30">
+                <Ionicons
+                  name="documents-outline"
+                  size={48}
+                  color={Colors.textSecondary}
+                />
+              </View>
+              <Text className="text-[18px] font-[800] color-text">
+                No subscriptions found
+              </Text>
+              <Text className="text-[14px] color-textSecondary text-center mt-1">
+                Try adjusting your filters.
+              </Text>
             </View>
           ) : null
         }
         ListFooterComponent={
           isLoading ? (
-            <ActivityIndicator style={{ marginTop: 20 }} color="#2563EB" />
+            <ActivityIndicator
+              style={{ marginTop: 20 }}
+              color={Colors.primary}
+            />
           ) : null
         }
       />
 
       {/* Details Modal */}
-      <Modal
-        visible={detailsVisible}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={closeDetails}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Subscription Details</Text>
-            <TouchableOpacity onPress={closeDetails}>
-              <Ionicons name="close" size={24} color="#000" />
-            </TouchableOpacity>
-          </View>
-          {selectedSub && (
-            <View style={styles.modalContent}>
-              <View style={styles.detailSection}>
-                <Text style={styles.detailTitle}>Reference ID</Text>
-                <Text style={styles.detailText}>{selectedSub._id}</Text>
-              </View>
+      <Modal visible={detailsVisible} transparent animationType="slide">
+        <View className="flex-1 bg-black/60 justify-end">
+          <TouchableOpacity
+            className="absolute inset-0"
+            onPress={closeDetails}
+          />
+          <View className="bg-card rounded-t-[44px] p-8 pb-12 border-t border-border shadow-2xl max-h-[90%]">
+            <View className="w-14 h-1.5 bg-border/50 rounded-full self-center mb-10" />
 
-              <View style={styles.detailSection}>
-                <Text style={styles.detailTitle}>User Details</Text>
-                <Text style={styles.detailText}>
-                  Name: {(selectedSub as any).user?.name}
-                </Text>
-                <Text style={styles.detailText}>
-                  Phone: {(selectedSub as any).user?.phone}
-                </Text>
-                <Text style={styles.detailText}>
-                  Email: {(selectedSub as any).user?.email}
-                </Text>
-              </View>
-
-              <View style={styles.detailSection}>
-                <Text style={styles.detailTitle}>Vehicle</Text>
-                <Text style={styles.detailText}>
-                  {selectedSub.vehicle?.brand} {selectedSub.vehicle?.model}
-                </Text>
-                <Text style={styles.detailText}>
-                  {selectedSub.vehicle?.vehicleNo}
-                </Text>
-                <Text style={styles.detailText}>
-                  Color: {selectedSub.vehicle?.color}
-                </Text>
-              </View>
-
-              <View style={styles.detailSection}>
-                <Text style={styles.detailTitle}>Plan Info</Text>
-                <Text style={styles.detailText}>
-                  {selectedSub.plan?.name} - ₹{selectedSub.plan?.price} / month
-                </Text>
-                <Text style={styles.detailText}>
-                  Start: {new Date(selectedSub.startDate).toDateString()}
-                </Text>
-                <Text style={styles.detailText}>
-                  End: {new Date(selectedSub.endDate).toDateString()}
-                </Text>
-                <Text style={styles.detailText}>
-                  Services Completed: {selectedSub.servicesCompleted}/
-                  {selectedSub.servicesTotal}
-                </Text>
-              </View>
-
-              <View style={[styles.detailSection, { borderBottomWidth: 0 }]}>
-                <Text style={styles.detailTitle}>Assigned Worker</Text>
-                <Text style={styles.detailText}>
-                  {selectedSub.worker
-                    ? selectedSub.worker.name
-                    : "Not Assigned"}
-                </Text>
-              </View>
+            <View className="flex-row justify-between items-center mb-10">
+              <Text className="text-[26px] font-[900] color-text">Details</Text>
+              <TouchableOpacity
+                onPress={closeDetails}
+                className="w-10 h-10 bg-background rounded-full items-center justify-center border border-border"
+              >
+                <Ionicons name="close" size={20} color={Colors.text} />
+              </TouchableOpacity>
             </View>
-          )}
+
+            {selectedSub && (
+              <ScrollView
+                showsVerticalScrollIndicator={false}
+                className="gap-8"
+              >
+                <View>
+                  <Text className="text-[11px] font-[800] color-textSecondary uppercase tracking-widest mb-4 ml-1">
+                    Reference ID
+                  </Text>
+                  <View className="bg-background p-4 rounded-2xl border border-dashed border-border/50">
+                    <Text className="text-[14px] font-[700] color-primary font-mono">
+                      {selectedSub._id}
+                    </Text>
+                  </View>
+                </View>
+
+                <View>
+                  <Text className="text-[11px] font-[800] color-textSecondary uppercase tracking-widest mb-4 ml-1">
+                    Customer Info
+                  </Text>
+                  <View className="bg-background p-5 rounded-[28px] border border-border/50 gap-4">
+                    <View className="flex-row items-center">
+                      <Ionicons
+                        name="person-outline"
+                        size={16}
+                        color={Colors.textSecondary}
+                      />
+                      <Text className="text-[15px] font-[800] color-text ml-3">
+                        {(selectedSub as any).user?.name}
+                      </Text>
+                    </View>
+                    <View className="flex-row items-center">
+                      <Ionicons
+                        name="call-outline"
+                        size={16}
+                        color={Colors.textSecondary}
+                      />
+                      <Text className="text-[15px] font-[800] color-text ml-3">
+                        {(selectedSub as any).user?.phone}
+                      </Text>
+                    </View>
+                    <View className="flex-row items-center">
+                      <Ionicons
+                        name="mail-outline"
+                        size={16}
+                        color={Colors.textSecondary}
+                      />
+                      <Text className="text-[15px] font-[800] color-text ml-3">
+                        {(selectedSub as any).user?.email || "N/A"}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+
+                <View>
+                  <Text className="text-[11px] font-[800] color-textSecondary uppercase tracking-widest mb-4 ml-1">
+                    Vehicle
+                  </Text>
+                  <View className="bg-background p-5 rounded-[28px] border border-border/50">
+                    <Text className="text-[16px] font-[900] color-text">
+                      {selectedSub.vehicle?.brand} {selectedSub.vehicle?.model}
+                    </Text>
+                    <Text className="text-[14px] font-[800] color-primary mt-1">
+                      {selectedSub.vehicle?.vehicleNo}
+                    </Text>
+                    <Text className="text-[13px] color-textSecondary font-[600] mt-1">
+                      Color: {selectedSub.vehicle?.color || "N/A"}
+                    </Text>
+                  </View>
+                </View>
+
+                <View>
+                  <Text className="text-[11px] font-[800] color-textSecondary uppercase tracking-widest mb-4 ml-1">
+                    Subscription Plan
+                  </Text>
+                  <View className="bg-background p-5 rounded-[28px] border border-border/50 gap-3">
+                    <View className="flex-row justify-between">
+                      <Text className="text-[14px] font-[800] color-text">
+                        {selectedSub.plan?.name}
+                      </Text>
+                      <Text className="text-[14px] font-[900] color-primary">
+                        ₹{selectedSub.plan?.price}
+                      </Text>
+                    </View>
+                    <View className="flex-row justify-between">
+                      <Text className="text-[13px] font-[600] color-textSecondary italic">
+                        Duration
+                      </Text>
+                      <Text className="text-[13px] font-[800] color-text">
+                        {new Date(selectedSub.startDate).toLocaleDateString()} -{" "}
+                        {new Date(selectedSub.endDate).toLocaleDateString()}
+                      </Text>
+                    </View>
+                    <View className="flex-row justify-between">
+                      <Text className="text-[13px] font-[600] color-textSecondary">
+                        Progress
+                      </Text>
+                      <Text className="text-[13px] font-[900] color-text">
+                        {selectedSub.servicesCompleted} /{" "}
+                        {selectedSub.servicesTotal} Services
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+
+                <View>
+                  <Text className="text-[11px] font-[800] color-textSecondary uppercase tracking-widest mb-4 ml-1">
+                    Assigned Professional
+                  </Text>
+                  <View className="bg-background p-5 rounded-[28px] border border-border/50 flex-row items-center">
+                    <View className="w-10 h-10 rounded-full bg-primary/10 items-center justify-center mr-4">
+                      <Ionicons
+                        name="ribbon-outline"
+                        size={20}
+                        color={Colors.primary}
+                      />
+                    </View>
+                    <Text className="text-[15px] font-[800] color-text">
+                      {selectedSub.worker
+                        ? selectedSub.worker.name
+                        : "Not Assigned"}
+                    </Text>
+                  </View>
+                </View>
+              </ScrollView>
+            )}
+          </View>
         </View>
       </Modal>
     </ScreenWrapper>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F9FAFB",
-  },
-  header: {
-    padding: 20,
-    backgroundColor: "#fff",
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#111827",
-  },
-  headerSubtitle: {
-    fontSize: 14,
-    color: "#6B7280",
-    marginTop: 2,
-  },
-  refreshBtn: {
-    padding: 8,
-    backgroundColor: "#F3F4F6",
-    borderRadius: 8,
-  },
-  filterContainer: {
-    flexDirection: "row",
-    padding: 15,
-    gap: 10,
-  },
-  filterChip: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    backgroundColor: "#fff",
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-  },
-  filterChipActive: {
-    backgroundColor: "#2563EB",
-    borderColor: "#2563EB",
-  },
-  filterText: {
-    fontSize: 13,
-    color: "#4B5563",
-  },
-  filterTextActive: {
-    color: "#fff",
-    fontWeight: "600",
-  },
-  listContent: {
-    padding: 15,
-    paddingTop: 0,
-  },
-  card: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  cardHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  userInfo: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#DBEAFE",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  avatarText: {
-    color: "#2563EB",
-    fontWeight: "bold",
-    fontSize: 16,
-  },
-  userName: {
-    fontWeight: "600",
-    color: "#1F2937",
-    fontSize: 15,
-  },
-  userPhone: {
-    fontSize: 12,
-    color: "#6B7280",
-  },
-  statusBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-  },
-  statusText: {
-    fontSize: 11,
-    fontWeight: "600",
-  },
-  divider: {
-    height: 1,
-    backgroundColor: "#F3F4F6",
-    marginVertical: 12,
-  },
-  cardBody: {
-    gap: 6,
-  },
-  row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  label: {
-    fontSize: 13,
-    color: "#6B7280",
-  },
-  value: {
-    fontSize: 13,
-    color: "#374151",
-    fontWeight: "500",
-  },
-  emptyState: {
-    alignItems: "center",
-    marginTop: 50,
-    gap: 10,
-  },
-  emptyText: {
-    color: "#9CA3AF",
-    fontSize: 16,
-  },
-  modalContainer: {
-    flex: 1,
-    backgroundColor: "#fff",
-    padding: 20,
-  },
-  modalHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 20,
-    marginTop: 20,
-  },
-  modalTitle: {
-    fontSize: 22,
-    fontWeight: "bold",
-  },
-  modalContent: {
-    gap: 20,
-  },
-  detailSection: {
-    paddingBottom: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: "#F3F4F6",
-    gap: 5,
-  },
-  detailTitle: {
-    fontSize: 14,
-    color: "#6B7280",
-    fontWeight: "600",
-    marginBottom: 5,
-  },
-  detailText: {
-    fontSize: 16,
-    color: "#1F2937",
-  },
-});

@@ -4,13 +4,13 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
   ActivityIndicator,
   Alert,
   ScrollView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
+import { Colors } from "@/constants/Colors";
 
 interface WorkerFormProps {
   initialValues?: {
@@ -50,15 +50,25 @@ export const WorkerForm: React.FC<WorkerFormProps> = ({
   };
 
   return (
-    <View style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={styles.inputGroup}>
-          <View style={styles.labelRow}>
-            <Ionicons name="person-outline" size={16} color="#64748B" />
-            <Text style={styles.label}>Full Name *</Text>
+    <View className="flex-1 bg-card px-6">
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 60 }}
+      >
+        {/* Name Input */}
+        <View className="mb-6 mt-2">
+          <View className="flex-row items-center gap-2 mb-2.5 px-1">
+            <Ionicons
+              name="person-outline"
+              size={16}
+              color={Colors.textSecondary}
+            />
+            <Text className="text-[13px] font-[700] color-textSecondary uppercase tracking-widest">
+              Full Name *
+            </Text>
           </View>
           <TextInput
-            style={styles.input}
+            className="bg-background border-[1.5px] border-border rounded-2xl p-4 text-[16px] color-text font-[600]"
             value={name}
             onChangeText={(text) => {
               if (/[^a-zA-Z\s]/.test(text)) {
@@ -71,33 +81,32 @@ export const WorkerForm: React.FC<WorkerFormProps> = ({
             autoCapitalize="words"
             maxLength={30}
             placeholder="e.g. Rahul Sharma"
-            placeholderTextColor="#94A3B8"
+            placeholderTextColor="#64748B"
           />
           {isNameWarningVisible && (
-            <Text
-              style={{
-                position: "absolute",
-                bottom: -16,
-                left: 50,
-                color: "red",
-                fontSize: 12,
-              }}
-            >
+            <Text className="text-[11px] color-red-500 font-[600] mt-1.5 ml-1">
               Only alphabets are allowed
             </Text>
           )}
         </View>
 
-        <View style={styles.inputGroup}>
-          <View style={styles.labelRow}>
-            <Ionicons name="call-outline" size={16} color="#64748B" />
-            <Text style={styles.label}>Phone Number *</Text>
+        {/* Phone Input */}
+        <View className="mb-6">
+          <View className="flex-row items-center gap-2 mb-2.5 px-1">
+            <Ionicons
+              name="call-outline"
+              size={16}
+              color={Colors.textSecondary}
+            />
+            <Text className="text-[13px] font-[700] color-textSecondary uppercase tracking-widest">
+              Phone Number *
+            </Text>
           </View>
-          <View style={styles.phoneInputContainer}>
-            <Text style={styles.prefix}>+91</Text>
-            <View style={styles.divider} />
+          <View className="flex-row items-center bg-background border-[1.5px] border-border rounded-2xl h-14 px-4">
+            <Text className="text-[16px] color-text font-[700]">+91</Text>
+            <View className="w-[1.5px] h-6 bg-border mx-3" />
             <TextInput
-              style={styles.phoneInput}
+              className="flex-1 text-[16px] color-text font-[600]"
               value={phone}
               onChangeText={(text) => {
                 if (/[^0-9]/.test(text)) {
@@ -108,96 +117,119 @@ export const WorkerForm: React.FC<WorkerFormProps> = ({
                 setPhone(filteredText);
               }}
               placeholder="9876543210"
-              placeholderTextColor="#94A3B8"
+              placeholderTextColor="#64748B"
               keyboardType="phone-pad"
               maxLength={10}
             />
           </View>
           {isPhoneWarningVisible && (
-            <Text
-              style={{
-                position: "absolute",
-                bottom: -16,
-                left: 10,
-                color: "red",
-                fontSize: 12,
-              }}
-            >
+            <Text className="text-[11px] color-red-500 font-[600] mt-1.5 ml-1">
               Only numbers are allowed
             </Text>
           )}
         </View>
 
-        <View style={styles.inputGroup}>
-          <View style={styles.labelRow}>
-            <Ionicons name="briefcase-outline" size={16} color="#64748B" />
-            <Text style={styles.label}>Job Role *</Text>
+        {/* Job Role Input */}
+        <View className="mb-6">
+          <View className="flex-row items-center gap-2 mb-2.5 px-1">
+            <Ionicons
+              name="briefcase-outline"
+              size={16}
+              color={Colors.textSecondary}
+            />
+            <Text className="text-[13px] font-[700] color-textSecondary uppercase tracking-widest">
+              Job Role *
+            </Text>
           </View>
           <TextInput
-            style={styles.input}
+            className="bg-background border-[1.5px] border-border rounded-2xl p-4 text-[16px] color-text font-[600]"
             value={jobRole}
             onChangeText={setJobRole}
             placeholder="e.g. Cleaner, Supervisor"
-            placeholderTextColor="#94A3B8"
+            placeholderTextColor="#64748B"
           />
         </View>
 
-        <View style={styles.inputGroup}>
-          <View style={styles.labelRow}>
-            <Ionicons name="location-outline" size={16} color="#64748B" />
-            <Text style={styles.label}>Address</Text>
+        {/* Address Input */}
+        <View className="mb-6">
+          <View className="flex-row items-center gap-2 mb-2.5 px-1">
+            <Ionicons
+              name="location-outline"
+              size={16}
+              color={Colors.textSecondary}
+            />
+            <Text className="text-[13px] font-[700] color-textSecondary uppercase tracking-widest">
+              Address
+            </Text>
           </View>
           <TextInput
-            style={[styles.input, styles.textArea]}
+            className="bg-background border-[1.5px] border-border rounded-2xl p-4 text-[16px] color-text font-[600] h-24 text-top"
             value={address}
             onChangeText={setAddress}
             placeholder="Enter full address"
-            placeholderTextColor="#94A3B8"
+            placeholderTextColor="#64748B"
             multiline
             numberOfLines={3}
           />
         </View>
 
-        <View style={styles.inputGroup}>
-          <View style={styles.labelRow}>
+        {/* Status Picker */}
+        <View className="mb-8">
+          <div className="flex-row items-center gap-2 mb-2.5 px-1">
             <Ionicons
               name="shield-checkmark-outline"
               size={16}
-              color="#64748B"
+              color={Colors.textSecondary}
             />
-            <Text style={styles.label}>Initial Status</Text>
-          </View>
-          <View style={styles.pickerContainer}>
+            <Text className="text-[13px] font-[700] color-textSecondary uppercase tracking-widest">
+              Initial Status
+            </Text>
+          </div>
+          <View className="bg-background border-[1.5px] border-border rounded-2xl overflow-hidden">
             <Picker
               selectedValue={status}
               onValueChange={(itemValue) => setStatus(itemValue)}
-              style={styles.picker}
+              dropdownIconColor={Colors.textSecondary}
+              style={{ marginVertical: -4 }}
             >
-              <Picker.Item label="Active" value="Active" />
-              <Picker.Item label="Inactive" value="Inactive" />
-              <Picker.Item label="On Leave" value="On Leave" />
+              <Picker.Item label="Active" value="Active" color={Colors.text} />
+              <Picker.Item
+                label="Inactive"
+                value="Inactive"
+                color={Colors.text}
+              />
+              <Picker.Item
+                label="On Leave"
+                value="On Leave"
+                color={Colors.text}
+              />
             </Picker>
           </View>
         </View>
 
-        <View style={styles.actions}>
+        {/* Actions */}
+        <View className="flex-row gap-4 mt-4">
           <TouchableOpacity
-            style={[styles.button, styles.cancelButton]}
+            className="flex-1 h-14 bg-background border border-border rounded-2xl items-center justify-center shadow-sm"
             onPress={onCancel}
             disabled={isLoading}
           >
-            <Text style={styles.cancelButtonText}>Cancel</Text>
+            <Text className="text-[15px] font-[800] color-textSecondary">
+              Cancel
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.button, styles.submitButton]}
+            className="flex-[2] h-14 bg-primary rounded-2xl items-center justify-center shadow-lg shadow-primary/20"
             onPress={handleSubmit}
             disabled={isLoading}
           >
             {isLoading ? (
               <ActivityIndicator color="#000" />
             ) : (
-              <Text style={styles.submitButtonText}>{submitLabel}</Text>
+              <Text className="text-[15px] font-[900] color-black tracking-tight">
+                {submitLabel}
+              </Text>
             )}
           </TouchableOpacity>
         </View>
@@ -205,115 +237,3 @@ export const WorkerForm: React.FC<WorkerFormProps> = ({
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    padding: 24,
-    backgroundColor: "#FFF",
-  },
-  inputGroup: {
-    marginBottom: 20,
-  },
-  labelRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    marginBottom: 8,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#475569",
-    letterSpacing: 0.3,
-  },
-  input: {
-    backgroundColor: "#F8FAFC",
-    borderWidth: 1.5,
-    borderColor: "#E2E8F0",
-    borderRadius: 12,
-    padding: 14,
-    fontSize: 16,
-    color: "#0F172A",
-    fontWeight: "500",
-  },
-  phoneInputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#F8FAFC",
-    borderWidth: 1.5,
-    borderColor: "#E2E8F0",
-    borderRadius: 12,
-    height: 56,
-    paddingHorizontal: 14,
-  },
-  prefix: {
-    fontSize: 16,
-    color: "#0F172A",
-    fontWeight: "700",
-  },
-  divider: {
-    width: 1,
-    height: 24,
-    backgroundColor: "#CBD5E1",
-    marginHorizontal: 12,
-  },
-  phoneInput: {
-    flex: 1,
-    fontSize: 16,
-    color: "#0F172A",
-    fontWeight: "500",
-  },
-  textArea: {
-    height: 100,
-    textAlignVertical: "top",
-    paddingTop: 14,
-  },
-  pickerContainer: {
-    backgroundColor: "#F8FAFC",
-    borderWidth: 1.5,
-    borderColor: "#E2E8F0",
-    borderRadius: 12,
-    overflow: "hidden",
-  },
-  picker: {
-    marginTop: -8,
-    marginBottom: -8,
-  },
-  actions: {
-    flexDirection: "row",
-    gap: 16,
-    marginTop: 32,
-    marginBottom: 40,
-  },
-  button: {
-    flex: 1,
-    height: 56,
-    borderRadius: 16,
-    alignItems: "center",
-    justifyContent: "center",
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-  },
-  cancelButton: {
-    backgroundColor: "#FFF",
-    borderWidth: 1.5,
-    borderColor: "#E2E8F0",
-  },
-  submitButton: {
-    backgroundColor: "#C8F000", // Lime theme color
-  },
-  cancelButtonText: {
-    color: "#64748B",
-    fontWeight: "700",
-    fontSize: 16,
-  },
-  submitButtonText: {
-    color: "#000",
-    fontWeight: "800",
-    fontSize: 16,
-    letterSpacing: 0.5,
-  },
-});

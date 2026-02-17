@@ -1,13 +1,13 @@
 import React from "react";
-import { StyleSheet, View, Dimensions } from "react-native";
+import { View, Dimensions } from "react-native";
 import Svg, { Line, Polygon, Circle } from "react-native-svg";
 
 const { width, height } = Dimensions.get("window");
 
 export const HomeBackground = () => {
   return (
-    <View style={styles.container}>
-      <Svg height={height} width={width} style={styles.svg}>
+    <View className="absolute inset-0 bg-[#121212] -z-10">
+      <Svg height={height} width={width} className="opacity-100">
         {/* Background Base */}
         <Polygon
           points={`0,0 ${width},0 ${width},${height} 0,${height}`}
@@ -84,14 +84,3 @@ export const HomeBackground = () => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "#121212",
-    zIndex: -1,
-  },
-  svg: {
-    opacity: 1,
-  },
-});

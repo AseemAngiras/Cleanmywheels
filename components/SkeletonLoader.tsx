@@ -1,19 +1,21 @@
-import React, { useEffect, useRef } from 'react';
-import { Animated, StyleSheet, View, ViewStyle } from 'react-native';
+import React, { useEffect, useRef } from "react";
+import { Animated, View, ViewStyle } from "react-native";
 
 interface SkeletonProps {
   width?: number | string;
   height?: number;
   borderRadius?: number;
   style?: ViewStyle;
+  className?: string;
 }
 
 // Single skeleton element
-export const Skeleton: React.FC<SkeletonProps> = ({ 
-  width = '100%', 
-  height = 20, 
+export const Skeleton: React.FC<SkeletonProps> = ({
+  width = "100%",
+  height = 20,
   borderRadius = 8,
-  style 
+  style,
+  className,
 }) => {
   const shimmerAnim = useRef(new Animated.Value(0)).current;
 
@@ -30,23 +32,23 @@ export const Skeleton: React.FC<SkeletonProps> = ({
           duration: 1000,
           useNativeDriver: true,
         }),
-      ])
+      ]),
     ).start();
   }, [shimmerAnim]);
 
   const opacity = shimmerAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [0.3, 0.7],
+    outputRange: [0.1, 0.3],
   });
 
   return (
     <Animated.View
+      className={`bg-white/10 ${className || ""}`}
       style={[
         {
           width: width as any,
           height,
           borderRadius,
-          backgroundColor: '#E1E9EE',
           opacity,
         },
         style,
@@ -57,12 +59,12 @@ export const Skeleton: React.FC<SkeletonProps> = ({
 
 // Service card skeleton
 export const ServiceCardSkeleton: React.FC = () => (
-  <View style={styles.serviceCard}>
-    <View style={styles.serviceRow}>
-      <Skeleton width={60} height={60} borderRadius={12} />
-      <View style={styles.serviceContent}>
-        <Skeleton width="70%" height={18} style={{ marginBottom: 8 }} />
-        <Skeleton width="50%" height={14} style={{ marginBottom: 6 }} />
+  <View className="bg-card rounded-[24px] p-5 mb-4 mx-5 border border-border">
+    <View className="flex-row items-center">
+      <Skeleton width={60} height={60} borderRadius={16} />
+      <View className="flex-1 ml-4">
+        <Skeleton width="70%" height={18} className="mb-2" />
+        <Skeleton width="50%" height={14} className="mb-2" />
         <Skeleton width="30%" height={16} />
       </View>
     </View>
@@ -71,24 +73,26 @@ export const ServiceCardSkeleton: React.FC = () => (
 
 // Booking card skeleton
 export const BookingCardSkeleton: React.FC = () => (
-  <View style={styles.bookingCard}>
-    <View style={styles.bookingHeader}>
-      <Skeleton width={50} height={50} borderRadius={10} />
-      <View style={{ flex: 1, marginLeft: 12 }}>
-        <Skeleton width="60%" height={16} style={{ marginBottom: 8 }} />
-        <Skeleton width="40%" height={14} />
+  <View className="bg-card rounded-[24px] p-5 mb-4 mx-5 border border-border">
+    <View className="flex-row items-center justify-between mb-4">
+      <View className="flex-row items-center">
+        <Skeleton width={50} height={50} borderRadius={12} />
+        <View className="flex-1 ml-3">
+          <Skeleton width="60%" height={16} className="mb-2" />
+          <Skeleton width="40%" height={14} />
+        </View>
       </View>
       <Skeleton width={60} height={24} borderRadius={12} />
     </View>
-    <View style={styles.bookingDivider} />
-    <View style={styles.bookingDetails}>
-      <View style={styles.bookingDetailRow}>
-        <Skeleton width={20} height={20} borderRadius={4} />
-        <Skeleton width="50%" height={14} style={{ marginLeft: 8 }} />
+    <View className="h-[1px] bg-border/50 mb-4" />
+    <View className="gap-2.5">
+      <View className="flex-row items-center">
+        <Skeleton width={20} height={20} borderRadius={6} />
+        <Skeleton width="50%" height={14} className="ml-3" />
       </View>
-      <View style={styles.bookingDetailRow}>
-        <Skeleton width={20} height={20} borderRadius={4} />
-        <Skeleton width="40%" height={14} style={{ marginLeft: 8 }} />
+      <View className="flex-row items-center">
+        <Skeleton width={20} height={20} borderRadius={6} />
+        <Skeleton width="40%" height={14} className="ml-3" />
       </View>
     </View>
   </View>
@@ -96,11 +100,11 @@ export const BookingCardSkeleton: React.FC = () => (
 
 // Notification item skeleton
 export const NotificationSkeleton: React.FC = () => (
-  <View style={styles.notificationItem}>
-    <Skeleton width={40} height={40} borderRadius={20} />
-    <View style={{ flex: 1, marginLeft: 12 }}>
-      <Skeleton width="80%" height={16} style={{ marginBottom: 8 }} />
-      <Skeleton width="60%" height={14} style={{ marginBottom: 6 }} />
+  <View className="flex-row items-start p-5 bg-card border-b border-border/50">
+    <Skeleton width={44} height={44} borderRadius={14} />
+    <View className="flex-1 ml-4">
+      <Skeleton width="80%" height={16} className="mb-2" />
+      <Skeleton width="60%" height={14} className="mb-2" />
       <Skeleton width="30%" height={12} />
     </View>
   </View>
@@ -108,11 +112,11 @@ export const NotificationSkeleton: React.FC = () => (
 
 // Profile card skeleton
 export const ProfileSkeleton: React.FC = () => (
-  <View style={styles.profileCard}>
-    <Skeleton width={60} height={60} borderRadius={30} />
-    <View style={{ marginLeft: 14, flex: 1 }}>
-      <Skeleton width="60%" height={18} style={{ marginBottom: 8 }} />
-      <Skeleton width="50%" height={14} style={{ marginBottom: 6 }} />
+  <View className="flex-row items-center bg-card rounded-[24px] p-5 mb-5 border border-border">
+    <Skeleton width={64} height={64} borderRadius={32} />
+    <View className="ml-4 flex-1">
+      <Skeleton width="60%" height={18} className="mb-2" />
+      <Skeleton width="50%" height={14} className="mb-2" />
       <Skeleton width="70%" height={14} />
     </View>
   </View>
@@ -120,10 +124,10 @@ export const ProfileSkeleton: React.FC = () => (
 
 // Address row skeleton
 export const AddressRowSkeleton: React.FC = () => (
-  <View style={styles.addressRow}>
-    <Skeleton width={36} height={36} borderRadius={8} />
-    <View style={{ flex: 1, marginLeft: 12 }}>
-      <Skeleton width="30%" height={14} style={{ marginBottom: 6 }} />
+  <View className="flex-row items-center py-4 px-5 border-b border-border/50">
+    <Skeleton width={40} height={40} borderRadius={12} />
+    <View className="flex-1 ml-4">
+      <Skeleton width="30%" height={14} className="mb-2" />
       <Skeleton width="80%" height={12} />
     </View>
   </View>
@@ -132,21 +136,22 @@ export const AddressRowSkeleton: React.FC = () => (
 // Full page loading skeleton (for lists)
 interface ListSkeletonProps {
   count?: number;
-  type: 'service' | 'booking' | 'notification' | 'address';
+  type: "service" | "booking" | "notification" | "address";
 }
 
-export const ListSkeleton: React.FC<ListSkeletonProps> = ({ count = 3, type }) => {
-  const items = Array.from({ length: count }, (_, i) => i);
-  
+export const ListSkeleton: React.FC<ListSkeletonProps> = ({
+  count = 3,
+  type,
+}) => {
   const renderItem = () => {
     switch (type) {
-      case 'service':
+      case "service":
         return <ServiceCardSkeleton />;
-      case 'booking':
+      case "booking":
         return <BookingCardSkeleton />;
-      case 'notification':
+      case "notification":
         return <NotificationSkeleton />;
-      case 'address':
+      case "address":
         return <AddressRowSkeleton />;
       default:
         return <ServiceCardSkeleton />;
@@ -155,74 +160,11 @@ export const ListSkeleton: React.FC<ListSkeletonProps> = ({ count = 3, type }) =
 
   return (
     <View>
-      {items.map((_, index) => (
-        <View key={index}>{renderItem()}</View>
-      ))}
+      {Array(count)
+        .fill(0)
+        .map((_, index) => (
+          <View key={`skeleton-${index}`}>{renderItem()}</View>
+        ))}
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  serviceCard: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
-    marginHorizontal: 16,
-  },
-  serviceRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  serviceContent: {
-    flex: 1,
-    marginLeft: 14,
-  },
-  bookingCard: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
-    marginHorizontal: 16,
-  },
-  bookingHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  bookingDivider: {
-    height: 1,
-    backgroundColor: '#f0f0f0',
-    marginVertical: 12,
-  },
-  bookingDetails: {
-    gap: 8,
-  },
-  bookingDetailRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  notificationItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    padding: 16,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-  },
-  profileCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
-  },
-  addressRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f5f5f5',
-  },
-});

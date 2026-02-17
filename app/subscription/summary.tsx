@@ -7,7 +7,6 @@ import {
   Alert,
   NativeModules,
   ScrollView,
-  StyleSheet,
   Text,
   TouchableOpacity,
   View,
@@ -18,10 +17,10 @@ import {
   useCreateSubscriptionMutation,
   useGetPlansQuery,
   useVerifySubscriptionMutation,
-} from "../../store/api/subscriptionApi";
-import { useGetProfileQuery } from "../../store/api/authApi";
-import { useGetVehiclesQuery } from "../../store/api/vehicleApi";
-import { useGetAddressesQuery } from "../../store/api/addressApi";
+} from "@/store/api/subscriptionApi";
+import { useGetProfileQuery } from "@/store/api/authApi";
+import { useGetVehiclesQuery } from "@/store/api/vehicleApi";
+import { useGetAddressesQuery } from "@/store/api/addressApi";
 
 const APP_NAME = "CleanMyWheels";
 const RAZORPAY_KEY = process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID || "";
@@ -72,7 +71,6 @@ export default function SubscriptionSummaryScreen() {
       } = response;
 
       if (paymentLinkUrl) {
-        // Pass extra params for confirmation screen
         const confirmationParams = {
           addons: "[]",
           grandTotal: String(selectedPlan.price),
@@ -106,11 +104,11 @@ export default function SubscriptionSummaryScreen() {
 
       const options: any = {
         description: `Subscription for ${selectedPlan.name}`,
-        image: "https://placehold.co/400?text=CleanMyWheels", // TODO: Replace with actual Logo URL
+        image: "https://placehold.co/400?text=CleanMyWheels",
         currency: "INR",
         key: RAZORPAY_KEY,
         name: APP_NAME,
-        theme: { color: "#84c95c" },
+        theme: { color: Colors.primary },
         prefill: {
           email: user?.email || "test@example.com",
           contact: user?.phone || "9999999999",
@@ -163,10 +161,9 @@ export default function SubscriptionSummaryScreen() {
                 selectedTime: timeSlot as string,
               },
             } as any);
-          }, 5000); // Wait 5 seconds for webhook to process
+          }, 5000);
         })
         .catch((error: any) => {
-          console.log(error);
           Alert.alert(
             "Payment Cancelled",
             error.description || "Payment failed",
@@ -182,240 +179,179 @@ export default function SubscriptionSummaryScreen() {
 
   if (!selectedPlan || !selectedVehicle) {
     return (
-      <View style={styles.center}>
+      <View className="flex-1 bg-background items-center justify-center">
         <ActivityIndicator size="large" color={Colors.primary} />
       </View>
     );
   }
 
   return (
-    <ScreenWrapper style={styles.container} backgroundColor={Colors.background}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={24} color={Colors.text} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Subscription Summary</Text>
-      </View>
-
-      <ScrollView
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.compactRow}>
-          <View style={[styles.card, { flex: 1, marginRight: 8 }]}>
-            <Text style={styles.sectionTitle}>Plan</Text>
-            <Text style={styles.value} numberOfLines={1}>
-              {selectedPlan.name}
-            </Text>
-            <Text style={styles.label}>₹{selectedPlan.price}</Text>
-          </View>
-          <View style={[styles.card, { flex: 1.2 }]}>
-            <Text style={styles.sectionTitle}>Vehicle</Text>
-            <Text style={styles.value} numberOfLines={1}>
-              {selectedVehicle.vehicleNo}
-            </Text>
-            <Text style={styles.label}>{selectedVehicle.vehicleType}</Text>
-          </View>
+    <ScreenWrapper
+      backgroundColor={Colors.background}
+      statusBarStyle="light-content"
+    >
+      <View className="flex-1 bg-background">
+        {/* Header */}
+        <View className="flex-row items-center px-5 pt-4 pb-6 bg-card border-b border-border/50">
+          <TouchableOpacity
+            onPress={() => router.back()}
+            className="w-10 h-10 rounded-full bg-background items-center justify-center border border-border"
+          >
+            <Ionicons name="arrow-back" size={20} color={Colors.text} />
+          </TouchableOpacity>
+          <Text className="text-[20px] font-[700] color-text ml-4">
+            Order Summary
+          </Text>
         </View>
 
-        <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Service Timing</Text>
-          <View style={styles.row}>
-            <Text style={styles.label}>Time Slot</Text>
-            <Text style={styles.value}>{timeSlot}</Text>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ padding: 16 }}
+        >
+          <View className="flex-row justify-between mb-4">
+            <View className="flex-1 bg-card rounded-[24px] p-5 mr-3 border border-border shadow-sm">
+              <Text className="text-[12px] font-[700] color-textSecondary mb-2 tracking-widest uppercase">
+                Plan
+              </Text>
+              <Text
+                className="text-[16px] font-[800] text-text mb-1"
+                numberOfLines={1}
+              >
+                {selectedPlan.name}
+              </Text>
+              <Text className="text-[14px] font-[700] color-primary">
+                ₹{selectedPlan.price}
+              </Text>
+            </View>
+            <View className="flex-1.2 bg-card rounded-[24px] p-5 border border-border shadow-sm">
+              <Text className="text-[12px] font-[700] color-textSecondary mb-2 tracking-widest uppercase">
+                Vehicle
+              </Text>
+              <Text
+                className="text-[16px] font-[800] text-text mb-1"
+                numberOfLines={1}
+              >
+                {selectedVehicle.vehicleNo}
+              </Text>
+              <Text className="text-[14px] font-[600] color-textSecondary">
+                {selectedVehicle.vehicleType}
+              </Text>
+            </View>
           </View>
-          <View style={styles.row}>
-            <Text style={styles.label}>Starts From</Text>
-            <Text style={styles.value}>
-              {new Date(startDate as string).toLocaleDateString("en-IN", {
-                day: "numeric",
-                month: "short",
-                year: "numeric",
-              })}
-            </Text>
-          </View>
-        </View>
 
-        <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Service Address</Text>
-          {isLoadingAddresses ? (
-            <ActivityIndicator />
-          ) : (
-            <View>
-              <View style={styles.addressInfoBox}>
-                <Ionicons
-                  name="information-circle-outline"
-                  size={20}
-                  color={Colors.primary}
-                />
-                <Text style={styles.addressInfoText}>
-                  This subscription uses your{" "}
-                  <Text style={{ fontWeight: "700" }}>Default Address</Text>. To
-                  change it, please go to your Profile section.
+          <View className="bg-card rounded-[24px] p-5 mb-4 border border-border shadow-sm">
+            <Text className="text-[13px] font-[700] color-textSecondary mb-4 tracking-widest uppercase">
+              Service Timing
+            </Text>
+            <View className="flex-row justify-between mb-3 items-center">
+              <Text className="text-sm font-[500] color-textSecondary">
+                Time Slot
+              </Text>
+              <View className="bg-background px-3 py-1.5 rounded-full border border-border/50">
+                <Text className="text-sm font-[700] color-text">
+                  {timeSlot}
                 </Text>
               </View>
-              <View style={styles.selectedAddressCard}>
-                <Ionicons name="location" size={24} color={Colors.primary} />
-                <View style={styles.addressDetails}>
-                  <Text style={styles.addressLabel}>
-                    Current Default Address
-                  </Text>
-                  <Text style={styles.addressText}>
-                    {defaultAddress
-                      ? `${defaultAddress.houseOrFlatNo}, ${defaultAddress.locality}, ${defaultAddress.city} - ${defaultAddress.postalCode}`
-                      : "No default address found. Service will be provided at your registered location."}
+            </View>
+            <View className="flex-row justify-between items-center">
+              <Text className="text-sm font-[500] color-textSecondary">
+                Starts From
+              </Text>
+              <Text className="text-sm font-[700] color-text">
+                {new Date(startDate as string).toLocaleDateString("en-IN", {
+                  day: "numeric",
+                  month: "short",
+                  year: "numeric",
+                })}
+              </Text>
+            </View>
+          </View>
+
+          <View className="bg-card rounded-[24px] p-5 mb-4 border border-border shadow-sm">
+            <Text className="text-[13px] font-[700] color-textSecondary mb-4 tracking-widest uppercase">
+              Service Address
+            </Text>
+            {isLoadingAddresses ? (
+              <ActivityIndicator color={Colors.primary} />
+            ) : (
+              <View>
+                <View className="flex-row bg-primary/10 p-4 rounded-2xl mb-4 items-start border border-primary/20">
+                  <Ionicons
+                    name="information-circle-outline"
+                    size={20}
+                    color={Colors.primary}
+                  />
+                  <Text className="text-[12px] color-textSecondary ml-3 flex-1 leading-5">
+                    This subscription uses your{" "}
+                    <Text className="font-[800] color-text">
+                      Default Address
+                    </Text>
+                    . You can update it in your profile.
                   </Text>
                 </View>
+
+                <View className="flex-row items-start bg-background p-4 rounded-2xl border border-border">
+                  <View className="w-10 h-10 rounded-full bg-primary/10 items-center justify-center mr-3">
+                    <Ionicons
+                      name="location"
+                      size={20}
+                      color={Colors.primary}
+                    />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="text-[12px] font-[700] color-textSecondary mb-1 tracking-widest uppercase">
+                      Current Default Address
+                    </Text>
+                    <Text className="text-[14px] color-text leading-5 font-[500]">
+                      {defaultAddress
+                        ? `${defaultAddress.houseOrFlatNo}, ${defaultAddress.locality}, ${defaultAddress.city} - ${defaultAddress.postalCode}`
+                        : "No default address found. Service will be provided at your registered location."}
+                    </Text>
+                  </View>
+                </View>
               </View>
+            )}
+          </View>
+
+          <View className="mt-4 px-2">
+            <View className="flex-row justify-between mb-3 items-center">
+              <Text className="text-[15px] font-[600] color-textSecondary">
+                Subtotal
+              </Text>
+              <Text className="text-[16px] font-[700] color-text">
+                ₹{selectedPlan.price}
+              </Text>
             </View>
-          )}
-        </View>
-
-        <View style={styles.priceContainer}>
-          <View style={styles.priceRow}>
-            <Text style={styles.priceLabel}>Subtotal</Text>
-            <Text style={styles.priceValue}>₹{selectedPlan.price}</Text>
+            <View className="h-[1px] bg-border/50 w-full my-4" />
+            <View className="flex-row justify-between items-center">
+              <Text className="text-[18px] font-[800] color-text">
+                Grand Total
+              </Text>
+              <Text className="text-[22px] font-[900] color-primary">
+                ₹{selectedPlan.price}
+              </Text>
+            </View>
           </View>
-          <View style={[styles.priceRow, styles.totalRow]}>
-            <Text style={styles.totalLabel}>Grand Total</Text>
-            <Text style={styles.totalPrice}>₹{selectedPlan.price}</Text>
-          </View>
-        </View>
-      </ScrollView>
 
-      <View style={styles.footer}>
-        <TouchableOpacity
-          style={[styles.payBtn, isCreating && styles.disabledBtn]}
-          onPress={handlePayment}
-          disabled={isCreating}
-        >
-          {isCreating ? (
-            <ActivityIndicator color="#FFF" />
-          ) : (
-            <Text style={styles.payBtnText}>Pay ₹{selectedPlan.price}</Text>
-          )}
-        </TouchableOpacity>
+          <View className="h-10" />
+        </ScrollView>
+
+        <View className="p-6 bg-card border-t border-border/50 shadow-2xl">
+          <TouchableOpacity
+            className={`bg-primary py-4.5 rounded-2xl items-center shadow-lg shadow-primary/30 ${isCreating ? "opacity-70" : ""}`}
+            onPress={handlePayment}
+            disabled={isCreating}
+          >
+            {isCreating ? (
+              <ActivityIndicator color="#000" />
+            ) : (
+              <Text className="color-black text-[16px] font-[800]">
+                Pay ₹{selectedPlan.price}
+              </Text>
+            )}
+          </TouchableOpacity>
+        </View>
       </View>
     </ScreenWrapper>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
-  center: { flex: 1, justifyContent: "center", alignItems: "center" },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 16,
-    backgroundColor: Colors.card,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
-  backBtn: { padding: 4 },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginLeft: 16,
-    color: Colors.text,
-  },
-  content: { padding: 12 },
-  card: {
-    backgroundColor: Colors.card,
-    borderRadius: 8,
-    padding: 10,
-    marginBottom: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 1,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  compactRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 0,
-  },
-  sectionTitle: {
-    fontSize: 14,
-    fontWeight: "bold",
-    marginBottom: 8,
-    color: Colors.text,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-    paddingBottom: 4,
-  },
-  row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 4,
-  },
-  label: { fontSize: 13, color: Colors.textSecondary },
-  value: { fontSize: 13, fontWeight: "600", color: Colors.text },
-  addressText: { fontSize: 13, color: Colors.textSecondary, lineHeight: 18 },
-  priceContainer: { marginTop: 4, paddingHorizontal: 4 },
-  priceRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 4,
-  },
-  priceLabel: { fontSize: 13, color: Colors.textSecondary },
-  priceValue: { fontSize: 13, fontWeight: "600", color: Colors.text },
-  totalRow: {
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-    paddingTop: 8,
-    marginTop: 4,
-  },
-  totalLabel: { fontSize: 15, fontWeight: "bold", color: Colors.text },
-  totalPrice: { fontSize: 16, fontWeight: "bold", color: Colors.primary },
-  footer: {
-    padding: 12,
-    backgroundColor: Colors.card,
-    borderTopWidth: 1,
-    borderColor: Colors.border,
-  },
-  payBtn: {
-    backgroundColor: Colors.primary,
-    padding: 14,
-    borderRadius: 12,
-    alignItems: "center",
-  },
-  payBtnText: { color: Colors.black, fontSize: 15, fontWeight: "bold" },
-  disabledBtn: { opacity: 0.7 },
-  addressInfoBox: {
-    flexDirection: "row",
-    backgroundColor: "rgba(37, 99, 235, 0.1)", // Light blue tint
-    padding: 8,
-    borderRadius: 6,
-    marginBottom: 8,
-    alignItems: "center",
-  },
-  addressInfoText: {
-    fontSize: 11,
-    color: Colors.text,
-    marginLeft: 6,
-    flex: 1,
-    lineHeight: 16,
-  },
-  selectedAddressCard: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    backgroundColor: Colors.background,
-    padding: 8,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  addressDetails: {
-    marginLeft: 8,
-    flex: 1,
-  },
-  addressLabel: {
-    fontSize: 11,
-    color: Colors.textSecondary,
-    marginBottom: 2,
-    fontWeight: "600",
-  },
-});

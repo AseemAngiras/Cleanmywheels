@@ -1,9 +1,10 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useRef } from "react";
-import { Animated, StyleSheet, TouchableOpacity, View } from "react-native";
+import { Animated, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Colors } from "@/constants/Colors";
 
-const TabItem = ({ route, state, navigation, descriptors }: any) => {
+const TabItem = ({ route, state, navigation }: any) => {
   const focused = state.routes[state.index].key === route.key;
 
   const progress = useRef(new Animated.Value(focused ? 1 : 0)).current;
@@ -20,12 +21,6 @@ const TabItem = ({ route, state, navigation, descriptors }: any) => {
   const width = progress.interpolate({
     inputRange: [0, 1],
     outputRange: [48, 120],
-  });
-
-  const labelOpacity = progress;
-  const labelTranslate = progress.interpolate({
-    inputRange: [0, 1],
-    outputRange: [-8, 0],
   });
 
   const icon =
@@ -66,25 +61,37 @@ const TabItem = ({ route, state, navigation, descriptors }: any) => {
       activeOpacity={0.85}
     >
       <Animated.View
-        style={[
-          styles.tab,
-          focused ? styles.activeTab : styles.inactiveTab,
-          { width },
-        ]}
+        className={`h-12 rounded-[24px] flex-row items-center justify-center overflow-hidden ${
+          focused ? "bg-primary px-[18px]" : "bg-transparent"
+        }`}
+        style={[{ width }]}
       >
-        <Ionicons name={icon} size={22} color="#000" />
+        <Ionicons
+          name={icon as any}
+          size={22}
+          color={focused ? "#000" : Colors.textSecondary}
+        />
 
-        <Animated.Text
-          style={[
-            styles.label,
-            {
-              opacity: labelOpacity,
-              transform: [{ translateX: labelTranslate }],
-            },
-          ]}
-        >
-          {label}
-        </Animated.Text>
+        {focused && (
+          <Animated.Text
+            className="ml-2 text-sm font-bold text-black"
+            style={[
+              {
+                opacity: progress,
+                transform: [
+                  {
+                    translateX: progress.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [-8, 0],
+                    }),
+                  },
+                ],
+              },
+            ]}
+          >
+            {label}
+          </Animated.Text>
+        )}
       </Animated.View>
     </TouchableOpacity>
   );
@@ -93,7 +100,6 @@ const TabItem = ({ route, state, navigation, descriptors }: any) => {
 export function CustomTabBar({ state, descriptors, navigation }: any) {
   const currentRouteKey = state.routes[state.index].key;
   const { options } = descriptors[currentRouteKey];
-
   const insets = useSafeAreaInsets();
 
   if (options.tabBarStyle?.display === "none") {
@@ -101,8 +107,11 @@ export function CustomTabBar({ state, descriptors, navigation }: any) {
   }
 
   return (
-    <View style={[styles.wrapper, { bottom: 12 + insets.bottom }]}>
-      <View style={styles.container}>
+    <View
+      className="absolute left-4 right-4"
+      style={[{ bottom: Math.max(insets.bottom, 12) }]}
+    >
+      <View className="bg-[#1C1C1C]/95 border border-white/5 rounded-[40px] p-[10px] flex-row justify-between items-center shadow-2xl">
         {state.routes
           .filter((route: any) =>
             ["home", "subscriptions", "bookings", "profile"].includes(
@@ -115,54 +124,9 @@ export function CustomTabBar({ state, descriptors, navigation }: any) {
               route={route}
               state={state}
               navigation={navigation}
-              descriptors={descriptors}
             />
           ))}
       </View>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  wrapper: {
-    position: "absolute",
-    bottom: 12,
-    left: 16,
-    right: 16,
-  },
-
-  container: {
-    backgroundColor: "#1C1C1C",
-    borderRadius: 40,
-    padding: 10,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-
-  tab: {
-    height: 48,
-    borderRadius: 24,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    overflow: "hidden",
-  },
-
-  inactiveTab: {
-    backgroundColor: "#FFFFFF",
-    paddingLeft: 23,
-  },
-
-  activeTab: {
-    backgroundColor: "#C8F000",
-    paddingHorizontal: 18,
-  },
-
-  label: {
-    marginLeft: 8,
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#000",
-  },
-});

@@ -8,7 +8,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
@@ -16,6 +15,7 @@ import {
   View,
 } from "react-native";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
+import { Colors } from "@/constants/Colors";
 
 export default function VehicleDetailsScreen() {
   const dispatch = useAppDispatch();
@@ -32,24 +32,10 @@ export default function VehicleDetailsScreen() {
   const [addingNew, setAddingNew] = useState(cars.length === 0);
 
   useEffect(() => {
-    const unsubscribe = navigation.addListener("focus", () => {
-      navigation.getParent()?.setOptions({
-        tabBarStyle: { display: "none" },
-      });
-    });
-
     navigation.getParent()?.setOptions({
       tabBarStyle: { display: "none" },
     });
-
-    return unsubscribe;
   }, [navigation]);
-
-  //   useEffect(() => {
-  //   console.log('CURRENT SCREEN:', 'vehicle-details or my-cars');
-  //   console.log('Store instance in this component:', store);
-  //   console.log('Cars from selector:', cars);
-  // }, []);
 
   const vehicleTypes = [
     { id: "Hatchback", name: "Hatchback", icon: "car-hatchback" },
@@ -58,130 +44,183 @@ export default function VehicleDetailsScreen() {
     { id: "Other", name: "Others", icon: "truck-delivery" },
   ];
 
+  const handleNext = () => {
+    let finalCar;
+
+    if (selectedCarId) {
+      finalCar = cars.find((c) => c.id === selectedCarId);
+    }
+
+    if (addingNew) {
+      if (!vehicleNumber.trim()) {
+        alert("Please enter vehicle number");
+        return;
+      }
+
+      finalCar = {
+        id: Date.now().toString(),
+        type: vehicleType,
+        number: vehicleNumber.toUpperCase(),
+        name: vehicleType.toUpperCase(),
+        image: "",
+      };
+
+      dispatch(addCar(finalCar));
+    }
+
+    if (!finalCar) return;
+
+    // Based on the flow, it likely goes to select-service or similar
+    // For now we just go back or to the next logical step if defined in params
+    router.back();
+  };
+
   return (
-    <ScreenWrapper style={styles.safeArea} backgroundColor="#fff">
+    <ScreenWrapper backgroundColor={Colors.background}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={{ flex: 1 }}
+        className="flex-1"
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <View style={{ flex: 1 }}>
-            {/* ---------- Header ---------- */}
-            <View style={styles.header}>
-              <TouchableOpacity
-                onPress={() => router.back()}
-                style={styles.backButton}
-              >
-                <Ionicons name="chevron-back" size={24} color="#000" />
+          <View className="flex-1">
+            {/* Header */}
+            <View className="flex-row justify-between items-center px-5 py-4 bg-background">
+              <TouchableOpacity onPress={() => router.back()} className="p-1">
+                <Ionicons name="chevron-back" size={24} color={Colors.text} />
               </TouchableOpacity>
-              <Text style={styles.headerTitle}>Vehicle Details</Text>
-              <View style={{ width: 24 }} />
+              <Text className="text-[18px] font-[800] color-text tracking-tight">
+                Vehicle Details
+              </Text>
+              <View className="w-8" />
             </View>
 
             <ScrollView
-              contentContainerStyle={[styles.container, { paddingBottom: 130 }]}
+              contentContainerStyle={{ padding: 20, paddingBottom: 130 }}
               keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
             >
-              {/* ---------- Saved Cars ---------- */}
+              {/* Saved Cars Section */}
               {cars.length > 0 && (
-                <>
-                  <Text style={styles.sectionTitle}>Select Saved Vehicle</Text>
+                <View className="mb-10">
+                  <Text className="text-[14px] font-[800] color-textSecondary uppercase tracking-widest mb-6 px-1">
+                    Select Saved Vehicle
+                  </Text>
 
                   {cars.map((car) => {
                     const isSelected = selectedCarId === car.id;
-
                     return (
                       <TouchableOpacity
                         key={car.id}
-                        style={[
-                          styles.savedCarCard,
-                          isSelected && styles.selectedSavedCar,
-                        ]}
+                        className={`flex-row justify-between items-center p-5 rounded-[24px] mb-4 border ${
+                          isSelected
+                            ? "bg-primary/10 border-primary shadow-sm"
+                            : "bg-card border-border/50"
+                        }`}
                         onPress={() => {
                           setSelectedCarId(car.id);
                           setAddingNew(false);
                         }}
                       >
-                        <View>
-                          <Text style={styles.savedCarName}>{car.name}</Text>
-                          <Text style={styles.savedCarNumber}>
-                            {car.number}
-                          </Text>
+                        <View className="flex-row items-center">
+                          <View
+                            className={`w-12 h-12 rounded-xl items-center justify-center mr-4 ${isSelected ? "bg-primary" : "bg-background"}`}
+                          >
+                            <MaterialCommunityIcons
+                              name={
+                                car.type === "Sedan"
+                                  ? "car"
+                                  : car.type === "Hatchback"
+                                    ? "car-hatchback"
+                                    : car.type === "SUV"
+                                      ? "car-estate"
+                                      : "car-info"
+                              }
+                              size={24}
+                              color={isSelected ? "#000" : Colors.textSecondary}
+                            />
+                          </View>
+                          <View>
+                            <Text
+                              className={`text-[16px] font-[800] ${isSelected ? "color-text" : "color-text"}`}
+                            >
+                              {car.name}
+                            </Text>
+                            <Text className="text-[13px] color-textSecondary font-[600] mt-0.5">
+                              {car.number}
+                            </Text>
+                          </View>
                         </View>
 
                         {isSelected && (
-                          <Ionicons
-                            name="checkmark-circle"
-                            size={22}
-                            color="#84c95c"
-                          />
+                          <View className="bg-primary/20 w-8 h-8 rounded-full items-center justify-center">
+                            <Ionicons
+                              name="checkmark"
+                              size={18}
+                              color={Colors.primary}
+                            />
+                          </View>
                         )}
                       </TouchableOpacity>
                     );
                   })}
 
                   <TouchableOpacity
-                    style={styles.addNewToggle}
+                    className="flex-row items-center mt-2 px-2"
                     onPress={() => {
                       setAddingNew(true);
                       setSelectedCarId(null);
                     }}
                   >
-                    <Ionicons
-                      name="add-circle-outline"
-                      size={18}
-                      color="#000"
-                    />
-                    <Text style={{ marginLeft: 6 }}>Add new vehicle</Text>
+                    <View className="bg-primary/10 w-6 h-6 rounded-full items-center justify-center mr-3">
+                      <Ionicons name="add" size={16} color={Colors.primary} />
+                    </View>
+                    <Text className="text-[14px] font-[700] color-textSecondary italic">
+                      Add another vehicle
+                    </Text>
                   </TouchableOpacity>
-                </>
+                </View>
               )}
 
-              {/* ---------- Add New Vehicle ---------- */}
+              {/* Add New Vehicle Section */}
               {addingNew && (
-                <>
-                  <Text style={styles.sectionTitle}>Select Vehicle Type</Text>
+                <View>
+                  <Text className="text-[14px] font-[800] color-textSecondary uppercase tracking-widest mb-6 px-1">
+                    Vehicle Type
+                  </Text>
 
-                  <View style={styles.gridContainer}>
+                  <View className="flex-row flex-wrap justify-between mb-8">
                     {vehicleTypes.map((type) => {
                       const isSelected = vehicleType === type.id;
                       return (
                         <TouchableOpacity
                           key={type.id}
-                          style={[
-                            styles.typeCard,
-                            isSelected && styles.selectedTypeCard,
-                          ]}
+                          className={`w-[48%] aspect-[1.1] rounded-[32px] justify-center items-center mb-4 border relative ${
+                            isSelected
+                              ? "bg-primary/10 border-primary"
+                              : "bg-card border-border/50"
+                          }`}
                           onPress={() => setVehicleType(type.id)}
                         >
                           {isSelected && (
-                            <View style={styles.checkmarkContainer}>
+                            <View className="absolute top-4 right-4 bg-primary rounded-full w-6 h-6 items-center justify-center">
                               <Ionicons
-                                name="checkmark-circle"
-                                size={20}
-                                color="#84c95c"
+                                name="checkmark"
+                                size={14}
+                                color="#000"
                               />
                             </View>
                           )}
                           <View
-                            style={[
-                              styles.iconContainer,
-                              isSelected
-                                ? styles.selectedIconContainer
-                                : styles.unselectedIconContainer,
-                            ]}
+                            className={`w-16 h-16 rounded-3xl items-center justify-center mb-3 ${isSelected ? "bg-primary" : "bg-background"}`}
                           >
                             <MaterialCommunityIcons
                               name={type.icon as any}
                               size={32}
-                              color={isSelected ? "#1a1a1a" : "#999"}
+                              color={isSelected ? "#000" : Colors.textSecondary}
                             />
                           </View>
                           <Text
-                            style={[
-                              styles.typeText,
-                              isSelected && styles.selectedTypeText,
-                            ]}
+                            className={`text-[14px] font-[800] ${isSelected ? "color-text" : "color-textSecondary"}`}
                           >
                             {type.name}
                           </Text>
@@ -190,66 +229,42 @@ export default function VehicleDetailsScreen() {
                     })}
                   </View>
 
-                  <Text style={styles.sectionTitle}>Vehicle Number</Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="E.G. IND-1234"
-                    placeholderTextColor="#ccc"
-                    value={vehicleNumber}
-                    onChangeText={setVehicleNumber}
-                    autoCapitalize="characters"
-                  />
-                </>
+                  <Text className="text-[14px] font-[800] color-textSecondary uppercase tracking-widest mb-4 px-1">
+                    Vehicle Number
+                  </Text>
+                  <View className="bg-card border border-border rounded-[20px] px-5 h-16 flex-row items-center shadow-sm">
+                    <MaterialCommunityIcons
+                      name="numeric"
+                      size={24}
+                      color={Colors.textSecondary}
+                      style={{ marginRight: 12 }}
+                    />
+                    <TextInput
+                      className="flex-1 text-[16px] color-text font-[700]"
+                      placeholder="e.g. MH 01 AB 1234"
+                      placeholderTextColor="#64748B"
+                      value={vehicleNumber}
+                      onChangeText={setVehicleNumber}
+                      autoCapitalize="characters"
+                    />
+                  </View>
+                </View>
               )}
             </ScrollView>
 
-            {/* ---------- Footer ---------- */}
-            <View style={styles.footer}>
+            {/* Footer Action */}
+            <View className="absolute bottom-0 left-0 right-0 bg-card p-6 pb-12 rounded-t-[40px] border-t border-border shadow-2xl">
               <TouchableOpacity
-                style={styles.nextButton}
-                onPress={() => {
-                  console.log(
-                    "NEXT BUTTON PRESSED — this should always appear first",
-                  );
-                  let finalCar;
-
-                  // Existing car selected
-                  if (selectedCarId) {
-                    finalCar = cars.find((c) => c.id === selectedCarId);
-                    console.log("selected existing car:", finalCar);
-                  }
-
-                  // Adding new car
-                  if (addingNew) {
-                    if (!vehicleNumber.trim()) {
-                      alert("Please enter vehicle number");
-                      return;
-                    }
-
-                    finalCar = {
-                      id: Date.now().toString(),
-                      type: vehicleType,
-                      number: vehicleNumber.toUpperCase(),
-                      name: vehicleType.toUpperCase(),
-                      image: "",
-                    };
-
-                    console.log("creating new car -> will dispatch:", finalCar);
-                    dispatch(addCar(finalCar));
-                    console.log(
-                      "Dispatch called! (but state might not update yet)",
-                    );
-                  }
-
-                  if (!finalCar) console.log("No final car -> exiting");
-                  return;
-                }}
+                className="bg-primary h-14 rounded-2xl flex-row items-center justify-center shadow-lg shadow-primary/30"
+                onPress={handleNext}
               >
-                <Text style={styles.nextButtonText}>Next</Text>
+                <Text className="text-[16px] font-[900] color-black">
+                  Continue
+                </Text>
                 <Ionicons
                   name="arrow-forward"
-                  size={20}
-                  color="#1a1a1a"
+                  size={18}
+                  color="#000"
                   style={{ marginLeft: 8 }}
                 />
               </TouchableOpacity>
@@ -260,112 +275,3 @@ export default function VehicleDetailsScreen() {
     </ScreenWrapper>
   );
 }
-
-/* ---------- Styles ---------- */
-const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: "#fff" },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-  },
-  backButton: { padding: 5 },
-  headerTitle: { fontSize: 18, fontWeight: "bold" },
-  container: { padding: 20 },
-
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: 15,
-    marginTop: 10,
-  },
-
-  savedCarCard: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: 14,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#eee",
-    marginBottom: 10,
-  },
-  selectedSavedCar: {
-    borderColor: "#84c95c",
-    backgroundColor: "#f6fff1",
-  },
-  savedCarName: { fontSize: 16, fontWeight: "600" },
-  savedCarNumber: { fontSize: 14, color: "#777" },
-
-  addNewToggle: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginVertical: 14,
-  },
-
-  gridContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-    marginBottom: 20,
-  },
-  typeCard: {
-    width: "48%",
-    aspectRatio: 1.1,
-    borderRadius: 15,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 15,
-    borderWidth: 2,
-    borderColor: "#f0f0f0",
-  },
-  selectedTypeCard: {
-    borderColor: "#84c95c",
-    backgroundColor: "#f0f9eb",
-  },
-  iconContainer: {
-    padding: 15,
-    borderRadius: 20,
-    marginBottom: 8,
-  },
-  unselectedIconContainer: { backgroundColor: "#f5f5f5" },
-  selectedIconContainer: { backgroundColor: "#84c95c" },
-  checkmarkContainer: {
-    position: "absolute",
-    top: 8,
-    right: 8,
-  },
-  typeText: { fontSize: 14, fontWeight: "600", color: "#666" },
-  selectedTypeText: { color: "#1a1a1a", fontWeight: "bold" },
-
-  input: {
-    backgroundColor: "#f9f9f9",
-    borderRadius: 15,
-    paddingHorizontal: 20,
-    paddingVertical: 18,
-    fontSize: 16,
-    borderWidth: 1,
-    borderColor: "#f0f0f0",
-  },
-
-  footer: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: 20,
-    paddingBottom: 30,
-    backgroundColor: "#fff",
-  },
-  nextButton: {
-    backgroundColor: "#C8F000",
-    paddingVertical: 16,
-    borderRadius: 30,
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  nextButtonText: { fontSize: 16, fontWeight: "bold" },
-});

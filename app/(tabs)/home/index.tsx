@@ -11,14 +11,12 @@ import { useGetBookingsQuery } from "@/store/api/bookingApi";
 import { useGetMySubscriptionQuery } from "@/store/api/subscriptionApi";
 import { loginSuccess, logout } from "@/store/slices/authSlice";
 import { Booking } from "@/store/slices/bookingSlice";
-import { Colors } from "@/constants/Colors";
 import { setUser } from "@/store/slices/userSlice";
 
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useNavigation, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   ActivityIndicator,
   Alert,
@@ -27,16 +25,10 @@ import {
   Modal,
   Platform,
   ScrollView,
-  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
-  // StyleSheet,
-  // Text,
-  // TextInput,
-  // TouchableOpacity,
-  // View,
 } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -58,7 +50,6 @@ export default function HomeScreen() {
 
   const fullName = profileName || userStateName || "";
   const firstName = fullName.split(" ")[0];
-  const userName = firstName;
 
   const userAvatar = useSelector((state: RootState) => state.profile.avatar);
 
@@ -94,8 +85,6 @@ export default function HomeScreen() {
     skip: !isLoggedIn,
   });
 
-  const user = useSelector((state: RootState) => state.user.user);
-
   const [isLoginModalVisible, setIsLoginModalVisible] = useState(false);
   const [modalStep, setModalStep] = useState<"details" | "otp">("details");
   const [name, setName] = useState("");
@@ -106,11 +95,9 @@ export default function HomeScreen() {
   const inputRefs = useRef<(TextInput | null)[]>([]);
 
   const [requestOtp] = useRequestOtpMutation();
-  const [verifyLoginOtp, { isLoading: isVerifyingOtp }] =
-    useVerifyLoginOtpMutation();
-  const [register, { isLoading: isRegistering }] = useRegisterMutation();
-  const [verifyRegisterOtp, { isLoading: isVerifyingRegOtp }] =
-    useVerifyRegisterOtpMutation();
+  const [verifyLoginOtp] = useVerifyLoginOtpMutation();
+  const [register] = useRegisterMutation();
+  const [verifyRegisterOtp] = useVerifyRegisterOtpMutation();
 
   const handleSendOtp = async () => {
     const cleanedPhone = phoneNumber.trim();
@@ -338,32 +325,36 @@ export default function HomeScreen() {
     <ScreenWrapper
       background={<HomeBackground />}
       statusBarStyle="light-content"
-      style={styles.root}
+      className="bg-background"
     >
       <ScrollView
-        contentContainerStyle={styles.container}
+        contentContainerStyle={{ paddingBottom: 100 }}
         showsVerticalScrollIndicator={false}
       >
         {/* Header */}
-        <View style={styles.header}>
+        <View className="flex-row justify-between items-start px-5 pt-[10px] mb-5">
           <View>
-            <Text style={styles.headerSmall}>ON-DEMAND CARE</Text>
-            <Text style={styles.headerTitleLogo}>
-              CLEANMY<Text style={styles.headerTitleHighlight}>WHEELS</Text>
+            <Text className="text-[10px] text-primary font-[700] tracking-[1px] mb-1 uppercase">
+              ON-DEMAND CARE
+            </Text>
+            <Text className="text-2xl font-[800] text-white italic tracking-[-1px]">
+              CLEANMY<Text className="text-primary">WHEELS</Text>
             </Text>
           </View>
 
-          <View style={styles.headerIcons}>
+          <View className="mt-2">
             {!isLoggedIn ? (
               <TouchableOpacity
-                style={styles.limePillBtn}
+                className="bg-primary px-4 py-2 rounded-md shadow-md shadow-primary"
                 onPress={() => setIsLoginModalVisible(true)}
               >
-                <Text style={styles.limePillText}>LOG IN</Text>
+                <Text className="font-[900] text-black italic text-[12px]">
+                  LOG IN
+                </Text>
               </TouchableOpacity>
             ) : (
               <TouchableOpacity
-                style={styles.iconCircle}
+                className="w-12 h-12 rounded-full overflow-hidden border-2 border-[#333] elevation-4 shadow-lg shadow-black"
                 onPress={() => router.push("/(tabs)/profile")}
               >
                 <Image
@@ -372,7 +363,7 @@ export default function HomeScreen() {
                       userAvatar ||
                       "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
                   }}
-                  style={styles.avatarImage}
+                  className="w-full h-full"
                 />
               </TouchableOpacity>
             )}
@@ -410,47 +401,54 @@ export default function HomeScreen() {
             );
           })}
         {isLoggedIn && pastBookings.length > 0 && (
-          <View style={styles.sectionContainer}>
-            <View style={[styles.sectionHeader, { paddingHorizontal: 20 }]}>
-              <Text style={styles.sectionTitle}>Recent Services</Text>
-              <TouchableOpacity>
-                {/* <Text style={styles.viewAllText}>View All</Text> */}
-              </TouchableOpacity>
+          <View className="mb-6">
+            <View className="flex-row items-center justify-between mb-[5px] px-5">
+              <Text className="text-lg font-[700] text-white">
+                Recent Services
+              </Text>
             </View>
 
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.recentList}
+              contentContainerStyle={{ paddingHorizontal: 20, gap: 16 }}
             >
               {pastBookings.map((item, index) => (
                 <TouchableOpacity
                   key={index}
-                  style={styles.recentCard}
+                  className="w-[200px] p-5 rounded-[24px] bg-[#181818] border border-primary/20 shadow-lg elevation-6"
                   activeOpacity={0.9}
                   onPress={() => handleRecentServicePress(item)}
                 >
-                  <View style={styles.recentCardHeader}>
-                    <View style={styles.recentIconBox}>
+                  <View className="flex-row justify-between mb-4">
+                    <View className="w-11 h-11 rounded-[14px] bg-primary/10 items-center justify-center border border-primary/10">
                       <Ionicons name="sparkles" size={20} color="#C8F000" />
                     </View>
-                    <View style={styles.rebookBadge}>
+                    <View className="flex-row items-center bg-primary/10 rounded-[12px] px-2 py-1 h-6 gap-1 border border-primary">
                       <Ionicons name="refresh" size={10} color="#C8F000" />
-                      <Text style={styles.rebookText}>Rebook</Text>
+                      <Text className="text-primary text-[10px] font-[700] uppercase">
+                        Rebook
+                      </Text>
                     </View>
                   </View>
 
-                  <Text style={styles.recentServiceName} numberOfLines={1}>
+                  <Text
+                    className="text-base font-[700] text-white mb-[2px]"
+                    numberOfLines={1}
+                  >
                     {item.serviceName}
                   </Text>
-                  <Text style={styles.recentCarText} numberOfLines={1}>
+                  <Text
+                    className="text-[12px] text-[#888] font-[500]"
+                    numberOfLines={1}
+                  >
                     {item.car}
                   </Text>
 
-                  <View style={styles.recentDivider} />
+                  <View className="h-[1px] bg-[#333] my-3" />
 
-                  <View style={styles.recentFooter}>
-                    <Text style={styles.recentDate}>
+                  <View className="flex-row justify-between items-center">
+                    <Text className="text-[12px] text-[#888] font-[600]">
                       {item.date
                         ? new Date(item.date).toLocaleDateString("en-US", {
                             month: "short",
@@ -458,7 +456,9 @@ export default function HomeScreen() {
                           })
                         : "N/A"}
                     </Text>
-                    <Text style={styles.recentPrice}>₹ {item.price}</Text>
+                    <Text className="text-base font-[800] text-primary">
+                      ₹ {item.price}
+                    </Text>
                   </View>
                 </TouchableOpacity>
               ))}
@@ -476,23 +476,23 @@ export default function HomeScreen() {
       >
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={styles.modalOverlay}
+          className="flex-1 bg-black/80 justify-end"
         >
           <TouchableOpacity
-            style={styles.modalDismissArea}
+            className="flex-1"
             activeOpacity={1}
             onPress={handleCloseModal}
           />
 
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <View style={styles.modalIndicator} />
+          <View className="bg-background rounded-t-[24px] p-6 pb-10 border-t border-border">
+            <View className="items-center mb-6">
+              <View className="w-10 h-1 bg-border rounded-[2px]" />
             </View>
 
-            <Text style={styles.modalTitle}>
+            <Text className="text-2xl font-[700] text-text mb-2">
               {modalStep === "details" ? "Welcome Back!" : "Enter OTP"}
             </Text>
-            <Text style={styles.modalSubtitle}>
+            <Text className="text-sm text-textSecondary mb-8">
               {modalStep === "details"
                 ? "Enter your mobile number to continue."
                 : `We sent a code to +91 ${phoneNumber}`}
@@ -500,13 +500,15 @@ export default function HomeScreen() {
 
             {modalStep === "details" ? (
               <View>
-                <View style={styles.inputWrapper}>
-                  <Text style={styles.inputLabel}>Mobile Number</Text>
-                  <View style={styles.phoneInputContainer}>
-                    <Text style={styles.prefixText}>+91</Text>
-                    <View style={styles.verticalDivider} />
+                <View className="mb-6">
+                  <Text className="text-sm font-[600] text-text mb-2">
+                    Mobile Number
+                  </Text>
+                  <View className="flex-row items-center bg-card border border-border rounded-[12px] h-[52px] px-4">
+                    <Text className="text-base text-text font-[600]">+91</Text>
+                    <View className="w-[1px] h-6 bg-border mx-3" />
                     <TextInput
-                      style={styles.phoneInput}
+                      className="flex-1 text-base text-text font-[600]"
                       placeholder="98765 43210"
                       placeholderTextColor="#999"
                       keyboardType="phone-pad"
@@ -518,30 +520,33 @@ export default function HomeScreen() {
                 </View>
 
                 <TouchableOpacity
-                  style={styles.primaryModalBtn}
+                  className="bg-primary h-[52px] rounded-[12px] items-center justify-center mb-4"
                   onPress={handleSendOtp}
                   disabled={isLoading}
                 >
                   {isLoading ? (
                     <ActivityIndicator color="#000" />
                   ) : (
-                    <Text style={styles.primaryModalBtnText}>Continue</Text>
+                    <Text className="text-base font-[700] text-black">
+                      Continue
+                    </Text>
                   )}
                 </TouchableOpacity>
               </View>
             ) : (
               <View>
-                <View style={styles.otpContainer}>
+                <View className="flex-row justify-between mb-8">
                   {otp.map((digit, i) => (
                     <TextInput
                       key={i}
                       ref={(ref) => {
                         inputRefs.current[i] = ref;
                       }}
-                      style={[
-                        styles.otpBox,
-                        digit ? styles.otpBoxFilled : null,
-                      ]}
+                      className={`w-[50px] h-[50px] rounded-[12px] border text-center text-xl font-[700] text-text ${
+                        digit
+                          ? "border-primary bg-primary/10"
+                          : "border-border bg-card"
+                      }`}
                       keyboardType="number-pad"
                       maxLength={6}
                       contextMenuHidden={false}
@@ -585,37 +590,33 @@ export default function HomeScreen() {
                 </View>
 
                 {isOtpWarningVisible && (
-                  <Text
-                    style={{
-                      color: "red",
-                      fontSize: 12,
-                      marginTop: -10,
-                      marginBottom: 10,
-                      textAlign: "center",
-                    }}
-                  >
+                  <Text className="text-red-500 text-[12px] mt-[-10px] mb-[10px] text-center">
                     Only numbers are allowed
                   </Text>
                 )}
 
-                <View style={styles.resendContainer}>
-                  <Text style={styles.resendText}>
+                <View className="flex-row justify-center mb-8">
+                  <Text className="text-sm text-textSecondary">
                     Didn&apos;t receive code?{" "}
                   </Text>
                   <TouchableOpacity onPress={handleSendOtp}>
-                    <Text style={styles.resendLink}>Resend</Text>
+                    <Text className="text-sm font-[700] text-primary">
+                      Resend
+                    </Text>
                   </TouchableOpacity>
                 </View>
 
                 <TouchableOpacity
-                  style={styles.primaryModalBtn}
+                  className="bg-primary h-[52px] rounded-[12px] items-center justify-center mb-4"
                   onPress={handleVerifyOtp}
                   disabled={isLoading}
                 >
                   {isLoading ? (
                     <ActivityIndicator color="#000" />
                   ) : (
-                    <Text style={styles.primaryModalBtnText}>Verify Login</Text>
+                    <Text className="text-base font-[700] text-black">
+                      Verify Login
+                    </Text>
                   )}
                 </TouchableOpacity>
               </View>
@@ -626,305 +627,3 @@ export default function HomeScreen() {
     </ScreenWrapper>
   );
 }
-
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: "#111",
-  },
-  safeArea: {
-    flex: 1,
-    backgroundColor: "transparent",
-  },
-  container: {
-    paddingBottom: 100,
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    paddingHorizontal: 20,
-    paddingTop: 10,
-    paddingBottom: 0,
-    marginBottom: 20,
-  },
-  headerSmall: {
-    fontSize: 10,
-    color: "#C8F000",
-    fontWeight: "700",
-    letterSpacing: 1,
-    marginBottom: 4,
-    textTransform: "uppercase",
-  },
-  headerTitleLogo: {
-    fontSize: 24,
-    fontWeight: "800",
-    color: "#FFFFFF",
-    fontStyle: "italic",
-    letterSpacing: -1,
-  },
-  headerTitleHighlight: {
-    color: "#C8F000",
-  },
-  headerIcons: {
-    marginTop: 8,
-  },
-  iconCircle: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    overflow: "hidden",
-    borderWidth: 2,
-    borderColor: "#333",
-    elevation: 4,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-  },
-  avatarImage: {
-    width: "100%",
-    height: "100%",
-  },
-  limePillBtn: {
-    backgroundColor: "#C8F000",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 6, // Boxy button per design
-    shadowColor: "#C8F000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 4,
-  },
-  limePillText: {
-    fontWeight: "900",
-    color: "#000",
-    fontStyle: "italic",
-    fontSize: 12,
-  },
-
-  sectionContainer: {
-    marginBottom: 24,
-  },
-  sectionHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 5,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#FFFFFF",
-  },
-  viewAllText: {
-    fontSize: 14,
-    color: "#999",
-    fontWeight: "600",
-  },
-  recentList: {
-    paddingHorizontal: 20,
-    gap: 16,
-  },
-  recentCard: {
-    width: 200,
-    padding: 20,
-    borderRadius: 24,
-    backgroundColor: "#181818",
-    borderWidth: 1,
-    borderColor: "rgba(200, 240, 0, 0.2)", // Subtle golden border
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-  recentCardHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 16,
-  },
-  recentIconBox: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
-    backgroundColor: "rgba(200, 240, 0, 0.1)", // Yellow tint bg
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: "rgba(200, 240, 0, 0.1)",
-  },
-  rebookBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "rgba(200, 240, 0, 0.1)", // Subtle yellow tint
-    borderRadius: 12,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    height: 24,
-    gap: 4,
-    borderWidth: 1,
-    borderColor: "#C8F000",
-  },
-  rebookText: {
-    color: "#C8F000",
-    fontSize: 10,
-    fontWeight: "700",
-    textTransform: "uppercase",
-  },
-  recentServiceName: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#FFF",
-    marginBottom: 2,
-  },
-  recentCarText: {
-    fontSize: 12,
-    color: "#888",
-    fontWeight: "500",
-  },
-  recentDivider: {
-    height: 1,
-    backgroundColor: "#333",
-    marginVertical: 12,
-  },
-  recentFooter: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  recentDate: {
-    fontSize: 12,
-    color: "#888",
-    fontWeight: "600",
-  },
-  recentPrice: {
-    fontSize: 16,
-    fontWeight: "800",
-    color: Colors.primary,
-  },
-
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.8)",
-    justifyContent: "flex-end",
-  },
-  modalDismissArea: {
-    flex: 1,
-  },
-  modalContent: {
-    backgroundColor: Colors.background,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 24,
-    paddingBottom: 40,
-    borderTopWidth: 1,
-    borderColor: Colors.border,
-  },
-  modalHeader: {
-    alignItems: "center",
-    marginBottom: 24,
-  },
-  modalIndicator: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: Colors.border,
-  },
-  modalTitle: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: Colors.text,
-    marginBottom: 8,
-  },
-  modalSubtitle: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    marginBottom: 32,
-  },
-  inputWrapper: {
-    marginBottom: 24,
-  },
-  inputLabel: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: Colors.text,
-    marginBottom: 8,
-  },
-  phoneInputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: Colors.card,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 12,
-    height: 52,
-    paddingHorizontal: 16,
-  },
-  prefixText: {
-    fontSize: 16,
-    color: Colors.text,
-    fontWeight: "600",
-  },
-  verticalDivider: {
-    width: 1,
-    height: 24,
-    backgroundColor: Colors.border,
-    marginHorizontal: 12,
-  },
-  phoneInput: {
-    flex: 1,
-    fontSize: 16,
-    color: Colors.text,
-    fontWeight: "600",
-  },
-  primaryModalBtn: {
-    backgroundColor: Colors.primary,
-    height: 52,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 16,
-  },
-  primaryModalBtnText: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#000",
-  },
-  otpContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 32,
-  },
-  otpBox: {
-    width: 50,
-    height: 50,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    backgroundColor: Colors.card,
-    textAlign: "center",
-    fontSize: 20,
-    fontWeight: "700",
-    color: Colors.text,
-  },
-  otpBoxFilled: {
-    borderColor: Colors.primary,
-    backgroundColor: "rgba(200, 240, 0, 0.1)",
-  },
-  resendContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    marginBottom: 32,
-  },
-  resendText: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-  },
-  resendLink: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: Colors.primary,
-  },
-});

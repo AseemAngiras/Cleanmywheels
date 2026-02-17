@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import {
   View,
   Text,
-  StyleSheet,
   TouchableOpacity,
   FlatList,
   ActivityIndicator,
@@ -19,6 +18,7 @@ import {
 } from "@/store/api/workerApi";
 import { WorkerForm } from "./WorkerForm";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
+import { Colors } from "@/constants/Colors";
 
 export default function AdminWorkerScreen() {
   const [modalVisible, setModalVisible] = useState(false);
@@ -45,8 +45,8 @@ export default function AdminWorkerScreen() {
 
   const handleDeleteWorker = (worker: Worker) => {
     Alert.alert(
-      "Delete Worker",
-      `Are you sure you want to delete ${worker.name}?`,
+      "Delete Professional",
+      `Are you sure you want to remove ${worker.name}?`,
       [
         { text: "Cancel", style: "cancel" },
         {
@@ -87,312 +87,206 @@ export default function AdminWorkerScreen() {
     }
   };
 
-  const renderWorkerItem = ({ item }: { item: Worker }) => (
-    <TouchableOpacity
-      style={styles.card}
-      activeOpacity={0.9}
-      onPress={() =>
-        setSelectedWorkerId(selectedWorkerId === item._id ? null : item._id)
-      }
-    >
-      <View style={styles.cardHeader}>
-        <View style={styles.avatarContainer}>
-          <Text style={styles.avatarText}>{item.name.charAt(0)}</Text>
-        </View>
-        <View style={styles.headerInfo}>
-          <Text style={styles.name}>{item.name}</Text>
-          <Text style={styles.role}>{item.jobRole}</Text>
-        </View>
-        <View
-          style={[
-            styles.statusBadge,
-            {
-              backgroundColor:
-                item.status === "Active"
-                  ? "#DCFCE7"
-                  : item.status === "On Leave"
-                    ? "#FEF9C3"
-                    : item.status === "Busy"
-                      ? "#FEE2E2"
-                      : "#F1F5F9",
-            },
-          ]}
-        >
-          <Text
-            style={[
-              styles.statusText,
-              {
-                color:
-                  item.status === "Active"
-                    ? "#166534"
-                    : item.status === "On Leave"
-                      ? "#854D0E"
-                      : item.status === "Busy"
-                        ? "#991B1B"
-                        : "#475569",
-              },
-            ]}
-          >
-            {item.status}
-          </Text>
-        </View>
-      </View>
+  const renderWorkerItem = ({ item }: { item: Worker }) => {
+    const isSelected = selectedWorkerId === item._id;
 
-      <View style={styles.cardDetails}>
-        <View style={styles.detailRow}>
-          <Ionicons name="call-outline" size={16} color="#64748B" />
-          <Text style={styles.detailText}>+91 {item.phone}</Text>
-        </View>
-        {item.address ? (
-          <View style={styles.detailRow}>
-            <Ionicons name="location-outline" size={16} color="#64748B" />
-            <Text style={styles.detailText} numberOfLines={1}>
-              {item.address}
+    return (
+      <TouchableOpacity
+        className={`bg-card rounded-[32px] p-5 mb-4 border ${isSelected ? "border-primary" : "border-border"} shadow-sm`}
+        activeOpacity={0.9}
+        onPress={() => setSelectedWorkerId(isSelected ? null : item._id)}
+      >
+        <View className="flex-row items-center mb-4">
+          <View className="w-12 h-12 rounded-full bg-background items-center justify-center mr-4 border border-border/50">
+            <Text className="text-[20px] font-[800] color-text">
+              {item.name.charAt(0)}
             </Text>
           </View>
-        ) : null}
-      </View>
-
-      {selectedWorkerId === item._id && (
-        <View style={styles.cardActions}>
-          <TouchableOpacity
-            style={[styles.actionButton, styles.editButton]}
-            onPress={() => handleEditWorker(item)}
+          <View className="flex-1">
+            <Text className="text-[17px] font-[800] color-text">
+              {item.name}
+            </Text>
+            <Text className="text-[13px] color-textSecondary font-[600] mt-0.5">
+              {item.jobRole}
+            </Text>
+          </View>
+          <View
+            className={`px-3 py-1.5 rounded-full border ${
+              item.status === "Active"
+                ? "bg-green-500/10 border-green-500/20"
+                : item.status === "On Leave"
+                  ? "bg-yellow-500/10 border-yellow-500/20"
+                  : item.status === "Busy"
+                    ? "bg-orange-500/10 border-orange-500/20"
+                    : "bg-background border-border"
+            }`}
           >
-            <Ionicons name="create-outline" size={18} color="#0F172A" />
-            <Text style={styles.editButtonText}>Edit</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.actionButton, styles.deleteButton]}
-            onPress={() => handleDeleteWorker(item)}
-          >
-            <Ionicons name="trash-outline" size={18} color="#EF4444" />
-          </TouchableOpacity>
+            <Text
+              className={`text-[10px] font-[800] uppercase tracking-wider ${
+                item.status === "Active"
+                  ? "text-green-500"
+                  : item.status === "On Leave"
+                    ? "text-yellow-500"
+                    : item.status === "Busy"
+                      ? "text-orange-500"
+                      : "text-textSecondary"
+              }`}
+            >
+              {item.status}
+            </Text>
+          </View>
         </View>
-      )}
-    </TouchableOpacity>
-  );
+
+        <View className="gap-3 mb-2">
+          <View className="flex-row items-center px-1">
+            <Ionicons
+              name="call-outline"
+              size={15}
+              color={Colors.textSecondary}
+            />
+            <Text className="text-[14px] color-textSecondary font-[500] ml-3">
+              +91 {item.phone}
+            </Text>
+          </View>
+          {item.address ? (
+            <View className="flex-row items-center px-1">
+              <Ionicons
+                name="location-outline"
+                size={15}
+                color={Colors.textSecondary}
+              />
+              <Text
+                className="text-[14px] color-textSecondary font-[500] ml-3"
+                numberOfLines={1}
+              >
+                {item.address}
+              </Text>
+            </View>
+          ) : null}
+        </View>
+
+        {isSelected && (
+          <View className="flex-row gap-3 mt-5 pt-5 border-t border-border/50">
+            <TouchableOpacity
+              className="flex-1 bg-background border border-border flex-row items-center justify-center py-3.5 rounded-2xl"
+              onPress={() => handleEditWorker(item)}
+            >
+              <Ionicons
+                name="create-outline"
+                size={18}
+                color={Colors.text}
+                className="mr-2"
+              />
+              <Text className="color-text font-[800] text-[13px]">
+                Edit Details
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              className="bg-red-500/10 border border-red-500/20 px-4 items-center justify-center rounded-2xl"
+              onPress={() => handleDeleteWorker(item)}
+            >
+              <Ionicons name="trash-outline" size={18} color="#EF4444" />
+            </TouchableOpacity>
+          </View>
+        )}
+      </TouchableOpacity>
+    );
+  };
 
   return (
-    <ScreenWrapper style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Manage Workers</Text>
-        <TouchableOpacity style={styles.addButton} onPress={handleAddWorker}>
-          <Ionicons name="add" size={24} color="#FFF" />
-          <Text style={styles.addButtonText}>Add Worker</Text>
-        </TouchableOpacity>
-      </View>
-
-      {isLoading ? (
-        <View style={styles.loaderContainer}>
-          <ActivityIndicator size="large" color="#0F172A" />
-        </View>
-      ) : (
-        <FlatList
-          data={data?.workers}
-          renderItem={renderWorkerItem}
-          keyExtractor={(item) => item._id}
-          contentContainerStyle={styles.listContainer}
-          showsVerticalScrollIndicator={false}
-          ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>No workers found</Text>
-            </View>
-          }
-        />
-      )}
-
-      <Modal
-        visible={modalVisible}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View style={styles.modalHeader}>
-          <Text style={styles.modalTitle}>
-            {editingWorker ? "Edit Worker" : "Add New Worker"}
+    <ScreenWrapper
+      backgroundColor={Colors.background}
+      statusBarStyle="light-content"
+    >
+      <View className="flex-1 bg-background">
+        <View className="flex-row justify-between items-center px-5 pt-4 pb-6 bg-card border-b border-border/50">
+          <Text className="text-[20px] font-[800] color-text">
+            Professionals
           </Text>
-          <TouchableOpacity onPress={() => setModalVisible(false)}>
-            <Ionicons name="close" size={24} color="#0F172A" />
+          <TouchableOpacity
+            className="bg-primary flex-row items-center px-4 py-2.5 rounded-full shadow-lg shadow-primary/30"
+            onPress={handleAddWorker}
+          >
+            <Ionicons name="add" size={20} color="#000" className="mr-1" />
+            <Text className="color-black font-[800] text-[13px]">Add New</Text>
           </TouchableOpacity>
         </View>
-        <WorkerForm
-          initialValues={
-            editingWorker
-              ? {
-                  name: editingWorker.name,
-                  phone: editingWorker.phone,
-                  jobRole: editingWorker.jobRole,
-                  address: editingWorker.address,
-                  status: editingWorker.status,
+
+        {isLoading ? (
+          <View className="flex-1 items-center justify-center">
+            <ActivityIndicator size="large" color={Colors.primary} />
+          </View>
+        ) : (
+          <FlatList
+            data={data?.workers}
+            renderItem={renderWorkerItem}
+            keyExtractor={(item) => item._id}
+            contentContainerStyle={{ padding: 20, paddingBottom: 120 }}
+            showsVerticalScrollIndicator={false}
+            ListEmptyComponent={
+              <View className="items-center py-20 bg-card rounded-[32px] mx-5 border border-border border-dashed">
+                <Ionicons
+                  name="people-outline"
+                  size={48}
+                  color={Colors.textSecondary}
+                />
+                <Text className="text-[15px] font-[600] color-textSecondary mt-4">
+                  No professionals found
+                </Text>
+              </View>
+            }
+          />
+        )}
+
+        <Modal
+          visible={modalVisible}
+          animationType="slide"
+          transparent={true}
+          onRequestClose={() => setModalVisible(false)}
+        >
+          <View className="flex-1 justify-end">
+            <TouchableOpacity
+              className="absolute inset-0 bg-black/70"
+              activeOpacity={1}
+              onPress={() => setModalVisible(false)}
+            />
+            <View className="bg-card rounded-t-[40px] shadow-2xl border-t border-border max-h-[90%]">
+              <View className="w-12 h-1.5 bg-border/50 rounded-full self-center my-4" />
+              <View className="flex-row justify-between items-center px-6 mb-6">
+                <Text className="text-[22px] font-[800] color-text">
+                  {editingWorker ? "Edit Professional" : "Add New Professional"}
+                </Text>
+                <TouchableOpacity
+                  onPress={() => setModalVisible(false)}
+                  className="w-10 h-10 rounded-full bg-background items-center justify-center border border-border"
+                >
+                  <Ionicons name="close" size={20} color={Colors.text} />
+                </TouchableOpacity>
+              </View>
+
+              <WorkerForm
+                initialValues={
+                  editingWorker
+                    ? {
+                        name: editingWorker.name,
+                        phone: editingWorker.phone,
+                        jobRole: editingWorker.jobRole,
+                        address: editingWorker.address,
+                        status: editingWorker.status,
+                      }
+                    : undefined
                 }
-              : undefined
-          }
-          onSubmit={handleSubmit}
-          onCancel={() => setModalVisible(false)}
-          isLoading={isCreating || isUpdating}
-          submitLabel={editingWorker ? "Update Worker" : "Create Worker"}
-        />
-      </Modal>
+                onSubmit={handleSubmit}
+                onCancel={() => setModalVisible(false)}
+                isLoading={isCreating || isUpdating}
+                submitLabel={
+                  editingWorker ? "Update Professional" : "Create Professional"
+                }
+              />
+            </View>
+          </View>
+        </Modal>
+      </View>
     </ScreenWrapper>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F8FAFC",
-    marginBottom: 90,
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    // paddingVertical: 16,
-    backgroundColor: "#FFF",
-    borderBottomWidth: 1,
-    borderBottomColor: "#F1F5F9",
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "800",
-    color: "#0F172A",
-  },
-  addButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#0F172A",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    // gap: 1,
-  },
-  addButtonText: {
-    color: "#FFF",
-    fontWeight: "600",
-    fontSize: 14,
-  },
-  listContainer: {
-    padding: 20,
-    gap: 16,
-  },
-  loaderContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  emptyContainer: {
-    alignItems: "center",
-    marginTop: 40,
-  },
-  emptyText: {
-    color: "#64748B",
-    fontSize: 16,
-  },
-  card: {
-    backgroundColor: "#FFF",
-    borderRadius: 16,
-    padding: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  cardHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    marginBottom: 16,
-  },
-  avatarContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: "#F1F5F9",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  avatarText: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#0F172A",
-  },
-  headerInfo: {
-    flex: 1,
-  },
-  name: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#0F172A",
-  },
-  role: {
-    fontSize: 14,
-    color: "#64748B",
-    marginTop: 2,
-  },
-  statusBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  statusText: {
-    fontSize: 12,
-    fontWeight: "600",
-  },
-  cardDetails: {
-    gap: 8,
-    marginBottom: 16,
-  },
-  detailRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  detailText: {
-    fontSize: 14,
-    color: "#475569",
-  },
-  cardActions: {
-    flexDirection: "row",
-    gap: 12,
-    borderTopWidth: 1,
-    borderTopColor: "#F1F5F9",
-    paddingTop: 16,
-  },
-  actionButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 8,
-    borderRadius: 8,
-    gap: 6,
-  },
-  editButton: {
-    flex: 1,
-    backgroundColor: "#F8FAFC",
-  },
-  editButtonText: {
-    color: "#0F172A",
-    fontWeight: "600",
-    fontSize: 14,
-  },
-  deleteButton: {
-    paddingHorizontal: 12,
-    backgroundColor: "#FEF2F2",
-  },
-  modalHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: "#F1F5F9",
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#0F172A",
-  },
-});

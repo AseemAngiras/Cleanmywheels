@@ -1,7 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
-import { Colors } from "@/constants/Colors";
+import { Text, View } from "react-native";
 
 interface Step {
   id: number;
@@ -22,9 +21,8 @@ export default function BookingStepper({
   ],
 }: BookingStepperProps) {
   return (
-    <View style={styles.container}>
-      {/* Progress Bar Container */}
-      <View style={styles.progressTrack}>
+    <View className="px-5 pb-4 bg-background">
+      <View className="flex-row items-center justify-between">
         {steps.map((step, index) => {
           const isCompleted = step.id < currentStep;
           const isActive = step.id === currentStep;
@@ -35,46 +33,47 @@ export default function BookingStepper({
               {/* Line connecting steps */}
               {index > 0 && (
                 <View
-                  style={[
-                    styles.line,
-                    {
-                      backgroundColor:
-                        currentStep >= step.id ? Colors.primary : Colors.border,
-                    },
-                  ]}
+                  className={`flex-1 h-[1.5px] mx-2 mb-4 ${
+                    currentStep >= step.id ? "bg-primary" : "bg-border/50"
+                  }`}
                 />
               )}
 
               {/* Step Circle */}
-              <View style={{ alignItems: "center" }}>
+              <View className="items-center">
                 <View
-                  style={[
-                    styles.circle,
-                    isActive && styles.circleActive,
-                    isCompleted && styles.circleCompleted,
-                    isFuture && styles.circleFuture,
-                  ]}
+                  className={`w-7 h-7 rounded-full items-center justify-center border-2 mb-1.5 ${
+                    isActive
+                      ? "bg-primary border-primary"
+                      : isCompleted
+                        ? "bg-primary/20 border-primary"
+                        : "bg-card border-border"
+                  }`}
                 >
                   {isCompleted ? (
-                    <Ionicons name="checkmark" size={14} color={Colors.black} />
+                    <Ionicons name="checkmark" size={14} color="#000" />
                   ) : (
                     <Text
-                      style={[
-                        styles.stepNumber,
-                        isActive && styles.stepNumberActive,
-                        isFuture && styles.stepNumberFuture,
-                      ]}
+                      className={`text-[12px] font-bold ${
+                        isActive
+                          ? "text-black"
+                          : isFuture
+                            ? "text-textSecondary"
+                            : "text-text"
+                      }`}
                     >
                       {step.id}
                     </Text>
                   )}
                 </View>
                 <Text
-                  style={[
-                    styles.label,
-                    isActive && styles.labelActive,
-                    isCompleted && styles.labelCompleted,
-                  ]}
+                  className={`text-[10px] font-bold tracking-tight uppercase ${
+                    isActive
+                      ? "text-text"
+                      : isCompleted
+                        ? "text-primary"
+                        : "text-textSecondary"
+                  }`}
                 >
                   {step.label}
                 </Text>
@@ -86,66 +85,3 @@ export default function BookingStepper({
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    paddingHorizontal: 20,
-    paddingBottom: 15,
-    backgroundColor: Colors.background,
-  },
-  progressTrack: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  line: {
-    flex: 1,
-    height: 2,
-    marginHorizontal: 5,
-    marginBottom: 14, // Align with center of circle
-  },
-  circle: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    marginBottom: 4,
-  },
-  circleActive: {
-    backgroundColor: Colors.background,
-    borderColor: Colors.primary,
-    borderWidth: 2,
-  },
-  circleCompleted: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
-  },
-  circleFuture: {
-    backgroundColor: Colors.card,
-    borderColor: Colors.border,
-  },
-  stepNumber: {
-    fontSize: 12,
-    fontWeight: "bold",
-  },
-  stepNumberActive: {
-    color: Colors.primary,
-  },
-  stepNumberFuture: {
-    color: Colors.textSecondary,
-  },
-  label: {
-    fontSize: 10,
-    color: Colors.textSecondary,
-    fontWeight: "500",
-  },
-  labelActive: {
-    color: Colors.text,
-    fontWeight: "bold",
-  },
-  labelCompleted: {
-    color: Colors.primary,
-  },
-});

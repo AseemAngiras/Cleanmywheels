@@ -1,17 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Colors } from "@/constants/Colors";
-import { useEffect } from "react";
-import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import React, { useEffect } from "react";
+import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { useDispatch } from "react-redux";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
-import { addBooking } from "../../store/slices/bookingSlice";
+import { addBooking } from "@/store/slices/bookingSlice";
 
 export default function OrderConfirmationScreen() {
   const router = useRouter();
@@ -41,135 +35,109 @@ export default function OrderConfirmationScreen() {
   }, [dispatch, params]);
 
   return (
-    <ScreenWrapper style={styles.container} backgroundColor={Colors.background}>
+    <ScreenWrapper
+      backgroundColor={Colors.background}
+      statusBarStyle="light-content"
+    >
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 100 }}
       >
         {/* Status Header */}
-        <View style={styles.statusHeader}>
-          <View style={styles.successIcon}>
-            <Ionicons name="checkmark" size={50} color={Colors.black} />
+        <View className="items-center py-10 bg-card rounded-b-[40px] shadow-sm border-b border-border/50">
+          <View className="w-20 h-20 rounded-full bg-primary items-center justify-center mb-5 shadow-lg shadow-primary/40">
+            <Ionicons name="checkmark" size={48} color="#000" />
           </View>
-          <Text style={styles.statusTitle}>Subscription Confirmed!</Text>
+          <Text className="text-[26px] font-[800] color-text mb-1">
+            Success!
+          </Text>
+          <Text className="text-[14px] color-textSecondary font-[500]">
+            Subscription Confirmed
+          </Text>
         </View>
 
         {/* What Happens Next Section */}
-        <View style={styles.nextStepsContainer}>
-          <Text style={styles.sectionTitle}>What happens next?</Text>
-          <View style={styles.stepsRow}>
-            <View style={styles.stepItem}>
-              <View style={styles.stepIconBox}>
+        <View className="mx-5 my-8">
+          <Text className="text-[18px] font-[700] color-text mb-6">
+            What happens next?
+          </Text>
+          <View className="flex-row items-start justify-between">
+            <View className="items-center w-20">
+              <View className="w-12 h-12 rounded-full bg-background items-center justify-center mb-2.5 border border-border/50">
                 <Ionicons
                   name="briefcase-outline"
-                  size={24}
-                  color={Colors.text}
+                  size={22}
+                  color={Colors.primary}
                 />
               </View>
-              <Text style={styles.stepText}>Assigning Professional</Text>
+              <Text className="text-[10px] color-textSecondary text-center font-[700] uppercase tracking-tighter leading-3">
+                Assigning Professional
+              </Text>
             </View>
-            <View style={styles.stepLine} />
-            <View style={styles.stepItem}>
-              <View style={styles.stepIconBox}>
+            <View className="flex-1 h-[1.5px] bg-border/50 mt-6 mx-1" />
+            <View className="items-center w-20">
+              <View className="w-12 h-12 rounded-full bg-background items-center justify-center mb-2.5 border border-border/50">
                 <Ionicons
                   name="navigate-outline"
-                  size={24}
-                  color={Colors.text}
+                  size={22}
+                  color={Colors.primary}
                 />
               </View>
-              <Text style={styles.stepText}>On the Way</Text>
+              <Text className="text-[10px] color-textSecondary text-center font-[700] uppercase tracking-tighter leading-3">
+                On the Way
+              </Text>
             </View>
-            <View style={styles.stepLine} />
-            <View style={styles.stepItem}>
-              <View style={styles.stepIconBox}>
-                <Ionicons name="list-outline" size={24} color={Colors.text} />
+            <View className="flex-1 h-[1.5px] bg-border/50 mt-6 mx-1" />
+            <View className="items-center w-20">
+              <View className="w-12 h-12 rounded-full bg-background items-center justify-center mb-2.5 border border-border/50">
+                <Ionicons
+                  name="list-outline"
+                  size={22}
+                  color={Colors.primary}
+                />
               </View>
-              <Text style={styles.stepText}>Your Service </Text>
+              <Text className="text-[10px] color-textSecondary text-center font-[700] uppercase tracking-tighter leading-3">
+                Daily Service
+              </Text>
             </View>
           </View>
         </View>
 
-        {/* Booking Details Summary */}
-        <View style={styles.detailsCard}>
-          <View style={styles.receiptTop}>
-            <View style={styles.receiptHole} />
-            <View
-              style={[styles.receiptHole, { right: -10, left: undefined }]}
-            />
+        {/* Receipt Details Summary */}
+        <View className="mx-5 bg-card rounded-[32px] p-6 pt-8 shadow-sm border border-border relative">
+          {/* Receipt Aesthetic Holes */}
+          <View className="absolute -top-3 left-0 right-0 flex-row justify-between px-6">
+            <View className="w-6 h-6 rounded-full bg-background" />
+            <View className="w-6 h-6 rounded-full bg-background" />
           </View>
-          <Text style={styles.sectionTitle}>Receipt</Text>
-          <View style={styles.detailRow}>
-            <Text style={styles.detailValue}>
+
+          <Text className="text-[18px] font-[800] color-text mb-6">
+            Receipt Details
+          </Text>
+
+          <View className="flex-row justify-between py-4 border-b border-border/50">
+            <Text className="text-sm color-textSecondary font-[500]">
+              Plan Name
+            </Text>
+            <Text className="text-sm font-[700] color-text flex-1 text-right ml-4">
               {params.serviceName || "Premium Wash"}
             </Text>
           </View>
 
-          {/* Add-ons List
-          {params.addons && (
-            <View
-              style={{
-                marginBottom: 8,
-                paddingBottom: 8,
-                borderBottomWidth: 1,
-                borderBottomColor: "#f3f3f3",
-              }}
-            >
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  marginBottom: 4,
-                }}
-              >
-                <Text style={styles.detailLabel}>Add-ons</Text>
-                <View style={{ flex: 1 }} />
-              </View>
-              {JSON.parse(params.addons as string).map(
-                (addon: any, idx: number) => (
-                  <View
-                    key={String(idx)}
-                    style={{
-                      flexDirection: "row",
-                      justifyContent: "space-between",
-                      paddingLeft: "30%",
-                      marginBottom: 4,
-                    }}
-                  >
-                    <Text
-                      style={{
-                        fontSize: 13,
-                        color: "#444",
-                        flex: 1,
-                        textAlign: "right",
-                      }}
-                    >
-                      {addon.name}
-                    </Text>
-                    <Text
-                      style={{
-                        fontSize: 13,
-                        fontWeight: "600",
-                        color: "#1a1a1a",
-                        marginLeft: 8,
-                      }}
-                    >
-                      ₹{addon.price}
-                    </Text>
-                  </View>
-                ),
-              )}
-            </View>
-          )} */}
-
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Vehicle</Text>
-            <Text style={styles.detailValue}>
+          <View className="flex-row justify-between py-4 border-b border-border/50">
+            <Text className="text-sm color-textSecondary font-[500]">
+              Vehicle
+            </Text>
+            <Text className="text-sm font-[700] color-text flex-1 text-right ml-4">
               {params.vehicleType} ({params.vehicleNumber})
             </Text>
           </View>
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Start Date</Text>
-            <Text style={styles.detailValue}>
+
+          <View className="flex-row justify-between py-4 border-b border-border/50">
+            <Text className="text-sm color-textSecondary font-[500]">
+              Start Date
+            </Text>
+            <Text className="text-sm font-[700] color-text">
               {selectedDate
                 ? new Date(selectedDate as string).toLocaleDateString("en-IN", {
                     day: "numeric",
@@ -179,201 +147,54 @@ export default function OrderConfirmationScreen() {
                 : "Today"}
             </Text>
           </View>
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Daily Slot</Text>
-            <Text style={styles.detailValue}>{selectedTime || "Anytime"}</Text>
+
+          <View className="flex-row justify-between py-4 border-b border-border/50">
+            <Text className="text-sm color-textSecondary font-[500]">
+              Daily Slot
+            </Text>
+            <Text className="text-sm font-[700] color-text">
+              {selectedTime || "Anytime"}
+            </Text>
           </View>
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Address</Text>
-            <Text style={styles.detailValueVisible}>
+
+          <View className="flex-row justify-between py-4 border-b border-border/50">
+            <Text className="text-sm color-textSecondary font-[500]">
+              Address
+            </Text>
+            <Text className="text-sm font-[700] color-text flex-1 text-right ml-4 leading-5">
               {params.address || "Your Registered Address"}
             </Text>
           </View>
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Payment</Text>
-            <Text style={styles.detailValueVisible}>
+
+          <View className="flex-row justify-between py-4 border-b border-border/50">
+            <Text className="text-sm color-textSecondary font-[500]">
+              Payment
+            </Text>
+            <Text className="text-sm font-[700] color-text">
               {paymentMethod as string}
             </Text>
           </View>
-          <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>Total Amount</Text>
-            <Text style={styles.totalValue}>₹{grandTotal || "0"}</Text>
+
+          <View className="flex-row justify-between pt-6 items-center">
+            <Text className="text-base font-[800] color-text">Total Paid</Text>
+            <Text className="text-[20px] font-[900] color-primary">
+              ₹{grandTotal || "0"}
+            </Text>
           </View>
         </View>
       </ScrollView>
 
-      <View style={styles.footer}>
+      {/* Footer */}
+      <View className="absolute bottom-0 left-0 right-0 p-6 bg-card border-t border-border/50 shadow-2xl">
         <TouchableOpacity
-          style={styles.homeButton}
+          className="bg-primary py-4.5 rounded-2xl items-center shadow-lg shadow-primary/30"
           onPress={() => router.push("/(tabs)/home")}
         >
-          <Text style={styles.homeButtonText}>Back to Home</Text>
+          <Text className="color-black text-[16px] font-[800]">
+            Back to Home
+          </Text>
         </TouchableOpacity>
       </View>
     </ScreenWrapper>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
-  statusHeader: {
-    alignItems: "center",
-    paddingVertical: 30,
-    backgroundColor: Colors.card,
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
-    // marginBottom: 10,
-  },
-  successIcon: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: Colors.primary,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 20,
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 10,
-  },
-  statusTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: Colors.text,
-    marginBottom: 5,
-  },
-  statusSubtitle: { fontSize: 14, color: Colors.textSecondary },
-
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: Colors.text,
-    marginBottom: 15,
-  },
-
-  nextStepsContainer: {
-    marginHorizontal: 20,
-    marginBottom: 25,
-  },
-  stepsRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    justifyContent: "space-between",
-  },
-  stepItem: {
-    alignItems: "center",
-    width: 80,
-  },
-  stepIconBox: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: Colors.background,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  stepText: {
-    fontSize: 10,
-    color: Colors.textSecondary,
-    textAlign: "center",
-    fontWeight: "600",
-    lineHeight: 14,
-  },
-  stepLine: {
-    flex: 1,
-    height: 2,
-    backgroundColor: Colors.border,
-    marginTop: 24,
-    marginHorizontal: 5,
-  },
-
-  detailsCard: {
-    marginHorizontal: 20,
-    backgroundColor: Colors.card,
-    borderRadius: 0,
-    padding: 24,
-    paddingTop: 30,
-    marginBottom: 20,
-    position: "relative",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 5,
-  },
-  receiptTop: {
-    position: "absolute",
-    top: -10,
-    left: 0,
-    right: 0,
-    height: 20,
-    overflow: "hidden",
-  },
-  receiptHole: {
-    position: "absolute",
-    top: 0,
-    left: -10,
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: Colors.background,
-  },
-  detailRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    paddingBottom: 8,
-    marginBottom: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
-  detailLabel: { fontSize: 14, color: Colors.textSecondary, width: "30%" },
-  detailValue: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: Colors.text,
-    flex: 1,
-    flexShrink: 1,
-    textAlign: "right",
-  },
-  detailValueVisible: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: Colors.text,
-    flex: 1,
-    flexShrink: 1,
-    textAlign: "right",
-  },
-  totalRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 10,
-    paddingTop: 10,
-  },
-  totalLabel: { fontSize: 16, fontWeight: "bold", color: Colors.text },
-  totalValue: { fontSize: 18, fontWeight: "bold", color: Colors.primary },
-
-  footer: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: Colors.card,
-    padding: 20,
-    paddingBottom: 30,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-  },
-  homeButton: {
-    backgroundColor: Colors.primary,
-    borderRadius: 30,
-    paddingVertical: 16,
-    alignItems: "center",
-  },
-  homeButtonText: { color: Colors.black, fontSize: 16, fontWeight: "bold" },
-});

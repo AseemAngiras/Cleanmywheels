@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/constants/Colors";
 import React from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 
 interface PlanCardProps {
   plan: any;
@@ -18,144 +18,57 @@ export const PlanCard = ({
     <TouchableOpacity
       activeOpacity={0.9}
       onPress={() => onSubscribe(plan)}
-      style={[styles.container, isPopular && styles.popularBorder]}
+      className={`w-full bg-card rounded-[24px] p-5 mb-4 border shadow-sm ${
+        isPopular ? "border-primary bg-primary/5" : "border-border"
+      }`}
     >
       {isPopular && (
-        <View style={styles.popularBadge}>
-          <Text style={styles.popularText}>BEST VALUE</Text>
+        <View className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary px-3 py-1 rounded-full z-10 shadow-sm">
+          <Text className="text-[10px] font-black color-black tracking-widest">
+            BEST VALUE
+          </Text>
         </View>
       )}
 
-      <View style={styles.header}>
-        <Text style={styles.planName}>{plan.name}</Text>
-        <View style={styles.priceContainer}>
-          <Text style={styles.currency}>₹</Text>
-          <Text style={styles.price}>{plan.price}</Text>
+      <View className="items-center mb-4 mt-1">
+        <Text className="text-[18px] font-[700] text-text mb-1 text-center">
+          {plan.name}
+        </Text>
+        <View className="flex-row items-baseline justify-center">
+          <Text className="text-sm font-[600] text-textSecondary mr-1">₹</Text>
+          <Text className="text-3xl font-[800] text-text">{plan.price}</Text>
         </View>
       </View>
 
-      <View style={styles.divider} />
+      <View className="h-[1px] bg-border/50 w-full mb-4" />
 
-      <View style={styles.features}>
+      <View className="gap-2.5 flex-1">
         {plan.features?.slice(0, 3).map((feature: string, idx: number) => (
-          <View key={idx} style={styles.featureRow}>
+          <View key={idx} className="flex-row items-center">
             <Ionicons
               name="checkmark-circle"
               size={14}
               color={Colors.primary}
             />
-            <Text style={styles.featureText} numberOfLines={1}>
+            <Text
+              className="ml-2 color-textSecondary text-[13px] font-[500]"
+              numberOfLines={1}
+            >
               {feature}
             </Text>
           </View>
         ))}
       </View>
 
-      <View style={styles.selectBtn}>
-        <Text style={styles.selectBtnText}>Select</Text>
-        <Ionicons name="chevron-forward" size={14} color={Colors.black} />
+      <View className="mt-5 bg-primary rounded-2xl py-3.5 flex-row items-center justify-center shadow-lg shadow-primary/30">
+        <Text className="text-black text-[14px] font-[800]">Select Plan</Text>
+        <Ionicons
+          name="chevron-forward"
+          size={16}
+          color="#000"
+          className="ml-1"
+        />
       </View>
     </TouchableOpacity>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    width: "100%",
-    backgroundColor: Colors.card,
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  popularBorder: {
-    borderColor: Colors.primary,
-    borderWidth: 1.5,
-    backgroundColor: "rgba(200, 240, 0, 0.1)",
-  },
-  popularBadge: {
-    position: "absolute",
-    top: -10,
-    alignSelf: "center",
-    backgroundColor: Colors.primary,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-    zIndex: 10,
-  },
-  popularText: {
-    fontSize: 9,
-    fontWeight: "800",
-    color: Colors.black,
-    letterSpacing: 0.5,
-  },
-  header: {
-    alignItems: "center",
-    marginBottom: 12,
-    marginTop: 4,
-  },
-  planName: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: Colors.text,
-    marginBottom: 4,
-    textAlign: "center",
-  },
-  priceContainer: {
-    flexDirection: "row",
-    alignItems: "baseline",
-    justifyContent: "center",
-  },
-  currency: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: Colors.textSecondary,
-    marginRight: 2,
-  },
-  price: {
-    fontSize: 28,
-    fontWeight: "800",
-    color: Colors.text,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: Colors.border,
-    width: "100%",
-    marginBottom: 12,
-  },
-  features: {
-    gap: 8,
-    flex: 1,
-  },
-  featureRow: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  featureText: {
-    marginLeft: 6,
-    color: Colors.textSecondary,
-    fontSize: 12,
-    fontWeight: "500",
-  },
-  selectBtn: {
-    marginTop: 16,
-    backgroundColor: Colors.primary,
-    borderRadius: 12,
-    paddingVertical: 10,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 4,
-  },
-  selectBtnText: {
-    color: Colors.black,
-    fontSize: 12,
-    fontWeight: "700",
-  },
-});

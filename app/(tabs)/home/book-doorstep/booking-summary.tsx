@@ -3,15 +3,12 @@ import { Colors } from "@/constants/Colors";
 import {
   useCreateBookingMutation,
   useLazyGetBookingByIdQuery,
-  useUpdateBookingStatusMutation,
 } from "@/store/api/bookingApi";
-import { useGetMySubscriptionQuery } from "@/store/api/subscriptionApi";
 import { logout } from "@/store/slices/authSlice";
 import { addAddress } from "@/store/slices/profileSlice";
 import { addCar } from "@/store/slices/userSlice";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
-import * as WebBrowser from "expo-web-browser";
 import { WebView } from "react-native-webview";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -20,14 +17,13 @@ import {
   Text,
   TouchableOpacity,
   View,
-  StyleSheet,
   ScrollView,
+  ActivityIndicator,
 } from "react-native";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { useDispatch, useSelector } from "react-redux";
 import BookingStepper from "../../../../components/BookingStepper";
 import PulseLoader from "../../../../components/PulseLoader";
-
 import socketService from "@/services/socketService";
 
 const VEHICLE_TYPE_MAP: Record<string, string> = {
@@ -44,11 +40,12 @@ export default function BookingSummaryScreen() {
   const router = useRouter();
   const navigation = useNavigation();
   const params = useLocalSearchParams();
-
   const dispatch = useDispatch();
+
   const [createBooking, { isLoading: isCreatingBooking }] =
     useCreateBookingMutation();
-  const [updateBookingStatus] = useUpdateBookingStatusMutation();
+  const [triggerGetBooking] = useLazyGetBookingByIdQuery();
+
   const userState = useSelector((state: RootState) => state.user);
   const token = useSelector((state: RootState) => state.auth.token);
   const userId = userState?.user?._id;
@@ -59,33 +56,21 @@ export default function BookingSummaryScreen() {
   const currentBookingIdRef = useRef<string | null>(null);
   const pollIntervalRef = useRef<any | null>(null);
 
-  const [triggerGetBooking] = useLazyGetBookingByIdQuery();
-
   const {
     serviceName,
     servicePrice,
     addons,
     vehicleType,
     vehicleNumber,
-    shopName,
     selectedDate,
     selectedTime,
     address,
-    latitude,
-    longitude,
-
     totalPrice,
     serviceId,
   } = params;
 
-  const itemTotal = parseFloat(totalPrice as string) || 0;
-
-  const grandTotal = itemTotal;
-
-  const parsedAddons = addons ? JSON.parse(addons as string) : {};
-
+  const parsedAddons = addons ? JSON.parse(addons as string) : [];
   const displayServicePrice = parseFloat(servicePrice as string) || 0;
-
   const addonsTotal = Array.isArray(parsedAddons)
     ? parsedAddons.reduce(
         (acc: number, curr: any) => acc + (parseFloat(curr.price) || 0),
@@ -93,43 +78,34 @@ export default function BookingSummaryScreen() {
       )
     : 0;
 
-  const displayGrandTotal = displayServicePrice + addonsTotal; // Override passed total
+  const displayGrandTotal =
+    parseFloat(totalPrice as string) || displayServicePrice + addonsTotal;
 
   useEffect(() => {
-    navigation.getParent()?.setOptions({
-      tabBarStyle: { display: "none" },
-    });
+    navigation.getParent()?.setOptions({ tabBarStyle: { display: "none" } });
   }, [navigation]);
 
   useEffect(() => {
-    if (userId && token) {
-      socketService.connect(userId, token);
-    }
+    if (userId && token) socketService.connect(userId, token);
 
     const handlePaymentSuccess = (data: any) => {
-      console.log("⚡ [Socket] Payment Success Event Received:", data);
-
-      const { bookingId, status } = data;
-
+      const { bookingId } = data;
       if (
         currentBookingIdRef.current &&
         bookingId === currentBookingIdRef.current &&
         isVerifyingPayment
       ) {
-        console.log("✅ [Socket] Matched Booking ID! Redirecting...");
-
         if (pollIntervalRef.current) {
           clearInterval(pollIntervalRef.current);
           pollIntervalRef.current = null;
         }
-
         setIsVerifyingPayment(false);
         setShowGateway(false);
         router.push({
           pathname: "/(tabs)/home/book-doorstep/order-confirmation",
           params: {
             ...params,
-            grandTotal,
+            grandTotal: displayGrandTotal,
             bookingId,
             paymentMethod: "razorpay",
           },
@@ -138,11 +114,10 @@ export default function BookingSummaryScreen() {
     };
 
     socketService.on("payment_success", handlePaymentSuccess);
-
     return () => {
       socketService.off("payment_success");
     };
-  }, [userId, token, isVerifyingPayment, params, grandTotal, router]);
+  }, [userId, token, isVerifyingPayment, params, displayGrandTotal, router]);
 
   const checkPaymentStatus = async (bookingId: string) => {
     setIsVerifyingPayment(true);
@@ -153,22 +128,13 @@ export default function BookingSummaryScreen() {
     pollIntervalRef.current = setInterval(async () => {
       attempts++;
       try {
-        console.log(
-          `[Payment] Polling status... Attempt ${attempts}/${maxAttempts}`,
-        );
         const result = await triggerGetBooking(bookingId).unwrap();
         const status = result?.data?.status?.toLowerCase();
-
-        console.log(`[Payment] Status received:`, status);
-
         if (
           status === "confirmed" ||
           status === "paid" ||
           status === "successful"
         ) {
-          console.log("✅ [Payment] SUCCESS! Status is:", status);
-          console.log("✅ [Payment] Redirecting to Order Confirmation...");
-
           if (pollIntervalRef.current) {
             clearInterval(pollIntervalRef.current);
             pollIntervalRef.current = null;
@@ -178,7 +144,7 @@ export default function BookingSummaryScreen() {
             pathname: "/(tabs)/home/book-doorstep/order-confirmation",
             params: {
               ...params,
-              grandTotal,
+              grandTotal: displayGrandTotal,
               bookingId,
               paymentMethod: "razorpay",
             },
@@ -191,11 +157,11 @@ export default function BookingSummaryScreen() {
           if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
           setIsVerifyingPayment(false);
           Alert.alert(
-            "Payment Verification Failed",
-            "We couldn't confirmrm your payment status yet. Please check 'My Bookings'.",
+            "Verification Pending",
+            "Payment confirmmation is taking longer. Check 'My Bookings' later.",
             [
               {
-                text: "Check Bookings",
+                text: "My Bookings",
                 onPress: () => router.push("/(tabs)/bookings"),
               },
               { text: "Close", style: "cancel" },
@@ -203,7 +169,7 @@ export default function BookingSummaryScreen() {
           );
         }
       } catch (err) {
-        console.error("Polling error", err);
+        console.error("Poll err", err);
       }
     }, 5000);
   };
@@ -212,10 +178,6 @@ export default function BookingSummaryScreen() {
     try {
       const addressParts =
         (address as string)?.split(",").map((s) => s.trim()) || [];
-
-      const houseNumRaw = addressParts[0] || "0";
-      const houseNumClean = houseNumRaw.trim();
-
       const postalCodeMatch = (address as string)?.match(/\b\d{6}\b/);
       const postalCode = postalCodeMatch ? postalCodeMatch[0] : "000000";
 
@@ -228,632 +190,279 @@ export default function BookingSummaryScreen() {
         hour = h;
       }
 
-      console.log("🛠 [BookingSummary] Address Raw:", address);
-
-      const finalWashPackageId = serviceId as string;
-
-      if (!finalWashPackageId || finalWashPackageId.length !== 24) {
-        Alert.alert(
-          "Selection Error",
-          "Invalid wash package selected. Please go back and select a service again.",
-        );
-        return;
-      }
-
-      const cityPart =
-        addressParts.find(
-          (part, index) => index >= 2 && !/^\d{6}$/.test(part),
-        ) ||
-        addressParts[2] ||
-        "City";
-
       const bookingPayload: any = {
-        houseOrFlatNo: String(houseNumClean),
+        houseOrFlatNo: String(addressParts[0] || "0"),
         locality: String(addressParts[1] || "Locality"),
         landmark: String(addressParts[2] || "Landmark"),
-        city: String(cityPart),
+        city: String(addressParts[2] || "City"), // Fallback to index 2 or 1
         postalCode: postalCode,
         addressType: "Home",
-        washPackage: finalWashPackageId,
+        washPackage: serviceId as string,
         vehicleType:
           VEHICLE_TYPE_MAP[(vehicleType as string)?.toLowerCase()] ||
           (vehicleType as string) ||
           "Sedan",
-        vehicleNo: String(vehicleNumber ? (vehicleNumber as string) : "N/A"),
+        vehicleNo: String(vehicleNumber || "N/A"),
         bookingDate: selectedDate
           ? (selectedDate as string)
           : new Date().toISOString().split("T")[0],
         bookingTime: Number(hour),
       };
 
-      console.log(
-        "[BookingSummary] TRACE - Payload:",
-        JSON.stringify(bookingPayload, null, 2),
-      );
       const response = await createBooking(bookingPayload).unwrap();
-      console.log("[BookingSummary] TRACE - Response:", response);
 
+      // Save info locally
       if (address) {
         dispatch(
           addAddress({
             id: `addr-${Date.now()}`,
-            houseOrFlatNo: String(houseNumClean),
-            locality: String(addressParts[1] || "Locality"),
-            landmark: String(addressParts[2] || ""),
-            city: String(cityPart),
+            houseOrFlatNo: bookingPayload.houseOrFlatNo,
+            locality: bookingPayload.locality,
+            landmark: bookingPayload.landmark,
+            city: bookingPayload.city,
             postalCode: postalCode,
             addressType: "Home",
             fullAddress: address as string,
           }),
         );
       }
-
       if (vehicleNumber) {
         dispatch(
           addCar({
             id: `car-${Date.now()}`,
             name: `${vehicleType || "Car"}`,
-            type:
-              VEHICLE_TYPE_MAP[(vehicleType as string)?.toLowerCase()] ||
-              "Sedan",
+            type: bookingPayload.vehicleType,
             number: vehicleNumber as string,
-            image: "https://cdn-icons-png.flaticon.com/512/743/743007.png",
+            image: "",
           }),
         );
       }
 
-      const paymentUrl =
-        response?.data?.paymentLinkUrl || response?.data?.short_url;
-
-      console.log(
-        "[BookingSummary] DEBUG - Raw Response Keys:",
-        Object.keys(response || {}),
-      );
-      if (response?.data)
-        console.log(
-          "[BookingSummary] DEBUG - Response.data Keys:",
-          Object.keys(response.data || {}),
-        );
-
-      // Try multiple paths for ID
       const bookingId =
-        response?.data?.bookingId ||
-        response?.data?._id ||
-        response?.bookingId ||
-        response?._id;
-
-      if (!bookingId || bookingId === "temp-id") {
-        console.error(
-          "[BookingSummary] ❌ CRITICAL: No Booking ID found in response!",
-          response,
-        );
-        Alert.alert(
-          "Error",
-          "Could not create booking. Please try again. (Missing ID)",
-        );
-        return;
-      }
-
-      console.log("[BookingSummary] ✅ Booking ID Extracted:", bookingId);
+        response?.data?.bookingId || response?.data?._id || response?.bookingId;
+      if (!bookingId) throw new Error("No booking ID");
 
       currentBookingIdRef.current = bookingId;
+      const paymentLink =
+        response?.data?.paymentLinkUrl || response?.data?.short_url;
 
-      let result = { type: "cancel" };
-      if (paymentUrl) {
-        console.log("[BookingSummary] Opening Razorpay WebView:", paymentUrl);
-        setPaymentUrl(paymentUrl);
+      if (paymentLink) {
+        setPaymentUrl(paymentLink);
         setShowGateway(true);
         checkPaymentStatus(bookingId);
-      } else {
-        checkPaymentStatus(bookingId);
-      }
+      } else checkPaymentStatus(bookingId);
     } catch (err: any) {
-      console.error(
-        "❌ [BookingSummary] FULL ERROR OBJECT:",
-        JSON.stringify(err, null, 2),
-      );
-      if (err.status === 401) {
+      if (err.status === 401) dispatch(logout());
+      else
         Alert.alert(
-          "Session Expired",
-          "Your technical session has expired or is invalid. Please log out and log in again.",
-          [{ text: "OK", onPress: () => dispatch(logout()) }],
+          "Booking Failed",
+          err?.data?.message || "Something went wrong",
         );
-      } else {
-        const errorMsg =
-          err?.data?.message ||
-          err?.message ||
-          "Something went wrong while creating your booking.";
-        Alert.alert("Booking Failed", errorMsg);
-      }
     }
   };
 
   return (
-    <ScreenWrapper
-      style={styles.container}
-      backgroundColor={Colors.background}
-      statusBarStyle="light-content"
-    >
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => router.back()}
-          style={styles.backButton}
-        >
-          <Ionicons name="arrow-back" size={24} color={Colors.text} />
+    <ScreenWrapper backgroundColor={Colors.background}>
+      <View className="flex-row justify-between items-center px-5 py-4 bg-background">
+        <TouchableOpacity onPress={() => router.back()} className="p-1">
+          <Ionicons name="chevron-back" size={24} color={Colors.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Booking Summary</Text>
-        <View style={{ width: 40 }} />
+        <Text className="text-[18px] font-[800] color-text tracking-tight">
+          Booking Summary
+        </Text>
+        <View className="w-8" />
       </View>
 
-      <BookingStepper
-        currentStep={3}
-        steps={[
-          { id: 1, label: "Service" },
-          { id: 2, label: "Slot" },
-          { id: 3, label: "Payment" },
-        ]}
-      />
+      <BookingStepper currentStep={3} />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 150 }}
+        contentContainerStyle={{ padding: 20, paddingBottom: 150 }}
       >
-        {/* Service Location */}
-        <View style={[styles.card, { marginTop: 10 }]}>
-          <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <View style={styles.shopIconContainer}>
-              <Ionicons name="home" size={20} color="#fbc02d" />
+        <View className="bg-card p-5 rounded-[32px] border border-border/50 mb-6 shadow-sm">
+          <View className="flex-row items-center">
+            <View className="w-12 h-12 rounded-2xl bg-yellow-500/10 items-center justify-center mr-4">
+              <Ionicons name="location" size={22} color="#EAB308" />
             </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.pinShopName}>Service Location</Text>
-              <Text style={styles.pinShopAddress} numberOfLines={1}>
+            <View className="flex-1">
+              <Text className="text-[14px] font-[800] color-text">
+                Service Location
+              </Text>
+              <Text
+                className="text-[12px] color-textSecondary font-[600] mt-0.5"
+                numberOfLines={1}
+              >
                 {address || "Your Address"}
               </Text>
             </View>
           </View>
         </View>
 
-        {/* Booking Details Card */}
-        <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Booking Details</Text>
+        <View className="bg-card p-6 rounded-[32px] border border-border/50 mb-6 shadow-sm">
+          <Text className="text-[11px] font-[800] color-textSecondary uppercase tracking-[2px] mb-6 px-1">
+            Booking Details
+          </Text>
 
-          <View style={styles.row}>
-            <View style={styles.iconBox}>
-              <Ionicons
-                name="sparkles"
-                size={20}
-                color={Colors.textSecondary}
-              />
+          <View className="flex-row items-center mb-6">
+            <View className="w-10 h-10 rounded-xl bg-background items-center justify-center mr-4">
+              <Ionicons name="sparkles" size={18} color={Colors.primary} />
             </View>
-            <View style={styles.rowContent}>
-              <Text style={styles.label}>Service</Text>
-              <Text style={styles.value}>{serviceName || "Premium Wash"}</Text>
-            </View>
-          </View>
-
-          <View style={styles.divider} />
-
-          <View style={styles.row}>
-            <View style={styles.iconBox}>
-              <Ionicons
-                name="car-sport"
-                size={20}
-                color={Colors.textSecondary}
-              />
-            </View>
-            <View style={styles.rowContent}>
-              <Text style={styles.label}>Vehicle</Text>
-              <Text style={styles.value}>
-                {vehicleType
-                  ? (vehicleType as string).charAt(0).toUpperCase() +
-                    (vehicleType as string).slice(1)
-                  : "Same"}{" "}
-                - {vehicleNumber || "N/A"}
+            <View className="flex-1">
+              <Text className="text-[11px] font-[700] color-textSecondary uppercase tracking-wider">
+                Service
+              </Text>
+              <Text className="text-[15px] font-[800] color-text mt-0.5">
+                {serviceName || "Doorstep Wash"}
               </Text>
             </View>
           </View>
 
-          <View style={styles.divider} />
+          <View className="flex-row items-center mb-6">
+            <View className="w-10 h-10 rounded-xl bg-background items-center justify-center mr-4">
+              <Ionicons name="car-sport" size={18} color={Colors.primary} />
+            </View>
+            <View className="flex-1">
+              <Text className="text-[11px] font-[700] color-textSecondary uppercase tracking-wider">
+                Vehicle
+              </Text>
+              <Text className="text-[15px] font-[800] color-text mt-0.5">
+                {vehicleType} - {vehicleNumber}
+              </Text>
+            </View>
+          </View>
 
-          <View style={styles.row}>
-            <View style={styles.iconBox}>
+          <View className="flex-row items-center">
+            <View className="w-10 h-10 rounded-xl bg-background items-center justify-center mr-4">
               <Ionicons
-                name="calendar"
-                size={20}
-                color={Colors.textSecondary}
+                name="calendar-clear"
+                size={18}
+                color={Colors.primary}
               />
             </View>
-            <View style={styles.rowContent}>
-              <Text style={styles.label}>Date & Time</Text>
-              <Text style={styles.value}>
+            <View className="flex-1">
+              <Text className="text-[11px] font-[700] color-textSecondary uppercase tracking-wider">
+                Schedule
+              </Text>
+              <Text className="text-[15px] font-[800] color-text mt-0.5">
                 {selectedDate
                   ? new Date(selectedDate as string).toLocaleDateString(
                       undefined,
                       { weekday: "short", day: "numeric", month: "short" },
                     )
-                  : "Date"}
-                , {selectedTime || "Time"}
+                  : "N/A"}
+                , {selectedTime}
               </Text>
             </View>
           </View>
         </View>
 
-        {/* Payment Summary */}
-        <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Payment Summary</Text>
+        <View className="bg-card p-6 rounded-[32px] border border-border/50 shadow-sm">
+          <Text className="text-[11px] font-[800] color-textSecondary uppercase tracking-[2px] mb-6 px-1">
+            Bills Summary
+          </Text>
 
-          <View style={styles.paymentRow}>
-            <Text style={styles.paymentLabel}>{serviceName || "Service"}</Text>
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <Text style={styles.paymentValue}>{`₹${servicePrice || 0}`}</Text>
-            </View>
+          <View className="flex-row justify-between mb-4 px-1">
+            <Text className="text-[14px] font-[600] color-textSecondary">
+              {serviceName}
+            </Text>
+            <Text className="text-[14px] font-[800] color-text">
+              ₹{displayServicePrice}
+            </Text>
           </View>
 
-          {Array.isArray(parsedAddons) &&
-            parsedAddons.map((addon: any) => (
-              <View key={addon.id} style={styles.paymentRow}>
-                <Text style={styles.paymentLabel}>{addon.name}</Text>
-                <Text style={styles.paymentValue}>+₹{addon.price}</Text>
-              </View>
-            ))}
+          {parsedAddons.map((addon: any) => (
+            <View key={addon.id} className="flex-row justify-between mb-4 px-1">
+              <Text className="text-[14px] font-[600] color-textSecondary">
+                {addon.name}
+              </Text>
+              <Text className="text-[14px] font-[800] color-text">
+                +₹{addon.price}
+              </Text>
+            </View>
+          ))}
 
-          <View style={styles.totalDivider} />
+          <View className="my-2 border-t border-border/30 border-dashed w-full h-1" />
 
-          <View style={styles.paymentRow}>
-            <Text style={styles.totalTextLabel}>Grand Total</Text>
-            <Text style={styles.totalTextValue}>₹{displayGrandTotal}</Text>
+          <View className="flex-row justify-between items-center mt-3 px-1">
+            <Text className="text-[16px] font-[800] color-text uppercase tracking-tight">
+              Amount to Pay
+            </Text>
+            <Text className="text-[24px] font-[900] color-primary">
+              ₹{displayGrandTotal}
+            </Text>
           </View>
         </View>
       </ScrollView>
 
       {/* Footer */}
-      <View style={styles.footer}>
+      <View className="absolute bottom-0 left-0 right-0 bg-card px-6 pt-6 pb-12 rounded-t-[44px] border-t border-border shadow-2xl">
         <TouchableOpacity
-          style={[
-            styles.payButton,
-            isCreatingBooking && styles.payButtonDisabled,
-          ]}
-          disabled={isCreatingBooking}
+          className={`h-14 rounded-2xl flex-row items-center justify-between px-6 shadow-lg ${isCreatingBooking ? "bg-border/30" : "bg-primary shadow-primary/30"}`}
           onPress={handlePay}
+          disabled={isCreatingBooking}
         >
-          <View style={styles.payButtonContent}>
-            <View style={styles.payButtonPriceContainer}>
-              <Text style={styles.payButtonPriceText}>
-                ₹{displayGrandTotal}
-              </Text>
-              <Text style={styles.payButtonTotalLabel}>TOTAL</Text>
-            </View>
-            <View style={styles.payButtonActionContainer}>
-              <Text style={styles.payButtonActionText}>
-                {isCreatingBooking ? "Processing..." : "Pay Now"}
-              </Text>
-              {!isCreatingBooking && (
-                <Ionicons
-                  name="caret-forward"
-                  size={16}
-                  color={Colors.black}
-                  style={{ marginLeft: 4 }}
-                />
-              )}
-            </View>
+          <View className="flex-row items-center">
+            <Text className="text-[20px] font-[900] color-black">
+              ₹{displayGrandTotal}
+            </Text>
+            <View className="w-[1px] h-6 bg-black/20 mx-4" />
+            <Text className="text-[14px] font-[900] color-black/70">
+              PAY NOW
+            </Text>
           </View>
+          {isCreatingBooking ? (
+            <ActivityIndicator color="#000" />
+          ) : (
+            <Ionicons name="arrow-forward" size={20} color="#000" />
+          )}
         </TouchableOpacity>
       </View>
 
       {/* Loading Overlay */}
       {isVerifyingPayment && (
-        <View style={styles.modalOverlay}>
-          <View style={styles.loaderCard}>
-            <PulseLoader size={60} color={Colors.primary} />
-            <Text style={styles.loaderTitle}>Verifying Payment...</Text>
-            <Text style={styles.loaderSubtitle}>
-              Please wait while we confirm with the bank.
+        <View className="absolute inset-0 bg-black/80 items-center justify-center z-[1000] px-10">
+          <View className="bg-card p-10 rounded-[40px] border border-border items-center w-full shadow-2xl">
+            <PulseLoader size={80} color={Colors.primary} />
+            <Text className="text-[20px] font-[900] color-text mt-8 text-center">
+              Verifying Payment
+            </Text>
+            <Text className="text-[14px] color-textSecondary font-[600] mt-3 text-center leading-5">
+              Please keep this screen open while we verify your transaction
+              status.
             </Text>
           </View>
         </View>
       )}
 
-      {/* Payment Gateway Modal */}
-      <Modal
-        visible={showGateway}
-        onRequestClose={() => {
-          setShowGateway(false);
-          if (currentBookingIdRef.current)
-            checkPaymentStatus(currentBookingIdRef.current);
-        }}
-        animationType="slide"
-        presentationStyle="pageSheet"
-      >
-        <View style={{ flex: 1, backgroundColor: "#fff" }}>
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-              padding: 15,
-              borderBottomWidth: 1,
-              borderBottomColor: "#eee",
-            }}
-          >
-            <Text style={{ fontSize: 18, fontWeight: "bold" }}>Payment</Text>
+      {/* Webview Modal */}
+      <Modal visible={showGateway} transparent animationType="slide">
+        <View className="flex-1 bg-background pt-10">
+          <View className="flex-row justify-between items-center px-6 py-4 border-b border-border/30">
+            <Text className="text-[18px] font-[800] color-text">
+              Secure Checkout
+            </Text>
             <TouchableOpacity
               onPress={() => {
                 setShowGateway(false);
                 if (currentBookingIdRef.current)
                   checkPaymentStatus(currentBookingIdRef.current);
               }}
-              style={{ padding: 5 }}
             >
-              <Ionicons name="close" size={24} color="#000" />
+              <Ionicons name="close" size={24} color={Colors.text} />
             </TouchableOpacity>
           </View>
-          {paymentUrl ? (
-            <WebView
-              source={{ uri: paymentUrl }}
-              style={{ flex: 1 }}
-              onNavigationStateChange={(navState) => {}}
-              startInLoadingState={true}
-              renderLoading={() => (
-                <PulseLoader size={40} color={Colors.primary} />
-              )}
-            />
-          ) : (
-            <View
-              style={{
-                flex: 1,
-                justifyContent: "center",
-                alignItems: "center",
-              }}
-            >
-              <Text>Loading Payment...</Text>
-            </View>
-          )}
+          <WebView
+            source={{ uri: paymentUrl }}
+            className="flex-1"
+            startInLoadingState
+            renderLoading={() => (
+              <View className="flex-1 items-center justify-center bg-background">
+                <ActivityIndicator color={Colors.primary} size="large" />
+              </View>
+            )}
+          />
         </View>
       </Modal>
     </ScreenWrapper>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-    backgroundColor: Colors.background,
-  },
-  backButton: { padding: 5 },
-  headerTitle: { fontSize: 18, fontWeight: "bold", color: Colors.text },
-
-  mapContainer: {
-    height: 200,
-    marginHorizontal: 20,
-    borderRadius: 20,
-    overflow: "hidden",
-    marginTop: 10,
-    marginBottom: 20,
-    position: "relative",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 5,
-  },
-  map: {
-    width: "100%",
-    height: "100%",
-  },
-  mapOverlay: {
-    position: "absolute",
-    bottom: 15,
-    left: 15,
-    right: 15,
-  },
-  shopPinCard: {
-    backgroundColor: "rgba(255, 255, 255, 0.95)",
-    borderRadius: 15,
-    padding: 12,
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  shopIconContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "#fff3e0", // Keep this one for contrast
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 10,
-  },
-  pinShopName: { fontSize: 14, fontWeight: "bold", color: Colors.text },
-  pinShopAddress: { fontSize: 10, color: Colors.textSecondary, marginTop: 2 },
-
-  card: {
-    backgroundColor: Colors.card,
-    borderRadius: 20,
-    marginHorizontal: 20,
-    marginBottom: 15,
-    padding: 20,
-    shadowColor: Colors.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 5,
-    elevation: 2,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: Colors.text,
-    marginBottom: 15,
-  },
-  paymentTitle: {
-    marginLeft: 20,
-    fontSize: 16,
-    fontWeight: "bold",
-    color: Colors.text,
-    marginBottom: 15,
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 5,
-  },
-  iconBox: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: Colors.background,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 15,
-  },
-  rowContent: {
-    flex: 1,
-  },
-  label: { fontSize: 12, color: Colors.textSecondary, marginBottom: 2 },
-  value: { fontSize: 14, fontWeight: "600", color: Colors.text },
-  divider: {
-    height: 1,
-    backgroundColor: Colors.border,
-    marginVertical: 12,
-    marginLeft: 51,
-  },
-
-  paymentRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 10,
-  },
-  paymentLabel: { fontSize: 14, color: Colors.textSecondary },
-  paymentValue: { fontSize: 14, fontWeight: "600", color: Colors.text },
-  totalDivider: {
-    height: 1,
-    backgroundColor: Colors.border,
-    marginVertical: 12,
-    borderStyle: "dashed",
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  totalTextLabel: { fontSize: 16, fontWeight: "bold", color: Colors.text },
-  totalTextValue: { fontSize: 18, fontWeight: "bold", color: Colors.text },
-
-  footer: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: Colors.background,
-
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    paddingBottom: 35,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    shadowColor: Colors.black,
-    shadowOffset: { width: 0, height: -5 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 20,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  paymentMethodSelector: {
-    flex: 1,
-    marginRight: 15,
-    justifyContent: "center",
-  },
-  payUsingRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 2,
-  },
-  payUsingText: {
-    fontSize: 10,
-    fontWeight: "bold",
-    color: Colors.textSecondary,
-    textTransform: "uppercase",
-  },
-  selectedMethodText: {
-    fontSize: 15,
-    fontWeight: "bold",
-    color: Colors.text,
-  },
-  payButton: {
-    backgroundColor: Colors.primary,
-    borderRadius: 12,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    flex: 1.2,
-    height: 50,
-    justifyContent: "center",
-  },
-  payButtonDisabled: {
-    backgroundColor: Colors.border,
-    opacity: 0.7,
-  },
-  payButtonContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  payButtonPriceContainer: {
-    flexDirection: "column",
-    alignItems: "flex-start",
-  },
-  payButtonPriceText: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: Colors.black,
-  },
-  payButtonTotalLabel: {
-    fontSize: 10,
-    fontWeight: "bold",
-    color: Colors.black,
-    opacity: 0.6,
-  },
-  payButtonActionContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  payButtonActionText: {
-    fontSize: 14,
-    fontWeight: "bold",
-    color: Colors.black,
-  },
-  modalOverlay: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "rgba(0,0,0,0.7)",
-    justifyContent: "center",
-    alignItems: "center",
-    zIndex: 1000,
-  },
-  loaderCard: {
-    backgroundColor: Colors.card,
-    borderRadius: 20,
-    padding: 30,
-    alignItems: "center",
-    width: "80%",
-  },
-  loaderTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginTop: 20,
-    color: Colors.text,
-    textAlign: "center",
-  },
-  loaderSubtitle: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    marginTop: 10,
-    textAlign: "center",
-    lineHeight: 20,
-  },
-});

@@ -1,11 +1,10 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Alert,
   Animated,
   ScrollView,
-  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
@@ -16,19 +15,21 @@ import { useUpdateProfileMutation } from "../../../store/api/authApi";
 import { useAppDispatch, useAppSelector } from "../../../store/hooks";
 import { updateProfile } from "../../../store/slices/profileSlice";
 import { updateUser } from "../../../store/slices/userSlice";
+import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
+import { Colors } from "@/constants/Colors";
 
 export default function EditProfile() {
   const dispatch = useAppDispatch();
   const profile = useAppSelector((state) => state.profile);
   const user = useAppSelector((state) => state.user);
 
-  const [fullName, setFullName] = React.useState("");
-  const [mobile, setMobile] = React.useState("");
-  const [email, setEmail] = React.useState(profile.email ?? "");
-  const [isNameWarningVisible, setIsNameWarningVisible] = React.useState(false);
+  const [fullName, setFullName] = useState("");
+  const [mobile, setMobile] = useState("");
+  const [email, setEmail] = useState(profile.email ?? "");
+  const [isNameWarningVisible, setIsNameWarningVisible] = useState(false);
 
-  const [focusedInput, setFocusedInput] = React.useState<string | null>(null);
-  const [hasChanges, setHasChanges] = React.useState(false);
+  const [focusedInput, setFocusedInput] = useState<string | null>(null);
+  const [hasChanges, setHasChanges] = useState(false);
 
   const saveAnim = useRef(new Animated.Value(0)).current;
 
@@ -56,8 +57,7 @@ export default function EditProfile() {
     }).start();
   }, [fullName, mobile, email, profile, user, saveAnim]);
 
-  const [updateUserProfileAPI, { isLoading: isUpdating }] =
-    useUpdateProfileMutation();
+  const [updateUserProfileAPI] = useUpdateProfileMutation();
   const token = useAppSelector((state) => state.auth.token);
 
   const handleSave = async () => {
@@ -91,11 +91,6 @@ export default function EditProfile() {
     }
   };
 
-  const getInputStyle = (inputName: string) => [
-    styles.input,
-    focusedInput === inputName && styles.inputFocused,
-  ];
-
   const saveButtonTranslateX = saveAnim.interpolate({
     inputRange: [0, 1],
     outputRange: [100, 0],
@@ -107,226 +102,118 @@ export default function EditProfile() {
   });
 
   return (
-    <View style={styles.container}>
-      {/* Fixed Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.back()}
-        >
-          <Ionicons name="chevron-back" size={24} color="#111" />
-        </TouchableOpacity>
+    <ScreenWrapper
+      backgroundColor={Colors.background}
+      statusBarStyle="light-content"
+    >
+      <View className="flex-1 bg-background">
+        {/* Header */}
+        <View className="flex-row items-center justify-between px-5 pt-4 pb-4">
+          <TouchableOpacity
+            className="w-10 h-10 rounded-full bg-card items-center justify-center border border-border shadow-sm"
+            onPress={() => router.back()}
+          >
+            <Ionicons name="chevron-back" size={20} color={Colors.text} />
+          </TouchableOpacity>
 
-        <Text style={styles.headerTitle}>Edit Profile</Text>
+          <Text className="text-[20px] font-[700] text-text">Edit Profile</Text>
 
-        {/* Animated Save Button */}
-        <Animated.View
-          style={[
-            styles.saveButtonContainer,
-            {
+          <Animated.View
+            style={{
               opacity: saveButtonOpacity,
               transform: [{ translateX: saveButtonTranslateX }],
-            },
-          ]}
-        >
-          <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-            <Ionicons name="checkmark" size={20} color="#000" />
-            <Text style={styles.saveText}>Save</Text>
-          </TouchableOpacity>
-        </Animated.View>
-      </View>
-
-      <ScrollView
-        style={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 40 }}
-      >
-        {/* PROFILE FIELDS */}
-        <View style={styles.card}>
-          <Text style={styles.label}>Full Name</Text>
-          <TextInput
-            value={fullName}
-            onChangeText={(text) => {
-              if (/[^a-zA-Z\s]/.test(text)) {
-                setIsNameWarningVisible(true);
-                setTimeout(() => setIsNameWarningVisible(false), 3000);
-              }
-              setFullName(text.replace(/[^a-zA-Z\s]/g, ""));
             }}
-            style={getInputStyle("fullName")}
-            onFocus={() => setFocusedInput("fullName")}
-            onBlur={() => setFocusedInput(null)}
-          />
-          {isNameWarningVisible && (
-            <Text
-              style={{
-                color: "red",
-                fontSize: 12,
-                marginTop: 4,
-                marginLeft: 4,
-              }}
+          >
+            <TouchableOpacity
+              className="flex-row items-center py-2 px-4 bg-primary rounded-full shadow-md"
+              onPress={handleSave}
             >
-              Only alphabets are allowed
-            </Text>
-          )}
+              <Ionicons name="checkmark" size={18} color="#000" />
+              <Text className="text-black text-[14px] font-[700] ml-1.5">
+                Save
+              </Text>
+            </TouchableOpacity>
+          </Animated.View>
         </View>
 
-        <View style={styles.card}>
-          <Text style={styles.label}>Mobile Number</Text>
-          <View
-            style={[
-              ...getInputStyle("mobile"),
-              { flexDirection: "row", alignItems: "center" },
-            ]}
-          >
-            <Text
-              style={{
-                fontSize: 16,
-                color: "#111",
-                marginRight: 8,
-                fontWeight: "500",
+        <ScrollView
+          className="flex-1 px-5"
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 40, paddingTop: 10 }}
+        >
+          {/* PROFILE FIELDS */}
+          <View className="bg-card rounded-[24px] p-5 mb-5 border border-border shadow-sm">
+            <Text className="text-[14px] font-[600] text-textSecondary mb-2.5 ml-1">
+              Full Name
+            </Text>
+            <TextInput
+              value={fullName}
+              onChangeText={(text) => {
+                if (/[^a-zA-Z\s]/.test(text)) {
+                  setIsNameWarningVisible(true);
+                  setTimeout(() => setIsNameWarningVisible(false), 3000);
+                }
+                setFullName(text.replace(/[^a-zA-Z\s]/g, ""));
               }}
-            >
-              +91
+              className={`text-base text-text py-3.5 px-4 bg-background rounded-2xl border ${
+                focusedInput === "fullName" ? "border-primary" : "border-border"
+              }`}
+              onFocus={() => setFocusedInput("fullName")}
+              onBlur={() => setFocusedInput(null)}
+              placeholder="Enter full name"
+              placeholderTextColor={Colors.textSecondary}
+            />
+            {isNameWarningVisible && (
+              <Text className="text-error text-[12px] mt-1.5 ml-1">
+                Only alphabets are allowed
+              </Text>
+            )}
+          </View>
+
+          <View className="bg-card rounded-[24px] p-5 mb-5 border border-border shadow-sm">
+            <Text className="text-[14px] font-[600] text-textSecondary mb-2.5 ml-1">
+              Mobile Number
             </Text>
             <View
-              style={{
-                width: 1,
-                height: 20,
-                backgroundColor: "#ddd",
-                marginRight: 10,
-              }}
-            />
+              className={`flex-row items-center py-3.5 px-4 bg-background rounded-2xl border ${
+                focusedInput === "mobile" ? "border-primary" : "border-border"
+              } opacity-70`}
+            >
+              <Text className="text-base text-text font-[600] mr-2">+91</Text>
+              <View className="w-[1px] h-5 bg-border mr-3" />
+              <TextInput
+                value={mobile}
+                editable={false}
+                className="flex-1 text-base text-text"
+                onFocus={() => setFocusedInput("mobile")}
+                onBlur={() => setFocusedInput(null)}
+              />
+            </View>
+            <Text className="text-[11px] text-textSecondary mt-2 ml-1">
+              Mobile number cannot be changed
+            </Text>
+          </View>
+
+          <View className="bg-card rounded-[24px] p-5 mb-5 border border-border shadow-sm">
+            <Text className="text-[14px] font-[600] text-textSecondary mb-2.5 ml-1">
+              Email Address
+            </Text>
             <TextInput
-              value={mobile}
-              onChangeText={setMobile}
-              keyboardType="phone-pad"
-              style={{ flex: 1, fontSize: 16, color: "#111" }}
-              onFocus={() => setFocusedInput("mobile")}
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              className={`text-base text-text py-3.5 px-4 bg-background rounded-2xl border ${
+                focusedInput === "email" ? "border-primary" : "border-border"
+              }`}
+              onFocus={() => setFocusedInput("email")}
               onBlur={() => setFocusedInput(null)}
+              placeholder="Enter email address"
+              placeholderTextColor={Colors.textSecondary}
             />
           </View>
-        </View>
-
-        <View style={styles.card}>
-          <Text style={styles.label}>Email</Text>
-          <TextInput
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            style={getInputStyle("email")}
-            onFocus={() => setFocusedInput("email")}
-            onBlur={() => setFocusedInput(null)}
-          />
-        </View>
-      </ScrollView>
-    </View>
+        </ScrollView>
+      </View>
+    </ScreenWrapper>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F3F4F7",
-  },
-
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingTop: 90,
-    paddingBottom: 20,
-    backgroundColor: "#F3F4F7",
-    position: "relative",
-  },
-
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#FFF",
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-
-  headerTitle: {
-    fontSize: 30,
-    fontWeight: "400",
-    color: "#111",
-    position: "absolute",
-    left: 70,
-    paddingTop: 70,
-    textAlign: "center",
-  },
-
-  saveButtonContainer: {
-    position: "absolute",
-    right: 20,
-    top: 90,
-  },
-
-  saveButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 10,
-    paddingHorizontal: 18,
-    backgroundColor: "#C8F000",
-    borderRadius: 30,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    elevation: 5,
-  },
-
-  saveText: {
-    color: "#000",
-    fontSize: 16,
-    fontWeight: "600",
-    marginLeft: 8,
-  },
-
-  scrollContent: {
-    paddingHorizontal: 20,
-  },
-
-  card: {
-    backgroundColor: "#FFF",
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    marginBottom: 16,
-    shadowColor: "#000",
-    shadowOpacity: 0.06,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 4,
-  },
-
-  label: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: "#777",
-    marginBottom: 8,
-  },
-
-  input: {
-    fontSize: 16,
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    backgroundColor: "#F8F8F8",
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "transparent",
-  },
-
-  inputFocused: {
-    borderColor: "#C8F000",
-    backgroundColor: "#fff",
-  },
-});

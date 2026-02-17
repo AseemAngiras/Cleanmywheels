@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useRef } from "react";
-import { Animated, Easing, StyleSheet, View } from "react-native";
+import { Animated, Easing, View } from "react-native";
 
 interface PulseLoaderProps {
   size?: number;
@@ -45,18 +45,21 @@ export default function PulseLoader({
             useNativeDriver: true,
           }),
         ]),
-      ])
+      ]),
     );
     pulse.start();
     return () => pulse.stop();
   }, [scale, opacity]);
 
   return (
-    <View style={[styles.container, { width: size * 2, height: size * 2 }]}>
+    <View
+      className="justify-center items-center"
+      style={[{ width: size * 2, height: size * 2 }]}
+    >
       {/* Pulsing Ring */}
       <Animated.View
+        className="absolute"
         style={[
-          styles.ring,
           {
             width: size,
             height: size,
@@ -69,13 +72,12 @@ export default function PulseLoader({
       />
       {/* Static Icon or Inner Circle */}
       <View
+        className="justify-center items-center z-10 bg-white shadow-sm"
         style={[
-          styles.center,
           {
             width: size,
             height: size,
             borderRadius: size / 2,
-            backgroundColor: "#fff",
             elevation: 5,
           },
         ]}
@@ -85,22 +87,3 @@ export default function PulseLoader({
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  ring: {
-    position: "absolute",
-  },
-  center: {
-    justifyContent: "center",
-    alignItems: "center",
-    zIndex: 1,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-});

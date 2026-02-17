@@ -6,7 +6,6 @@ import {
   ActivityIndicator,
   Alert,
   ScrollView,
-  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
@@ -17,13 +16,11 @@ import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import {
   useGetVehiclesQuery,
   useCreateVehicleMutation,
-} from "../../store/api/vehicleApi";
+} from "@/store/api/vehicleApi";
 import {
   useGetPlansQuery,
   useGetMySubscriptionQuery,
-} from "../../store/api/subscriptionApi";
-
-const RAZORPAY_KEY = process.env.RAZORPAY_KEY_ID || "";
+} from "@/store/api/subscriptionApi";
 
 const TIME_SLOTS = [
   "6 AM - 7 AM",
@@ -109,9 +106,7 @@ export default function SubscriptionConfigureScreen() {
 
       setShowAddCarModal(false);
       setNewCarNo("");
-      setNewCarType("SEDAN");
-
-      setNewCarType("SEDAN");
+      setNewCarType("Sedan");
 
       const createdVehicle = result?.data || result;
       if (createdVehicle?._id) {
@@ -140,379 +135,242 @@ export default function SubscriptionConfigureScreen() {
         startDate: startDate.toISOString(),
         isAutoPay: "true",
       },
-    });
+    } as any);
   };
 
   if (!selectedPlan) {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color="#84c95c" />
+      <View className="flex-1 bg-background items-center justify-center">
+        <ActivityIndicator size="large" color={Colors.primary} />
       </View>
     );
   }
 
   return (
-    <ScreenWrapper style={styles.container} backgroundColor={Colors.background}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={24} color={Colors.text} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Configure Subscription</Text>
-      </View>
-
-      <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.planSummary}>
-          <Text style={styles.planName}>{selectedPlan.name}</Text>
-          <Text style={styles.planPrice}>₹{selectedPlan.price} / 30 days</Text>
-        </View>
-
-        <Text style={styles.sectionTitle}>Select Vehicle</Text>
-        {isLoadingCars ? (
-          <ActivityIndicator />
-        ) : (
-          <View style={styles.optionsGrid}>
-            {availableCars.map((car) => (
-              <TouchableOpacity
-                key={car._id}
-                style={[
-                  styles.optionCard,
-                  selectedVehicleId === car._id && styles.selectedOption,
-                ]}
-                onPress={() => setSelectedVehicleId(car._id)}
-              >
-                <MaterialCommunityIcons
-                  name={getVehicleIconName(car.vehicleType) as any}
-                  size={46}
-                  color={
-                    selectedVehicleId === car._id
-                      ? Colors.black
-                      : Colors.textSecondary
-                  }
-                />
-                <Text
-                  style={[
-                    styles.optionText,
-                    selectedVehicleId === car._id && styles.selectedText,
-                  ]}
-                >
-                  {car.vehicleType}
-                </Text>
-                <Text
-                  style={[
-                    styles.subText,
-                    selectedVehicleId === car._id && styles.selectedText,
-                  ]}
-                >
-                  {car.vehicleNo}
-                </Text>
-              </TouchableOpacity>
-            ))}
-
-            {/* ADD NEW CAR BUTTON */}
-            <TouchableOpacity
-              style={[styles.optionCard, styles.addCarCard]}
-              onPress={() => setShowAddCarModal(true)}
-            >
-              <Ionicons
-                name="add-circle-outline"
-                size={28}
-                color={Colors.primary}
-              />
-              <Text style={[styles.optionText, { color: Colors.primary }]}>
-                Add New Car
-              </Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        <Text style={styles.sectionTitle}>Select Time Slot</Text>
-        <View style={styles.timeSlotGrid}>
-          {TIME_SLOTS.map((slot) => (
-            <TouchableOpacity
-              key={slot}
-              style={[
-                styles.timeSlotChip,
-                selectedTimeSlot === slot && styles.selectedTimeChip,
-              ]}
-              onPress={() => setSelectedTimeSlot(slot)}
-            >
-              <Text
-                style={[
-                  styles.timeSlotText,
-                  selectedTimeSlot === slot && styles.selectedTimeText,
-                ]}
-              >
-                {slot}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        <Text style={styles.sectionTitle}>Duration</Text>
-        <View style={styles.dateCard}>
-          <Ionicons name="calendar" size={20} color={Colors.textSecondary} />
-          <Text style={styles.dateText}>
-            Valid for 30 days starting {new Date().toLocaleDateString()}
+    <ScreenWrapper
+      backgroundColor={Colors.background}
+      statusBarStyle="light-content"
+    >
+      <View className="flex-1 bg-background">
+        {/* Header */}
+        <View className="flex-row items-center px-5 pt-4 pb-6 bg-card border-b border-border/50">
+          <TouchableOpacity
+            onPress={() => router.back()}
+            className="w-10 h-10 rounded-full bg-background items-center justify-center border border-border"
+          >
+            <Ionicons name="arrow-back" size={20} color={Colors.text} />
+          </TouchableOpacity>
+          <Text className="text-[20px] font-[700] color-text ml-4">
+            Configure Plan
           </Text>
         </View>
-      </ScrollView>
 
-      <View style={styles.footer}>
-        <TouchableOpacity style={styles.payBtn} onPress={handleContinue}>
-          <Text style={styles.payBtnText}>Continue to Summary</Text>
-        </TouchableOpacity>
-      </View>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ padding: 20 }}
+        >
+          <View className="bg-primary/10 p-5 rounded-[24px] mb-8 border border-primary/20">
+            <Text className="text-[18px] font-[800] color-primary mb-1">
+              {selectedPlan.name}
+            </Text>
+            <Text className="text-[15px] font-[600] color-primary/80">
+              ₹{selectedPlan.price} / 30 days
+            </Text>
+          </View>
 
-      {/* ADD CAR MODAL */}
-      <Modal visible={showAddCarModal} transparent animationType="slide">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Add New Vehicle</Text>
-
-            <Text style={styles.label}>Vehicle Number</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="e.g. MH01AB1234"
-              value={newCarNo}
-              onChangeText={setNewCarNo}
-              autoCapitalize="characters"
-            />
-
-            <Text style={styles.label}>Vehicle Type</Text>
-            <View style={styles.vehicleTypeGrid}>
-              {VEHICLE_TYPES.map((type) => (
+          <Text className="text-[18px] font-[700] color-text mb-4">
+            Select Vehicle
+          </Text>
+          {isLoadingCars ? (
+            <ActivityIndicator color={Colors.primary} className="my-5" />
+          ) : (
+            <View className="flex-row flex-wrap justify-between gap-y-4 mb-8">
+              {availableCars.map((car) => (
                 <TouchableOpacity
-                  key={type}
-                  style={[
-                    styles.typeChip,
-                    newCarType === type && styles.selectedTypeChip,
-                  ]}
-                  onPress={() => setNewCarType(type)}
+                  key={car._id}
+                  className={`w-[48%] rounded-[24px] p-5 items-center border ${
+                    selectedVehicleId === car._id
+                      ? "bg-primary border-primary"
+                      : "bg-card border-border"
+                  }`}
+                  onPress={() => setSelectedVehicleId(car._id)}
                 >
+                  <MaterialCommunityIcons
+                    name={getVehicleIconName(car.vehicleType) as any}
+                    size={42}
+                    color={
+                      selectedVehicleId === car._id
+                        ? "#000"
+                        : Colors.textSecondary
+                    }
+                  />
                   <Text
-                    style={[
-                      styles.typeText,
-                      newCarType === type && styles.selectedTypeText,
-                    ]}
+                    className={`text-[14px] font-[700] mt-3 tracking-tight ${
+                      selectedVehicleId === car._id ? "text-black" : "text-text"
+                    }`}
                   >
-                    {type}
+                    {car.vehicleType}
+                  </Text>
+                  <Text
+                    className={`text-[12px] font-[600] mt-1 ${
+                      selectedVehicleId === car._id
+                        ? "text-black/70"
+                        : "text-textSecondary"
+                    }`}
+                  >
+                    {car.vehicleNo}
                   </Text>
                 </TouchableOpacity>
               ))}
-            </View>
 
-            <View style={styles.modalActions}>
               <TouchableOpacity
-                onPress={() => setShowAddCarModal(false)}
-                style={styles.cancelBtn}
+                className="w-[48%] bg-card rounded-[24px] p-5 items-center border border-primary border-dashed justify-center "
+                onPress={() => setShowAddCarModal(true)}
               >
-                <Text style={styles.cancelText}>Cancel</Text>
+                <View className="w-10 h-10 rounded-full bg-primary/10 items-center justify-center mb-2">
+                  <Ionicons name="add" size={24} color={Colors.primary} />
+                </View>
+                <Text className="text-[13px] font-[700] color-primary text-center">
+                  Add Vehicle
+                </Text>
               </TouchableOpacity>
+            </View>
+          )}
+
+          <Text className="text-[18px] font-[700] color-text mb-4">
+            Select Time Slot
+          </Text>
+          <View className="flex-row flex-wrap justify-between gap-y-3 mb-8">
+            {TIME_SLOTS.map((slot) => (
               <TouchableOpacity
-                onPress={handleAddCar}
-                style={styles.saveBtn}
-                disabled={isAddingCar}
+                key={slot}
+                className={`w-[48%] py-4 rounded-[18px] items-center border ${
+                  selectedTimeSlot === slot
+                    ? "bg-primary border-primary"
+                    : "bg-card border-border"
+                }`}
+                onPress={() => setSelectedTimeSlot(slot)}
               >
-                {isAddingCar ? (
-                  <ActivityIndicator color="#FFF" />
-                ) : (
-                  <Text style={styles.saveBtnText}>Save Vehicle</Text>
-                )}
+                <Text
+                  className={`text-[13px] font-[700] ${
+                    selectedTimeSlot === slot
+                      ? "text-black"
+                      : "text-textSecondary"
+                  }`}
+                >
+                  {slot}
+                </Text>
               </TouchableOpacity>
+            ))}
+          </View>
+
+          <Text className="text-[18px] font-[700] color-text mb-4">
+            Duration
+          </Text>
+          <View className="flex-row items-center bg-card p-5 rounded-[24px] border border-border mb-10">
+            <View className="w-10 h-10 rounded-full bg-background items-center justify-center mr-4">
+              <Ionicons
+                name="calendar-outline"
+                size={20}
+                color={Colors.primary}
+              />
+            </View>
+            <Text className="text-[14px] color-textSecondary font-[500] flex-1">
+              Valid for 30 days starting{" "}
+              <Text className="color-text font-[700]">
+                {new Date().toLocaleDateString("en-IN")}
+              </Text>
+            </Text>
+          </View>
+
+          <View className="h-10" />
+        </ScrollView>
+
+        <View className="p-6 bg-card border-t border-border/50 shadow-2xl">
+          <TouchableOpacity
+            className="bg-primary py-4.5 rounded-2xl items-center shadow-lg shadow-primary/30"
+            onPress={handleContinue}
+          >
+            <Text className="color-black text-[16px] font-[800]">
+              Continue to Summary
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* ADD CAR MODAL */}
+        <Modal visible={showAddCarModal} transparent animationType="fade">
+          <View className="flex-1 bg-black/60 justify-center px-6">
+            <View className="bg-card rounded-[32px] p-6 shadow-2xl border border-border">
+              <Text className="text-[22px] font-[800] color-text mb-6 text-center">
+                Add New Vehicle
+              </Text>
+
+              <Text className="text-[13px] font-[700] color-textSecondary mb-2 tracking-widest uppercase">
+                Vehicle Number
+              </Text>
+              <TextInput
+                className="bg-background border border-border rounded-2xl p-4 text-[16px] color-text mb-6"
+                placeholder="MH01AB1234"
+                placeholderTextColor={Colors.textSecondary}
+                value={newCarNo}
+                onChangeText={setNewCarNo}
+                autoCapitalize="characters"
+              />
+
+              <Text className="text-[13px] font-[700] color-textSecondary mb-3 tracking-widest uppercase">
+                Vehicle Type
+              </Text>
+              <View className="flex-row flex-wrap gap-2 mb-8">
+                {VEHICLE_TYPES.map((type) => (
+                  <TouchableOpacity
+                    key={type}
+                    className={`py-2.5 px-5 rounded-full border ${
+                      newCarType === type
+                        ? "bg-primary border-primary"
+                        : "bg-background border-border"
+                    }`}
+                    onPress={() => setNewCarType(type)}
+                  >
+                    <Text
+                      className={`text-[12px] font-[700] ${
+                        newCarType === type
+                          ? "text-black"
+                          : "text-textSecondary"
+                      }`}
+                    >
+                      {type}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              <View className="flex-row gap-4">
+                <TouchableOpacity
+                  onPress={() => setShowAddCarModal(false)}
+                  className="flex-1 py-4 bg-background border border-border rounded-2xl items-center"
+                >
+                  <Text className="text-[15px] font-[700] color-textSecondary">
+                    Cancel
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={handleAddCar}
+                  className="flex-1 py-4 bg-primary rounded-2xl items-center shadow-md shadow-primary/20"
+                  disabled={isAddingCar}
+                >
+                  {isAddingCar ? (
+                    <ActivityIndicator color="#000" />
+                  ) : (
+                    <Text className="text-[15px] font-[700] color-black">
+                      Save Vehicle
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
-        </View>
-      </Modal>
+        </Modal>
+      </View>
     </ScreenWrapper>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
-  center: { flex: 1, justifyContent: "center", alignItems: "center" },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 16,
-    backgroundColor: Colors.card,
-  },
-  backBtn: { padding: 4 },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginLeft: 16,
-    color: Colors.text,
-  },
-  content: { padding: 20 },
-  planSummary: {
-    backgroundColor: "rgba(76, 175, 80, 0.1)",
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 24,
-  },
-  planName: { fontSize: 18, fontWeight: "bold", color: Colors.success },
-  planPrice: { fontSize: 16, color: Colors.success, marginTop: 4 },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    marginBottom: 12,
-    marginTop: 12,
-    color: Colors.text,
-  },
-  optionsGrid: { flexDirection: "row", flexWrap: "wrap", gap: 12 },
-  optionCard: {
-    width: "48%",
-    backgroundColor: Colors.card,
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  addCarCard: {
-    borderColor: Colors.primary,
-    borderStyle: "dashed",
-    justifyContent: "center",
-  },
-  selectedOption: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
-  },
-  selectedText: { color: Colors.black },
-  optionText: {
-    marginTop: 8,
-    fontWeight: "600",
-    textAlign: "center",
-    fontSize: 12,
-    color: Colors.text,
-  },
-  subText: { fontSize: 12, color: Colors.textSecondary, marginTop: 4 },
-  emptyText: { color: Colors.textSecondary, fontStyle: "italic" },
-  optionsList: { gap: 10 },
-  timeSlotGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 12,
-  },
-  timeSlotChip: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    backgroundColor: Colors.card,
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    minWidth: "45%",
-    alignItems: "center",
-  },
-  selectedTimeChip: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
-  },
-  timeSlotText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: Colors.text,
-  },
-  selectedTimeText: {
-    color: Colors.black,
-  },
-  slotText: { fontSize: 14, fontWeight: "500" },
-  dateCard: {
-    flexDirection: "row",
-    backgroundColor: Colors.card,
-    padding: 16,
-    borderRadius: 12,
-    alignItems: "center",
-    gap: 10,
-  },
-  dateText: { fontSize: 14, color: Colors.text },
-  footer: {
-    padding: 20,
-    backgroundColor: Colors.card,
-    borderTopWidth: 1,
-    borderColor: Colors.border,
-  },
-  payBtn: {
-    backgroundColor: Colors.primary,
-    padding: 18,
-    borderRadius: 16,
-    alignItems: "center",
-  },
-  payBtnText: { color: Colors.black, fontSize: 16, fontWeight: "bold" },
-  disabledBtn: { opacity: 0.7 },
-
-  // Modal Styles
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "center",
-    padding: 20,
-  },
-  modalContent: {
-    backgroundColor: Colors.card,
-    borderRadius: 20,
-    padding: 24,
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 20,
-    textAlign: "center",
-    color: Colors.text,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: "600",
-    marginBottom: 8,
-    color: Colors.textSecondary,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 12,
-    padding: 12,
-    fontSize: 16,
-    marginBottom: 20,
-    backgroundColor: Colors.background,
-    color: Colors.text,
-  },
-  vehicleTypeGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 10,
-    marginBottom: 24,
-  },
-  typeChip: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 20,
-    backgroundColor: Colors.background,
-  },
-  selectedTypeChip: {
-    backgroundColor: Colors.primary,
-  },
-  typeText: { fontSize: 12, fontWeight: "600", color: Colors.textSecondary },
-  selectedTypeText: { color: Colors.black },
-
-  modalActions: {
-    flexDirection: "row",
-    gap: 16,
-  },
-  cancelBtn: {
-    flex: 1,
-    padding: 14,
-    backgroundColor: Colors.background,
-    borderRadius: 12,
-    alignItems: "center",
-  },
-  saveBtn: {
-    flex: 1,
-    padding: 14,
-    backgroundColor: Colors.primary,
-    borderRadius: 12,
-    alignItems: "center",
-  },
-  cancelText: { fontWeight: "600", color: Colors.text },
-  saveBtnText: { fontWeight: "600", color: Colors.black },
-});

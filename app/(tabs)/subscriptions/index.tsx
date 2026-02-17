@@ -7,7 +7,6 @@ import {
   LayoutAnimation,
   Platform,
   ScrollView,
-  StyleSheet,
   Text,
   TouchableOpacity,
   UIManager,
@@ -49,9 +48,7 @@ export default function SubscriptionPlansScreen() {
   const { data: subscriptions, isLoading: isSubLoading } =
     useGetMySubscriptionQuery();
 
-  if (isAdmin) {
-    return <AdminSubscriptionScreen />;
-  }
+  if (isAdmin) return <AdminSubscriptionScreen />;
 
   const handleSubscribe = (plan: any) => {
     router.push({
@@ -69,7 +66,7 @@ export default function SubscriptionPlansScreen() {
 
   if (isLoading) {
     return (
-      <View style={styles.center}>
+      <View className="flex-1 items-center justify-center bg-background">
         <ActivityIndicator size="large" color={Colors.primary} />
       </View>
     );
@@ -77,13 +74,25 @@ export default function SubscriptionPlansScreen() {
 
   if (plansError) {
     return (
-      <View style={styles.center}>
-        <Text style={styles.errorText}>Failed to load plans.</Text>
+      <View className="flex-1 items-center justify-center bg-background px-10">
+        <View className="w-20 h-20 rounded-full bg-red-500/10 items-center justify-center mb-6">
+          <Ionicons
+            name="alert-circle-outline"
+            size={40}
+            color={Colors.error}
+          />
+        </View>
+        <Text className="text-[18px] font-[800] color-text text-center">
+          Failed to load plans
+        </Text>
+        <Text className="text-[14px] color-textSecondary text-center mt-2 mb-8">
+          Please check your internet connection and try again.
+        </Text>
         <TouchableOpacity
           onPress={() => router.back()}
-          style={styles.btnSecondary}
+          className="bg-card px-8 py-3 rounded-full border border-border/50"
         >
-          <Text style={styles.btnSecondaryText}>Go Back</Text>
+          <Text className="text-[14px] font-[800] color-text">Go Back</Text>
         </TouchableOpacity>
       </View>
     );
@@ -97,54 +106,63 @@ export default function SubscriptionPlansScreen() {
   const hasActiveSubs = activeSubs.length > 0;
 
   return (
-    <ScreenWrapper
-      style={styles.container}
-      backgroundColor={Colors.background}
-      statusBarStyle="light-content"
-    >
-      {/* HEADER */}
-      <View style={styles.headerContainer}>
-        <View style={styles.headerContent}>
-          {arePlansVisible ? (
-            <TouchableOpacity onPress={togglePlans} style={styles.backBtn}>
-              <Ionicons name="chevron-back" size={24} color={Colors.text} />
-            </TouchableOpacity>
-          ) : (
-            <View>
-              <Text style={styles.headerTitle}>My Subscriptions</Text>
-              <Text style={styles.headerSubtitle}>Manage your clean rides</Text>
-            </View>
-          )}
-
+    <ScreenWrapper backgroundColor={Colors.background}>
+      <View className="flex-row justify-between items-center px-6 py-5 bg-background border-b border-border/10">
+        <View className="flex-row items-center">
           {arePlansVisible && (
-            <Text style={styles.planHeaderTitle}>Select Plan</Text>
+            <TouchableOpacity
+              onPress={togglePlans}
+              className="mr-3 p-2 bg-card rounded-xl border border-border/50"
+            >
+              <Ionicons name="chevron-back" size={20} color={Colors.text} />
+            </TouchableOpacity>
           )}
-
-          {arePlansVisible && <View style={{ width: 24 }} />}
+          <View>
+            <Text className="text-[22px] font-[900] color-text tracking-tighter">
+              {arePlansVisible ? "Select Plan" : "My Subscriptions"}
+            </Text>
+            {!arePlansVisible && (
+              <Text className="text-[11px] color-textSecondary font-[800] uppercase tracking-widest mt-1">
+                Manage your clean rides
+              </Text>
+            )}
+          </View>
         </View>
+        {!arePlansVisible && hasActiveSubs && (
+          <TouchableOpacity
+            onPress={togglePlans}
+            className="bg-primary/10 px-4 py-2 rounded-full border border-primary/20"
+          >
+            <Text className="text-[11px] font-[900] color-primary uppercase">
+              Add Plan
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={{ padding: 20, paddingBottom: 120 }}
         showsVerticalScrollIndicator={false}
       >
         {/* ACTIVE SUBSCRIPTIONS */}
         {hasActiveSubs && !arePlansVisible && (
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Active Subscriptions</Text>
-            </View>
+          <View className="mb-8">
+            <Text className="text-[11px] font-[800] color-textSecondary uppercase tracking-[2px] mb-4 px-1">
+              Active Subscriptions
+            </Text>
             {activeSubs.map((sub: any) => (
-              <ActiveSubscriptionCard key={sub._id} subscription={sub} />
+              <View key={sub._id}>
+                <ActiveSubscriptionCard subscription={sub} />
+              </View>
             ))}
           </View>
         )}
 
         {!arePlansVisible && (
-          <View style={[styles.section, { marginTop: hasActiveSubs ? 10 : 0 }]}>
+          <View>
             {hasActiveSubs && (
-              <Text style={[styles.sectionTitle, { marginBottom: 16 }]}>
-                Add Another Vehicle
+              <Text className="text-[11px] font-[800] color-textSecondary uppercase tracking-[2px] mb-4 px-1">
+                Exclusive Benefits
               </Text>
             )}
             <SavingsCard />
@@ -153,108 +171,33 @@ export default function SubscriptionPlansScreen() {
         )}
 
         {arePlansVisible && (
-          <View style={styles.plansContainer}>
-            <View style={styles.plansGrid}>
+          <View>
+            <View className="mb-6">
               {plans?.map((plan: any, index: number) => (
-                <PlanCard
-                  key={plan._id}
-                  plan={plan}
-                  onSubscribe={handleSubscribe}
-                  isPopular={index === 1}
-                />
+                <View key={plan._id}>
+                  <PlanCard
+                    plan={plan}
+                    onSubscribe={handleSubscribe}
+                    isPopular={index === 1}
+                  />
+                </View>
               ))}
             </View>
-            <SavingsCard />
+            <View className="bg-primary/5 p-6 rounded-[32px] border border-primary/20 items-center">
+              <View className="w-12 h-12 rounded-full bg-primary/20 items-center justify-center mb-4">
+                <Ionicons name="sparkles" size={24} color={Colors.primary} />
+              </View>
+              <Text className="text-[16px] font-[800] color-text text-center">
+                Subscribe & Save
+              </Text>
+              <Text className="text-[13px] color-textSecondary text-center mt-1 leading-[18px]">
+                Enjoy priority scheduling and significant savings on every wash
+                with our premium plans.
+              </Text>
+            </View>
           </View>
         )}
-
-        <View style={{ height: 100 }} />
       </ScrollView>
     </ScreenWrapper>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  center: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: Colors.background,
-  },
-  errorText: {
-    color: Colors.error,
-    marginBottom: 16,
-  },
-  btnSecondary: {
-    padding: 10,
-    borderRadius: 8,
-    backgroundColor: Colors.card,
-  },
-  btnSecondaryText: {
-    color: Colors.text,
-  },
-  headerContainer: {
-    backgroundColor: Colors.background,
-    paddingBottom: 16,
-    paddingTop: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
-  headerContent: {
-    paddingHorizontal: 20,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    minHeight: 50,
-  },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: "800",
-    color: Colors.text,
-    letterSpacing: -1,
-  },
-  headerSubtitle: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    marginTop: 2,
-    fontWeight: "500",
-  },
-  planHeaderTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: Colors.text,
-  },
-  backBtn: {
-    padding: 4,
-    marginLeft: -8,
-  },
-  scrollContent: {
-    padding: 20,
-    paddingTop: 20,
-  },
-  section: {
-    marginBottom: 10,
-  },
-  sectionHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: Colors.text,
-    letterSpacing: -0.5,
-  },
-  plansContainer: {
-    flex: 1,
-  },
-  plansGrid: {
-    flexDirection: "column",
-    marginBottom: 0,
-  },
-});

@@ -2,7 +2,7 @@
 
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import React, { useState, useCallback } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -11,13 +11,12 @@ import {
   Linking,
   Modal,
   RefreshControl,
-  StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
 import { useFocusEffect } from "expo-router";
-import { useCallback } from "react";
+import { Colors } from "@/constants/Colors";
 
 import {
   useAssignSubscriptionWorkerMutation,
@@ -93,8 +92,10 @@ export default function AdminSubscriptionsScreen() {
               Alert.alert("Success", "Worker assigned successfully!");
               refetch();
             } catch (err: any) {
-              if (err?.data?.message) Alert.alert("Error", err.data.message);
-              else Alert.alert("Error", "Failed to assign worker.");
+              Alert.alert(
+                "Error",
+                err?.data?.message || "Failed to assign worker.",
+              );
             }
           },
         },
@@ -172,147 +173,168 @@ export default function AdminSubscriptionsScreen() {
   };
 
   const renderCard = ({ item }: { item: any }) => {
-    const passedDays = 30 - getDaysRemaining(item.endDate);
-    const progress = Math.min(Math.max(passedDays / 30, 0), 1);
     const isAssigned = !!(item.worker || item.workerName);
-
     const startDate = new Date(item.startDate);
     const completed = item.servicesCompleted || 0;
     const nextServiceDate = new Date(startDate);
     nextServiceDate.setDate(startDate.getDate() + completed);
 
-    const isTodayDone = nextServiceDate > new Date();
-
     return (
-      <View style={styles.card}>
-        <View style={styles.cardHeader}>
-          <View style={styles.userInfo}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>
+      <View className="bg-card rounded-[32px] p-5 mb-4 border border-border shadow-sm">
+        <View className="flex-row justify-between items-start mb-5">
+          <View className="flex-row items-center flex-1">
+            <View className="w-11 h-11 rounded-full bg-background items-center justify-center mr-3 border border-border/50">
+              <Text className="text-[16px] font-[800] color-text">
                 {item.user?.name?.charAt(0) || "U"}
               </Text>
             </View>
-            <View>
-              <Text style={styles.userName}>
+            <View className="flex-1">
+              <Text
+                className="text-[16px] font-[700] color-text"
+                numberOfLines={1}
+              >
                 {item.user?.name || "Unknown User"}
               </Text>
-              <Text style={styles.userPhone}>+91 {item.user?.phone}</Text>
+              <Text className="text-[12px] color-textSecondary font-[500] mt-0.5">
+                +91 {item.user?.phone}
+              </Text>
             </View>
           </View>
           <View
-            style={[
-              styles.statusBadge,
+            className={`px-3 py-1.5 rounded-full border ${
               item.status === "active"
-                ? { backgroundColor: "#DCFCE7" }
+                ? "bg-green-500/10 border-green-500/20"
                 : item.status === "ongoing"
-                  ? { backgroundColor: "#DBEAFE" }
-                  : { backgroundColor: "#F3F4F6" },
-            ]}
+                  ? "bg-blue-500/10 border-blue-500/20"
+                  : "bg-background border-border"
+            }`}
           >
             <Text
-              style={[
-                styles.statusText,
+              className={`text-[10px] font-[800] uppercase tracking-wider ${
                 item.status === "active"
-                  ? { color: "#166534" }
+                  ? "text-green-500"
                   : item.status === "ongoing"
-                    ? { color: "#1E40AF" }
-                    : { color: "#6B7280" },
-              ]}
+                    ? "text-blue-500"
+                    : "text-textSecondary"
+              }`}
             >
-              {item.status.toUpperCase()}
+              {item.status}
             </Text>
           </View>
         </View>
 
-        {/* Vehicle & Plan Info */}
-        <View style={styles.detailsContainer}>
-          <Text style={styles.planName}>
+        <View className="bg-background/50 p-4 rounded-2xl border border-border/50 mb-5">
+          <Text className="text-[15px] font-[800] color-text mb-1">
             {item.plan?.name || "Subscription Plan"}
           </Text>
-          <Text style={styles.vehicleInfo}>
-            {item.vehicle?.type || "Car"} - {item.vehicle?.number || "No Plate"}
+          <Text className="text-[13px] color-textSecondary font-[600]">
+            {item.vehicle?.type || "Car"} • {item.vehicle?.number || "No Plate"}
           </Text>
-          <Text style={styles.addressInfo}>
-            {item.vehicle?.address?.locality || "Doorstep"}
+          <Text className="text-[12px] color-textSecondary/70 mt-1 font-[500]">
+            {item.vehicle?.address?.locality || "Doorstep Service"}
           </Text>
         </View>
 
-        {/* Next Service Info */}
         {item.status === "ongoing" && (
-          <View style={styles.nextServiceRow}>
-            <Ionicons name="calendar" size={16} color="#4B5563" />
-            <Text style={styles.nextServiceText}>
-              Next Service: {nextServiceDate.toDateString()}
+          <View className="flex-row items-center bg-blue-500/5 p-3.5 rounded-2xl border border-blue-500/10 mb-5">
+            <Ionicons name="calendar-outline" size={16} color="#3B82F6" />
+            <Text className="text-[13px] color-blue-500 font-[700] ml-2.5">
+              Next Service:{" "}
+              {nextServiceDate.toLocaleDateString("en-IN", {
+                day: "numeric",
+                month: "short",
+              })}
             </Text>
           </View>
         )}
 
-        {/* Progress */}
-        <View style={styles.progressContainer}>
-          <Text style={styles.progressText}>
-            {item.servicesCompleted}/{item.servicesTotal} Services Done
-          </Text>
-          <View style={styles.progressBarBg}>
+        <View className="mb-6">
+          <View className="flex-row justify-between mb-2 items-center">
+            <Text className="text-[12px] font-[700] color-textSecondary uppercase tracking-widest">
+              Service Progress
+            </Text>
+            <Text className="text-[13px] font-[800] color-primary">
+              {item.servicesCompleted}/{item.servicesTotal}
+            </Text>
+          </View>
+          <View className="h-2 bg-background rounded-full overflow-hidden border border-border/30">
             <View
-              style={[
-                styles.progressBarFill,
-                {
-                  width: `${(item.servicesCompleted / item.servicesTotal) * 100}%`,
-                },
-              ]}
+              className="h-full bg-primary"
+              style={{
+                width: `${(item.servicesCompleted / item.servicesTotal) * 100}%`,
+              }}
             />
           </View>
-          <Text style={styles.expiryText}>
-            Expires locally in {getDaysRemaining(item.endDate)} days
+          <Text className="text-[11px] color-textSecondary/60 mt-2 font-[600] text-right">
+            Expires in {getDaysRemaining(item.endDate)} days
           </Text>
         </View>
 
-        {/* Worker & Actions */}
-        <View style={styles.workerSection}>
+        <View className="pt-4 border-t border-border/50">
           {isAssigned ? (
-            <View style={{ gap: 10 }}>
-              <View style={styles.assignedRow}>
-                <Ionicons name="person-circle" size={20} color="#007BFF" />
-                <Text style={styles.assignedText}>
-                  Assigned to:{" "}
+            <View className="gap-3">
+              <View className="flex-row items-center px-1">
+                <View className="w-8 h-8 rounded-full bg-blue-500/10 items-center justify-center mr-3 border border-blue-500/20">
+                  <Ionicons name="person" size={14} color="#3B82F6" />
+                </View>
+                <Text className="text-[14px] color-text font-[700]">
                   {item.worker?.name || item.workerName || "Worker"}
                 </Text>
               </View>
 
-              {/* Notify Worker Button */}
-              {item.status === "ongoing" && (
-                <TouchableOpacity
-                  style={styles.notifyButton}
-                  onPress={() => handleNotifyWorker(item)}
-                >
-                  <Ionicons name="logo-whatsapp" size={16} color="#fff" />
-                  <Text style={styles.notifyButtonText}>Notify Worker</Text>
-                </TouchableOpacity>
-              )}
+              <View className="flex-row gap-2">
+                {item.status === "ongoing" && (
+                  <>
+                    <TouchableOpacity
+                      className="flex-1 bg-green-500 flex-row items-center justify-center py-3.5 rounded-2xl shadow-sm shadow-green-500/20"
+                      onPress={() => handleNotifyWorker(item)}
+                    >
+                      <Ionicons
+                        name="logo-whatsapp"
+                        size={18}
+                        color="#fff"
+                        className="mr-2"
+                      />
+                      <Text className="text-white font-[800] text-[13px]">
+                        Notify
+                      </Text>
+                    </TouchableOpacity>
 
-              {/* Mark Done Button for Ongoing */}
-              {item.status === "ongoing" && (
-                <TouchableOpacity
-                  style={styles.markDoneButton}
-                  onPress={() => handleMarkDone(item._id)}
-                >
-                  <Ionicons name="checkmark-circle" size={16} color="#fff" />
-                  <Text style={styles.markDoneText}>
-                    Mark Today&apos;s Service Done
-                  </Text>
-                </TouchableOpacity>
-              )}
+                    <TouchableOpacity
+                      className="flex-1 bg-primary flex-row items-center justify-center py-3.5 rounded-2xl shadow-sm shadow-primary/20"
+                      onPress={() => handleMarkDone(item._id)}
+                    >
+                      <Ionicons
+                        name="checkmark-circle"
+                        size={18}
+                        color="#000"
+                        className="mr-2"
+                      />
+                      <Text className="text-black font-[800] text-[13px]">
+                        Mark Done
+                      </Text>
+                    </TouchableOpacity>
+                  </>
+                )}
+              </View>
             </View>
           ) : (
             <TouchableOpacity
-              style={styles.assignButton}
+              className="bg-primary flex-row items-center justify-center py-4 rounded-2xl shadow-lg shadow-primary/30"
               onPress={() => {
                 setSelectedSub(item);
                 setWorkerModalVisible(true);
               }}
             >
-              <Ionicons name="person-add" size={16} color="#fff" />
-              <Text style={styles.assignButtonText}>Assign Worker</Text>
+              <Ionicons
+                name="person-add"
+                size={18}
+                color="#000"
+                className="mr-2.5"
+              />
+              <Text className="text-black font-[800] text-[15px]">
+                Assign Professional
+              </Text>
             </TouchableOpacity>
           )}
         </View>
@@ -321,284 +343,154 @@ export default function AdminSubscriptionsScreen() {
   };
 
   return (
-    <ScreenWrapper style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color="#1a1a1a" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Subscription Management</Text>
-        <View style={{ width: 24 }} />
-      </View>
-
-      {/* Filters */}
-      <View style={styles.filterRow}>
-        {["Requests", "Ongoing", "All"].map((f) => (
+    <ScreenWrapper
+      backgroundColor={Colors.background}
+      statusBarStyle="light-content"
+    >
+      <View className="flex-1 bg-background">
+        {/* Header */}
+        <View className="flex-row items-center justify-between px-5 pt-4 pb-6 bg-card border-b border-border/50">
           <TouchableOpacity
-            key={f}
-            style={[styles.filterTab, filter === f && styles.activeFilterTab]}
-            onPress={() => setFilter(f)}
+            onPress={() => router.back()}
+            className="w-10 h-10 rounded-full bg-background items-center justify-center border border-border"
           >
-            <Text
-              style={[
-                styles.filterText,
-                filter === f && styles.activeFilterText,
-              ]}
-            >
-              {f}
-            </Text>
+            <Ionicons name="arrow-back" size={20} color={Colors.text} />
           </TouchableOpacity>
-        ))}
-      </View>
-
-      {/* List */}
-      {isLoading ? (
-        <ActivityIndicator
-          size="large"
-          color="#1a1a1a"
-          style={{ marginTop: 50 }}
-        />
-      ) : (
-        <FlatList
-          data={subscriptions}
-          renderItem={renderCard}
-          keyExtractor={(item) => item._id}
-          contentContainerStyle={styles.listContent}
-          refreshControl={
-            <RefreshControl refreshing={isFetching} onRefresh={refetch} />
-          }
-          ListEmptyComponent={
-            <View style={styles.emptyState}>
-              <Text style={styles.emptyText}>No subscriptions found.</Text>
-            </View>
-          }
-        />
-      )}
-
-      {/* Worker Modal */}
-      <Modal
-        visible={workerModalVisible}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setWorkerModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <TouchableOpacity
-            style={styles.modalBackdrop}
-            onPress={() => setWorkerModalVisible(false)}
-          />
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Select Worker</Text>
-            {workers.map((worker) => (
-              <TouchableOpacity
-                key={worker._id}
-                style={styles.workerRow}
-                onPress={() => handleAssignWorker(worker)}
-              >
-                <View style={styles.workerInitial}>
-                  {worker.profileImage ? (
-                    <Image
-                      source={{ uri: worker.profileImage }}
-                      style={{ width: 36, height: 36, borderRadius: 18 }}
-                    />
-                  ) : (
-                    <Text style={{ fontWeight: "bold" }}>
-                      {worker.name.charAt(0)}
-                    </Text>
-                  )}
-                </View>
-                <View>
-                  <Text style={styles.workerName}>{worker.name}</Text>
-                  <Text style={styles.workerPhone}>{worker.phone}</Text>
-                  <Text
-                    style={[
-                      styles.workerPhone,
-                      {
-                        fontSize: 10,
-                        color: worker.status === "Active" ? "green" : "gray",
-                      },
-                    ]}
-                  >
-                    {worker.status}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            ))}
-            <TouchableOpacity
-              style={styles.closeBtn}
-              onPress={() => setWorkerModalVisible(false)}
-            >
-              <Text style={styles.closeBtnText}>Cancel</Text>
-            </TouchableOpacity>
-          </View>
+          <Text className="text-[18px] font-[800] color-text">Admin Panel</Text>
+          <View className="w-10" />
         </View>
-      </Modal>
+
+        {/* Filters */}
+        <View className="flex-row px-5 py-6 gap-3">
+          {["Requests", "Ongoing", "All"].map((f) => (
+            <TouchableOpacity
+              key={f}
+              className={`px-6 py-3 rounded-[20px] border ${
+                filter === f
+                  ? "bg-primary border-primary shadow-md shadow-primary/20"
+                  : "bg-card border-border"
+              }`}
+              onPress={() => setFilter(f)}
+            >
+              <Text
+                className={`text-[13px] font-[800] ${
+                  filter === f ? "text-black" : "text-textSecondary"
+                }`}
+              >
+                {f}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* List */}
+        {isLoading ? (
+          <View className="flex-1 items-center justify-center">
+            <ActivityIndicator size="large" color={Colors.primary} />
+          </View>
+        ) : (
+          <FlatList
+            data={subscriptions}
+            renderItem={renderCard}
+            keyExtractor={(item) => item._id}
+            contentContainerStyle={{ padding: 20, paddingBottom: 100 }}
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl
+                refreshing={isFetching}
+                onRefresh={refetch}
+                tintColor={Colors.primary}
+              />
+            }
+            ListEmptyComponent={
+              <View className="items-center py-20 bg-card rounded-[32px] mx-5 border border-border border-dashed">
+                <Ionicons
+                  name="documents-outline"
+                  size={48}
+                  color={Colors.textSecondary}
+                />
+                <Text className="text-[15px] font-[600] color-textSecondary mt-4">
+                  No subscriptions found
+                </Text>
+              </View>
+            }
+          />
+        )}
+
+        {/* Worker Modal */}
+        <Modal
+          visible={workerModalVisible}
+          animationType="slide"
+          transparent={true}
+          onRequestClose={() => setWorkerModalVisible(false)}
+        >
+          <View className="flex-1 justify-end">
+            <TouchableOpacity
+              className="absolute inset-0 bg-black/70"
+              activeOpacity={1}
+              onPress={() => setWorkerModalVisible(false)}
+            />
+            <View className="bg-card rounded-t-[40px] p-6 pb-12 border-t border-border shadow-2xl">
+              <View className="w-12 h-1.5 bg-border/50 rounded-full self-center mb-6" />
+              <Text className="text-[22px] font-[800] color-text mb-6 pl-2">
+                Select Worker
+              </Text>
+
+              <FlatList
+                data={workers}
+                keyExtractor={(item) => item._id}
+                renderItem={({ item: worker }) => (
+                  <TouchableOpacity
+                    className="flex-row items-center py-4 px-2 border-b border-border/50"
+                    onPress={() => handleAssignWorker(worker)}
+                  >
+                    <View className="w-11 h-11 rounded-full bg-background items-center justify-center mr-4 border border-border/50 overflow-hidden">
+                      {worker.profileImage ? (
+                        <Image
+                          source={{ uri: worker.profileImage }}
+                          className="w-11 h-11"
+                        />
+                      ) : (
+                        <Text className="text-[18px] font-[800] color-text">
+                          {worker.name.charAt(0)}
+                        </Text>
+                      )}
+                    </View>
+                    <View className="flex-1">
+                      <Text className="text-[16px] font-[700] color-text">
+                        {worker.name}
+                      </Text>
+                      <Text className="text-[12px] color-textSecondary mt-0.5 font-[500]">
+                        {worker.phone}
+                      </Text>
+                    </View>
+                    <View
+                      className={`px-2.5 py-1 rounded-full ${worker.status === "Active" ? "bg-green-500/10" : "bg-background"}`}
+                    >
+                      <Text
+                        className={`text-[10px] font-[800] ${worker.status === "Active" ? "color-green-500" : "color-textSecondary"}`}
+                      >
+                        {worker.status}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                )}
+                showsVerticalScrollIndicator={false}
+                style={{ maxHeight: 400 }}
+              />
+
+              <TouchableOpacity
+                className="mt-8 py-4.5 bg-background border border-border rounded-2xl items-center"
+                onPress={() => setWorkerModalVisible(false)}
+              >
+                <Text className="text-[16px] font-[800] color-text">
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+      </View>
     </ScreenWrapper>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F9F9F9" },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: 16,
-    backgroundColor: "#fff",
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
-  },
-  headerTitle: { fontSize: 18, fontWeight: "600" },
-  filterRow: {
-    flexDirection: "row",
-    padding: 16,
-    gap: 12,
-  },
-  filterTab: {
-    paddingHorizontal: 16,
-    paddingVertical: 6,
-    borderRadius: 20,
-    backgroundColor: "#E5E7EB",
-  },
-  activeFilterTab: { backgroundColor: "#1a1a1a" },
-  filterText: { fontSize: 14, color: "#4B5563" },
-  activeFilterText: { color: "#fff", fontWeight: "600" },
-  listContent: { padding: 16, gap: 16 },
-  card: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 16,
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  cardHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 12,
-  },
-  userInfo: { flexDirection: "row", gap: 10, alignItems: "center" },
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#F3F4F6",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  avatarText: { fontSize: 16, fontWeight: "bold", color: "#666" },
-  userName: { fontSize: 16, fontWeight: "600", color: "#1a1a1a" },
-  userPhone: { fontSize: 12, color: "#6B7280" },
-  statusBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-    alignSelf: "flex-start",
-  },
-  statusText: { fontSize: 10, fontWeight: "bold" },
-  detailsContainer: { marginBottom: 12 },
-  planName: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#1a1a1a",
-    marginBottom: 4,
-  },
-  vehicleInfo: { fontSize: 14, color: "#4B5563" },
-  addressInfo: { fontSize: 12, color: "#9CA3AF" },
-  progressContainer: { marginBottom: 12 },
-  progressText: { fontSize: 12, color: "#4B5563", marginBottom: 4 },
-  progressBarBg: {
-    height: 6,
-    backgroundColor: "#E5E7EB",
-    borderRadius: 3,
-    overflow: "hidden",
-    marginBottom: 4,
-  },
-  progressBarFill: { height: "100%", backgroundColor: "#10B981" },
-  expiryText: { fontSize: 11, color: "#9CA3AF" },
-  workerSection: {
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: "#F3F4F6",
-  },
-  assignedRow: { flexDirection: "row", alignItems: "center", gap: 6 },
-  assignedText: { fontSize: 14, color: "#1a1a1a", fontWeight: "500" },
-  assignButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#1a1a1a",
-    paddingVertical: 8,
-    borderRadius: 8,
-    gap: 6,
-  },
-  assignButtonText: { color: "#fff", fontWeight: "600", fontSize: 14 },
-  emptyState: { alignItems: "center", padding: 40 },
-  emptyText: { color: "#9CA3AF" },
-  // Modal
-  modalOverlay: { flex: 1, justifyContent: "flex-end" },
-  modalBackdrop: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.4)",
-  },
-  modalContent: {
-    backgroundColor: "#fff",
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 20,
-  },
-  modalTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 20 },
-  workerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
-    gap: 12,
-  },
-  workerInitial: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: "#F3F4F6",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  workerName: { fontSize: 16, fontWeight: "500" },
-  workerPhone: { fontSize: 12, color: "#666" },
-  closeBtn: { marginTop: 20, alignItems: "center", padding: 12 },
-  closeBtnText: { color: "#EF4444", fontWeight: "600" },
-  markDoneButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#10B981",
-    paddingVertical: 8,
-    borderRadius: 8,
-    gap: 6,
-    marginTop: 8,
-  },
-  markDoneText: { color: "#fff", fontWeight: "600", fontSize: 13 },
-  nextServiceRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    marginBottom: 12,
-    backgroundColor: "#F0F9FF",
-    padding: 8,
-    borderRadius: 8,
-  },
-  nextServiceText: { fontSize: 13, color: "#0369A1", fontWeight: "600" },
-  notifyButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#25D366",
-    paddingVertical: 8,
-    borderRadius: 8,
-    gap: 6,
-    marginTop: 8,
-  },
-  notifyButtonText: { color: "#fff", fontWeight: "600", fontSize: 13 },
-});

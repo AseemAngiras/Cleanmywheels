@@ -1,24 +1,14 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useState } from "react";
-import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
+import { Colors } from "@/constants/Colors";
 
 export default function PaymentScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const {
-    serviceName,
-    servicePrice,
-    addons,
-    totalPrice, // This is treated as Subtotal/Item Total
-  } = params;
+  const { serviceName, servicePrice, addons, totalPrice } = params;
 
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("upi");
 
@@ -27,22 +17,12 @@ export default function PaymentScreen() {
   const taxAmount = Math.round(itemTotal * 0.18);
   const grandTotal = itemTotal + taxAmount;
 
-  // Parse Addons for display if needed, or just show count
   const parsedAddons = addons ? JSON.parse(addons as string) : {};
   const addonNames = Object.keys(parsedAddons).filter((k) => parsedAddons[k]);
   const addonsTotal = addonNames.reduce(
     (acc, curr) => acc + (curr === "acService" ? 10 : 5),
     0,
   );
-  // Note: servicePrice + addonsTotal should equal itemTotal.
-  // If servicePrice is missing (e.g. from earlier flow), we fallback.
-
-  // We can allow the UI to show the breakdown:
-  // Item Total (Service)
-  // Add-ons
-  // But `itemTotal` passed from previous screen ALREADY includes add-ons.
-  // So "Item Total (Premium Wash)" might be misleading if we just put service price.
-  // Let's stick to the visual: "Item Total (Service)" = Service Price, "Add-ons" = Addon Price.
 
   const baseServicePrice =
     parseFloat(servicePrice as string) || itemTotal - addonsTotal;
@@ -76,17 +56,15 @@ export default function PaymentScreen() {
   ];
 
   return (
-    <ScreenWrapper style={styles.container} backgroundColor="#f9f9f9">
+    <ScreenWrapper backgroundColor={Colors.background}>
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => router.back()}
-          style={styles.backButton}
-        >
-          <Ionicons name="arrow-back" size={24} color="#1a1a1a" />
+      <View className="flex-row items-center px-5 py-4 bg-background">
+        <TouchableOpacity onPress={() => router.back()} className="p-1">
+          <Ionicons name="chevron-back" size={24} color={Colors.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Payment</Text>
-        <View style={{ width: 40 }} />
+        <Text className="flex-1 text-center text-[18px] font-[800] color-text tracking-tight ml-[-32px]">
+          Payment
+        </Text>
       </View>
 
       <ScrollView
@@ -94,127 +72,157 @@ export default function PaymentScreen() {
         contentContainerStyle={{ paddingBottom: 150 }}
       >
         {/* Hero Amount */}
-        <View style={styles.heroSection}>
-          <Text style={styles.heroLabel}>AMOUNT TO PAY</Text>
-          <Text style={styles.heroAmount}>₹{grandTotal}</Text>
+        <View className="items-center my-8">
+          <Text className="text-[12px] color-textSecondary font-[800] uppercase tracking-widest mb-2">
+            Amount to Pay
+          </Text>
+          <Text className="text-[36px] font-[900] color-text tracking-tighter">
+            ₹{grandTotal}
+          </Text>
         </View>
 
         {/* Bill Summary */}
-        <View style={styles.card}>
-          <View style={styles.cardHeader}>
-            <View style={styles.billIcon}>
-              <Ionicons name="receipt-outline" size={20} color="#4CAF50" />
+        <View className="mx-5 mb-8 bg-card rounded-[32px] p-6 border border-border/50 shadow-sm">
+          <View className="flex-row items-center mb-6">
+            <View className="w-10 h-10 rounded-xl bg-primary/10 items-center justify-center mr-4">
+              <Ionicons
+                name="receipt-outline"
+                size={20}
+                color={Colors.primary}
+              />
             </View>
             <View>
-              <Text style={styles.cardTitle}>Bill Summary</Text>
-              <Text style={styles.orderId}>
+              <Text className="text-[16px] font-[800] color-text">
+                Bill Summary
+              </Text>
+              <Text className="text-[11px] color-primary font-[700] uppercase tracking-tighter">
                 Order #GW-{Math.floor(Math.random() * 90000) + 10000}
               </Text>
             </View>
           </View>
 
-          <View style={styles.billRow}>
-            <Text style={styles.billLabel}>
+          <View className="flex-row justify-between items-center mb-4">
+            <Text className="text-[14px] color-textSecondary font-[600]">
               Item Total ({serviceName || "Service"})
             </Text>
-            <Text style={styles.billValue}>₹{baseServicePrice}</Text>
+            <Text className="text-[14px] color-text font-[800]">
+              ₹{baseServicePrice}
+            </Text>
           </View>
 
           {addonsTotal > 0 && (
-            <View style={styles.billRow}>
-              <Text style={styles.billLabel}>
+            <View className="flex-row justify-between items-center mb-4">
+              <Text className="text-[14px] color-textSecondary font-[600]">
                 Add-ons ({addonNames.length})
               </Text>
-              <Text style={styles.billValue}>₹{addonsTotal}</Text>
+              <Text className="text-[14px] color-primary font-[800]">
+                ₹{addonsTotal}
+              </Text>
             </View>
           )}
 
-          <View style={styles.billRow}>
-            <Text style={styles.billLabel}>Taxes & Fees (GST 18%)</Text>
-            <Text style={styles.billValue}>₹{taxAmount}</Text>
+          <View className="flex-row justify-between items-center mb-4">
+            <Text className="text-[14px] color-textSecondary font-[600]">
+              Taxes & Fees (GST 18%)
+            </Text>
+            <Text className="text-[14px] color-text font-[800]">
+              ₹{taxAmount}
+            </Text>
           </View>
 
-          <View style={styles.divider} />
+          <View className="h-[1px] bg-border/50 my-4 border-dashed border border-border/50" />
 
-          <View style={styles.billRow}>
-            <Text style={styles.grandTotalLabel}>Grand Total</Text>
-            <Text style={styles.grandTotalValue}>₹{grandTotal}</Text>
+          <View className="flex-row justify-between items-center">
+            <Text className="text-[17px] font-[900] color-text">
+              Grand Total
+            </Text>
+            <Text className="text-[20px] font-[900] color-primary">
+              ₹{grandTotal}
+            </Text>
           </View>
         </View>
 
         {/* Payment Options */}
-        <Text style={styles.sectionTitle}>Payment Options</Text>
+        <Text className="text-[14px] font-[800] color-textSecondary uppercase tracking-widest mb-6 px-6">
+          Payment Options
+        </Text>
 
         {paymentOptions.map((option) => (
           <TouchableOpacity
             key={option.id}
-            style={[
-              styles.optionCard,
-              selectedPaymentMethod === option.id && styles.optionCardSelected,
-            ]}
+            className={`mx-5 mb-4 p-5 rounded-[28px] border overflow-hidden ${
+              selectedPaymentMethod === option.id
+                ? "bg-card border-primary shadow-sm"
+                : "bg-card border-border/50"
+            }`}
+            activeOpacity={0.9}
             onPress={() => setSelectedPaymentMethod(option.id)}
           >
             {option.recommended && (
-              <View style={styles.recommendedBadge}>
-                <Text style={styles.recommendedText}>RECOMMENDED</Text>
+              <View className="absolute top-0 right-0 bg-primary px-3 py-1 rounded-bl-xl">
+                <Text className="text-[10px] font-[900] color-black uppercase">
+                  Recommended
+                </Text>
               </View>
             )}
 
-            <View style={styles.optionRow}>
-              <View style={styles.radioContainer}>
+            <View className="flex-row items-center">
+              <View className="mr-5">
                 <View
-                  style={[
-                    styles.radioInfo,
+                  className={`w-6 h-6 rounded-full border-2 items-center justify-center ${
                     selectedPaymentMethod === option.id
-                      ? styles.radioSelected
-                      : styles.radioUnselected,
-                  ]}
+                      ? "border-primary"
+                      : "border-border"
+                  }`}
                 >
                   {selectedPaymentMethod === option.id && (
-                    <View style={styles.radioDot} />
+                    <View className="w-3 h-3 rounded-full bg-primary" />
                   )}
                 </View>
               </View>
 
               <View
-                style={[
-                  styles.optionIconContainer,
-                  {
-                    backgroundColor:
-                      selectedPaymentMethod === option.id
-                        ? "#E8F5E9"
-                        : "#F5F5F5",
-                  },
-                ]}
+                className={`w-12 h-12 rounded-2xl items-center justify-center mr-4 ${
+                  selectedPaymentMethod === option.id
+                    ? "bg-primary/10"
+                    : "bg-background"
+                }`}
               >
                 <Ionicons
                   name={option.icon as any}
                   size={24}
                   color={
-                    selectedPaymentMethod === option.id ? "#4CAF50" : "#666"
+                    selectedPaymentMethod === option.id
+                      ? Colors.primary
+                      : Colors.textSecondary
                   }
                 />
               </View>
 
-              <View style={styles.optionContent}>
-                <Text style={styles.optionLabel}>{option.label}</Text>
-                <Text style={styles.optionSubLabel}>{option.subLabel}</Text>
+              <View className="flex-1">
+                <Text
+                  className={`text-[15px] font-[800] ${selectedPaymentMethod === option.id ? "color-text" : "color-text"}`}
+                >
+                  {option.label}
+                </Text>
+                <Text className="text-[12px] color-textSecondary font-[500] mt-0.5">
+                  {option.subLabel}
+                </Text>
 
-                {/* Example Logos for UPI */}
                 {option.id === "upi" && selectedPaymentMethod === "upi" && (
-                  <View style={styles.upiLogos}>
-                    <View style={styles.upiIconPlaceholder}>
-                      <Text style={{ fontSize: 8, fontWeight: "bold" }}>
+                  <View className="flex-row mt-3 gap-2">
+                    <View className="bg-background px-3 py-1.5 rounded-lg border border-border/30">
+                      <Text className="text-[10px] font-[800] color-textSecondary uppercase">
                         GPay
                       </Text>
                     </View>
-                    <View style={styles.upiIconPlaceholder}>
-                      <Text style={{ fontSize: 8, fontWeight: "bold" }}>
-                        Pe
+                    <View className="bg-background px-3 py-1.5 rounded-lg border border-border/30">
+                      <Text className="text-[10px] font-[800] color-textSecondary uppercase">
+                        PhonePe
                       </Text>
                     </View>
-                    <View style={styles.upiIconPlaceholder}>
-                      <Text style={{ fontSize: 8, fontWeight: "bold" }}>
+                    <View className="bg-background px-3 py-1.5 rounded-lg border border-border/30">
+                      <Text className="text-[10px] font-[800] color-textSecondary uppercase">
                         Paytm
                       </Text>
                     </View>
@@ -225,228 +233,42 @@ export default function PaymentScreen() {
           </TouchableOpacity>
         ))}
 
-        <View style={styles.securityNote}>
-          <Ionicons name="shield-checkmark-outline" size={16} color="#999" />
-          <Text style={styles.securityText}>100% Safe & Secure Payments</Text>
+        <View className="flex-row items-center justify-center mt-6 gap-3">
+          <Ionicons
+            name="shield-checkmark-outline"
+            size={18}
+            color={Colors.textSecondary}
+          />
+          <Text className="text-[12px] color-textSecondary font-[600]">
+            100% Safe & Secure Payments
+          </Text>
         </View>
       </ScrollView>
 
       {/* Footer */}
-      <View style={styles.footer}>
+      <View className="absolute bottom-0 left-0 right-0 p-6 pb-12 bg-card rounded-t-[40px] border-t border-border shadow-2xl flex-row justify-between items-center">
         <View>
-          <Text style={styles.footerTotalLabel}>Total</Text>
-          <Text style={styles.footerTotalValue}>₹{grandTotal}</Text>
+          <Text className="text-[10px] font-[900] color-textSecondary uppercase tracking-widest mb-1">
+            Total Amount
+          </Text>
+          <Text className="text-[24px] font-[900] color-text tracking-tighter">
+            ₹{grandTotal}
+          </Text>
         </View>
 
         <TouchableOpacity
-          style={styles.payButton}
-          onPress={() => router.push("/(tabs)/home")} // Loop back to home for now
+          className="bg-primary h-14 w-[180px] rounded-2xl flex-row items-center justify-center shadow-lg shadow-primary/30"
+          onPress={() => router.push("/(tabs)/home")}
         >
           <Ionicons
             name="lock-closed"
             size={18}
-            color="#fff"
+            color="#000"
             style={{ marginRight: 8 }}
           />
-          <Text style={styles.payButtonText}>Pay ₹{grandTotal}</Text>
+          <Text className="text-[16px] font-[900] color-black">Pay Now</Text>
         </TouchableOpacity>
       </View>
     </ScreenWrapper>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f9f9f9" },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center", // Center title
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-    backgroundColor: "#f9f9f9",
-    position: "relative",
-  },
-  backButton: { position: "absolute", left: 20, padding: 5 },
-  headerTitle: { fontSize: 18, fontWeight: "bold", color: "#1a1a1a" },
-
-  heroSection: { alignItems: "center", marginVertical: 20 },
-  heroLabel: { fontSize: 12, color: "#666", marginBottom: 5, letterSpacing: 1 },
-  heroAmount: { fontSize: 32, fontWeight: "bold", color: "#1a1a1a" },
-
-  // Card
-  card: {
-    backgroundColor: "#fff",
-    borderRadius: 20,
-    marginHorizontal: 20,
-    marginBottom: 30,
-    padding: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 5,
-    elevation: 2,
-  },
-  cardHeader: { flexDirection: "row", alignItems: "center", marginBottom: 20 },
-  billIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#E8F5E9",
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 15,
-  },
-  cardTitle: { fontSize: 16, fontWeight: "bold", color: "#1a1a1a" },
-  orderId: { fontSize: 12, color: "#4CAF50" },
-
-  billRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 12,
-  },
-  billLabel: { fontSize: 14, color: "#666" },
-  billValue: { fontSize: 14, fontWeight: "600", color: "#1a1a1a" },
-  divider: {
-    height: 1,
-    backgroundColor: "#f0f0f0",
-    marginVertical: 10,
-    borderStyle: "dotted",
-    borderWidth: 1,
-    borderColor: "#eee",
-  },
-
-  grandTotalLabel: { fontSize: 16, fontWeight: "bold", color: "#1a1a1a" },
-  grandTotalValue: { fontSize: 18, fontWeight: "bold", color: "#4CAF50" },
-
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#1a1a1a",
-    marginLeft: 60,
-    marginBottom: 15,
-  },
-
-  // payment Options
-  optionCard: {
-    backgroundColor: "#fff",
-    borderRadius: 20,
-    marginHorizontal: 20,
-    marginBottom: 15,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: "#fff",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 3,
-    elevation: 1,
-    position: "relative",
-    overflow: "hidden",
-  },
-  optionCardSelected: {
-    borderColor: "#4CAF50",
-    backgroundColor: "#fff",
-  },
-  recommendedBadge: {
-    position: "absolute",
-    top: 0,
-    right: 0,
-    backgroundColor: "#FFEB3B",
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderBottomLeftRadius: 10,
-  },
-  recommendedText: { fontSize: 10, fontWeight: "bold", color: "#1a1a1a" },
-
-  optionRow: { flexDirection: "row", alignItems: "flex-start" },
-  radioContainer: { marginRight: 15, paddingTop: 2 },
-  radioInfo: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 2,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  radioUnselected: { borderColor: "#ddd" },
-  radioSelected: { borderColor: "#4CAF50" },
-  radioDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: "#4CAF50",
-  },
-
-  optionIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 10,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 15,
-  },
-  optionContent: { flex: 1 },
-  optionLabel: {
-    fontSize: 15,
-    fontWeight: "bold",
-    color: "#1a1a1a",
-    marginBottom: 2,
-  },
-  optionSubLabel: { fontSize: 12, color: "#888", marginBottom: 5 },
-
-  upiLogos: { flexDirection: "row", marginTop: 5 },
-  upiIconPlaceholder: {
-    width: 30,
-    height: 20,
-    backgroundColor: "#f0f0f0",
-    borderRadius: 4,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 8,
-  },
-
-  securityNote: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 20,
-  },
-  securityText: { fontSize: 12, color: "#999", marginLeft: 5 },
-
-  // Footer
-  footer: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: "#fff",
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-    padding: 20,
-    paddingBottom: 30,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: -5 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 20,
-  },
-  footerTotalLabel: { fontSize: 12, color: "#888" },
-  footerTotalValue: { fontSize: 22, fontWeight: "bold", color: "#1a1a1a" },
-  payButton: {
-    backgroundColor: "#84c95c",
-    borderRadius: 30,
-    paddingVertical: 12,
-    paddingHorizontal: 30,
-    flexDirection: "row",
-    alignItems: "center",
-    shadowColor: "#84c95c",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    elevation: 5,
-  },
-  payButtonText: { fontSize: 16, fontWeight: "bold", color: "#fff" },
-});

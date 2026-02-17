@@ -3,7 +3,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/constants/Colors";
 import * as ImagePicker from "expo-image-picker";
-import { LinearGradient } from "expo-linear-gradient";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Alert,
@@ -15,7 +14,6 @@ import {
   Modal,
   Platform,
   ScrollView,
-  StyleSheet,
   Switch,
   Text,
   TextInput,
@@ -66,7 +64,6 @@ export default function PastServices() {
 
   const {
     data: bookingsResponse,
-    isLoading,
     isFetching,
     refetch,
   } = useGetBookingsQuery({ page: 1, perPage: 100 });
@@ -116,7 +113,7 @@ export default function PastServices() {
         }),
       ]).start();
     }
-  }, [activeBooking]);
+  }, [activeBooking, slideAnim, scaleAnim, opacityAnim]);
 
   const closeSheet = () => {
     Animated.parallel([
@@ -192,33 +189,29 @@ export default function PastServices() {
 
   const renderItem = ({ item }: any) => {
     const isCompleted = item.status === "completed";
-    const isCancelled = item.status === "cancelled";
 
     return (
       <TouchableOpacity
         activeOpacity={0.9}
-        style={styles.cardContainer}
+        className="mb-5 mx-4"
         onPress={() => setActiveBooking(item)}
       >
-        <LinearGradient
-          colors={[Colors.card, Colors.card, Colors.card]}
-          style={styles.sessionCard}
-        >
-          <View style={{ flex: 1 }}>
-            <Text style={styles.sessionTitle}>{item.center}</Text>
+        <View className="bg-card rounded-[20px] p-5 shadow-lg shadow-black/10 border border-border flex-row items-center justify-between">
+          <View className="flex-1 pr-4">
+            <Text className="text-xl font-[700] text-text">{item.center}</Text>
 
-            <Text style={styles.sessionSubtitle}>
+            <Text className="mt-1 text-base font-[600] text-textSecondary">
               {item.date} • {item.timeSlot}
             </Text>
 
-            <Text style={styles.sessionDuration}>{item.car}</Text>
+            <Text className="mt-[6px] text-sm text-textSecondary">
+              {item.car}
+            </Text>
 
             <View
-              style={[
-                styles.statusBadge,
-                isCompleted && styles.completedBadge,
-                isCancelled && styles.cancelledBadge,
-              ]}
+              className={`mt-3 flex-row items-center px-3 py-[6px] rounded-full self-start ${
+                isCompleted ? "bg-success/10" : "bg-error/10"
+              }`}
             >
               <Ionicons
                 name={
@@ -230,18 +223,16 @@ export default function PastServices() {
                 color={isCompleted ? Colors.success : Colors.error}
               />
               <Text
-                style={[
-                  styles.statusText,
-                  isCompleted && styles.completedText,
-                  isCancelled && styles.cancelledText,
-                ]}
+                className={`ml-[6px] text-[13px] font-[600] ${
+                  isCompleted ? "text-success" : "text-error"
+                }`}
               >
                 {isCompleted ? "Completed" : "Cancelled"}
               </Text>
             </View>
 
             <TouchableOpacity
-              style={styles.complaintButton}
+              className="mt-3 flex-row items-center self-start px-[15px] py-1 rounded-lg bg-error/10 border border-error/20"
               onPress={() => handleComplaint(item)}
             >
               <Ionicons
@@ -249,43 +240,39 @@ export default function PastServices() {
                 size={14}
                 color={Colors.error}
               />
-              <Text style={styles.complaintText}>Complaint</Text>
+              <Text className="ml-1 text-[12px] font-[600] text-error">
+                Complaint
+              </Text>
             </TouchableOpacity>
           </View>
 
           <Image
             source={{ uri: item.carImage }}
-            style={{ width: 90, height: 90, borderRadius: 12, marginLeft: 16 }}
+            className="w-[90px] h-[90px] rounded-[12px]"
           />
-        </LinearGradient>
+        </View>
       </TouchableOpacity>
     );
   };
 
   return (
-    <>
+    <View className="flex-1 bg-background">
       <FlatList
         data={bookings}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
-        contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
+        contentContainerStyle={{ paddingVertical: 16, paddingBottom: 100 }}
         showsVerticalScrollIndicator={false}
         onRefresh={refetch}
         refreshing={isFetching}
         ListEmptyComponent={
-          <View style={{ marginTop: 80, alignItems: "center" }}>
+          <View className="mt-20 items-center">
             <Ionicons
               name="time-outline"
               size={48}
               color={Colors.textSecondary}
             />
-            <Text
-              style={{
-                marginTop: 12,
-                color: Colors.textSecondary,
-                fontSize: 16,
-              }}
-            >
+            <Text className="mt-3 text-textSecondary text-base">
               No past services yet
             </Text>
           </View>
@@ -294,60 +281,49 @@ export default function PastServices() {
 
       {/* Bottom Sheet */}
       <Modal visible={!!activeBooking} transparent animationType="none">
-        <Animated.View style={[styles.backdrop, { opacity: opacityAnim }]}>
-          <TouchableOpacity
-            style={StyleSheet.absoluteFill}
-            onPress={closeSheet}
-          />
+        <Animated.View
+          className="absolute inset-0 bg-black/70"
+          style={[{ opacity: opacityAnim }]}
+        >
+          <TouchableOpacity className="flex-1" onPress={closeSheet} />
         </Animated.View>
 
         <Animated.View
+          className="absolute inset-x-0 bottom-0 bg-card rounded-t-[28px] p-4 pb-10 border-t border-border overflow-hidden"
           style={[
-            styles.bottomSheet,
             {
               transform: [{ translateY: slideAnim }, { scale: scaleAnim }],
             },
           ]}
         >
           {activeBooking && (
-            <View style={{ flex: 1, overflow: "hidden" }}>
+            <View className="flex-1">
               <ScrollView
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={{ paddingBottom: 20 }}
               >
                 {/* --- TOP CARD (LIME) --- */}
-                <View style={styles.limeCard}>
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      justifyContent: "space-between",
-                    }}
-                  >
+                <View className="bg-primary rounded-[20px] p-3 mb-2 z-[2]">
+                  <View className="flex-row justify-between">
                     {/* --- LEFT COLUMN: INFO --- */}
-                    <View
-                      style={{
-                        flex: 1,
-                        paddingRight: 12,
-                        justifyContent: "space-between",
-                      }}
-                    >
+                    <View className="flex-1 pr-3 justify-between">
                       <View>
-                        <Text style={styles.limeName}>
+                        <Text className="text-lg font-[700] text-black tracking-[-0.5px]">
                           {activeBooking.workerName || "Service Completed"}
                         </Text>
 
-                        <View style={styles.limeTagsRow}>
-                          <View style={styles.limeTag}>
+                        <View className="flex-row flex-wrap gap-[6px] mt-1 mb-2">
+                          <View className="flex-row items-center bg-black/5 px-2 py-1 rounded-full gap-1">
                             <Ionicons
                               name="location"
                               size={12}
                               color="#1a1a1a"
                             />
-                            <Text style={styles.limeTagText}>
+                            <Text className="text-[12px] font-[600] text-black">
                               {activeBooking.address.split(",")[0]}
                             </Text>
                           </View>
-                          <View style={styles.limeTag}>
+                          <View className="flex-row items-center bg-black/5 px-2 py-1 rounded-full gap-1">
                             <Ionicons
                               name={
                                 activeBooking.status === "completed"
@@ -357,7 +333,7 @@ export default function PastServices() {
                               size={12}
                               color="#1a1a1a"
                             />
-                            <Text style={styles.limeTagText}>
+                            <Text className="text-[12px] font-[600] text-black">
                               {activeBooking.status}
                             </Text>
                           </View>
@@ -365,22 +341,23 @@ export default function PastServices() {
                       </View>
 
                       <View>
-                        <Text style={styles.limeRoleText}>Service Type</Text>
-                        <Text style={styles.limeServiceTitle}>
+                        <Text className="text-[12px] font-[600] text-black/60">
+                          Service Type
+                        </Text>
+                        <Text className="text-lg font-[800] text-black tracking-[-0.5px]">
                           {activeBooking.serviceName}
                         </Text>
-                        <Text style={styles.limePrice}>
+                        <Text className="text-xl font-[800] text-black tracking-[-0.5px]">
                           ₹{activeBooking.price}
                         </Text>
                       </View>
                     </View>
 
                     {/* --- RIGHT COLUMN: ACTIONS & IMAGE --- */}
-                    <View style={{ alignItems: "flex-end" }}>
-                      <View style={styles.limeHeaderActions}>
-                        {/* No Call Button for Past Services */}
+                    <View className="items-end">
+                      <View className="flex-row gap-2">
                         <TouchableOpacity
-                          style={styles.limeIconBtn}
+                          className="w-8 h-8 rounded-full bg-black/10 justify-center items-center mr-2"
                           onPress={closeSheet}
                         >
                           <Ionicons name="close" size={20} color="#1a1a1a" />
@@ -389,48 +366,61 @@ export default function PastServices() {
 
                       <Image
                         source={{ uri: activeBooking.carImage }}
-                        style={[styles.limeAvatar, { marginTop: 12 }]}
+                        className="w-20 h-20 rounded-[30px] border-2 border-black/10 mt-3 mr-2"
                       />
                     </View>
                   </View>
                 </View>
 
                 {/* --- BOTTOM CARD (DARK) --- */}
-                <View style={styles.darkCard}>
-                  <View style={styles.darkHeader}>
-                    <Text style={styles.darkTitle}>Service Schedule</Text>
+                <View className="bg-background rounded-[24px] p-4 pb-5">
+                  <View className="flex-row justify-between items-center mb-2">
+                    <Text className="text-lg font-[600] text-text">
+                      Service Schedule
+                    </Text>
                     <Ionicons name="calendar" size={20} color="#a78bfa" />
                   </View>
 
-                  <Text style={styles.darkDate}>
+                  <Text className="text-lg font-[700] text-text mb-3">
                     {activeBooking.date} — {activeBooking.timeSlot}
                   </Text>
 
-                  <Text style={styles.darkDescLabel}>Location</Text>
-                  <Text style={styles.darkDesc} numberOfLines={2}>
+                  <Text className="text-[12px] text-textSecondary mb-[2px]">
+                    Location
+                  </Text>
+                  <Text
+                    className="text-[13px] text-textSecondary leading-4 mb-3"
+                    numberOfLines={2}
+                  >
                     {activeBooking.address}
                   </Text>
 
-                  <View style={styles.darkStatsRow}>
-                    <View style={styles.darkStatItem}>
-                      <Text style={styles.darkStatLabel}>Vehicle</Text>
-                      <View style={styles.darkStatValueRow}>
-                        <Text style={styles.darkStatValue}>
+                  <View className="flex-row gap-2">
+                    <View className="flex-1 bg-card rounded-[12px] p-2 pr-3 border border-border">
+                      <Text className="text-[11px] text-textSecondary mb-1">
+                        Vehicle
+                      </Text>
+                      <View className="flex-row items-center gap-1">
+                        <Text className="text-[14px] font-[700] text-text">
                           {activeBooking.car}
                         </Text>
                       </View>
                     </View>
 
-                    <View style={styles.darkStatItem}>
-                      <Text style={styles.darkStatLabel}>Plate No.</Text>
-                      <Text style={styles.darkStatValue}>
+                    <View className="flex-1 bg-card rounded-[12px] p-2 pr-3 border border-border">
+                      <Text className="text-[11px] text-textSecondary mb-1">
+                        Plate No.
+                      </Text>
+                      <Text className="text-[14px] font-[700] text-text">
                         {activeBooking.plate}
                       </Text>
                     </View>
 
-                    <View style={styles.darkStatItem}>
-                      <Text style={styles.darkStatLabel}>Booking ID</Text>
-                      <Text style={styles.darkStatValue}>
+                    <View className="flex-1 bg-card rounded-[12px] p-2 pr-3 border border-border">
+                      <Text className="text-[11px] text-textSecondary mb-1">
+                        Booking ID
+                      </Text>
+                      <Text className="text-[14px] font-[700] text-text">
                         #{activeBooking.id.slice(-4)}
                       </Text>
                     </View>
@@ -451,25 +441,30 @@ export default function PastServices() {
       >
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={styles.modalOverlay}
+          className="flex-1 bg-black/50 justify-end"
         >
-          <View style={styles.complaintModalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Raise Complaint</Text>
+          <View className="bg-white rounded-t-[20px] p-5 h-[80%]">
+            <View className="flex-row justify-between items-center mb-5">
+              <Text className="text-xl font-bold text-gray-900">
+                Raise Complaint
+              </Text>
               <TouchableOpacity onPress={closeComplaintModal}>
                 <Ionicons name="close" size={24} color="#000" />
               </TouchableOpacity>
             </View>
 
-            <ScrollView contentContainerStyle={styles.complaintScroll}>
-              <Text style={styles.complaintSubtitle}>
+            <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
+              <Text className="text-sm text-gray-600 mb-5">
                 Tell us about the issue with your service on{" "}
                 {complaintBooking?.date}
               </Text>
 
-              <Text style={styles.inputLabel}>Description</Text>
+              <Text className="text-sm font-[600] text-gray-900 mb-2 mt-2.5">
+                Description
+              </Text>
               <TextInput
-                style={styles.textArea}
+                className="bg-gray-50 rounded-[12px] p-4 h-[120px] text-gray-900 border border-gray-100"
+                style={{ textAlignVertical: "top" }}
                 placeholder="Describe what went wrong..."
                 placeholderTextColor="#999"
                 multiline
@@ -478,8 +473,10 @@ export default function PastServices() {
                 onChangeText={setComplaintText}
               />
 
-              <View style={styles.refundRow}>
-                <Text style={styles.refundLabel}>Request Refund</Text>
+              <View className="flex-row justify-between items-center my-[15px] bg-white p-3 rounded-[12px] border border-gray-100">
+                <Text className="text-base font-[600] text-gray-900">
+                  Request Refund
+                </Text>
                 <Switch
                   value={refundRequested}
                   onValueChange={setRefundRequested}
@@ -488,511 +485,40 @@ export default function PastServices() {
                 />
               </View>
 
-              <Text style={styles.inputLabel}>Upload Photo (Optional)</Text>
-              <TouchableOpacity style={styles.uploadButton} onPress={pickImage}>
+              <Text className="text-sm font-[600] text-gray-900 mb-2 mt-2.5">
+                Upload Photo (Optional)
+              </Text>
+              <TouchableOpacity
+                className="h-[150px] bg-gray-50 rounded-[12px] border border-gray-100 border-dashed items-center justify-center mt-1"
+                onPress={pickImage}
+              >
                 {complaintImage ? (
                   <Image
                     source={{ uri: complaintImage }}
-                    style={styles.uploadedImage}
+                    className="w-full h-full rounded-[12px]"
                   />
                 ) : (
                   <>
                     <Ionicons name="camera-outline" size={24} color="#666" />
-                    <Text style={styles.uploadText}>Tap to select image</Text>
+                    <Text className="mt-2 text-gray-600 text-sm">
+                      Tap to select image
+                    </Text>
                   </>
                 )}
               </TouchableOpacity>
             </ScrollView>
 
             <TouchableOpacity
-              style={styles.submitButton}
+              className="bg-gray-900 py-4 rounded-full items-center mt-2.5 mb-5"
               onPress={submitComplaint}
             >
-              <Text style={styles.submitButtonText}>Submit Complaint</Text>
+              <Text className="text-white text-base font-bold">
+                Submit Complaint
+              </Text>
             </TouchableOpacity>
           </View>
         </KeyboardAvoidingView>
       </Modal>
-    </>
+    </View>
   );
 }
-
-const styles = StyleSheet.create({
-  cardContainer: {
-    marginBottom: 20,
-  },
-
-  sessionCard: {
-    backgroundColor: Colors.card,
-    borderRadius: 20,
-    padding: 20,
-    // paddingBottom: 90,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 5,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-
-  sessionTitle: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: Colors.text,
-  },
-
-  sessionSubtitle: {
-    marginTop: 4,
-    fontSize: 16,
-    fontWeight: "600",
-    color: Colors.textSecondary,
-  },
-
-  sessionDuration: {
-    marginTop: 6,
-    fontSize: 14,
-    color: Colors.textSecondary,
-  },
-
-  completedBadge: {
-    marginTop: 12,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    backgroundColor: "rgba(76, 175, 80, 0.1)",
-    alignSelf: "flex-start",
-  },
-  completedText: {
-    color: Colors.success,
-    fontSize: 13,
-    fontWeight: "600",
-  },
-
-  sessionButton: {
-    marginTop: 18,
-    backgroundColor: "#000",
-    borderRadius: 28,
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 10,
-    position: "absolute",
-    bottom: 20,
-    left: 20,
-    right: 20,
-  },
-
-  sessionButtonText: {
-    color: "#FFF",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-
-  backdrop: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.7)",
-  },
-
-  bottomSheet: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: Colors.card,
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    padding: 16,
-    maxHeight: "60%",
-    elevation: 0,
-    overflow: "hidden",
-    paddingBottom: 40,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-  },
-
-  limeCard: {
-    backgroundColor: Colors.primary,
-    borderRadius: 20,
-    padding: 12,
-    marginBottom: 8,
-    zIndex: 2,
-  },
-  limeAvatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 30,
-    borderWidth: 2,
-    borderColor: "rgba(0,0,0,0.1)",
-    marginRight: 7,
-  },
-  limeHeaderActions: {
-    flexDirection: "row",
-    gap: 8,
-  },
-  limeIconBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "rgba(0,0,0,0.08)",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 7,
-  },
-  limeName: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: Colors.black,
-    marginBottom: 0,
-    letterSpacing: -0.5,
-  },
-  limeTagsRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 6,
-    marginBottom: 8,
-    marginTop: 4,
-  },
-  limeTag: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.06)",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 16,
-    gap: 4,
-  },
-  limeTagText: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: Colors.black,
-  },
-  limeRoleText: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "rgba(0,0,0,0.6)",
-    marginBottom: 0,
-  },
-  limeServiceTitle: {
-    fontSize: 18,
-    fontWeight: "800",
-    color: Colors.black,
-    letterSpacing: -0.5,
-    marginBottom: 0,
-  },
-  limePrice: {
-    fontSize: 20,
-    fontWeight: "800",
-    color: Colors.black,
-    letterSpacing: -0.5,
-  },
-  limePerMonth: {
-    fontSize: 12,
-    fontWeight: "500",
-    color: "rgba(0,0,0,0.6)",
-  },
-
-  darkCard: {
-    backgroundColor: Colors.background,
-    borderRadius: 24,
-    padding: 16,
-    paddingBottom: 20,
-  },
-  darkHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  darkTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: Colors.text,
-  },
-  darkDate: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: Colors.text,
-    marginBottom: 12,
-  },
-  darkDescLabel: {
-    fontSize: 12,
-    color: Colors.textSecondary,
-    marginBottom: 2,
-  },
-  darkDesc: {
-    fontSize: 13,
-    color: Colors.textSecondary,
-    lineHeight: 16,
-    marginBottom: 12,
-  },
-  darkStatsRow: {
-    flexDirection: "row",
-    gap: 8,
-  },
-  darkStatItem: {
-    flex: 1,
-    backgroundColor: Colors.card,
-    borderRadius: 12,
-    padding: 10,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  darkStatLabel: {
-    fontSize: 11,
-    color: Colors.textSecondary,
-    marginBottom: 4,
-  },
-  darkStatValueRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-  darkStatValue: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: Colors.text,
-  },
-
-  sheetHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  sheetTitle: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#111",
-  },
-
-  summaryCard: {
-    flexDirection: "row",
-    gap: 14,
-    alignItems: "center",
-    backgroundColor: "#F0FDF4",
-    padding: 18,
-    borderRadius: 16,
-    marginBottom: 20,
-  },
-  serviceName: {
-    fontSize: 17,
-    fontWeight: "700",
-    color: "#111",
-  },
-  summaryMeta: {
-    color: "#64748B",
-    marginTop: 4,
-    fontSize: 14,
-  },
-
-  completedPill: {
-    backgroundColor: "#BBF7D0",
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 12,
-  },
-  completedPillText: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: "#166534",
-  },
-
-  infoCard: {
-    flexDirection: "row",
-    gap: 14,
-    alignItems: "center",
-    padding: 16,
-    borderRadius: 16,
-    backgroundColor: "#FAFAFA",
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
-    marginBottom: 12,
-  },
-  infoTitle: {
-    fontWeight: "600",
-    fontSize: 15,
-    color: "#1E293B",
-  },
-  infoSub: {
-    color: "#64748B",
-    fontSize: 14,
-    marginTop: 2,
-  },
-  locationText: {
-    flex: 1,
-    color: "#444",
-    fontSize: 15,
-  },
-
-  paymentCard: {
-    marginTop: 24,
-    paddingTop: 20,
-    borderTopWidth: 1,
-    borderTopColor: "#E2E8F0",
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  paymentLabel: {
-    color: "#64748B",
-    fontSize: 16,
-  },
-  paymentAmount: {
-    fontSize: 26,
-    fontWeight: "700",
-    color: "#111",
-  },
-  statusBadge: {
-    marginTop: 12,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    alignSelf: "flex-start",
-  },
-
-  cancelledBadge: {
-    backgroundColor: "#FEE2E2",
-  },
-
-  statusText: {
-    fontSize: 13,
-    fontWeight: "600",
-  },
-
-  cancelledText: {
-    color: "#B91C1C",
-  },
-
-  complaintButton: {
-    marginTop: 12,
-    flexDirection: "row",
-    alignItems: "center",
-    alignSelf: "flex-start",
-    gap: 4,
-    paddingVertical: 4,
-    paddingHorizontal: 15,
-    borderRadius: 8,
-    backgroundColor: "#FEF2F2",
-    borderWidth: 1,
-    borderColor: "#FAC7C7",
-  },
-  complaintText: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "#EF4444",
-  },
-
-  // Complaint Modal Styles
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "flex-end",
-  },
-  complaintModalContent: {
-    backgroundColor: "#fff",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 20,
-    height: "80%",
-  },
-  modalHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#1a1a1a",
-  },
-  complaintScroll: {
-    paddingBottom: 20,
-  },
-  complaintSubtitle: {
-    fontSize: 14,
-    color: "#666",
-    marginBottom: 20,
-  },
-  inputLabel: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#1a1a1a",
-    marginBottom: 8,
-    marginTop: 10,
-  },
-  textArea: {
-    backgroundColor: "#f9f9f9",
-    borderRadius: 12,
-    padding: 15,
-    height: 120,
-    textAlignVertical: "top",
-    fontSize: 15,
-    color: "#1a1a1a",
-    borderWidth: 1,
-    borderColor: "#eee",
-  },
-  refundRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginVertical: 15,
-    backgroundColor: "#fff",
-    padding: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#eee",
-  },
-  refundLabel: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#1a1a1a",
-  },
-  uploadButton: {
-    height: 150,
-    backgroundColor: "#f9f9f9",
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#eee",
-    borderStyle: "dashed",
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 5,
-  },
-  uploadText: {
-    marginTop: 8,
-    color: "#666",
-    fontSize: 14,
-  },
-  uploadedImage: {
-    width: "100%",
-    height: "100%",
-    borderRadius: 12,
-    resizeMode: "cover",
-  },
-  submitButton: {
-    backgroundColor: "#1a1a1a",
-    paddingVertical: 16,
-    borderRadius: 50,
-    alignItems: "center",
-    marginTop: 10,
-    marginBottom: 20,
-  },
-  submitButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-});

@@ -1,18 +1,11 @@
 import React from "react";
-import {
-  StatusBar,
-  StyleSheet,
-  View,
-  ViewStyle,
-  StatusBarStyle,
-} from "react-native";
+import { StatusBar, View, ViewStyle, StatusBarStyle } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
-import { Colors } from "@/constants/Colors";
 
 interface ScreenWrapperProps {
   children: React.ReactNode;
   style?: ViewStyle;
+  className?: string;
   contentContainerStyle?: ViewStyle;
   backgroundColor?: string;
   statusBarColor?: string;
@@ -25,7 +18,8 @@ interface ScreenWrapperProps {
 export const ScreenWrapper: React.FC<ScreenWrapperProps> = ({
   children,
   style,
-  backgroundColor = Colors.background,
+  className,
+  backgroundColor,
   statusBarColor = "transparent",
   statusBarStyle = "light-content",
   translucent = true,
@@ -35,25 +29,22 @@ export const ScreenWrapper: React.FC<ScreenWrapperProps> = ({
   const insets = useSafeAreaInsets();
 
   return (
-    <View style={[styles.container, { backgroundColor }, style]}>
+    <View
+      className={`flex-1 ${className || ""}`}
+      style={[{ backgroundColor: backgroundColor || "#111111" }, style]}
+    >
       <StatusBar
         barStyle={statusBarStyle}
         backgroundColor={statusBarColor}
         translucent={translucent}
       />
       {background}
-      <View style={[styles.content, useSafeArea && { paddingTop: insets.top }]}>
+      <View
+        className="flex-1"
+        style={[useSafeArea && { paddingTop: insets.top }]}
+      >
         {children}
       </View>
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  content: {
-    flex: 1,
-  },
-});

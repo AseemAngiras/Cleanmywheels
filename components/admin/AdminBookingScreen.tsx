@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import {
   View,
   Text,
-  StyleSheet,
   ActivityIndicator,
   FlatList,
   TouchableOpacity,
@@ -14,10 +13,8 @@ import {
   useUpdateBookingStatusMutation,
 } from "@/store/api/bookingApi";
 import { useGetWorkersQuery } from "@/store/api/workerApi";
-
-const Colors = {
-  primary: "#3b82f6",
-};
+import { Colors } from "@/constants/Colors";
+import { Ionicons } from "@expo/vector-icons";
 
 const AdminBookingScreen = () => {
   const { data, isLoading, refetch } = useGetBookingsQuery({
@@ -45,7 +42,6 @@ const AdminBookingScreen = () => {
       await updateBooking({
         id: selectedBooking._id,
         worker: worker._id,
-        // Optional: Update status to confirmed if generic
         status: "confirmed",
       }).unwrap();
 
@@ -59,35 +55,69 @@ const AdminBookingScreen = () => {
   };
 
   const renderBookingItem = ({ item }: { item: any }) => (
-    <View style={styles.card}>
-      <View style={styles.header}>
-        <Text style={styles.serviceName}>
+    <View className="bg-card p-5 rounded-[24px] mb-4 border border-border shadow-sm">
+      <View className="flex-row justify-between items-center mb-4">
+        <Text className="text-[16px] font-[800] color-text">
           {item.washPackage?.name || "Service"}
         </Text>
-        <Text style={[styles.status, { color: getStatusColor(item.status) }]}>
-          {item.status}
-        </Text>
+        <View
+          className={`px-3 py-1 rounded-full border ${getStatusBg(item.status)}`}
+        >
+          <Text
+            className={`text-[10px] font-[900] uppercase tracking-wider ${getStatusColor(item.status)}`}
+          >
+            {item.status}
+          </Text>
+        </View>
       </View>
-      <Text style={styles.detail}>
-        Date: {new Date(item.bookingDate).toDateString()}
-      </Text>
-      <Text style={styles.detail}>Time: {formatTime(item.bookingTime)}</Text>
-      <Text style={styles.detail}>Vehicle: {item.vehicleNo || "N/A"}</Text>
 
-      <View style={styles.workerContainer}>
-        <Text style={styles.workerLabel}>
-          Worker:{" "}
-          {item.worker
-            ? workers.find((w: any) => w._id === item.worker)?.name ||
-              "Assigned"
-            : "Unassigned"}
-        </Text>
+      <View className="gap-2 mb-5">
+        <View className="flex-row items-center">
+          <Ionicons
+            name="calendar-outline"
+            size={14}
+            color={Colors.textSecondary}
+          />
+          <Text className="text-[13px] color-textSecondary ml-2 font-[500]">
+            {new Date(item.bookingDate).toDateString()}
+          </Text>
+        </View>
+        <View className="flex-row items-center">
+          <Ionicons
+            name="time-outline"
+            size={14}
+            color={Colors.textSecondary}
+          />
+          <Text className="text-[13px] color-textSecondary ml-2 font-[500]">
+            {formatTime(item.bookingTime)}
+          </Text>
+        </View>
+        <View className="flex-row items-center">
+          <Ionicons name="car-outline" size={14} color={Colors.textSecondary} />
+          <Text className="text-[13px] color-textSecondary ml-2 font-[500]">
+            {item.vehicleNo || "N/A"}
+          </Text>
+        </View>
+      </View>
+
+      <View className="pt-4 border-t border-border/50 flex-row justify-between items-center">
+        <View className="flex-1">
+          <Text className="text-[11px] font-[700] color-textSecondary uppercase tracking-widest mb-1">
+            Worker
+          </Text>
+          <Text className="text-[14px] font-[700] color-text">
+            {item.worker
+              ? workers.find((w: any) => w._id === item.worker)?.name ||
+                "Assigned"
+              : "Unassigned"}
+          </Text>
+        </View>
         <TouchableOpacity
-          style={styles.assignBtn}
+          className="bg-primary px-5 py-3 rounded-xl shadow-md shadow-primary/20"
           onPress={() => handleAssignWorker(item)}
         >
-          <Text style={styles.assignBtnText}>
-            {item.worker ? "Reassign" : "Assign Worker"}
+          <Text className="text-black font-[800] text-[13px]">
+            {item.worker ? "Reassign" : "Assign"}
           </Text>
         </TouchableOpacity>
       </View>
@@ -95,51 +125,74 @@ const AdminBookingScreen = () => {
   );
 
   return (
-    <View style={styles.container}>
+    <View className="flex-1 bg-background p-4">
       {isLoading ? (
-        <ActivityIndicator size="large" color={Colors.primary} />
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator size="large" color={Colors.primary} />
+        </View>
       ) : (
         <FlatList
           data={bookings}
           keyExtractor={(item) => item._id}
           renderItem={renderBookingItem}
-          contentContainerStyle={styles.list}
+          contentContainerStyle={{ paddingBottom: 40 }}
+          showsVerticalScrollIndicator={false}
           ListEmptyComponent={
-            <Text style={styles.emptyText}>No bookings found</Text>
+            <View className="items-center py-20 bg-card rounded-[32px] border border-border border-dashed">
+              <Ionicons
+                name="document-text-outline"
+                size={48}
+                color={Colors.textSecondary}
+              />
+              <Text className="text-[15px] font-[600] color-textSecondary mt-4">
+                No bookings found
+              </Text>
+            </View>
           }
         />
       )}
 
       {/* Worker Selection Modal */}
-      <Modal visible={isWorkerModalVisible} animationType="slide" transparent>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Select Worker</Text>
+      <Modal visible={isWorkerModalVisible} animationType="fade" transparent>
+        <View className="flex-1 bg-black/70 justify-center p-6">
+          <View className="bg-card rounded-[32px] p-6 shadow-2xl border border-border max-h-[80%]">
+            <Text className="text-[20px] font-[800] color-text mb-6 text-center">
+              Select Worker
+            </Text>
             <FlatList
               data={workers}
               keyExtractor={(item) => item._id}
+              showsVerticalScrollIndicator={false}
               renderItem={({ item }) => (
                 <TouchableOpacity
-                  style={styles.workerItem}
+                  className="flex-row items-center py-4 px-2 border-b border-border/50"
                   onPress={() => confirmAssignment(item)}
                 >
-                  <Text style={styles.workerName}>{item.name}</Text>
-                  <Text
-                    style={[
-                      styles.workerStatus,
-                      { color: item.status === "Busy" ? "orange" : "green" },
-                    ]}
+                  <View className="flex-1">
+                    <Text className="text-[16px] font-[700] color-text">
+                      {item.name}
+                    </Text>
+                    <Text className="text-[12px] color-textSecondary mt-0.5">
+                      {item.phone || "No Phone"}
+                    </Text>
+                  </View>
+                  <View
+                    className={`px-2.5 py-1 rounded-full ${item.status === "Busy" ? "bg-orange-500/10" : "bg-green-500/10"}`}
                   >
-                    {item.status}
-                  </Text>
+                    <Text
+                      className={`text-[10px] font-[800] uppercase ${item.status === "Busy" ? "color-orange-500" : "color-green-500"}`}
+                    >
+                      {item.status}
+                    </Text>
+                  </View>
                 </TouchableOpacity>
               )}
             />
             <TouchableOpacity
-              style={styles.closeBtn}
+              className="mt-6 py-4 bg-background border border-border rounded-2xl items-center"
               onPress={() => setWorkerModalVisible(false)}
             >
-              <Text style={styles.closeBtnText}>Cancel</Text>
+              <Text className="text-[16px] font-[800] color-text">Cancel</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -148,17 +201,30 @@ const AdminBookingScreen = () => {
   );
 };
 
-// Helper functions (simplified)
+// Helper functions
+const getStatusBg = (status: string) => {
+  switch (status.toLowerCase()) {
+    case "confirmed":
+      return "bg-green-500/10 border-green-500/20";
+    case "pending":
+      return "bg-orange-500/10 border-orange-500/20";
+    case "cancelled":
+      return "bg-red-500/10 border-red-500/20";
+    default:
+      return "bg-background border-border";
+  }
+};
+
 const getStatusColor = (status: string) => {
   switch (status.toLowerCase()) {
     case "confirmed":
-      return "green";
+      return "text-green-500";
     case "pending":
-      return "orange";
+      return "text-orange-500";
     case "cancelled":
-      return "red";
+      return "text-red-500";
     default:
-      return "gray";
+      return "text-textSecondary";
   }
 };
 
@@ -169,82 +235,5 @@ const formatTime = (minutes: number) => {
   const hd = h % 12 || 12;
   return `${hd}:${m.toString().padStart(2, "0")} ${p}`;
 };
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f5f5f5", padding: 10 },
-  list: { paddingBottom: 20 },
-  card: {
-    backgroundColor: "white",
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 10,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 2,
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 10,
-  },
-  serviceName: { fontSize: 16, fontWeight: "bold" },
-  status: { fontWeight: "bold", textTransform: "uppercase" },
-  detail: { color: "#555", marginBottom: 5 },
-  workerContainer: {
-    marginTop: 10,
-    paddingTop: 10,
-    borderTopWidth: 1,
-    borderTopColor: "#eee",
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  workerLabel: { fontWeight: "600" },
-  assignBtn: {
-    backgroundColor: Colors.primary,
-    paddingVertical: 5,
-    paddingHorizontal: 15,
-    borderRadius: 5,
-  },
-  assignBtnText: { color: "white", fontWeight: "bold" },
-  emptyText: { textAlign: "center", marginTop: 20, color: "#888" },
-
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "center",
-    padding: 20,
-  },
-  modalContent: {
-    backgroundColor: "white",
-    borderRadius: 10,
-    padding: 20,
-    maxHeight: "80%",
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 15,
-    textAlign: "center",
-  },
-  workerItem: {
-    padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  workerName: { fontSize: 16 },
-  workerStatus: { fontSize: 14, fontWeight: "bold" },
-  closeBtn: {
-    marginTop: 15,
-    padding: 10,
-    backgroundColor: "#ddd",
-    borderRadius: 5,
-    alignItems: "center",
-  },
-  closeBtnText: { fontWeight: "bold" },
-});
 
 export default AdminBookingScreen;

@@ -1,7 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useRef } from "react";
-import { Animated, StyleSheet, TouchableOpacity, View } from "react-native";
+import { Animated, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Colors } from "@/constants/Colors";
 
 const TabItem = ({
   name,
@@ -30,12 +31,6 @@ const TabItem = ({
     outputRange: [48, 120],
   });
 
-  const labelOpacity = progress;
-  const labelTranslate = progress.interpolate({
-    inputRange: [0, 1],
-    outputRange: [-8, 0],
-  });
-
   const icon =
     name === "subscriptions"
       ? focused
@@ -56,24 +51,30 @@ const TabItem = ({
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
       <Animated.View
-        style={[
-          styles.tab,
-          focused ? styles.activeTab : styles.inactiveTab,
-          { width },
-        ]}
+        className={`h-12 rounded-[24px] flex-row items-center justify-center overflow-hidden ${
+          focused ? "bg-primary px-[18px]" : "bg-transparent"
+        }`}
+        style={[{ width }]}
       >
         <Ionicons
           name={icon as any}
-          size={24}
-          color={focused ? "#000" : "#94a3b8"}
+          size={22}
+          color={focused ? "#000" : Colors.textSecondary}
         />
         {focused && (
           <Animated.Text
+            className="ml-2 text-sm font-bold text-black"
             style={[
-              styles.label,
               {
-                opacity: labelOpacity,
-                transform: [{ translateX: labelTranslate }],
+                opacity: progress,
+                transform: [
+                  {
+                    translateX: progress.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [-8, 0],
+                    }),
+                  },
+                ],
               },
             ]}
           >
@@ -88,7 +89,6 @@ const TabItem = ({
 export default function ShopTabBar({ state, descriptors, navigation }: any) {
   const currentRouteKey = state.routes[state.index].key;
   const { options } = descriptors[currentRouteKey];
-
   const insets = useSafeAreaInsets();
 
   if (options.tabBarStyle?.display === "none") {
@@ -98,9 +98,12 @@ export default function ShopTabBar({ state, descriptors, navigation }: any) {
   const ORDER = ["dashboard", "bookings", "subscriptions", "profile"];
 
   return (
-    <View style={[styles.wrapper, { bottom: 12 + insets.bottom }]}>
-      <View style={styles.container}>
-        {ORDER.map((name, index) => {
+    <View
+      className="absolute left-4 right-4"
+      style={[{ bottom: Math.max(insets.bottom, 12) }]}
+    >
+      <View className="bg-[#1C1C1C]/95 border border-white/5 rounded-[40px] p-[10px] flex-row justify-between items-center shadow-2xl">
+        {ORDER.map((name) => {
           const route = state.routes.find(
             (r: any) =>
               r.name === name ||
@@ -147,41 +150,3 @@ export default function ShopTabBar({ state, descriptors, navigation }: any) {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  wrapper: {
-    position: "absolute",
-    bottom: 12,
-    left: 16,
-    right: 16,
-  },
-  container: {
-    backgroundColor: "#1C1C1C",
-    borderRadius: 40,
-    padding: 10,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  tab: {
-    height: 48,
-    borderRadius: 24,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    overflow: "hidden",
-  },
-  inactiveTab: {
-    // No specific style needed for inactive items inside animated view
-  },
-  activeTab: {
-    backgroundColor: "#C8F000",
-    paddingHorizontal: 18,
-  },
-  label: {
-    marginLeft: 8,
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#000",
-  },
-});

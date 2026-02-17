@@ -338,7 +338,7 @@ export default function SubscriptionSummaryScreen() {
 
         <View className="p-6 bg-card border-t border-border/50 shadow-2xl">
           <TouchableOpacity
-            className={`bg-primary py-4.5 rounded-2xl items-center shadow-lg shadow-primary/30 ${isCreating ? "opacity-70" : ""}`}
+            className={`bg-primary py-5 rounded-2xl items-center shadow-lg shadow-primary/30 ${isCreating ? "opacity-70" : ""}`}
             onPress={handlePayment}
             disabled={isCreating}
           >

@@ -25,6 +25,7 @@ import {
   LayoutAnimation,
   Modal,
   Platform,
+  Pressable,
   ScrollView,
   Text,
   TextInput,
@@ -248,7 +249,7 @@ export default function SelectServiceScreen() {
   const calculateTotal = () => {
     let servicePrice =
       services.find((s) => s.id === selectedService)?.price || 0;
-    return servicePrice; // Add-ons are currently empty in record according to the file
+    return servicePrice;
   };
 
   const handleNext = () => {
@@ -296,7 +297,7 @@ export default function SelectServiceScreen() {
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <ScrollView
-            contentContainerStyle={{ padding: 20, paddingBottom: 140 }}
+            contentContainerStyle={{ padding: 20, paddingBottom: 220 }}
             showsVerticalScrollIndicator={false}
           >
             <Text className="text-[14px] font-[800] color-textSecondary uppercase tracking-widest mb-6 px-1">
@@ -322,54 +323,116 @@ export default function SelectServiceScreen() {
                   const isSelected = selectedService === service.id;
                   const isExpanded = isSelected;
                   return (
-                    <TouchableOpacity
+                    <Pressable
                       key={service.id}
-                      className={`mb-4 rounded-[32px] overflow-hidden border p-5 ${
-                        isSelected
-                          ? "bg-card border-primary"
-                          : "bg-card border-border/50"
-                      }`}
+                      style={{
+                        marginBottom: 12,
+                        borderRadius: 20,
+                        overflow: "hidden",
+                        borderWidth: 1,
+                        padding: 12,
+                        backgroundColor: isSelected ? Colors.card : Colors.card,
+                        borderColor: isSelected
+                          ? Colors.primary
+                          : "rgba(226, 232, 240, 0.5)",
+                      }}
                       onPress={() => handleServiceSelect(service.id)}
-                      activeOpacity={0.9}
                     >
                       {isExpanded ? (
                         <View>
-                          <View className="flex-row">
-                            <View className="w-24 h-24 rounded-2xl overflow-hidden mr-4">
+                          <View style={{ flexDirection: "row" }}>
+                            <View
+                              style={{
+                                width: 80,
+                                height: 80,
+                                borderRadius: 16,
+                                overflow: "hidden",
+                                marginRight: 12,
+                              }}
+                            >
                               <Image
                                 source={{ uri: service.image }}
-                                className="w-full h-full"
+                                style={{ width: "100%", height: "100%" }}
                               />
                               {service.isBestseller && (
-                                <View className="absolute top-1 left-1 bg-primary px-2 py-0.5 rounded-md">
-                                  <Text className="text-[8px] font-[900] color-black">
+                                <View
+                                  style={{
+                                    position: "absolute",
+                                    top: 4,
+                                    left: 4,
+                                    backgroundColor: Colors.primary,
+                                    paddingHorizontal: 6,
+                                    paddingVertical: 2,
+                                    borderRadius: 6,
+                                  }}
+                                >
+                                  <Text
+                                    style={{
+                                      fontSize: 8,
+                                      fontWeight: "900",
+                                      color: "#000",
+                                    }}
+                                  >
                                     BESTSELLER
                                   </Text>
                                 </View>
                               )}
                             </View>
-                            <View className="flex-1 justify-center">
-                              <View className="flex-row items-center justify-between mb-1">
+                            <View style={{ flex: 1, justifyContent: "center" }}>
+                              <View
+                                style={{
+                                  flexDirection: "row",
+                                  alignItems: "center",
+                                  justifyContent: "space-between",
+                                  marginBottom: 4,
+                                }}
+                              >
                                 <Text
-                                  className="text-[18px] font-[800] color-text flex-1"
+                                  style={{
+                                    fontSize: 16,
+                                    fontWeight: "800",
+                                    color: Colors.text,
+                                    flex: 1,
+                                  }}
                                   numberOfLines={1}
                                 >
                                   {service.name}
                                 </Text>
-                                <View className="bg-primary/20 w-6 h-6 rounded-full items-center justify-center">
+                                <View
+                                  style={{
+                                    backgroundColor: "rgba(132, 201, 92, 0.2)",
+                                    width: 20,
+                                    height: 20,
+                                    borderRadius: 10,
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                  }}
+                                >
                                   <Ionicons
                                     name="radio-button-on"
-                                    size={18}
+                                    size={14}
                                     color={Colors.primary}
                                   />
                                 </View>
                               </View>
-                              <View className="flex-row items-center mb-1">
-                                <Text className="text-[20px] font-[900] color-primary">
+                              <View
+                                style={{
+                                  flexDirection: "row",
+                                  alignItems: "center",
+                                  marginBottom: 4,
+                                }}
+                              >
+                                <Text
+                                  style={{
+                                    fontSize: 18,
+                                    fontWeight: "900",
+                                    color: Colors.primary,
+                                  }}
+                                >
                                   ₹{service.price}
                                 </Text>
                                 {isAdmin && (
-                                  <TouchableOpacity
+                                  <Pressable
                                     onPress={(e) => {
                                       e.stopPropagation();
                                       setEditingService({
@@ -379,18 +442,22 @@ export default function SelectServiceScreen() {
                                       });
                                       setNewPrice(service.price.toString());
                                     }}
-                                    className="ml-3 p-1"
+                                    style={{ marginLeft: 12, padding: 4 }}
                                   >
                                     <Ionicons
                                       name="pencil-outline"
-                                      size={16}
+                                      size={14}
                                       color={Colors.primary}
                                     />
-                                  </TouchableOpacity>
+                                  </Pressable>
                                 )}
                               </View>
                               <Text
-                                className="text-[12px] color-textSecondary font-[600]"
+                                style={{
+                                  fontSize: 11,
+                                  color: Colors.textSecondary,
+                                  fontWeight: "600",
+                                }}
                                 numberOfLines={2}
                               >
                                 {service.description}
@@ -398,11 +465,26 @@ export default function SelectServiceScreen() {
                             </View>
                           </View>
 
-                          <TouchableOpacity
+                          <Pressable
                             onPress={(e) => toggleDetails(service.id, e)}
-                            className="flex-row items-center justify-center mt-4 border-t border-border/20 pt-3"
+                            style={{
+                              flexDirection: "row",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              marginTop: 12,
+                              borderTopWidth: 1,
+                              borderColor: "rgba(226, 232, 240, 0.2)",
+                              paddingTop: 8,
+                            }}
                           >
-                            <Text className="text-[12px] font-[800] color-primary mr-1">
+                            <Text
+                              style={{
+                                fontSize: 11,
+                                fontWeight: "800",
+                                color: Colors.primary,
+                                marginRight: 4,
+                              }}
+                            >
                               {detailsExpanded.has(service.id)
                                 ? "Hide details"
                                 : "Show details"}
@@ -413,10 +495,10 @@ export default function SelectServiceScreen() {
                                   ? "chevron-up"
                                   : "chevron-down"
                               }
-                              size={16}
+                              size={14}
                               color={Colors.primary}
                             />
-                          </TouchableOpacity>
+                          </Pressable>
 
                           <ExpandableDetails
                             isExpanded={detailsExpanded.has(service.id)}
@@ -424,30 +506,87 @@ export default function SelectServiceScreen() {
                           />
                         </View>
                       ) : (
-                        <View className="flex-row items-center justify-between">
-                          <View className="flex-row items-center flex-1">
-                            <View className="bg-background w-5 h-5 rounded-full items-center justify-center mr-3 border border-border/50">
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                          }}
+                        >
+                          <View
+                            style={{
+                              flexDirection: "row",
+                              alignItems: "center",
+                              flex: 1,
+                            }}
+                          >
+                            <View
+                              style={{
+                                backgroundColor: Colors.background,
+                                width: 18,
+                                height: 18,
+                                borderRadius: 9,
+                                alignItems: "center",
+                                justifyContent: "center",
+                                marginRight: 10,
+                                borderWidth: 1,
+                                borderColor: "rgba(226, 232, 240, 0.5)",
+                              }}
+                            >
                               {isSelected && (
-                                <View className="w-3 h-3 rounded-full bg-primary" />
+                                <View
+                                  style={{
+                                    width: 10,
+                                    height: 10,
+                                    borderRadius: 5,
+                                    backgroundColor: Colors.primary,
+                                  }}
+                                />
                               )}
                             </View>
-                            <Text className="text-[15px] font-[700] color-text mr-2">
+                            <Text
+                              style={{
+                                fontSize: 14,
+                                fontWeight: "700",
+                                color: Colors.text,
+                                marginRight: 8,
+                              }}
+                            >
                               {service.name}
                             </Text>
                             {service.isBestseller && (
-                              <View className="bg-primary/20 px-2 py-0.5 rounded-md">
-                                <Text className="text-[10px] font-[800] color-primary">
+                              <View
+                                style={{
+                                  backgroundColor: "rgba(132, 201, 92, 0.2)",
+                                  paddingHorizontal: 6,
+                                  paddingVertical: 2,
+                                  borderRadius: 6,
+                                }}
+                              >
+                                <Text
+                                  style={{
+                                    fontSize: 9,
+                                    fontWeight: "800",
+                                    color: Colors.primary,
+                                  }}
+                                >
                                   BEST
                                 </Text>
                               </View>
                             )}
                           </View>
-                          <Text className="text-[16px] font-[800] color-textSecondary">
+                          <Text
+                            style={{
+                              fontSize: 15,
+                              fontWeight: "800",
+                              color: Colors.textSecondary,
+                            }}
+                          >
                             ₹{service.price}
                           </Text>
                         </View>
                       )}
-                    </TouchableOpacity>
+                    </Pressable>
                   );
                 })
               )}
@@ -467,45 +606,98 @@ export default function SelectServiceScreen() {
                   {cars.map((car: any) => {
                     const isSelected = selectedCarId === (car._id || car.id);
                     return (
-                      <TouchableOpacity
+                      <Pressable
                         key={car._id || car.id}
-                        className={`w-40 mr-4 p-5 rounded-[28px] border items-center relative ${
-                          isSelected
-                            ? "bg-primary border-primary shadow-xl shadow-primary/30"
-                            : "bg-card border-border/50"
-                        }`}
+                        style={{
+                          width: 110, // w-40 -> 110
+                          marginRight: 12, // mr-4 -> 12
+                          padding: 12, // p-5 -> 12
+                          borderRadius: 20, // rounded-[28px] -> 20
+                          borderWidth: 1, // border
+                          alignItems: "center",
+                          position: "relative",
+                          backgroundColor: isSelected
+                            ? Colors.primary
+                            : Colors.card,
+                          borderColor: isSelected
+                            ? Colors.primary
+                            : "rgba(226, 232, 240, 0.5)",
+                          // Shadow for selected
+                          shadowColor: isSelected ? Colors.primary : "#000",
+                          shadowOffset: {
+                            width: 0,
+                            height: isSelected ? 4 : 0, // 10 -> 4
+                          },
+                          shadowOpacity: isSelected ? 0.2 : 0, // 0.3 -> 0.2
+                          shadowRadius: isSelected ? 8 : 0, // 10 -> 8
+                          elevation: isSelected ? 4 : 0, // 10 -> 4
+                        }}
                         onPress={() => setSelectedCarId(car._id || car.id)}
                       >
                         {isSelected && (
-                          <View className="absolute top-3 right-3 bg-black/20 w-6 h-6 rounded-full items-center justify-center">
-                            <Ionicons name="checkmark" size={14} color="#000" />
+                          <View
+                            style={{
+                              position: "absolute",
+                              top: 8, // 12 -> 8
+                              right: 8, // 12 -> 8
+                              backgroundColor: "rgba(0,0,0,0.2)",
+                              width: 20, // 24 -> 20
+                              height: 20, // 24 -> 20
+                              borderRadius: 10, // rounded-full -> 10
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}
+                          >
+                            <Ionicons name="checkmark" size={12} color="#000" />
                           </View>
                         )}
                         <View
-                          className={`w-14 h-14 rounded-2xl items-center justify-center mb-3 ${isSelected ? "bg-black/10" : "bg-background"}`}
+                          style={{
+                            width: 48, // w-14 -> 48
+                            height: 48, // h-14 -> 48
+                            borderRadius: 14, // rounded-2xl -> 14
+                            alignItems: "center",
+                            justifyContent: "center",
+                            marginBottom: 8, // mb-3 -> 8
+                            backgroundColor: isSelected
+                              ? "rgba(0,0,0,0.1)"
+                              : Colors.background,
+                          }}
                         >
                           <MaterialCommunityIcons
                             name={
                               getVehicleIconName(
-                                car.vehicleType || car.type || "",
+                                car.vehicleType || car.type,
                               ) as any
                             }
-                            size={32}
+                            size={28} // 32 -> 28
                             color={isSelected ? "#000" : Colors.textSecondary}
                           />
                         </View>
                         <Text
-                          className={`text-[14px] font-[800] text-center ${isSelected ? "color-black" : "color-text"}`}
+                          style={{
+                            fontSize: 12, // 14 -> 12
+                            fontWeight: "800",
+                            textAlign: "center",
+                            color: isSelected ? "#000" : Colors.text,
+                          }}
                           numberOfLines={1}
                         >
                           {car.vehicleNo || car.number}
                         </Text>
                         <Text
-                          className={`text-[11px] font-[600] mt-0.5 ${isSelected ? "color-black/60" : "color-textSecondary"}`}
+                          style={{
+                            fontSize: 10, // 11 -> 10
+                            fontWeight: "600",
+                            marginTop: 1, // 2 -> 1
+                            color: isSelected
+                              ? "rgba(0,0,0,0.6)"
+                              : Colors.textSecondary,
+                          }}
                         >
                           {car.vehicleType || car.type}
                         </Text>
-                      </TouchableOpacity>
+                      </Pressable>
                     );
                   })}
                 </ScrollView>
@@ -520,13 +712,23 @@ export default function SelectServiceScreen() {
               {vehicleTypes.map((type) => {
                 const isSelected = vehicleType === type.id;
                 return (
-                  <TouchableOpacity
+                  <Pressable
                     key={type.id}
-                    className={`w-[48%] mb-4 p-4 rounded-2xl flex-row items-center border ${
-                      isSelected
-                        ? "bg-primary/10 border-primary"
-                        : "bg-card border-border/50"
-                    }`}
+                    style={{
+                      width: "48%",
+                      marginBottom: 16,
+                      padding: 16,
+                      borderRadius: 16,
+                      flexDirection: "row",
+                      alignItems: "center",
+                      borderWidth: 1,
+                      backgroundColor: isSelected
+                        ? "rgba(132, 201, 92, 0.1)" // primary/10
+                        : Colors.card,
+                      borderColor: isSelected
+                        ? Colors.primary
+                        : "rgba(226, 232, 240, 0.5)",
+                    }}
                     onPress={() => {
                       setSelectedCarId(null);
                       setVehicleType(type.id);
@@ -539,11 +741,15 @@ export default function SelectServiceScreen() {
                       style={{ marginRight: 10 }}
                     />
                     <Text
-                      className={`text-[13px] font-[800] ${isSelected ? "color-text" : "color-textSecondary"}`}
+                      style={{
+                        fontSize: 13,
+                        fontWeight: "800",
+                        color: isSelected ? Colors.text : Colors.textSecondary,
+                      }}
                     >
                       {type.name}
                     </Text>
-                  </TouchableOpacity>
+                  </Pressable>
                 );
               })}
             </View>

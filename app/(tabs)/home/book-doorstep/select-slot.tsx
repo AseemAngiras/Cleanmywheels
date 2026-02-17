@@ -26,6 +26,7 @@ import {
   KeyboardAvoidingView,
   Modal,
   Platform,
+  Pressable,
   ScrollView,
   Text,
   TextInput,
@@ -291,31 +292,63 @@ export default function SelectSlotScreen() {
             {dates.map((item, index) => {
               const isSelected = selectedDate === index;
               return (
-                <TouchableOpacity
+                <Pressable
                   key={item.id}
-                  className={`w-[74px] h-[100px] rounded-[24px] items-center justify-center mr-3 border ${
-                    isSelected
-                      ? "bg-primary border-primary shadow-xl shadow-primary/30"
-                      : "bg-card border-border/50"
-                  }`}
+                  style={{
+                    width: 74,
+                    height: 100,
+                    borderRadius: 24,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginRight: 12,
+                    borderWidth: 1,
+                    backgroundColor: isSelected ? Colors.primary : Colors.card,
+                    borderColor: isSelected
+                      ? Colors.primary
+                      : "rgba(226, 232, 240, 0.5)",
+                    shadowColor: isSelected ? Colors.primary : undefined,
+                    shadowOffset: isSelected
+                      ? { width: 0, height: 10 }
+                      : undefined,
+                    shadowOpacity: isSelected ? 0.3 : undefined,
+                    shadowRadius: isSelected ? 20 : undefined,
+                    elevation: isSelected ? 10 : 0,
+                  }}
                   onPress={() => setSelectedDate(index)}
                 >
                   <Text
-                    className={`text-[10px] font-[800] ${isSelected ? "color-black/60" : "color-textSecondary"}`}
+                    style={{
+                      fontSize: 10,
+                      fontWeight: "800",
+                      color: isSelected
+                        ? "rgba(0,0,0,0.6)"
+                        : Colors.textSecondary,
+                    }}
                   >
                     {item.month}
                   </Text>
                   <Text
-                    className={`text-[24px] font-[900] my-0.5 ${isSelected ? "color-black" : "color-text"}`}
+                    style={{
+                      fontSize: 24,
+                      fontWeight: "900",
+                      marginVertical: 2,
+                      color: isSelected ? "#000" : Colors.text,
+                    }}
                   >
                     {item.date}
                   </Text>
                   <Text
-                    className={`text-[10px] font-[800] ${isSelected ? "color-black/60" : "color-textSecondary"}`}
+                    style={{
+                      fontSize: 10,
+                      fontWeight: "800",
+                      color: isSelected
+                        ? "rgba(0,0,0,0.6)"
+                        : Colors.textSecondary,
+                    }}
                   >
                     {item.day}
                   </Text>
-                </TouchableOpacity>
+                </Pressable>
               );
             })}
           </ScrollView>
@@ -340,22 +373,39 @@ export default function SelectSlotScreen() {
               const isSelected = selectedSlot === slot.id;
               const isUnavailable = !slot.available;
               return (
-                <TouchableOpacity
+                <Pressable
                   key={slot.id}
                   disabled={isUnavailable}
-                  className={`w-[31%] h-14 rounded-2xl items-center justify-center mb-4 border ${
-                    isSelected
-                      ? "bg-primary border-primary"
-                      : "bg-card border-border/50"
-                  } ${isUnavailable ? "opacity-30" : ""}`}
+                  style={{
+                    width: "31%",
+                    height: 56,
+                    borderRadius: 16,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginBottom: 16,
+                    borderWidth: 1,
+                    backgroundColor: isSelected ? Colors.primary : Colors.card,
+                    borderColor: isSelected
+                      ? Colors.primary
+                      : "rgba(226, 232, 240, 0.5)",
+                    opacity: isUnavailable ? 0.3 : 1,
+                  }}
                   onPress={() => setSelectedSlot(slot.id)}
                 >
                   <Text
-                    className={`text-[13px] font-[800] ${isSelected ? "color-black" : isUnavailable ? "color-textSecondary" : "color-text"}`}
+                    style={{
+                      fontSize: 13,
+                      fontWeight: "800",
+                      color: isSelected
+                        ? "#000"
+                        : isUnavailable
+                          ? Colors.textSecondary
+                          : Colors.text,
+                    }}
                   >
                     {slot.time.replace(" AM", "am").replace(" PM", "pm")}
                   </Text>
-                </TouchableOpacity>
+                </Pressable>
               );
             })}
           </View>

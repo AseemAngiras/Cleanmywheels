@@ -160,12 +160,12 @@ export default function ProfileHome() {
     try {
       await updateUserProfileAPI({
         name: tempName,
-        email: tempEmail,
+        // email: tempEmail, // Email is not allowed to be updated here
       }).unwrap();
 
-      dispatch(updateUser({ name: tempName, email: tempEmail }));
+      dispatch(updateUser({ name: tempName }));
       dispatch(updateProfile({ key: "name", value: tempName }));
-      dispatch(updateProfile({ key: "email", value: tempEmail }));
+      // dispatch(updateProfile({ key: "email", value: tempEmail }));
 
       Alert.alert("Success", "Profile updated successfully");
       setShowEditProfileModal(false);
@@ -223,10 +223,7 @@ export default function ProfileHome() {
         {/* PROFILE CARD */}
         <View className="mx-5 mb-6 p-5 rounded-[24px] bg-card flex-row items-center justify-between border border-border shadow-lg elevation-4">
           <View className="flex-row items-center gap-4">
-            <TouchableOpacity
-              onPress={() => setShowAvatarModal(true)}
-              activeOpacity={0.8}
-            >
+            <TouchableOpacity activeOpacity={1}>
               <Image
                 source={{
                   uri:
@@ -234,10 +231,6 @@ export default function ProfileHome() {
                 }}
                 className="w-16 h-16 rounded-full border-2 border-border bg-background"
               />
-              {/* Edit badge */}
-              <View className="absolute bottom-0 right-1 bg-card rounded-[15px] w-5 h-5 items-center justify-center border border-border shadow elevation-3">
-                <Ionicons name="pencil" size={10} color={Colors.text} />
-              </View>
             </TouchableOpacity>
             <View>
               <TouchableOpacity onPress={() => setShowEditProfileModal(true)}>
@@ -253,7 +246,7 @@ export default function ProfileHome() {
                   />
                   {/* Premium Badge */}
                   {isPremiumUser && (
-                    <View className="bg-primary px-2 py-0.5 rounded-xl ml-2.5">
+                    <View className="bg-primary px-1 py-0.5 rounded-xl ml-2">
                       <Text className="text-black text-[10px] font-bold">
                         PREMIUM
                       </Text>
@@ -575,7 +568,7 @@ export default function ProfileHome() {
                   });
                 }}
               />
-              <Row
+              {/* <Row
                 icon="shield-checkmark-outline"
                 title="Privacy & Security"
                 subtitle="Manage your data and account"
@@ -585,7 +578,7 @@ export default function ProfileHome() {
                     "Privacy settings are under development.",
                   )
                 }
-              />
+              /> */}
             </View>
 
             {/* SUPPORT CARD */}
@@ -610,7 +603,7 @@ export default function ProfileHome() {
                   )
                 }
               />
-              <Row
+              {/* <Row
                 icon="information-circle-outline"
                 title="Terms & Privacy"
                 subtitle="Read our legal policies"
@@ -620,7 +613,7 @@ export default function ProfileHome() {
                     "Legal documents are under development.",
                   )
                 }
-              />
+              /> */}
             </View>
           </>
         )}
@@ -692,7 +685,7 @@ export default function ProfileHome() {
             style={[{ transform: [{ translateY }] }]}
           >
             <View className="items-center mb-6">
-              <div className="w-12 h-1 bg-border rounded-full mb-6" />
+              <View className="w-12 h-1 bg-border rounded-full mb-6" />
               <Text className="text-[22px] font-[700] text-text">
                 Choose Avatar
               </Text>
@@ -795,19 +788,23 @@ export default function ProfileHome() {
               )}
             </View>
 
+            {/* Read-only Mobile Number */}
             <View className="mb-6">
               <Text className="text-sm font-[600] color-textSecondary mb-2 ml-1">
-                Email Address
+                Mobile Number
               </Text>
-              <TextInput
-                className="bg-background rounded-2xl px-4 py-3.5 text-base text-text border border-border"
-                placeholder="Enter email address"
-                placeholderTextColor={Colors.textSecondary}
-                value={tempEmail}
-                onChangeText={(text) => setTempEmail(text)}
-                keyboardType="email-address"
-                autoCapitalize="none"
-              />
+              <View className="flex-row items-center bg-background rounded-2xl px-4 py-3.5 border border-border opacity-70">
+                <Text className="text-base text-text font-[600] mr-2">+91</Text>
+                <View className="w-[1px] h-5 bg-border mr-3" />
+                <TextInput
+                  value={userData?.phone || profileState?.phone || ""}
+                  editable={false}
+                  className="flex-1 text-base text-text"
+                />
+              </View>
+              <Text className="text-[11px] text-textSecondary mt-2 ml-1">
+                Mobile number cannot be changed
+              </Text>
             </View>
 
             <View className="flex-row gap-3">

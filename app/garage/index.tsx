@@ -11,6 +11,7 @@ import {
   LayoutAnimation,
   Modal,
   Platform,
+  Pressable,
   Text,
   TextInput,
   TouchableOpacity,
@@ -137,6 +138,7 @@ export default function MyCarsScreen() {
       else await createVehicle(payload).unwrap();
       closeModal();
     } catch (err: any) {
+      console.error("Failed to save vehicle:", err);
       Alert.alert("Error", err?.data?.message || "Failed to save vehicle");
     }
   };
@@ -196,9 +198,21 @@ export default function MyCarsScreen() {
     const isSubscribed = isVehicleSubscribed(id);
 
     return (
-      <TouchableOpacity
-        className={`mb-4 rounded-[28px] border overflow-hidden bg-card ${isExpanded ? "border-primary" : "border-border/50 shadow-sm"}`}
-        activeOpacity={0.9}
+      <Pressable
+        style={{
+          marginBottom: 16,
+          borderRadius: 28,
+          borderWidth: 1,
+          overflow: "hidden",
+          backgroundColor: Colors.card,
+          borderColor: isExpanded ? Colors.primary : "rgba(226, 232, 240, 0.5)",
+          // shadow-sm equivalent
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 1 },
+          shadowOpacity: 0.05,
+          shadowRadius: 2,
+          elevation: 2,
+        }}
         onPress={() => toggleCard(id)}
       >
         <View className="p-5">
@@ -251,18 +265,43 @@ export default function MyCarsScreen() {
 
           {isExpanded && (
             <View className="mt-6 pt-5 border-t border-border/20 flex-row gap-3">
-              <TouchableOpacity
-                className="flex-1 h-12 bg-background border border-border/50 rounded-xl flex-row items-center justify-center"
+              <Pressable
+                style={{
+                  flex: 1,
+                  height: 48,
+                  backgroundColor: Colors.background,
+                  borderWidth: 1,
+                  borderColor: "rgba(226, 232, 240, 0.5)",
+                  borderRadius: 12,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
                 onPress={() => openModal(item)}
               >
                 <Ionicons name="create-outline" size={16} color={Colors.text} />
                 <Text className="text-[13px] font-[700] color-text ml-2">
                   Edit
                 </Text>
-              </TouchableOpacity>
+              </Pressable>
 
-              <TouchableOpacity
-                className={`flex-1 h-12 border rounded-xl flex-row items-center justify-center ${isSubscribed ? "bg-background border-border/30 opacity-50" : "bg-red-500/10 border-red-500/20"}`}
+              <Pressable
+                style={{
+                  flex: 1,
+                  height: 48,
+                  borderWidth: 1,
+                  borderRadius: 12,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  backgroundColor: isSubscribed
+                    ? Colors.background
+                    : "rgba(239, 68, 68, 0.1)",
+                  borderColor: isSubscribed
+                    ? "rgba(226, 232, 240, 0.3)"
+                    : "rgba(239, 68, 68, 0.2)",
+                  opacity: isSubscribed ? 0.5 : 1,
+                }}
                 onPress={() => {
                   if (!isSubscribed) handleRemoveCar(id);
                 }}
@@ -277,11 +316,11 @@ export default function MyCarsScreen() {
                 >
                   Remove
                 </Text>
-              </TouchableOpacity>
+              </Pressable>
             </View>
           )}
         </View>
-      </TouchableOpacity>
+      </Pressable>
     );
   };
 
@@ -399,13 +438,29 @@ export default function MyCarsScreen() {
                   {VEHICLE_TYPES.map((vType) => {
                     const isSelected = type === vType;
                     return (
-                      <TouchableOpacity
+                      <Pressable
                         key={vType}
-                        className={`w-[48%] mb-4 p-4 rounded-2xl flex-row items-center border ${
-                          isSelected
-                            ? "bg-primary/10 border-primary shadow-sm"
-                            : "bg-background border-border/50"
-                        }`}
+                        style={{
+                          width: "48%",
+                          marginBottom: 16,
+                          padding: 16,
+                          borderRadius: 16,
+                          flexDirection: "row",
+                          alignItems: "center",
+                          borderWidth: 1,
+                          backgroundColor: isSelected
+                            ? "rgba(132, 201, 92, 0.1)"
+                            : Colors.background,
+                          borderColor: isSelected
+                            ? Colors.primary
+                            : "rgba(226, 232, 240, 0.5)",
+                          // shadow-sm
+                          shadowColor: "#000",
+                          shadowOffset: { width: 0, height: 1 },
+                          shadowOpacity: isSelected ? 0.05 : 0,
+                          shadowRadius: 2,
+                          elevation: isSelected ? 1 : 0,
+                        }}
                         onPress={() => setType(vType)}
                       >
                         <MaterialCommunityIcons
@@ -421,7 +476,7 @@ export default function MyCarsScreen() {
                         >
                           {vType}
                         </Text>
-                      </TouchableOpacity>
+                      </Pressable>
                     );
                   })}
                 </View>
@@ -450,14 +505,26 @@ export default function MyCarsScreen() {
                 </View>
               </View>
 
-              <TouchableOpacity
-                className="bg-primary h-14 rounded-2xl items-center justify-center shadow-lg shadow-primary/30 mt-4"
+              <Pressable
+                style={{
+                  backgroundColor: Colors.primary,
+                  height: 56,
+                  borderRadius: 16,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  marginTop: 16,
+                  shadowColor: Colors.primary,
+                  shadowOffset: { width: 0, height: 10 },
+                  shadowOpacity: 0.3,
+                  shadowRadius: 10,
+                  elevation: 10,
+                }}
                 onPress={handleSaveCar}
               >
                 <Text className="text-[16px] font-[900] color-black uppercase tracking-tight">
                   {editingCarId ? "Update Garage" : "Add to Garage"}
                 </Text>
-              </TouchableOpacity>
+              </Pressable>
             </View>
           </Animated.View>
         </View>

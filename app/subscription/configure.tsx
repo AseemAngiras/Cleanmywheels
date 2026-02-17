@@ -77,8 +77,10 @@ export default function SubscriptionConfigureScreen() {
 
   if (subscriptions) {
     subscriptions.forEach((sub: any) => {
-      const vId = sub.vehicle?._id || sub.vehicle;
-      if (vId) activeVehicleIds.add(String(vId));
+      if (sub.status === "active") {
+        const vId = sub.vehicle?._id || sub.vehicle;
+        if (vId) activeVehicleIds.add(String(vId));
+      }
     });
   }
 
@@ -286,9 +288,9 @@ export default function SubscriptionConfigureScreen() {
           <View className="h-10" />
         </ScrollView>
 
-        <View className="p-6 bg-card border-t border-border/50 shadow-2xl">
+        <View className="p-10 bg-card border-t border-border/50 shadow-2xl">
           <TouchableOpacity
-            className="bg-primary py-4.5 rounded-2xl items-center shadow-lg shadow-primary/30"
+            className="bg-primary py-5 rounded-2xl items-center shadow-lg shadow-primary/30"
             onPress={handleContinue}
           >
             <Text className="color-black text-[16px] font-[800]">

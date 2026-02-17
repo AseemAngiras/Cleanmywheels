@@ -187,7 +187,7 @@ export default function OrderConfirmationScreen() {
       {/* Footer */}
       <View className="absolute bottom-0 left-0 right-0 p-6 bg-card border-t border-border/50 shadow-2xl">
         <TouchableOpacity
-          className="bg-primary py-4.5 rounded-2xl items-center shadow-lg shadow-primary/30"
+          className="bg-primary py-5 rounded-2xl items-center shadow-lg shadow-primary/30"
           onPress={() => router.push("/(tabs)/home")}
         >
           <Text className="color-black text-[16px] font-[800]">

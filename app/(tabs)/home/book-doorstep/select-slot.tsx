@@ -137,17 +137,10 @@ export default function SelectSlotScreen() {
     return typedSlot;
   });
 
-  const inputRefs = useRef<Array<TextInput | null>>([]);
+  const inputRefs = useRef<(TextInput | null)[]>([]);
 
   const [registrationToken, setRegistrationToken] = useState<string | null>(
     null,
-  );
-
-  const guestAddresses = useSelector(
-    (state: RootState) => state.profile.addresses,
-  );
-  const currentBooking = useSelector(
-    (state: RootState) => state.bookings.currentBooking,
   );
 
   const handleSendOtp = async () => {
@@ -230,8 +223,6 @@ export default function SelectSlotScreen() {
           body: {
             ...payload,
             otpType: "REGISTER",
-            name: name.trim(),
-            accountType: "Seeker",
           },
         }).unwrap();
       } else {

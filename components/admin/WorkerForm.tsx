@@ -50,7 +50,7 @@ export const WorkerForm: React.FC<WorkerFormProps> = ({
   };
 
   return (
-    <View className="flex-1 bg-card px-6">
+    <View className="bg-card px-6">
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 60 }}
@@ -175,7 +175,7 @@ export const WorkerForm: React.FC<WorkerFormProps> = ({
 
         {/* Status Picker */}
         <View className="mb-8">
-          <div className="flex-row items-center gap-2 mb-2.5 px-1">
+          <View className="flex-row items-center gap-2 mb-2.5 px-1">
             <Ionicons
               name="shield-checkmark-outline"
               size={16}
@@ -184,7 +184,7 @@ export const WorkerForm: React.FC<WorkerFormProps> = ({
             <Text className="text-[13px] font-[700] color-textSecondary uppercase tracking-widest">
               Initial Status
             </Text>
-          </div>
+          </View>
           <View className="bg-background border-[1.5px] border-border rounded-2xl overflow-hidden">
             <Picker
               selectedValue={status}

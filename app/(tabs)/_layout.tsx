@@ -46,6 +46,7 @@ export default function TabsLayout() {
       />
       <Tabs.Screen name="bookings" />
       <Tabs.Screen name="profile" />
+      <Tabs.Screen name="admin" options={{ href: null }} />
     </Tabs>
   );
 }

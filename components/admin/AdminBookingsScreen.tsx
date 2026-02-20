@@ -325,7 +325,7 @@ export default function AdminBookingsScreen() {
               name="location-outline"
               size={16}
               color={Colors.textSecondary}
-              className="mt-0.5"
+              style={{ marginTop: 2 }}
             />
             <Text
               className="text-sm font-[600] color-textSecondary ml-3 flex-1 leading-5"
@@ -367,7 +367,7 @@ export default function AdminBookingsScreen() {
               name="person-add"
               size={18}
               color="#000"
-              className="mr-2"
+              style={{ marginRight: 8 }}
             />
             <Text className="text-black font-[800] text-[15px]">
               Assign Professional
@@ -385,7 +385,7 @@ export default function AdminBookingsScreen() {
               name="checkmark-circle"
               size={18}
               color="#fff"
-              className="mr-2"
+              style={{ marginRight: 8 }}
             />
             <Text className="text-white font-[800] text-[15px]">
               {isUpdatingStatus ? "Updating..." : "Mark Complete"}
@@ -399,7 +399,7 @@ export default function AdminBookingsScreen() {
               name="checkmark-done"
               size={18}
               color={Colors.textSecondary}
-              className="mr-2"
+              style={{ marginRight: 8 }}
             />
             <Text className="text-textSecondary font-[800] text-[15px]">
               Completed
@@ -426,15 +426,17 @@ export default function AdminBookingsScreen() {
           {["All", "Pending", "Completed"].map((f) => (
             <TouchableOpacity
               key={f}
-              className={`flex-1 py-3 items-center rounded-2xl ${
-                filter === f ? "bg-primary shadow-sm" : ""
-              }`}
+              className="flex-1 py-3 items-center rounded-2xl"
+              style={
+                filter === f ? { backgroundColor: Colors.primary } : undefined
+              }
               onPress={() => setFilter(f)}
             >
               <Text
-                className={`text-[13px] font-[800] ${
-                  filter === f ? "text-black" : "text-textSecondary"
-                }`}
+                className="text-[13px] font-[800]"
+                style={{
+                  color: filter === f ? "#000" : Colors.textSecondary,
+                }}
               >
                 {f}
               </Text>

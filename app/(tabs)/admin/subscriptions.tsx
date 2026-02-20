@@ -365,17 +365,25 @@ export default function AdminSubscriptionsScreen() {
           {["Requests", "Ongoing", "All"].map((f) => (
             <TouchableOpacity
               key={f}
-              className={`px-6 py-3 rounded-[20px] border ${
+              className="px-6 py-3 rounded-[20px] border"
+              style={
                 filter === f
-                  ? "bg-primary border-primary shadow-md shadow-primary/20"
-                  : "bg-card border-border"
-              }`}
+                  ? {
+                      backgroundColor: Colors.primary,
+                      borderColor: Colors.primary,
+                    }
+                  : {
+                      backgroundColor: Colors.card,
+                      borderColor: Colors.border,
+                    }
+              }
               onPress={() => setFilter(f)}
             >
               <Text
-                className={`text-[13px] font-[800] ${
-                  filter === f ? "text-black" : "text-textSecondary"
-                }`}
+                className="text-[13px] font-[800]"
+                style={{
+                  color: filter === f ? "#000" : Colors.textSecondary,
+                }}
               >
                 {f}
               </Text>

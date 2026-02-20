@@ -274,12 +274,12 @@ export default function ProfileHome() {
             <Text className="text-base font-[600] mb-[10px] px-4 text-text">
               Admin Dashboard
             </Text>
-            <Row
+            {/* <Row
               icon="calendar-outline"
               title="Manage Bookings"
               subtitle="View and assign active bookings"
               onPress={() => router.push("/(tabs)/pairings")}
-            />
+            /> */}
             <Row
               icon="people-outline"
               title="Manage Users"

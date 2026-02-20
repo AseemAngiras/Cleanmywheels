@@ -207,7 +207,12 @@ export default function AdminWorkerScreen() {
             className="bg-primary flex-row items-center px-4 py-2.5 rounded-full shadow-lg shadow-primary/30"
             onPress={handleAddWorker}
           >
-            <Ionicons name="add" size={20} color="#000" className="mr-1" />
+            <Ionicons
+              name="add"
+              size={20}
+              color="#000"
+              style={{ marginRight: 4 }}
+            />
             <Text className="color-black font-[800] text-[13px]">Add New</Text>
           </TouchableOpacity>
         </View>

@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import {
   useGetBookingsQuery,
-  useUpdateBookingStatusMutation,
+  useAssignWorkerAndNotifyMutation,
 } from "@/store/api/bookingApi";
 import { useGetWorkersQuery } from "@/store/api/workerApi";
 import { Colors } from "@/constants/Colors";
@@ -21,7 +21,7 @@ const AdminBookingScreen = () => {
     page: 1,
     perPage: 50,
   });
-  const [updateBooking] = useUpdateBookingStatusMutation();
+  const [assignWorkerAndNotify] = useAssignWorkerAndNotifyMutation();
   const { data: workersData } = useGetWorkersQuery({ page: 1, limit: 100 });
 
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
@@ -39,17 +39,16 @@ const AdminBookingScreen = () => {
     if (!selectedBooking) return;
 
     try {
-      await updateBooking({
-        id: selectedBooking._id,
-        worker: worker._id,
-        status: "confirmed",
+      await assignWorkerAndNotify({
+        bookingId: selectedBooking._id,
+        workerId: worker._id,
       }).unwrap();
 
       Alert.alert("Success", `Assigned ${worker.name} to booking`);
       setWorkerModalVisible(false);
       setSelectedBooking(null);
       refetch();
-    } catch (error) {
+    } catch {
       Alert.alert("Error", "Failed to assign worker");
     }
   };

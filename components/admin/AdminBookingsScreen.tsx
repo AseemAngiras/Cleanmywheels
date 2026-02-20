@@ -184,7 +184,7 @@ export default function AdminBookingsScreen() {
               }).unwrap();
               Alert.alert("Success", "Worker assigned and notifications sent!");
               refetch();
-            } catch (err) {
+            } catch {
               Alert.alert(
                 "Error",
                 "Failed to assign worker. Please try again.",
@@ -214,7 +214,7 @@ export default function AdminBookingsScreen() {
               }).unwrap();
               Alert.alert("Success", "Booking marked as completed!");
               refetch();
-            } catch (err) {
+            } catch {
               Alert.alert("Error", "Failed to update booking status.");
             }
           },
@@ -228,8 +228,7 @@ export default function AdminBookingsScreen() {
   }: {
     item: ReturnType<typeof mapBookingToUI>;
   }) => {
-    const isAssigned =
-      item.status === "PENDING" || item.status === "IN-PROGRESS";
+    const isAssigned = !!item.workerId;
     const isCompleted = item.status === "COMPLETED";
 
     return (
@@ -375,7 +374,7 @@ export default function AdminBookingsScreen() {
           </TouchableOpacity>
         )}
 
-        {isAssigned && (
+        {isAssigned && !isCompleted && (
           <TouchableOpacity
             className="bg-green-500 py-4 rounded-2xl flex-row justify-center items-center shadow-lg shadow-green-500/30"
             onPress={() => handleMarkComplete(item)}

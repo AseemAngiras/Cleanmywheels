@@ -27,7 +27,7 @@ import {
   View,
 } from "react-native";
 import { WebView } from "react-native-webview";
-import { getLeafletHtml } from "@/app/utils/leafletHtml";
+import { getLeafletHtml } from "@/utils/leafletHtml";
 import { useDispatch, useSelector } from "react-redux";
 
 export default function EnterLocationScreen() {

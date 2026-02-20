@@ -3,22 +3,13 @@ import { router } from "expo-router";
 import React, { useState } from "react";
 import {
   LayoutAnimation,
-  Platform,
   ScrollView,
   Text,
-  UIManager,
   View,
   TouchableOpacity,
 } from "react-native";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { Colors } from "@/constants/Colors";
-
-if (
-  Platform.OS === "android" &&
-  UIManager.setLayoutAnimationEnabledExperimental
-) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
 
 export default function FAQPage() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
@@ -120,12 +111,12 @@ export default function FAQPage() {
               Still have questions?
             </Text>
             <Text className="text-[14px] text-textSecondary text-center mb-6 px-4">
-              Can't find what you're looking for? Our support team is here to
-              help you 24/7.
+              Can&apos;t find what you&apos;re looking for? Our support team is
+              here to help you 24/7.
             </Text>
             <TouchableOpacity
               className="bg-primary w-full py-4 rounded-2xl items-center shadow-lg shadow-primary"
-              onPress={() => router.push("/profile/contact-support")}
+              // onPress={() => router.push("/profile/contact-support")}
             >
               <Text className="text-black font-[700] text-[16px]">
                 Chat with Support

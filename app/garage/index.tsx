@@ -10,12 +10,10 @@ import {
   Keyboard,
   LayoutAnimation,
   Modal,
-  Platform,
   Pressable,
   Text,
   TextInput,
   TouchableOpacity,
-  UIManager,
   View,
   ActivityIndicator,
 } from "react-native";
@@ -33,13 +31,6 @@ import { useSelector } from "react-redux";
 import AdminSubscriptionsScreen from "../(tabs)/admin/subscriptions";
 import { useRouter } from "expo-router";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
-
-if (
-  Platform.OS === "android" &&
-  UIManager.setLayoutAnimationEnabledExperimental
-) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 

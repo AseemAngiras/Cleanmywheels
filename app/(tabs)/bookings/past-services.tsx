@@ -231,7 +231,7 @@ export default function PastServices() {
               </Text>
             </View>
 
-            <TouchableOpacity
+            {/* <TouchableOpacity
               className="mt-3 flex-row items-center self-start px-[15px] py-1 rounded-lg bg-error/10 border border-error/20"
               onPress={() => handleComplaint(item)}
             >
@@ -243,7 +243,7 @@ export default function PastServices() {
               <Text className="ml-1 text-[12px] font-[600] text-error">
                 Complaint
               </Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
 
           <Image

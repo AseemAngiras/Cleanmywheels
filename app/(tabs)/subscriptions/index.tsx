@@ -5,11 +5,9 @@ import React, { useState } from "react";
 import {
   ActivityIndicator,
   LayoutAnimation,
-  Platform,
   ScrollView,
   Text,
   TouchableOpacity,
-  UIManager,
   View,
 } from "react-native";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
@@ -25,13 +23,6 @@ import { SavingsCard } from "../../../components/subscriptions/SavingsCard";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import AdminSubscriptionScreen from "../admin/subscriptions";
-
-if (
-  Platform.OS === "android" &&
-  UIManager.setLayoutAnimationEnabledExperimental
-) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
 
 export default function SubscriptionPlansScreen() {
   const router = useRouter();

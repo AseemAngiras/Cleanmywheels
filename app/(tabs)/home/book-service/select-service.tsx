@@ -13,7 +13,6 @@ import {
   TextInput,
   TouchableOpacity,
   TouchableWithoutFeedback,
-  UIManager,
   View,
   ScrollView,
   Text,
@@ -22,12 +21,6 @@ import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { useDispatch } from "react-redux";
 import BookingStepper from "../../../../components/BookingStepper";
 import { Colors } from "@/constants/Colors";
-
-if (Platform.OS === "android") {
-  if (UIManager.setLayoutAnimationEnabledExperimental) {
-    UIManager.setLayoutAnimationEnabledExperimental(true);
-  }
-}
 
 // Define available add-ons per service
 const SERVICE_ADDONS: Record<

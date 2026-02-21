@@ -178,7 +178,7 @@ export default function BookingDetailsModal({
             </View>
 
             {/* Address */}
-            <View>
+            <View className="mb-8">
               <Text className="text-[13px] font-[800] color-textSecondary uppercase tracking-widest mb-4 px-2">
                 Location
               </Text>
@@ -195,6 +195,44 @@ export default function BookingDetailsModal({
                 </Text>
               </View>
             </View>
+
+            {/* Assigned Worker */}
+            {booking.workerName && (
+              <View className="mb-8">
+                <Text className="text-[13px] font-[800] color-textSecondary uppercase tracking-widest mb-4 px-2">
+                  Assigned Professional
+                </Text>
+                <View className="bg-background/50 p-5 rounded-[32px] border border-border/50">
+                  <View className="flex-row items-center">
+                    <View className="w-12 h-12 rounded-full bg-primary/10 items-center justify-center mr-4 border border-primary/20">
+                      <Ionicons
+                        name="person-outline"
+                        size={20}
+                        color={Colors.primary}
+                      />
+                    </View>
+                    <View className="flex-1">
+                      <Text className="text-[16px] font-[800] color-text">
+                        {booking.workerName}
+                      </Text>
+                      {booking.workerPhone && (
+                        <Text className="text-[13px] color-textSecondary font-[600] mt-0.5">
+                          +91 {booking.workerPhone}
+                        </Text>
+                      )}
+                    </View>
+                    {booking.workerPhone && (
+                      <TouchableOpacity
+                        onPress={() => handleCall(booking.workerPhone)}
+                        className="w-10 h-10 rounded-full bg-blue-500/10 items-center justify-center border border-blue-500/20"
+                      >
+                        <Ionicons name="call" size={16} color="#3B82F6" />
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                </View>
+              </View>
+            )}
           </ScrollView>
 
           {/* Status & Price */}

@@ -64,6 +64,8 @@ const mapBookingToUI = (booking: any) => {
     bookingDate: booking.bookingDate,
     bookingTime: booking.bookingTime,
     workerId: booking.worker?._id || booking.worker,
+    workerName: booking.worker?.name || null,
+    workerPhone: booking.worker?.phone || null,
   };
 };
 

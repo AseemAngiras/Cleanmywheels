@@ -43,10 +43,6 @@ export default function RootLayout() {
     return <LoadingView />;
   }
 
-  // ... (imports)
-
-  // ...
-
   return (
     <Provider store={store}>
       <PersistGate loading={<LoadingView />} persistor={persistor}>

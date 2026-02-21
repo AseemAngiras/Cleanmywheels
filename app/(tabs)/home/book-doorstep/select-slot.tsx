@@ -256,20 +256,24 @@ export default function SelectSlotScreen() {
   return (
     <ScreenWrapper backgroundColor={Colors.background}>
       <View className="flex-row justify-between items-center px-5 py-4 bg-background">
-        <TouchableOpacity onPress={() => router.back()} className="p-1">
+        <TouchableOpacity
+          onPress={() => router.back()}
+          className="w-10 h-10 rounded-full bg-card items-center justify-center border border-border/50"
+        >
           <Ionicons name="chevron-back" size={24} color={Colors.text} />
         </TouchableOpacity>
         <Text className="text-[18px] font-[800] color-text tracking-tight">
           Select Slot
         </Text>
-        <View className="w-8" />
+        <View className="w-10" />
       </View>
 
       <BookingStepper currentStep={2} />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 150 + insets.bottom }}
+        contentContainerStyle={{ paddingBottom: 160 + insets.bottom }}
+        keyboardShouldPersistTaps="handled"
       >
         <View className="px-5 mt-6 mb-8">
           <Text className="text-[28px] font-[900] color-text leading-[34px]">
@@ -282,9 +286,9 @@ export default function SelectSlotScreen() {
         </View>
 
         {/* Date Selection */}
-        <View className="mb-8">
-          <Text className="text-[11px] font-[800] color-textSecondary uppercase tracking-[2px] mb-4 ml-6">
-            Available Dates
+        <View className="mb-10">
+          <Text className="text-[14px] font-[800] color-textSecondary uppercase tracking-widest mb-6 px-5">
+            Select Date
           </Text>
           <ScrollView
             horizontal
@@ -296,10 +300,11 @@ export default function SelectSlotScreen() {
               return (
                 <Pressable
                   key={item.id}
+                  onPress={() => setSelectedDate(index)}
                   style={{
-                    width: 74,
-                    height: 100,
-                    borderRadius: 24,
+                    width: 80,
+                    height: 112,
+                    borderRadius: 28,
                     alignItems: "center",
                     justifyContent: "center",
                     marginRight: 12,
@@ -316,37 +321,25 @@ export default function SelectSlotScreen() {
                     shadowRadius: isSelected ? 20 : undefined,
                     elevation: isSelected ? 10 : 0,
                   }}
-                  onPress={() => setSelectedDate(index)}
                 >
                   <Text
-                    style={{
-                      fontSize: 10,
-                      fontWeight: "800",
-                      color: isSelected
-                        ? "rgba(0,0,0,0.6)"
-                        : Colors.textSecondary,
-                    }}
+                    className={`text-[11px] font-[800] ${
+                      isSelected ? "color-black/60" : "color-textSecondary"
+                    } uppercase`}
                   >
                     {item.month}
                   </Text>
                   <Text
-                    style={{
-                      fontSize: 24,
-                      fontWeight: "900",
-                      marginVertical: 2,
-                      color: isSelected ? "#000" : Colors.text,
-                    }}
+                    className={`text-[26px] font-[900] my-1 ${
+                      isSelected ? "color-black" : "color-text"
+                    }`}
                   >
                     {item.date}
                   </Text>
                   <Text
-                    style={{
-                      fontSize: 10,
-                      fontWeight: "800",
-                      color: isSelected
-                        ? "rgba(0,0,0,0.6)"
-                        : Colors.textSecondary,
-                    }}
+                    className={`text-[11px] font-[800] ${
+                      isSelected ? "color-black/60" : "color-textSecondary"
+                    } uppercase`}
                   >
                     {item.day}
                   </Text>
@@ -358,18 +351,9 @@ export default function SelectSlotScreen() {
 
         {/* Time Selection */}
         <View className="px-5">
-          <View className="flex-row justify-between items-end mb-6">
-            <Text className="text-[11px] font-[800] color-textSecondary uppercase tracking-[2px] ml-1">
-              Available Slots
-            </Text>
-            <View className="flex-row items-center bg-card px-3 py-1.5 rounded-full border border-border/50">
-              <Ionicons name="time-outline" size={14} color={Colors.primary} />
-              <Text className="text-[11px] font-[800] color-text ml-1.5">
-                ~45 mins service
-              </Text>
-            </View>
-          </View>
-
+          <Text className="text-[14px] font-[800] color-textSecondary uppercase tracking-widest mb-6">
+            Arrival Time
+          </Text>
           <View className="flex-row flex-wrap justify-between">
             {timeSlots.map((slot) => {
               const isSelected = selectedSlot === slot.id;
@@ -378,6 +362,7 @@ export default function SelectSlotScreen() {
                 <Pressable
                   key={slot.id}
                   disabled={isUnavailable}
+                  onPress={() => setSelectedSlot(slot.id)}
                   style={{
                     width: "31%",
                     height: 56,
@@ -391,19 +376,19 @@ export default function SelectSlotScreen() {
                       ? Colors.primary
                       : "rgba(226, 232, 240, 0.5)",
                     opacity: isUnavailable ? 0.3 : 1,
+                    shadowColor: isSelected ? Colors.primary : undefined,
+                    shadowOffset: isSelected
+                      ? { width: 0, height: 4 }
+                      : undefined,
+                    shadowOpacity: isSelected ? 0.3 : undefined,
+                    shadowRadius: isSelected ? 10 : undefined,
+                    elevation: isSelected ? 5 : 0,
                   }}
-                  onPress={() => setSelectedSlot(slot.id)}
                 >
                   <Text
-                    style={{
-                      fontSize: 13,
-                      fontWeight: "800",
-                      color: isSelected
-                        ? "#000"
-                        : isUnavailable
-                          ? Colors.textSecondary
-                          : Colors.text,
-                    }}
+                    className={`text-[13px] font-[800] ${
+                      isSelected ? "color-black" : "color-text"
+                    }`}
                   >
                     {slot.time.replace(" AM", "am").replace(" PM", "pm")}
                   </Text>
@@ -416,16 +401,16 @@ export default function SelectSlotScreen() {
 
       {/* Footer */}
       <View
-        className="absolute bottom-0 left-0 right-0 bg-card px-6 pt-6 rounded-t-[44px] border-t border-border shadow-2xl"
+        className="absolute bottom-0 left-0 right-0 bg-card px-6 pt-5 rounded-t-[40px] border-t border-border shadow-2xl"
         style={{ paddingBottom: Math.max(insets.bottom, 24) }}
       >
-        <View className="flex-row justify-between items-center mb-6 px-1">
+        <View className="flex-row justify-between items-center mb-5 px-1">
           <View>
-            <Text className="text-[11px] font-[800] color-textSecondary uppercase tracking-widest">
+            <Text className="text-[12px] font-[800] color-textSecondary uppercase tracking-widest">
               Selected Slot
             </Text>
             {selectedSlot ? (
-              <Text className="text-[16px] font-[900] color-text mt-1">
+              <Text className="text-[18px] font-[900] color-primary mt-1">
                 {dates[selectedDate].month} {dates[selectedDate].date} •{" "}
                 {timeSlots.find((s) => s.id === selectedSlot)?.time}
               </Text>
@@ -435,26 +420,26 @@ export default function SelectSlotScreen() {
               </Text>
             )}
           </View>
-          {selectedSlot && (
-            <View className="bg-primary/20 w-10 h-10 rounded-full items-center justify-center">
-              <Ionicons
-                name="calendar-outline"
-                size={20}
-                color={Colors.primary}
-              />
-            </View>
-          )}
+          <View className="bg-primary/10 px-4 py-2 rounded-full border border-primary/20">
+            <Text className="text-[11px] font-[900] color-primary">
+              DOORSTEP SERVICE
+            </Text>
+          </View>
         </View>
 
         <TouchableOpacity
-          className={`h-14 rounded-2xl flex-row items-center justify-center shadow-lg ${selectedSlot ? "bg-primary shadow-primary/30" : "bg-border/30"}`}
+          className={`h-14 rounded-2xl flex-row items-center justify-center shadow-lg ${
+            selectedSlot ? "bg-primary shadow-primary/30" : "bg-border/20"
+          }`}
           disabled={!selectedSlot}
           onPress={handleConfirmSlot}
         >
           <Text
-            className={`text-[16px] font-[900] ${selectedSlot ? "color-black" : "color-textSecondary"}`}
+            className={`text-[16px] font-[900] ${
+              selectedSlot ? "color-black" : "color-textSecondary"
+            }`}
           >
-            Book Appointment
+            Confirm Slot
           </Text>
           <Ionicons
             name="arrow-forward"
@@ -466,7 +451,12 @@ export default function SelectSlotScreen() {
       </View>
 
       {/* Login Bottom Sheet */}
-      <Modal visible={isLoginModalVisible} transparent animationType="slide">
+      <Modal
+        visible={isLoginModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setIsLoginModalVisible(false)}
+      >
         <View className="flex-1 bg-black/60 justify-end">
           <TouchableOpacity
             className="flex-1"
@@ -530,7 +520,7 @@ export default function SelectSlotScreen() {
                   <View className="bg-background rounded-2xl px-5 h-16 flex-row items-center border border-border/50 mb-8">
                     <View className="pr-4 border-r border-border/50 mr-4">
                       <Text className="text-[16px] font-[800] color-text">
-                        🇮🇳 +91
+                        +91
                       </Text>
                     </View>
                     <TextInput

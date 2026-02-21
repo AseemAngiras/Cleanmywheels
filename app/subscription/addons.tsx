@@ -13,6 +13,7 @@ import {
   View,
 } from "react-native";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   useCreateAddonOrderMutation,
   useVerifyAddonPaymentMutation,
@@ -22,6 +23,7 @@ import {
 
 export default function AddonsScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   const { data: subscriptions, isLoading: isSubLoading } =
     useGetMySubscriptionQuery(undefined);
@@ -161,7 +163,10 @@ export default function AddonsScreen() {
 
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ padding: 20 }}
+          contentContainerStyle={{
+            padding: 20,
+            paddingBottom: 150 + insets.bottom,
+          }}
         >
           {/* Car Selection */}
           <Text className="text-[18px] font-[700] color-text">
@@ -391,7 +396,10 @@ export default function AddonsScreen() {
 
         {/* Bottom Bar */}
         {selectedAddons.length > 0 && activeSubscription && (
-          <View className="absolute bottom-0 left-0 right-0 bg-card p-6 rounded-t-[40px] border-t border-border shadow-2xl flex-row justify-between items-center">
+          <View
+            className="absolute bottom-0 left-0 right-0 bg-card p-6 rounded-t-[40px] border-t border-border shadow-2xl flex-row justify-between items-center"
+            style={{ paddingBottom: Math.max(insets.bottom, 24) }}
+          >
             <View>
               <Text className="text-[12px] color-textSecondary font-[600] tracking-wider uppercase">
                 TOTAL

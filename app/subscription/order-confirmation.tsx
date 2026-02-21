@@ -5,10 +5,12 @@ import React, { useEffect } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { useDispatch } from "react-redux";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { addBooking } from "@/store/slices/bookingSlice";
 
 export default function OrderConfirmationScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const params = useLocalSearchParams();
   const { selectedDate, selectedTime, paymentMethod, grandTotal } = params;
 
@@ -41,7 +43,7 @@ export default function OrderConfirmationScreen() {
     >
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 100 }}
+        contentContainerStyle={{ paddingBottom: 150 + insets.bottom }}
       >
         {/* Status Header */}
         <View className="items-center py-10 bg-card rounded-b-[40px] shadow-sm border-b border-border/50">
@@ -185,7 +187,10 @@ export default function OrderConfirmationScreen() {
       </ScrollView>
 
       {/* Footer */}
-      <View className="absolute bottom-0 left-0 right-0 p-6 bg-card border-t border-border/50 shadow-2xl">
+      <View
+        className="absolute bottom-0 left-0 right-0 p-6 bg-card border-t border-border/50 shadow-2xl"
+        style={{ paddingBottom: Math.max(insets.bottom, 24) }}
+      >
         <TouchableOpacity
           className="bg-primary py-5 rounded-2xl items-center shadow-lg shadow-primary/30"
           onPress={() => router.push("/(tabs)/home")}

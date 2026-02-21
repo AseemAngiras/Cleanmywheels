@@ -12,7 +12,6 @@ import {
   ActivityIndicator,
   FlatList,
   Image,
-  Keyboard,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -24,6 +23,7 @@ import {
   View,
 } from "react-native";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useDispatch, useSelector } from "react-redux";
 import BookingStepper from "../../../../components/BookingStepper";
 import { Colors } from "@/constants/Colors";
@@ -41,6 +41,7 @@ export default function ShopsListScreen() {
   const navigation = useNavigation();
   const user = useSelector((state: RootState) => state.user);
   const dispatch = useDispatch();
+  const insets = useSafeAreaInsets();
 
   const params = useLocalSearchParams();
   const bookingDraft = params.bookingDraft
@@ -345,12 +346,17 @@ export default function ShopsListScreen() {
         data={filteredShops}
         renderItem={renderShopCard}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={{ padding: 20, paddingBottom: 120 }}
+        contentContainerStyle={{
+          padding: 20,
+          paddingBottom: 120 + insets.bottom,
+        }}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           <View className="items-center mt-20">
             <Text className="color-textSecondary text-[16px] font-[600]">
-              No shops found matching "{searchQuery}"
+              {
+                "No shops found in &quot;All&quot; category. Try another filter."
+              }
             </Text>
           </View>
         }
@@ -381,7 +387,7 @@ export default function ShopsListScreen() {
 
           <ScrollView
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: 180 }}
+            contentContainerStyle={{ paddingBottom: 180 + insets.bottom }}
           >
             {/* Shop Context Card */}
             <View className="mx-5 mt-6 mb-8 bg-card rounded-[28px] p-4 flex-row items-center border border-border/50 shadow-sm">
@@ -509,7 +515,10 @@ export default function ShopsListScreen() {
           </ScrollView>
 
           {/* Floating Slot Summary & Action */}
-          <View className="absolute bottom-0 left-0 right-0 bg-card p-6 pb-10 rounded-t-[40px] border-t border-border shadow-2xl">
+          <View
+            className="absolute bottom-0 left-0 right-0 bg-card p-6 rounded-t-[40px] border-t border-border shadow-2xl"
+            style={{ paddingBottom: Math.max(insets.bottom, 24) }}
+          >
             {selectedSlot ? (
               <View className="flex-row items-center mb-6 bg-background/50 p-4 rounded-3xl border border-border/50">
                 <View className="w-12 h-12 rounded-full bg-primary/10 items-center justify-center mr-4">
@@ -611,7 +620,10 @@ export default function ShopsListScreen() {
             <View className="flex-1 bg-black/60" />
           </TouchableWithoutFeedback>
 
-          <View className="bg-card rounded-t-[40px] px-8 pt-4 pb-12 shadow-2xl border-t border-border">
+          <View
+            className="bg-card rounded-t-[40px] px-8 pt-4 shadow-2xl border-t border-border"
+            style={{ paddingBottom: Math.max(insets.bottom, 24) }}
+          >
             <View className="w-10 h-1 bg-border/50 rounded-full self-center mb-8" />
 
             {modalStep === "details" ? (

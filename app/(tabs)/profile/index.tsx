@@ -18,6 +18,7 @@ import {
 import { useSelector } from "react-redux";
 
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Colors } from "@/constants/Colors";
 import { RootState } from "@/store";
 import { useUpdateProfileMutation } from "@/store/api/authApi";
@@ -49,6 +50,7 @@ const AVATARS = [
 
 export default function ProfileHome() {
   const dispatch = useAppDispatch();
+  const insets = useSafeAreaInsets();
   const { data: subscriptions } = useGetMySubscriptionQuery(undefined);
 
   const activeSub = Array.isArray(subscriptions)
@@ -205,7 +207,7 @@ export default function ProfileHome() {
       statusBarStyle="light-content"
     >
       <ScrollView
-        contentContainerStyle={{ paddingBottom: 100 }}
+        contentContainerStyle={{ paddingBottom: 120 + insets.bottom }}
         showsVerticalScrollIndicator={false}
       >
         {/* HEADER */}
@@ -641,8 +643,11 @@ export default function ProfileHome() {
             />
           </Animated.View>
           <Animated.View
-            className="absolute bottom-0 left-0 right-0 bg-card rounded-t-[32px] p-6 pb-10 border border-border shadow-2xl elevation-20"
-            style={[{ transform: [{ translateY }] }]}
+            className="absolute bottom-0 left-0 right-0 bg-card rounded-t-[32px] p-6 border border-border shadow-2xl elevation-20"
+            style={[
+              { transform: [{ translateY }] },
+              { paddingBottom: Math.max(insets.bottom, 40) },
+            ]}
           >
             <Text className="text-[22px] font-[700] text-text text-center mb-2">
               Logout
@@ -681,8 +686,11 @@ export default function ProfileHome() {
             />
           </Animated.View>
           <Animated.View
-            className="absolute bottom-0 left-0 right-0 bg-card rounded-t-[32px] p-6 pb-10 border border-border shadow-2xl elevation-20"
-            style={[{ transform: [{ translateY }] }]}
+            className="absolute bottom-0 left-0 right-0 bg-card rounded-t-[32px] p-6 border border-border shadow-2xl elevation-20"
+            style={[
+              { transform: [{ translateY }] },
+              { paddingBottom: Math.max(insets.bottom, 40) },
+            ]}
           >
             <View className="items-center mb-6">
               <View className="w-12 h-1 bg-border rounded-full mb-6" />
@@ -750,8 +758,11 @@ export default function ProfileHome() {
             />
           </Animated.View>
           <Animated.View
-            className="absolute bottom-0 left-0 right-0 bg-card rounded-t-[32px] p-6 pb-10 border border-border shadow-2xl elevation-20"
-            style={[{ transform: [{ translateY }] }]}
+            className="absolute bottom-0 left-0 right-0 bg-card rounded-t-[32px] p-6 border border-border shadow-2xl elevation-20"
+            style={[
+              { transform: [{ translateY }] },
+              { paddingBottom: Math.max(insets.bottom, 40) },
+            ]}
           >
             <View className="items-center mb-6">
               <View className="w-12 h-1 bg-border rounded-full mb-6" />

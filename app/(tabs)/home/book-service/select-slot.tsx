@@ -3,6 +3,7 @@ import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import React, { useState, useEffect } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Colors } from "@/constants/Colors";
 
 // Types
@@ -16,9 +17,7 @@ type TimeSlot = {
 export default function SelectSlotScreen() {
   const router = useRouter();
   const navigation = useNavigation();
-  const params = useLocalSearchParams();
-  const { shopId, shopName, shopAddress, shopLat, shopLong } = params;
-
+  const insets = useSafeAreaInsets();
   // --- State ---
   const [selectedDate, setSelectedDate] = useState<number>(0); // Index of selected date
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null); // ID of selected slot
@@ -187,7 +186,7 @@ export default function SelectSlotScreen() {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 160 }}
+        contentContainerStyle={{ paddingBottom: 150 + insets.bottom }}
       >
         {/* Shop Info Card */}
         <View className="mx-5 my-6 bg-card rounded-[32px] p-5 flex-row items-center border border-border/50 shadow-sm">
@@ -220,7 +219,7 @@ export default function SelectSlotScreen() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ paddingHorizontal: 20 }}
           >
-            {dates.map((item, index) => (
+            {dates.map(({ item, index }: { item: any; index: number }) => (
               <DateItem key={index} item={item} index={index} />
             ))}
           </ScrollView>
@@ -297,7 +296,10 @@ export default function SelectSlotScreen() {
       </ScrollView>
 
       {/* Footer */}
-      <View className="absolute bottom-0 left-0 right-0 p-6 pb-12 bg-card rounded-t-[40px] border-t border-border shadow-2xl">
+      <View
+        className="absolute bottom-0 left-0 right-0 bg-card p-6 rounded-t-[40px] border-t border-border shadow-2xl"
+        style={{ paddingBottom: Math.max(insets.bottom, 24) }}
+      >
         <View className="flex-row justify-between items-center mb-6">
           <View>
             <Text className="text-[10px] font-[900] color-textSecondary uppercase tracking-widest mb-1">

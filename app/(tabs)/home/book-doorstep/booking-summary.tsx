@@ -21,6 +21,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useDispatch, useSelector } from "react-redux";
 import BookingStepper from "../../../../components/BookingStepper";
 import PulseLoader from "../../../../components/PulseLoader";
@@ -41,6 +42,7 @@ export default function BookingSummaryScreen() {
   const navigation = useNavigation();
   const params = useLocalSearchParams();
   const dispatch = useDispatch();
+  const insets = useSafeAreaInsets();
 
   const [createBooking, { isLoading: isCreatingBooking }] =
     useCreateBookingMutation();
@@ -277,7 +279,10 @@ export default function BookingSummaryScreen() {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ padding: 20, paddingBottom: 150 }}
+        contentContainerStyle={{
+          padding: 20,
+          paddingBottom: 150 + insets.bottom,
+        }}
       >
         <View className="bg-card p-5 rounded-[32px] border border-border/50 mb-6 shadow-sm">
           <View className="flex-row items-center">
@@ -395,7 +400,10 @@ export default function BookingSummaryScreen() {
       </ScrollView>
 
       {/* Footer */}
-      <View className="absolute bottom-0 left-0 right-0 bg-card px-6 pt-6 pb-12 rounded-t-[44px] border-t border-border shadow-2xl">
+      <View
+        className="absolute bottom-0 left-0 right-0 bg-card px-6 pt-6 rounded-t-[44px] border-t border-border shadow-2xl"
+        style={{ paddingBottom: Math.max(insets.bottom, 24) }}
+      >
         <TouchableOpacity
           className={`h-14 rounded-2xl flex-row items-center justify-between px-6 shadow-lg ${isCreatingBooking ? "bg-border/30" : "bg-primary shadow-primary/30"}`}
           onPress={handlePay}

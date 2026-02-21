@@ -18,9 +18,7 @@
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#FFFFFF",
-        "foregroundImage": "./assets/images/icon.png",
-        // "backgroundImage": "./assets/images/android-icon-background.png",
-        // "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "foregroundImage": "./assets/images/icon.png"
       },
       "edgeToEdgeEnabled": true,
       "package": "com.cleanmywheels.app",
@@ -37,7 +35,6 @@
     },
     "plugins": [
       "expo-router",
-
       [
         "expo-build-properties",
         {
@@ -58,6 +55,7 @@
       "eas": {
         "projectId": "e52de151-eaa3-4b09-a3fd-3a65a623cae3"
       }
-    }
+    },
+    "owner": "tusharatexpo"
   }
 }

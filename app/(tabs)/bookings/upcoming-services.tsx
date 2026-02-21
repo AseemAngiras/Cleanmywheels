@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Colors } from "@/constants/Colors";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
@@ -90,6 +91,7 @@ export default function UpcomingServices() {
     })
     .map(mapBackendBooking);
 
+  const insets = useSafeAreaInsets();
   const [activeBooking, setActiveBooking] = useState<Booking | null>(null);
 
   const slideAnim = useRef(new Animated.Value(300)).current;
@@ -101,7 +103,6 @@ export default function UpcomingServices() {
 
   const { data: workersData } = useGetWorkersQuery({});
   const workers = workersData?.workers || [];
-
   const [workerModalVisible, setWorkerModalVisible] = useState(false);
   const [assignSubscriptionWorker] = useAssignSubscriptionWorkerMutation();
   const [isAssigningSubWorker, setIsAssigningSubWorker] = useState(false);
@@ -743,7 +744,10 @@ export default function UpcomingServices() {
           className="flex-1 bg-black/70"
           onPress={() => setWorkerModalVisible(false)}
         />
-        <View className="absolute bottom-0 left-0 right-0 bg-card rounded-t-[24px] p-5 h-1/2 shadow-2xl border border-border">
+        <View
+          className="absolute bottom-0 left-0 right-0 bg-card rounded-t-[24px] p-5 h-1/2 shadow-2xl border border-border"
+          style={{ paddingBottom: Math.max(insets.bottom, 24) }}
+        >
           <View className="flex-row justify-between items-center mb-5">
             <Text className="text-lg font-[700] text-text">Select Worker</Text>
             <TouchableOpacity onPress={() => setWorkerModalVisible(false)}>

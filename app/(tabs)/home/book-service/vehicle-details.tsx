@@ -15,6 +15,7 @@ import {
   View,
 } from "react-native";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Colors } from "@/constants/Colors";
 
 export default function VehicleDetailsScreen() {
@@ -23,6 +24,7 @@ export default function VehicleDetailsScreen() {
 
   const router = useRouter();
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   const params = useLocalSearchParams();
 
   const [vehicleType, setVehicleType] = useState("Sedan");
@@ -95,7 +97,10 @@ export default function VehicleDetailsScreen() {
             </View>
 
             <ScrollView
-              contentContainerStyle={{ padding: 20, paddingBottom: 130 }}
+              contentContainerStyle={{
+                padding: 20,
+                paddingBottom: 150 + insets.bottom,
+              }}
               keyboardShouldPersistTaps="handled"
               showsVerticalScrollIndicator={false}
             >
@@ -253,7 +258,10 @@ export default function VehicleDetailsScreen() {
             </ScrollView>
 
             {/* Footer Action */}
-            <View className="absolute bottom-0 left-0 right-0 bg-card p-6 pb-12 rounded-t-[40px] border-t border-border shadow-2xl">
+            <View
+              className="absolute bottom-0 left-0 right-0 bg-card p-6 rounded-t-[40px] border-t border-border shadow-2xl"
+              style={{ paddingBottom: Math.max(insets.bottom, 24) }}
+            >
               <TouchableOpacity
                 className="bg-primary h-14 rounded-2xl flex-row items-center justify-center shadow-lg shadow-primary/30"
                 onPress={handleNext}

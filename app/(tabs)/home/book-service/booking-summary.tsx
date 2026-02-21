@@ -14,6 +14,7 @@ import {
   View,
 } from "react-native";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useDispatch, useSelector } from "react-redux";
 import BookingStepper from "../../../../components/BookingStepper";
 import { Colors } from "@/constants/Colors";
@@ -22,6 +23,7 @@ export default function BookingSummaryScreen() {
   const dispatch = useDispatch();
   const router = useRouter();
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   const { bookingDraft } = useLocalSearchParams();
 
   const parsedBooking = bookingDraft
@@ -145,7 +147,7 @@ export default function BookingSummaryScreen() {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 120 }}
+        contentContainerStyle={{ paddingBottom: 150 + insets.bottom }}
       >
         {/* Shop Info Card */}
         <View className="mx-5 mt-6 mb-6 bg-card rounded-[32px] p-5 flex-row items-center border border-border/50 shadow-sm">
@@ -283,7 +285,10 @@ export default function BookingSummaryScreen() {
       </ScrollView>
 
       {/* Footer Checkout */}
-      <View className="absolute bottom-0 left-0 right-0 bg-card px-6 pt-6 pb-12 rounded-t-[40px] border-t border-border shadow-2xl flex-row justify-between items-center">
+      <View
+        className="absolute bottom-0 left-0 right-0 bg-card px-6 pt-6 rounded-t-[40px] border-t border-border shadow-2xl flex-row justify-between items-center"
+        style={{ paddingBottom: Math.max(insets.bottom, 24) }}
+      >
         <TouchableOpacity
           className="flex-1 mr-6"
           onPress={() => setShowPaymentModal(true)}

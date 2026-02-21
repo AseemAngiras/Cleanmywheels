@@ -17,6 +17,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import BookingStepper from "@/components/BookingStepper";
+import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { RootState } from "@/store";
 import { Colors } from "@/constants/Colors";
 import { Ionicons } from "@expo/vector-icons";
@@ -33,7 +35,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 
 type TimeSlot = {
   id: string;
@@ -49,6 +50,7 @@ export default function SelectSlotScreen() {
   const userPhone = userState?.phone;
 
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const params = useLocalSearchParams();
 
@@ -266,8 +268,8 @@ export default function SelectSlotScreen() {
       <BookingStepper currentStep={2} />
 
       <ScrollView
-        contentContainerStyle={{ paddingBottom: 160 }}
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 150 + insets.bottom }}
       >
         <View className="px-5 mt-6 mb-8">
           <Text className="text-[28px] font-[900] color-text leading-[34px]">
@@ -413,7 +415,10 @@ export default function SelectSlotScreen() {
       </ScrollView>
 
       {/* Footer */}
-      <View className="absolute bottom-0 left-0 right-0 bg-card px-6 pt-6 pb-12 rounded-t-[44px] border-t border-border shadow-2xl">
+      <View
+        className="absolute bottom-0 left-0 right-0 bg-card px-6 pt-6 rounded-t-[44px] border-t border-border shadow-2xl"
+        style={{ paddingBottom: Math.max(insets.bottom, 24) }}
+      >
         <View className="flex-row justify-between items-center mb-6 px-1">
           <View>
             <Text className="text-[11px] font-[800] color-textSecondary uppercase tracking-widest">

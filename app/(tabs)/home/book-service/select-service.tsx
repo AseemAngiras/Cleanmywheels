@@ -18,6 +18,7 @@ import {
   Text,
 } from "react-native";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useDispatch } from "react-redux";
 import BookingStepper from "../../../../components/BookingStepper";
 import { Colors } from "@/constants/Colors";
@@ -216,6 +217,8 @@ export default function SelectServiceScreen() {
     });
   };
 
+  const insets = useSafeAreaInsets();
+
   return (
     <ScreenWrapper backgroundColor={Colors.background}>
       <View className="flex-row justify-between items-center px-5 py-4 bg-background">
@@ -236,7 +239,7 @@ export default function SelectServiceScreen() {
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <ScrollView
-            contentContainerStyle={{ paddingBottom: 120 }}
+            contentContainerStyle={{ paddingBottom: 150 + insets.bottom }}
             showsVerticalScrollIndicator={false}
           >
             {/* Services Section */}
@@ -480,7 +483,10 @@ export default function SelectServiceScreen() {
         </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
 
-      <View className="absolute bottom-0 left-0 right-0 bg-card p-6 pb-10 flex-row justify-between items-center border-t border-border shadow-2xl">
+      <View
+        className="absolute bottom-0 left-0 right-0 bg-card p-6 flex-row justify-between items-center border-t border-border shadow-2xl"
+        style={{ paddingBottom: Math.max(insets.bottom, 24) }}
+      >
         <View>
           <Text className="text-[12px] font-[700] color-textSecondary uppercase tracking-widest">
             Total Amount

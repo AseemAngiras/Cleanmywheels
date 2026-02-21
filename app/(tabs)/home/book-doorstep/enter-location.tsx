@@ -33,6 +33,7 @@ import { useDispatch, useSelector } from "react-redux";
 export default function EnterLocationScreen() {
   const dispatch = useDispatch();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const params = useLocalSearchParams();
   const isFromProfile = params.source === "profile";
@@ -41,7 +42,6 @@ export default function EnterLocationScreen() {
   const [triggerGetAddresses] = useLazyGetAddressesQuery();
 
   const { data: addressesData } = useGetAddressesQuery(undefined);
-  const insets = useSafeAreaInsets();
 
   const fetchedAddresses = useMemo(() => {
     const list = addressesData?.data?.addressList || addressesData?.data || [];
@@ -564,7 +564,10 @@ export default function EnterLocationScreen() {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      <View className="absolute bottom-0 left-0 right-0 bg-card px-6 pt-5 pb-10 rounded-t-[40px] border-t border-border shadow-2xl">
+      <View
+        className="absolute bottom-0 left-0 right-0 bg-card px-6 pt-5 rounded-t-[40px] border-t border-border shadow-2xl"
+        style={{ paddingBottom: Math.max(insets.bottom, 24) }}
+      >
         {errorMsg ? (
           <Text className="text-[12px] font-[700] color-red-500 text-center mb-4 uppercase tracking-tighter">
             {errorMsg}

@@ -11,6 +11,8 @@ import {
   View,
 } from "react-native";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import MapView, { Marker } from "react-native-maps";
 import { Colors } from "@/constants/Colors";
 
 export default function OrderConfirmationScreen() {
@@ -24,6 +26,7 @@ export default function OrderConfirmationScreen() {
   }, []);
 
   const params = useLocalSearchParams();
+  const insets = useSafeAreaInsets();
   const {
     shopName,
     shopImage,
@@ -69,8 +72,8 @@ export default function OrderConfirmationScreen() {
   return (
     <ScreenWrapper backgroundColor={Colors.background}>
       <ScrollView
-        contentContainerStyle={{ paddingBottom: 120 }}
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 150 + insets.bottom }}
         className="flex-1"
       >
         <View className="items-center pt-10 px-6">
@@ -185,7 +188,10 @@ export default function OrderConfirmationScreen() {
       </ScrollView>
 
       {/* Footer Return Action */}
-      <View className="absolute bottom-0 left-0 right-0 bg-card p-6 pb-10 border-t border-border shadow-2xl">
+      <View
+        className="absolute bottom-0 left-0 right-0 bg-card p-6 border-t border-border shadow-2xl"
+        style={{ paddingBottom: Math.max(insets.bottom, 24) }}
+      >
         <TouchableOpacity
           className="bg-background h-14 rounded-2xl items-center justify-center border border-border"
           onPress={() => router.replace("/(tabs)/home")}

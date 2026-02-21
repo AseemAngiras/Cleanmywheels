@@ -3,11 +3,13 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Colors } from "@/constants/Colors";
 
 export default function PaymentScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
+  const insets = useSafeAreaInsets();
   const { serviceName, servicePrice, addons, totalPrice } = params;
 
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("upi");
@@ -69,7 +71,7 @@ export default function PaymentScreen() {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 150 }}
+        contentContainerStyle={{ paddingBottom: 150 + insets.bottom }}
       >
         {/* Hero Amount */}
         <View className="items-center my-8">
@@ -246,7 +248,10 @@ export default function PaymentScreen() {
       </ScrollView>
 
       {/* Footer */}
-      <View className="absolute bottom-0 left-0 right-0 p-6 pb-12 bg-card rounded-t-[40px] border-t border-border shadow-2xl flex-row justify-between items-center">
+      <View
+        className="absolute bottom-0 left-0 right-0 p-6 bg-card rounded-t-[40px] border-t border-border shadow-2xl flex-row justify-between items-center"
+        style={{ paddingBottom: Math.max(insets.bottom, 24) }}
+      >
         <View>
           <Text className="text-[10px] font-[900] color-textSecondary uppercase tracking-widest mb-1">
             Total Amount

@@ -12,6 +12,7 @@ interface ScreenWrapperProps {
   statusBarStyle?: StatusBarStyle;
   translucent?: boolean;
   useSafeArea?: boolean;
+  useSafeAreaBottom?: boolean;
   background?: React.ReactNode;
 }
 
@@ -24,6 +25,7 @@ export const ScreenWrapper: React.FC<ScreenWrapperProps> = ({
   statusBarStyle = "light-content",
   translucent = true,
   useSafeArea = true,
+  useSafeAreaBottom = false,
   background,
 }) => {
   const insets = useSafeAreaInsets();
@@ -41,7 +43,10 @@ export const ScreenWrapper: React.FC<ScreenWrapperProps> = ({
       {background}
       <View
         className="flex-1"
-        style={[useSafeArea && { paddingTop: insets.top }]}
+        style={[
+          useSafeArea && { paddingTop: insets.top },
+          useSafeAreaBottom && { paddingBottom: insets.bottom },
+        ]}
       >
         {children}
       </View>

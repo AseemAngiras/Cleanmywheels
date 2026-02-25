@@ -74,7 +74,7 @@ export default function BookingDetailsModal({
             {/* User Info */}
             <View className="mb-8 p-5 bg-background/50 rounded-[32px] border border-border/50">
               <View className="flex-row items-center">
-                <View className="w-16 h-16 rounded-full bg-background items-center justify-center mr-4 border border-border/50 overflow-hidden">
+                {/* <View className="w-16 h-16 rounded-full bg-background items-center justify-center mr-4 border border-border/50 overflow-hidden">
                   {booking.avatar ? (
                     <Image
                       source={{ uri: booking.avatar }}
@@ -85,7 +85,7 @@ export default function BookingDetailsModal({
                       {booking.customerName?.charAt(0)}
                     </Text>
                   )}
-                </View>
+                </View> */}
                 <View className="flex-1">
                   <Text className="text-[18px] font-[800] color-text">
                     {booking.customerName}
@@ -126,7 +126,7 @@ export default function BookingDetailsModal({
                     />
                   </View>
                   <Text className="text-[15px] color-text font-[600] flex-1">
-                    {booking.car} ({booking.license})
+                    {booking.car}
                   </Text>
                 </View>
 

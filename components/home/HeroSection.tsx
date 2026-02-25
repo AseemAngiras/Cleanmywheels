@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import React from "react";
+import React, { useRef } from "react";
 import { ImageBackground, Text, TouchableOpacity, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 
@@ -9,13 +9,21 @@ interface HeroSectionProps {
 
 export const HeroSection = ({ isLoggedIn = false }: HeroSectionProps) => {
   const router = useRouter();
+  const isNavigating = useRef(false);
 
   const handlePress = () => {
+    if (isNavigating.current) return;
+    isNavigating.current = true;
+
     router.push(
       isLoggedIn
         ? "/(tabs)/subscriptions"
         : "/(tabs)/home/book-doorstep/enter-location",
     );
+
+    setTimeout(() => {
+      isNavigating.current = false;
+    }, 1000);
   };
 
   return (
@@ -26,7 +34,7 @@ export const HeroSection = ({ isLoggedIn = false }: HeroSectionProps) => {
             uri: "https://images.unsplash.com/photo-1617788138017-80ad40651399?q=80&w=2070&auto=format&fit=crop",
           }}
           className="w-full h-[220px] overflow-hidden rounded-[24px] border border-white/10"
-          style={{ overflow: "hidden" }} // imageStyle doesn't have a direct className equivalent easily for ImageBackground, but NativeWind usually handles style merging.
+          style={{ overflow: "hidden" }} 
           imageStyle={{ borderRadius: 24 }}
           resizeMode="cover"
         >

@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React from "react";
+import React, { useRef } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 
@@ -14,17 +14,28 @@ export const ServiceActionGrid = ({
   hasActiveSubscription,
 }: ServiceActionGridProps) => {
   const router = useRouter();
+  const isNavigating = useRef(false);
 
   const handleBookPress = () => {
+    if (isNavigating.current) return;
+    isNavigating.current = true;
     router.push("/(tabs)/home/book-doorstep/enter-location");
+    setTimeout(() => {
+      isNavigating.current = false;
+    }, 1000);
   };
 
   const handleSubPress = () => {
+    if (isNavigating.current) return;
+    isNavigating.current = true;
     if (hasActiveSubscription) {
       router.push("/subscription/addons");
     } else {
       router.push("/(tabs)/subscriptions");
     }
+    setTimeout(() => {
+      isNavigating.current = false;
+    }, 1000);
   };
 
   return (

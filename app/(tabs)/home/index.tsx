@@ -93,6 +93,7 @@ export default function HomeScreen() {
   const [isOtpWarningVisible, setIsOtpWarningVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const inputRefs = useRef<(TextInput | null)[]>([]);
+  const isNavigating = useRef(false);
 
   const [requestOtp] = useRequestOtpMutation();
   const [verifyLoginOtp] = useVerifyLoginOtpMutation();
@@ -291,6 +292,9 @@ export default function HomeScreen() {
   );
 
   const handleRecentServicePress = (booking: Partial<Booking>) => {
+    if (isNavigating.current) return;
+    isNavigating.current = true;
+
     if (!booking.serviceId) {
       Alert.alert(
         "Rebook Unavailable",
@@ -298,10 +302,20 @@ export default function HomeScreen() {
         [
           {
             text: "Start New Booking",
-            onPress: () =>
-              router.push("/(tabs)/home/book-doorstep/enter-location"),
+            onPress: () => {
+              router.push("/(tabs)/home/book-doorstep/enter-location");
+              setTimeout(() => {
+                isNavigating.current = false;
+              }, 1000);
+            },
           },
-          { text: "Cancel", style: "cancel" },
+          {
+            text: "Cancel",
+            style: "cancel",
+            onPress: () => {
+              isNavigating.current = false;
+            },
+          },
         ],
       );
       return;
@@ -319,6 +333,10 @@ export default function HomeScreen() {
         serviceId: booking.serviceId,
       },
     });
+
+    setTimeout(() => {
+      isNavigating.current = false;
+    }, 1000);
   };
 
   return (

@@ -290,7 +290,7 @@ export default function SelectServiceScreen() {
         className="flex-1"
       >
         <ScrollView
-          contentContainerStyle={{ paddingBottom: 160 + insets.bottom }}
+          contentContainerStyle={{ paddingBottom: 350 + insets.bottom }}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
@@ -442,11 +442,11 @@ export default function SelectServiceScreen() {
                         shadowColor: isSelected ? Colors.primary : "#000",
                         shadowOffset: {
                           width: 0,
-                          height: isSelected ? 4 : 0, 
+                          height: isSelected ? 4 : 0,
                         },
-                        shadowOpacity: isSelected ? 0.2 : 0, 
-                        shadowRadius: isSelected ? 8 : 0, 
-                        elevation: isSelected ? 4 : 0, 
+                        shadowOpacity: isSelected ? 0.2 : 0,
+                        shadowRadius: isSelected ? 8 : 0,
+                        elevation: isSelected ? 4 : 0,
                       }}
                       onPress={() => setSelectedCarId(car._id || car.id)}
                     >
@@ -454,12 +454,12 @@ export default function SelectServiceScreen() {
                         <View
                           style={{
                             position: "absolute",
-                            top: 8, 
-                            right: 8, 
+                            top: 8,
+                            right: 8,
                             backgroundColor: "rgba(0,0,0,0.2)",
-                            width: 20, 
-                            height: 20, 
-                            borderRadius: 10, 
+                            width: 20,
+                            height: 20,
+                            borderRadius: 10,
                             alignItems: "center",
                             justifyContent: "center",
                           }}
@@ -469,12 +469,12 @@ export default function SelectServiceScreen() {
                       )}
                       <View
                         style={{
-                          width: 48, 
-                          height: 48, 
-                          borderRadius: 14, 
+                          width: 48,
+                          height: 48,
+                          borderRadius: 14,
                           alignItems: "center",
                           justifyContent: "center",
-                          marginBottom: 8, 
+                          marginBottom: 8,
                           backgroundColor: isSelected
                             ? "rgba(0,0,0,0.1)"
                             : Colors.background,
@@ -486,13 +486,13 @@ export default function SelectServiceScreen() {
                               car.vehicleType || car.type,
                             ) as any
                           }
-                          size={28} 
+                          size={28}
                           color={isSelected ? "#000" : Colors.textSecondary}
                         />
                       </View>
                       <Text
                         style={{
-                          fontSize: 12, 
+                          fontSize: 12,
                           fontWeight: "800",
                           textAlign: "center",
                           color: isSelected ? "#000" : Colors.text,
@@ -503,9 +503,9 @@ export default function SelectServiceScreen() {
                       </Text>
                       <Text
                         style={{
-                          fontSize: 10, 
+                          fontSize: 10,
                           fontWeight: "600",
-                          marginTop: 1, 
+                          marginTop: 1,
                           color: isSelected
                             ? "rgba(0,0,0,0.6)"
                             : Colors.textSecondary,

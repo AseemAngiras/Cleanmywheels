@@ -302,8 +302,8 @@ export default function SelectSlotScreen() {
                   key={item.id}
                   onPress={() => setSelectedDate(index)}
                   style={{
-                    width: 80,
-                    height: 112,
+                    width: 70,
+                    height: 90,
                     borderRadius: 28,
                     alignItems: "center",
                     justifyContent: "center",

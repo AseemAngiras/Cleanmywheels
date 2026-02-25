@@ -559,7 +559,7 @@ export default function ProfileHome() {
                 subtitle="Manage your alerts and updates"
                 onPress={() => router.push("/profile/notifications")}
               />
-              <Row
+              {/* <Row
                 icon="gift-outline"
                 title="Refer & Earn"
                 subtitle="Invite friends and earn rewards"
@@ -569,7 +569,7 @@ export default function ProfileHome() {
                       "Check out CleanMyWheels! The best car wash service at your doorstep. Download now: https://cleanmywheels.com",
                   });
                 }}
-              />
+              /> */}
               {/* <Row
                 icon="shield-checkmark-outline"
                 title="Privacy & Security"

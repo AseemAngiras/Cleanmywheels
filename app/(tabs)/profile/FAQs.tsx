@@ -47,7 +47,7 @@ export default function FAQPage() {
       backgroundColor={Colors.background}
       statusBarStyle="light-content"
     >
-      <View className="flex-1 bg-background px-5">
+      <View className="flex-1 bg-background px-5 pb-20">
         {/* Header */}
         <View className="flex-row items-center justify-between pt-4 pb-6">
           <TouchableOpacity

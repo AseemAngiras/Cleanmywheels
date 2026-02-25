@@ -89,7 +89,6 @@ export default function SubscriptionConfigureScreen() {
 
   useEffect(() => {
     if (availableCars.length > 0 && !selectedVehicleId) {
-      // Logic if needed
     }
   }, [availableCars.length, selectedVehicleId]);
 
@@ -99,9 +98,29 @@ export default function SubscriptionConfigureScreen() {
       return;
     }
 
+    const cleanedNo = newCarNo.trim().replace(/\s+/g, "").toUpperCase();
+
+    const isDuplicate = cars?.some((car: any) => {
+      const existingNo = (car.vehicleNo || car.number || "")
+        .trim()
+        .replace(/\s+/g, "")
+        .toUpperCase();
+      const existingType = car.vehicleType || car.type;
+
+      return existingNo === cleanedNo && existingType === newCarType;
+    });
+
+    if (isDuplicate) {
+      Alert.alert(
+        "Duplicate Vehicle",
+        `A ${newCarType} with number ${cleanedNo} is already in your garage.`,
+      );
+      return;
+    }
+
     try {
       const result = await createVehicle({
-        vehicleNo: newCarNo.toUpperCase(),
+        vehicleNo: cleanedNo,
         vehicleType: newCarType,
         isDefault: false,
       }).unwrap();

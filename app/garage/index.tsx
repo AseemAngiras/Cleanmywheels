@@ -118,6 +118,28 @@ export default function MyCarsScreen() {
       return;
     }
     const cleanedNumber = number.trim().replace(/\s+/g, "").toUpperCase();
+
+    const isDuplicate = cars.some((car: any) => {
+      const carId = car._id || car.id;
+      if (editingCarId && carId === editingCarId) return false;
+
+      const existingNo = (car.vehicleNo || car.number || "")
+        .trim()
+        .replace(/\s+/g, "")
+        .toUpperCase();
+      const existingType = car.vehicleType || car.type;
+
+      return existingNo === cleanedNumber && existingType === type;
+    });
+
+    if (isDuplicate) {
+      Alert.alert(
+        "Duplicate Vehicle",
+        `A ${type} with number ${cleanedNumber} is already in your garage.`,
+      );
+      return;
+    }
+
     const payload = {
       vehicleType: type,
       vehicleNo: cleanedNumber,
@@ -325,19 +347,19 @@ export default function MyCarsScreen() {
           <Ionicons name="chevron-back" size={20} color={Colors.text} />
         </TouchableOpacity>
         <View className="items-center">
-          <Text className="text-[18px] font-[800] color-text tracking-tight">
+          <Text className="text-[25px] font-[800] color-text tracking-tight">
             My Garage
           </Text>
-          <Text className="text-[10px] color-textSecondary font-[800] uppercase tracking-widest mt-0.5">
+          <Text className="text-[12px] color-textSecondary font-[800] uppercase tracking-widest mt-0.5">
             {cars.length} {cars.length === 1 ? "Vehicle" : "Vehicles"} Saved
           </Text>
         </View>
-        <TouchableOpacity
+        {/* <TouchableOpacity
           className="w-10 h-10 bg-primary rounded-xl items-center justify-center shadow-lg shadow-primary/20"
           onPress={() => openModal()}
         >
           <Ionicons name="add" size={24} color="#000" />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
 
       <FlatList
@@ -383,7 +405,7 @@ export default function MyCarsScreen() {
       {/* FAB for Adding (Optional, depending on UI Preference) */}
       {!modalVisible && cars.length > 0 && (
         <TouchableOpacity
-          className="absolute bottom-10 right-6 w-16 h-16 bg-primary rounded-full items-center justify-center shadow-xl shadow-primary/40 z-50 border-[4px] border-background"
+          className="absolute bottom-16 right-6 w-16 h-16 bg-primary rounded-full items-center justify-center shadow-xl shadow-primary/40 z-50 border-[4px] border-background"
           onPress={() => openModal()}
         >
           <Ionicons name="add" size={32} color="#000" />

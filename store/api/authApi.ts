@@ -18,8 +18,6 @@ export const SOCKET_URL = process.env.EXPO_PUBLIC_SOCKET_URL
 
 export const APP_VERSION = Constants.expoConfig?.version ?? "1.0.0";
 
-const TIMEZONE = Intl.DateTimeFormat().resolvedOptions().timeZone;
-
 export const authApi = createApi({
   reducerPath: "authApi",
   baseQuery: fetchBaseQuery({
@@ -90,6 +88,12 @@ export const authApi = createApi({
         method: "GET",
       }),
     }),
+    deleteAccount: builder.mutation({
+      query: () => ({
+        url: "/auth/delete-user",
+        method: "DELETE",
+      }),
+    }),
   }),
 });
 
@@ -100,4 +104,5 @@ export const {
   useVerifyRegisterOtpMutation,
   useUpdateProfileMutation,
   useGetProfileQuery,
+  useDeleteAccountMutation,
 } = authApi;

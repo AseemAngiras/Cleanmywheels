@@ -6,10 +6,8 @@ import {
   Animated,
   Dimensions,
   Image,
-  Linking,
   Modal,
   ScrollView,
-  Share,
   Text,
   TextInput,
   TouchableOpacity,
@@ -21,7 +19,10 @@ import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Colors } from "@/constants/Colors";
 import { RootState } from "@/store";
-import { useUpdateProfileMutation } from "@/store/api/authApi";
+import {
+  useDeleteAccountMutation,
+  useUpdateProfileMutation,
+} from "@/store/api/authApi";
 import {
   useDeleteAddressMutation,
   useGetAddressesQuery,
@@ -74,6 +75,7 @@ export default function ProfileHome() {
   const [isNameWarningVisible, setIsNameWarningVisible] = useState(false);
 
   const [updateUserProfileAPI] = useUpdateProfileMutation();
+  const [deleteAccountAPI] = useDeleteAccountMutation();
 
   const userState = useSelector((state: RootState) => state.user);
   const userData = userState.user;
@@ -198,6 +200,32 @@ export default function ProfileHome() {
       dispatch(logout());
       router.replace("/(tabs)/home");
     }, 100);
+  };
+
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      "Delete Account",
+      "Are you sure you want to delete your account? This action is permanent and cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await deleteAccountAPI({}).unwrap();
+              Alert.alert("Success", "Your account has been deleted.");
+              handleLogout();
+            } catch (error: any) {
+              Alert.alert(
+                "Error",
+                error?.data?.message || "Failed to delete account",
+              );
+            }
+          },
+        },
+      ],
+    );
   };
 
   return (
@@ -653,7 +681,7 @@ export default function ProfileHome() {
               Logout
             </Text>
             <Text className="text-[15px] color-textSecondary text-center mb-6">
-              Are you sure you want to logout? You'll need to sign in again to
+              Are you sure you want to logout? You&apos;ll need to sign in again to
               manage your bookings.
             </Text>
             <View className="flex-row gap-3">
@@ -834,6 +862,19 @@ export default function ProfileHome() {
                 </Text>
               </TouchableOpacity>
             </View>
+
+            {/* DELETE ACCOUNT OPTION */}
+            <TouchableOpacity
+              className="mt-6 py-4 rounded-2xl bg-red-500/10 items-center justify-center border border-red-500/20"
+              onPress={handleDeleteAccount}
+            >
+              <View className="flex-row items-center gap-2">
+                <Ionicons name="trash-outline" size={20} color={Colors.error} />
+                <Text className="text-base font-[600] text-error">
+                  Delete Account
+                </Text>
+              </View>
+            </TouchableOpacity>
           </Animated.View>
         </Modal>
       </ScrollView>

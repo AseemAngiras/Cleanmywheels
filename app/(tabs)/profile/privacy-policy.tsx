@@ -194,7 +194,7 @@ export default function PrivacyPolicy() {
             </TouchableOpacity>
           </Section>
 
-          <View className="mt-8 pt-8 border-t border-border items-center">
+          <View className="mt-8 pt-8 pb-20 border-t border-border items-center">
             <Text className="text-[13px] text-textSecondary text-center italic">
               By using CleanMyWheels, you agree to this Privacy Policy.
             </Text>

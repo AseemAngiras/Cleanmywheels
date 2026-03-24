@@ -120,7 +120,8 @@ export default function SelectServiceScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
-  const { address, latitude, longitude, addressId } = useLocalSearchParams();
+  const { address, latitude, longitude, addressId, addressType } =
+    useLocalSearchParams();
   const [selectedService, setSelectedService] = useState<string | null>(null);
   const [addons, setAddons] = useState<Record<string, boolean>>({});
 
@@ -263,6 +264,7 @@ export default function SelectServiceScreen() {
         latitude,
         longitude,
         addressId,
+        addressType,
         totalPrice: calculateTotal(),
       },
     });

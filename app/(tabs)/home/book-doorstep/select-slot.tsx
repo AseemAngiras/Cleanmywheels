@@ -241,6 +241,7 @@ export default function SelectSlotScreen() {
         selectedTimeSlotId: selectedSlot,
         servicePrice: params.basePrice as string,
         totalPrice: (params.totalPrice || params.basePrice) as string,
+        addressType: params.addressType as string,
       },
     });
   };

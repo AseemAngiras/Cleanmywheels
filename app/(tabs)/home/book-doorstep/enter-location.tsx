@@ -16,6 +16,7 @@ import React, { useMemo, useState } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   ActivityIndicator,
+  Alert,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -85,7 +86,9 @@ export default function EnterLocationScreen() {
   const [landmark, setLandmark] = useState("");
   const [city, setCity] = useState("");
   const [postalCode, setPostalCode] = useState("");
-  const [addressType, setAddressType] = useState<"Home" | "Work">("Home");
+  const [addressType, setAddressType] = useState<"Home" | "Office" | "Other">(
+    "Home",
+  );
   const [errorMsg, setErrorMsg] = useState("");
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -251,6 +254,7 @@ export default function EnterLocationScreen() {
             latitude: savedAddr?.latitude,
             longitude: savedAddr?.longitude,
             addressId: selectedSavedAddressId,
+            addressType: savedAddr?.addressType || "Home",
           },
         });
       return;
@@ -287,6 +291,7 @@ export default function EnterLocationScreen() {
             latitude: selectedCoord?.lat,
             longitude: selectedCoord?.long,
             addressId: id,
+            addressType: addressType,
           },
         });
       return;
@@ -312,10 +317,17 @@ export default function EnterLocationScreen() {
             latitude: selectedCoord?.lat,
             longitude: selectedCoord?.long,
             addressId: id,
+            addressType: addressType,
           },
         });
-    } catch (err) {
-      setErrorMsg("Failed to save address");
+    } catch (error: any) {
+      console.error("Failed to save address:", error);
+      const errorMessage =
+        error?.data?.message ||
+        error?.message ||
+        "Please check your connection and try again.";
+      setErrorMsg(errorMessage);
+      Alert.alert("Failed to save address", errorMessage);
     }
   };
 
@@ -541,9 +553,9 @@ export default function EnterLocationScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity
-              className={`flex-row items-center px-6 py-3 rounded-full border ${addressType === "Work" ? "bg-primary border-primary" : "bg-card border-border/50"}`}
+              className={`flex-row items-center px-6 py-3 rounded-full border ${addressType === "Office" ? "bg-primary border-primary" : "bg-card border-border/50"}`}
               onPress={() => {
-                setAddressType("Work");
+                setAddressType("Office");
                 if (selectedSavedAddressId) setSelectedSavedAddressId(null);
                 setErrorMsg("");
               }}
@@ -551,13 +563,34 @@ export default function EnterLocationScreen() {
               <Ionicons
                 name="briefcase"
                 size={16}
-                color={addressType === "Work" ? "#000" : Colors.textSecondary}
+                color={addressType === "Office" ? "#000" : Colors.textSecondary}
                 style={{ marginRight: 8 }}
               />
               <Text
-                className={`text-[13px] font-[800] ${addressType === "Work" ? "color-black" : "color-textSecondary"}`}
+                className={`text-[13px] font-[800] ${addressType === "Office" ? "color-black" : "color-textSecondary"}`}
               >
-                Work
+                Office
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              className={`flex-row items-center px-6 py-3 rounded-full border ${addressType === "Other" ? "bg-primary border-primary" : "bg-card border-border/50"}`}
+              onPress={() => {
+                setAddressType("Other");
+                if (selectedSavedAddressId) setSelectedSavedAddressId(null);
+                setErrorMsg("");
+              }}
+            >
+              <Ionicons
+                name="location"
+                size={16}
+                color={addressType === "Other" ? "#000" : Colors.textSecondary}
+                style={{ marginRight: 8 }}
+              />
+              <Text
+                className={`text-[13px] font-[800] ${addressType === "Other" ? "color-black" : "color-textSecondary"}`}
+              >
+                Other
               </Text>
             </TouchableOpacity>
           </View>

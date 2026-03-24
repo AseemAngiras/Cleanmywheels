@@ -69,6 +69,7 @@ export default function BookingSummaryScreen() {
     address,
     totalPrice,
     serviceId,
+    addressType,
   } = params;
 
   const parsedAddons = addons ? JSON.parse(addons as string) : [];
@@ -198,7 +199,7 @@ export default function BookingSummaryScreen() {
         landmark: String(addressParts[2] || "Landmark"),
         city: String(addressParts[2] || "City"), // Fallback to index 2 or 1
         postalCode: postalCode,
-        addressType: "Home",
+        addressType: (addressType as string) || "Home",
         washPackage: serviceId as string,
         vehicleType:
           VEHICLE_TYPE_MAP[(vehicleType as string)?.toLowerCase()] ||
@@ -223,7 +224,7 @@ export default function BookingSummaryScreen() {
             landmark: bookingPayload.landmark,
             city: bookingPayload.city,
             postalCode: postalCode,
-            addressType: "Home",
+            addressType: (addressType as string) || "Home",
             fullAddress: address as string,
           }),
         );

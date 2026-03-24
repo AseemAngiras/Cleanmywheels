@@ -7,7 +7,7 @@ export type Address = {
   landmark?: string;
   city: string;
   postalCode: string;
-  addressType: "Home" | "Work";
+  addressType: "Home" | "Office" | "Other";
   fullAddress: string;
   latitude?: number;
   longitude?: number;

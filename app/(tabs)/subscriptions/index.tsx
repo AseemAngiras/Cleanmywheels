@@ -43,7 +43,7 @@ export default function SubscriptionPlansScreen() {
 
   const handleSubscribe = (plan: any) => {
     router.push({
-      pathname: "/subscription/configure",
+      pathname: "/subscription-flow/configure",
       params: { planId: plan._id },
     });
   };
@@ -142,9 +142,9 @@ export default function SubscriptionPlansScreen() {
               Active Subscriptions
             </Text>
             {activeSubs.map((sub: any) => (
-              <View key={sub._id}>
+              <React.Fragment key={sub._id}>
                 <ActiveSubscriptionCard subscription={sub} />
-              </View>
+              </React.Fragment>
             ))}
           </View>
         )}
@@ -165,13 +165,13 @@ export default function SubscriptionPlansScreen() {
           <View>
             <View className="mb-6">
               {plans?.map((plan: any, index: number) => (
-                <View key={plan._id}>
+                <React.Fragment key={plan._id}>
                   <PlanCard
                     plan={plan}
                     onSubscribe={handleSubscribe}
                     isPopular={index === 1}
                   />
-                </View>
+                </React.Fragment>
               ))}
             </View>
             <View className="bg-primary/5 p-6 rounded-[32px] border border-primary/20 items-center">

@@ -125,7 +125,7 @@ export default function PaymentWebViewScreen() {
           // Redirect to Order Confirmation
           const targetPath =
             type === "ADDON" || type === "SUBSCRIPTION"
-              ? "/subscription/order-confirmation"
+              ? "/subscription-flow/order-confirmation"
               : "/(tabs)/home/book-doorstep/order-confirmation";
 
           router.replace({

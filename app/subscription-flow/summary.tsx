@@ -143,7 +143,7 @@ export default function SubscriptionSummaryScreen() {
             }).unwrap();
 
             router.replace({
-              pathname: "/subscription/order-confirmation",
+              pathname: "/subscription-flow/order-confirmation",
               params: {
                 status: "success",
                 grandTotal: String(selectedPlan.price),

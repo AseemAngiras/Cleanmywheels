@@ -274,7 +274,7 @@ export default function UpcomingServices() {
                   className="mb-6 mx-5"
                   activeOpacity={0.9}
                   onPress={() =>
-                    router.push(`/subscription/details/${sub._id}` as any)
+                    router.push(`/subscription-flow/details/${sub._id}` as any)
                   }
                 >
                   <View className="bg-card rounded-[16px] p-4 shadow-md shadow-black/10 border border-border">

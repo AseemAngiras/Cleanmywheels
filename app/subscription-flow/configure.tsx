@@ -148,7 +148,7 @@ export default function SubscriptionConfigureScreen() {
     if (!selectedPlan) return;
 
     router.push({
-      pathname: "/subscription/summary",
+      pathname: "/subscription-flow/summary",
       params: {
         planId: selectedPlan._id,
         vehicleId: selectedVehicleId,
@@ -206,7 +206,7 @@ export default function SubscriptionConfigureScreen() {
             <ActivityIndicator color={Colors.primary} className="my-5" />
           ) : (
             <View className="flex-row flex-wrap justify-between gap-y-4 mb-8">
-              {availableCars.map((car) => (
+              {availableCars.map((car: any) => (
                 <TouchableOpacity
                   key={car._id}
                   className={`w-[48%] rounded-[24px] p-5 items-center border ${

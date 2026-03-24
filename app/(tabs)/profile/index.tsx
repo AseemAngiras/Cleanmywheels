@@ -633,17 +633,12 @@ export default function ProfileHome() {
                   )
                 }
               />
-              {/* <Row
+              <Row
                 icon="information-circle-outline"
-                title="Terms & Privacy"
-                subtitle="Read our legal policies"
-                onPress={() =>
-                  Alert.alert(
-                    "Coming Soon",
-                    "Legal documents are under development.",
-                  )
-                }
-              /> */}
+                title="Privacy Policy"
+                subtitle="Read our privacy policy"
+                onPress={() => router.push("/profile/privacy-policy")}
+              />
             </View>
           </>
         )}

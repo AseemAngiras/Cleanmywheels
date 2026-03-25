@@ -83,7 +83,18 @@ export default function UpcomingServices() {
   const bookingList = bookingsResponse?.data?.bookingList || [];
   const bookings = bookingList
     .filter((b: any) => {
+      // If not admin, only show own bookings
+      if (!isAdmin && b.user?._id !== user?._id) {
+        return false;
+      }
+
       const status = b.status?.toLowerCase();
+
+      // For admins, show pending bookings even without a worker (so they can assign one)
+      if (isAdmin && status === "pending") {
+        return true;
+      }
+
       if (status === "pending" && b.worker) {
         return true;
       }
@@ -99,7 +110,8 @@ export default function UpcomingServices() {
   const opacityAnim = useRef(new Animated.Value(0)).current;
 
   const user = useAppSelector((state: RootState) => state.user.user);
-  const isAdmin = user?.accountType === "Super Admin";
+  const isAdmin =
+    user?.accountType === "Super Admin" || user?.accountType === "Admin";
 
   const { data: workersData } = useGetWorkersQuery({});
   const workers = workersData?.workers || [];
@@ -472,7 +484,7 @@ export default function UpcomingServices() {
                           <View className="flex-row flex-wrap gap-1">
                             {uniqueAddons.map((addon: any, idx: number) => (
                               <View
-                                key={idx}
+                                key={`addon-${idx}`}
                                 className="flex-row items-center bg-white px-2 py-1 rounded-md border border-[#E0E0E0]"
                               >
                                 <Ionicons

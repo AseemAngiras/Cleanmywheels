@@ -105,18 +105,18 @@ export default function SelectSlotScreen() {
   const timeSlots: TimeSlot[] = [
     { id: "1", time: "08:00 AM", period: "Morning", available: true },
     { id: "2", time: "08:30 AM", period: "Morning", available: true },
-    { id: "3", time: "09:00 AM", period: "Morning", available: false },
+    { id: "3", time: "09:00 AM", period: "Morning", available: true },
     { id: "4", time: "09:30 AM", period: "Morning", available: true },
     { id: "5", time: "10:00 AM", period: "Morning", available: true },
-    { id: "6", time: "10:30 AM", period: "Morning", available: false },
+    { id: "6", time: "10:30 AM", period: "Morning", available: true },
     { id: "7", time: "12:00 PM", period: "Afternoon", available: true },
     { id: "8", time: "12:30 PM", period: "Afternoon", available: true },
     { id: "9", time: "01:00 PM", period: "Afternoon", available: true },
     { id: "10", time: "01:30 PM", period: "Afternoon", available: true },
     { id: "11", time: "02:00 PM", period: "Afternoon", available: true },
-    { id: "12", time: "02:30 PM", period: "Afternoon", available: false },
+    { id: "12", time: "02:30 PM", period: "Afternoon", available: true },
     { id: "13", time: "05:00 PM", period: "Evening", available: true },
-    { id: "14", time: "05:30 PM", period: "Evening", available: false },
+    { id: "14", time: "05:30 PM", period: "Evening", available: true },
     { id: "15", time: "06:00 PM", period: "Evening", available: true },
   ].map((slot) => {
     const typedSlot = slot as TimeSlot;

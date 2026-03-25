@@ -23,7 +23,8 @@ import {
 
 import { useFocusEffect } from "expo-router";
 import { useGetBookingsQuery } from "../../../store/api/bookingApi";
-import { useAppDispatch } from "../../../store/hooks";
+import { useAppDispatch, useAppSelector } from "../../../store/hooks";
+import { type RootState } from "../../../store";
 import { addTicket } from "../../../store/slices/bookingSlice";
 
 // Helper to map backend booking to display format
@@ -74,9 +75,19 @@ export default function PastServices() {
     }, [refetch]),
   );
 
+  const user = useAppSelector((state: RootState) => state.user.user);
+  const isAdmin =
+    user?.accountType === "Super Admin" || user?.accountType === "Admin";
+
   const bookingList = bookingsResponse?.data?.bookingList || [];
   const bookings = bookingList
-    .filter((b: any) => ["Completed", "Cancelled"].includes(b.status))
+    .filter((b: any) => {
+      // If not admin, only show own bookings
+      if (!isAdmin && b.user?._id !== user?._id) {
+        return false;
+      }
+      return ["Completed", "Cancelled"].includes(b.status);
+    })
     .map(mapBackendBooking);
 
   const [activeBooking, setActiveBooking] = useState<any | null>(null);

@@ -16,7 +16,7 @@ export default function BookingStepper({
   currentStep,
   steps = [
     { id: 1, label: "Service" },
-    { id: 2, label: "Shop" },
+    { id: 2, label: "Slot" },
     { id: 3, label: "Payment" },
   ],
 }: BookingStepperProps) {

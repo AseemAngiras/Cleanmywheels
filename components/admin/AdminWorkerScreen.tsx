@@ -255,7 +255,7 @@ export default function AdminWorkerScreen() {
               activeOpacity={1}
               onPress={() => setModalVisible(false)}
             />
-            <View className="bg-card rounded-t-[40px] shadow-2xl border-t border-border max-h-[90%]">
+            <View className="bg-card mb-10 rounded-t-[40px] shadow-2xl border-t border-border max-h-[90%]">
               <View className="w-12 h-1.5 bg-border/50 rounded-full self-center my-4" />
               <View className="flex-row justify-between items-center px-6 mb-6">
                 <Text className="text-[22px] font-[800] color-text">

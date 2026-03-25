@@ -43,7 +43,7 @@ const mapBackendBooking = (booking: any) => ({
       }:00 ${booking.bookingTime >= 12 ? "PM" : "AM"}`
     : "N/A",
   car: booking.vehicleType || booking.vehicle?.type || "Car",
-  carImage: "https://cdn-icons-png.flaticon.com/512/743/743007.png",
+  carImage: "",
   status:
     booking.status?.toLowerCase() === "cancelled" ? "cancelled" : "completed",
   serviceName: booking.serviceName || booking.washPackage?.name || "Car Wash",
@@ -230,26 +230,20 @@ export default function PastServices() {
                 {isCompleted ? "Completed" : "Cancelled"}
               </Text>
             </View>
-
-            {/* <TouchableOpacity
-              className="mt-3 flex-row items-center self-start px-[15px] py-1 rounded-lg bg-error/10 border border-error/20"
-              onPress={() => handleComplaint(item)}
-            >
-              <Ionicons
-                name="alert-circle-outline"
-                size={14}
-                color={Colors.error}
-              />
-              <Text className="ml-1 text-[12px] font-[600] text-error">
-                Complaint
-              </Text>
-            </TouchableOpacity> */}
           </View>
 
-          <Image
-            source={{ uri: item.carImage }}
-            className="w-[90px] h-[90px] rounded-[12px]"
-          />
+          {/* Stylized Icon to fill space */}
+          <View className="w-16 h-16 rounded-full bg-primary/10 items-center justify-center border border-primary/20">
+            <Ionicons
+              name={
+                item.car.toLowerCase().includes("two")
+                  ? "car-sport"
+                  : "car-sport"
+              }
+              size={32}
+              color={Colors.primary}
+            />
+          </View>
         </View>
       </TouchableOpacity>
     );
@@ -364,10 +358,17 @@ export default function PastServices() {
                         </TouchableOpacity>
                       </View>
 
-                      <Image
-                        source={{ uri: activeBooking.carImage }}
-                        className="w-20 h-20 rounded-[30px] border-2 border-black/10 mt-3 mr-2"
-                      />
+                      <View className="w-20 h-20 rounded-[30px] bg-black/5 items-center justify-center mt-3 mr-2 border border-black/10">
+                        <Ionicons
+                          name={
+                            activeBooking.car.toLowerCase().includes("two")
+                              ? "car-sport"
+                              : "car-sport"
+                          }
+                          size={40}
+                          color="#1a1a1a"
+                        />
+                      </View>
                     </View>
                   </View>
                 </View>

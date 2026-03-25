@@ -26,7 +26,7 @@ export default function OrderConfirmationScreen() {
         car: params.vehicleType
           ? `${params.vehicleType} - ${params.vehicleNumber}`
           : "Vehicle",
-        carImage: "https://cdn-icons-png.flaticon.com/512/743/743007.png",
+        carImage: "",
         phone: params.userPhone as string,
         price: Number(params.grandTotal),
         address: params.address as string,

@@ -8,7 +8,7 @@ export interface Booking {
   date: string;
   timeSlot: string;
   car: string;
-  carImage: string;
+  carImage: any;
   phone: string;
   price: number;
   address: string;

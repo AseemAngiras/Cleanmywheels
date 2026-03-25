@@ -5,7 +5,6 @@ import {
   Text,
   TouchableOpacity,
   ScrollView,
-  Image,
   Linking,
   Alert,
 } from "react-native";
@@ -31,8 +30,44 @@ export default function BookingDetailsModal({
     );
   };
 
-  const handleWhatsApp = (phone: string) => {
-    const url = `whatsapp://send?phone=${phone}`;
+  const formatWhatsAppPhone = (phone: string) => {
+    const cleaned = phone.replace(/\D/g, "");
+    if (cleaned.length === 10) return `91${cleaned}`;
+    return cleaned;
+  };
+
+  const notifyUser = () => {
+    const phone = formatWhatsAppPhone(booking.phone);
+    const date = new Date(booking.bookingDate || Date.now()).toLocaleDateString(
+      "en-IN",
+      { day: "numeric", month: "long" },
+    );
+    const workerInfo = booking.workerName
+      ? `\n\nProfessional: *${booking.workerName}* (+91 ${booking.workerPhone})`
+      : "";
+
+    const message = `Hello, your booking for *${booking.service}* is confirmed! 🚗✨${workerInfo}\n\nDate: ${date}\nTime: ${booking.time}\nAddress: ${booking.address}\n\nThank you for choosing Cleanmywheels!`;
+    const url = `whatsapp://send?phone=${phone}&text=${encodeURIComponent(message)}`;
+
+    Linking.openURL(url).catch(() =>
+      Alert.alert("Error", "WhatsApp not installed"),
+    );
+  };
+
+  const notifyWorker = () => {
+    if (!booking.workerPhone) {
+      Alert.alert("Error", "No professional assigned to this booking");
+      return;
+    }
+    const phone = formatWhatsAppPhone(booking.workerPhone);
+    const date = new Date(booking.bookingDate || Date.now()).toLocaleDateString(
+      "en-IN",
+      { day: "numeric", month: "long" },
+    );
+
+    const message = `🛠️ *New Job Assigned!*\n\nCustomer: *${booking.customerName}* (+91 ${booking.phone})\nService: ${booking.service}\nCar: ${booking.car}\n\nDate: ${date}\nTime: ${booking.time}\nAddress: ${booking.address}\n\nPlease reach on time.`;
+    const url = `whatsapp://send?phone=${phone}&text=${encodeURIComponent(message)}`;
+
     Linking.openURL(url).catch(() =>
       Alert.alert("Error", "WhatsApp not installed"),
     );
@@ -100,12 +135,6 @@ export default function BookingDetailsModal({
                     className="w-11 h-11 rounded-full bg-blue-500/10 items-center justify-center border border-blue-500/20"
                   >
                     <Ionicons name="call" size={18} color="#3B82F6" />
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={() => handleWhatsApp(booking.phone)}
-                    className="w-11 h-11 rounded-full bg-green-500/10 items-center justify-center border border-green-500/20"
-                  >
-                    <Ionicons name="logo-whatsapp" size={18} color="#22C55E" />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -234,6 +263,36 @@ export default function BookingDetailsModal({
               </View>
             )}
           </ScrollView>
+
+          {/* Notification Actions */}
+          <View className="flex-row gap-4 mb-6">
+            <TouchableOpacity
+              onPress={notifyUser}
+              className="flex-1 bg-green-500/10 border border-green-500/20 py-4 rounded-2xl flex-row items-center justify-center"
+            >
+              <Ionicons name="logo-whatsapp" size={18} color="#22C55E" />
+              <Text className="text-green-600 font-[800] ml-2 text-[13px]">
+                Notify User
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={notifyWorker}
+              className={`flex-1 ${booking.workerName ? "bg-primary/10 border-primary/20" : "bg-background border-border opacity-50"} border py-4 rounded-2xl flex-row items-center justify-center`}
+              disabled={!booking.workerName}
+            >
+              <Ionicons
+                name="logo-whatsapp"
+                size={18}
+                color={booking.workerName ? Colors.primary : Colors.textSecondary}
+              />
+              <Text
+                className={`font-[800] ml-2 text-[13px] ${booking.workerName ? "color-primary" : "color-textSecondary"}`}
+              >
+                Notify Pro
+              </Text>
+            </TouchableOpacity>
+          </View>
 
           {/* Status & Price */}
           <View className="flex-row gap-4 pt-6 border-t border-border/50 bg-card">

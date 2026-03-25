@@ -184,7 +184,10 @@ export default function AdminBookingsScreen() {
                 bookingId: selectedBooking.id,
                 workerId: worker._id,
               }).unwrap();
-              Alert.alert("Success", "Worker assigned and notifications sent!");
+              Alert.alert(
+                "Worker Assigned",
+                "Assignment saved! If the automated WhatsApp is not received, you can send it manually from the booking details.",
+              );
               refetch();
             } catch {
               Alert.alert(

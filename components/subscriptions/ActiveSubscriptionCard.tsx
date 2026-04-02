@@ -34,7 +34,7 @@ export const ActiveSubscriptionCard = ({
     <TouchableOpacity
       activeOpacity={0.9}
       onPress={() =>
-        router.push(`/subscription/details/${subscription._id}` as any)
+        router.push(`/subscription-flow/details/${subscription._id}` as any)
       }
       className="mb-4 bg-card rounded-[24px] border border-border overflow-hidden shadow-sm"
     >

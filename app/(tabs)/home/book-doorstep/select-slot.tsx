@@ -140,6 +140,19 @@ export default function SelectSlotScreen() {
   const [registrationToken, setRegistrationToken] = useState<string | null>(
     null,
   );
+  const [timer, setTimer] = useState(60);
+
+  useEffect(() => {
+    let interval: any;
+    if (showOtpModal && timer > 0) {
+      interval = setInterval(() => {
+        setTimer((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [showOtpModal, timer]);
 
   const handleSendOtp = async () => {
     if (!name.trim()) {
@@ -151,6 +164,7 @@ export default function SelectSlotScreen() {
       return;
     }
 
+    setTimer(60);
     const trimmedPhone = phoneNumber.trim();
     const trimmedName = name.trim();
 
@@ -458,127 +472,130 @@ export default function SelectSlotScreen() {
         animationType="slide"
         onRequestClose={() => setIsLoginModalVisible(false)}
       >
-        <View className="flex-1 bg-black/60 justify-end">
-          <TouchableOpacity
-            className="flex-1"
-            activeOpacity={1}
-            onPress={() => setIsLoginModalVisible(false)}
-          />
-          <KeyboardAvoidingView
-            behavior={Platform.OS === "ios" ? "padding" : "height"}
+        <View className="flex-1 bg-black">
+          <View
+            style={{ paddingTop: insets.top + 20 }}
+            className="flex-1 px-6"
           >
-            <View className="bg-card rounded-t-[44px] p-6 pb-12 border-t border-border shadow-2xl">
-              <View className="w-14 h-1.5 bg-border/50 rounded-full self-center mb-8" />
+            {/* Header / Back Button */}
+            <TouchableOpacity
+              onPress={() => setIsLoginModalVisible(false)}
+              className="w-10 h-10 items-center justify-center -ml-2 mb-8"
+            >
+              <Ionicons name="chevron-back" size={28} color="white" />
+            </TouchableOpacity>
 
-              <View className="mb-8">
-                <Text className="text-[26px] font-[900] color-text tracking-tighter">
+            <KeyboardAvoidingView
+              behavior={Platform.OS === "ios" ? "padding" : "height"}
+              className="flex-1"
+            >
+              <Text className="text-[32px] font-[800] text-white leading-[40px] mb-3">
+                {modalStep === "details"
+                  ? "Welcome to\nCleanmywheels"
+                  : "Enter\nverification code"}
+              </Text>
+
+              <View className="flex-row items-center mb-10">
+                <Text className="text-base text-gray-400 font-[500]">
                   {modalStep === "details"
-                    ? "Welcome to Cleanmywheels"
-                    : "Verify Securely"}
+                    ? "Complete your profile to book"
+                    : "enter the verification code sent to"}
                 </Text>
-                <Text className="text-[14px] color-textSecondary font-[600] mt-2">
-                  {modalStep === "details"
-                    ? "Complete your profile to book the service."
-                    : `Enter the 6-digit code sent to +91 ${phoneNumber}`}
-                </Text>
+                {modalStep === "otp" && (
+                  <View className="flex-row items-center ml-1">
+                    <Text className="text-base text-white font-[600]">+91 {phoneNumber}</Text>
+                    <TouchableOpacity onPress={() => setModalStep("details")} className="ml-2">
+                       <Ionicons name="pencil" size={14} color="#C8F000" />
+                    </TouchableOpacity>
+                  </View>
+                )}
               </View>
 
               {modalStep === "details" ? (
                 <View>
-                  <View className="bg-background rounded-2xl px-5 h-16 flex-row items-center border border-border/50 mb-5">
-                    <Ionicons
-                      name="person-outline"
-                      size={20}
-                      color={Colors.textSecondary}
-                      style={{ marginRight: 12 }}
-                    />
-                    <TextInput
-                      className="flex-1 text-[16px] color-text font-[700]"
-                      placeholder="Your Full Name"
-                      placeholderTextColor="#64748B"
-                      value={name}
-                      onChangeText={(text) => {
-                        const filtered = text.replace(/[^a-zA-Z\s]/g, "");
-                        if (filtered !== text) {
-                          setIsNameWarningVisible(true);
-                          setTimeout(
-                            () => setIsNameWarningVisible(false),
-                            3000,
-                          );
-                        }
-                        setName(filtered);
-                      }}
-                      autoCapitalize="words"
-                      maxLength={30}
-                    />
+                  <View className="mb-5">
+                    <View className="flex-row items-center bg-[#1A1A1A] border border-white/10 rounded-[16px] h-[64px] px-5">
+                      <Ionicons
+                        name="person-outline"
+                        size={20}
+                        color="#64748B"
+                        style={{ marginRight: 12 }}
+                      />
+                      <TextInput
+                        className="flex-1 text-lg text-white font-[700]"
+                        placeholder="Your Full Name"
+                        placeholderTextColor="#444"
+                        value={name}
+                        onChangeText={(text) => {
+                          const filtered = text.replace(/[^a-zA-Z\s]/g, "");
+                          if (filtered !== text) {
+                            setIsNameWarningVisible(true);
+                            setTimeout(() => setIsNameWarningVisible(false), 3000);
+                          }
+                          setName(filtered);
+                        }}
+                        autoCapitalize="words"
+                        maxLength={30}
+                      />
+                    </View>
                     {isNameWarningVisible && (
-                      <Text className="absolute -bottom-5 left-12 text-[10px] color-red-500 font-[700]">
+                      <Text className="text-[10px] color-red-500 font-[700] mt-1 ml-2">
                         Only alphabets allowed
                       </Text>
                     )}
                   </View>
 
-                  <View className="bg-background rounded-2xl px-5 h-16 flex-row items-center border border-border/50 mb-8">
-                    <View className="pr-4 border-r border-border/50 mr-4">
-                      <Text className="text-[16px] font-[800] color-text">
-                        +91
-                      </Text>
+                  <View className="mb-10">
+                    <View className="flex-row items-center bg-[#1A1A1A] border border-white/10 rounded-[16px] h-[64px] px-5">
+                      <Text className="text-lg text-white font-[800]">+91</Text>
+                      <View className="w-[1px] h-6 bg-white/20 mx-4" />
+                      <TextInput
+                        className="flex-1 text-lg text-white font-[800] tracking-[1px]"
+                        placeholder="Mobile Number"
+                        placeholderTextColor="#444"
+                        keyboardType="phone-pad"
+                        maxLength={10}
+                        value={phoneNumber}
+                        onChangeText={(val) => setPhoneNumber(val.replace(/[^0-9]/g, ""))}
+                      />
                     </View>
-                    <TextInput
-                      className="flex-1 text-[16px] color-text font-[800] tracking-[2px]"
-                      placeholder="Mobile Number"
-                      placeholderTextColor="#64748B"
-                      keyboardType="phone-pad"
-                      maxLength={10}
-                      value={phoneNumber}
-                      onChangeText={setPhoneNumber}
-                    />
                   </View>
 
                   <TouchableOpacity
-                    className="bg-primary h-14 rounded-2xl items-center justify-center shadow-lg shadow-primary/30"
+                    className="bg-primary h-[60px] rounded-[16px] items-center justify-center shadow-2xl shadow-primary/40"
                     onPress={handleSendOtp}
                     disabled={isProcessing}
                   >
                     {isProcessing ? (
                       <ActivityIndicator color="#000" />
                     ) : (
-                      <Text className="text-[16px] font-[900] color-black uppercase tracking-tight">
-                        Request Secure OTP
+                      <Text className="text-[18px] font-[900] text-black">
+                        Continue
                       </Text>
                     )}
                   </TouchableOpacity>
                 </View>
               ) : (
                 <View>
-                  <TouchableOpacity
-                    onPress={() => setModalStep("details")}
-                    className="flex-row items-center mb-6 ml-1"
-                  >
-                    <Ionicons
-                      name="arrow-back"
-                      size={16}
-                      color={Colors.primary}
-                    />
-                    <Text className="text-[13px] font-[800] color-primary ml-2 uppercase tracking-tight">
-                      Change Number
-                    </Text>
-                  </TouchableOpacity>
-
-                  <View className="flex-row justify-between mb-8">
+                  <View className="flex-row justify-between mb-10">
                     {otp.map((digit, i) => (
                       <View key={i} className="w-[14%] aspect-square">
                         <TextInput
-                          ref={(ref) => {
+                          ref={(ref: any) => {
                             inputRefs.current[i] = ref;
                           }}
-                          className="w-full h-full bg-background rounded-xl text-center text-[24px] font-[900] color-text border border-border/50"
+                          className="w-full h-full bg-[#1A1A1A] rounded-xl text-center text-[24px] font-[900] text-white border-[2px] border-white/10"
                           keyboardType="number-pad"
-                          maxLength={1}
+                          maxLength={6}
+                          autoFocus={i === 0}
                           value={digit}
                           onChangeText={(val) => {
                             const text = val.replace(/[^0-9]/g, "");
-                            if (text.length > 0) {
+                            if (text.length >= 6) {
+                              const pasted = text.slice(-6).split("");
+                              setOtp(pasted);
+                              inputRefs.current[5]?.focus();
+                            } else if (text.length > 0) {
                               const newOtp = [...otp];
                               newOtp[i] = text.slice(-1);
                               setOtp(newOtp);
@@ -603,22 +620,50 @@ export default function SelectSlotScreen() {
                   </View>
 
                   <TouchableOpacity
-                    className="bg-primary h-14 rounded-2xl items-center justify-center shadow-lg shadow-primary/30"
+                    className="bg-primary h-[60px] rounded-[16px] items-center justify-center mb-8 shadow-2xl shadow-primary/40"
                     onPress={handleVerifyOtp}
                     disabled={isVerifying}
                   >
                     {isVerifying ? (
                       <ActivityIndicator color="#000" />
                     ) : (
-                      <Text className="text-[16px] font-[900] color-black uppercase tracking-tight">
-                        Verify & Complete
+                      <Text className="text-[18px] font-[900] text-black">
+                        Verify
                       </Text>
                     )}
                   </TouchableOpacity>
+
+                  <View className="items-center">
+                    <Text className="text-sm text-gray-500 font-[500] mb-2">
+                      Didn&apos;t receive code?
+                    </Text>
+                    <TouchableOpacity
+                      onPress={() => {
+                        if (timer === 0) {
+                          handleSendOtp();
+                        }
+                      }}
+                      disabled={timer > 0}
+                      className="flex-row items-center"
+                    >
+                      <Text
+                        className={`text-base font-[800] ${
+                          timer > 0 ? "text-gray-500" : "text-primary"
+                        }`}
+                      >
+                        Resend
+                      </Text>
+                      {timer > 0 && (
+                        <Text className="text-base font-[600] text-gray-500 ml-2">
+                          - 00:{timer < 10 ? `0${timer}` : timer}
+                        </Text>
+                      )}
+                    </TouchableOpacity>
+                  </View>
                 </View>
               )}
-            </View>
-          </KeyboardAvoidingView>
+            </KeyboardAvoidingView>
+          </View>
         </View>
       </Modal>
     </ScreenWrapper>

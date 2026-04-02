@@ -144,7 +144,7 @@ export default function SelectSlotScreen() {
 
   useEffect(() => {
     let interval: any;
-    if (showOtpModal && timer > 0) {
+    if (isLoginModalVisible && modalStep === "otp" && timer > 0) {
       interval = setInterval(() => {
         setTimer((prev) => prev - 1);
       }, 1000);
@@ -152,7 +152,7 @@ export default function SelectSlotScreen() {
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [showOtpModal, timer]);
+  }, [isLoginModalVisible, modalStep, timer]);
 
   const handleSendOtp = async () => {
     if (!name.trim()) {

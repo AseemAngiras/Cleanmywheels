@@ -66,6 +66,7 @@ export default function ProfileHome() {
   const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [selectedAvatar, setSelectedAvatar] = useState("");
   const translateY = useRef(new Animated.Value(height)).current;
+  const profileTranslateY = useRef(new Animated.Value(-height)).current;
   const overlayOpacity = useRef(new Animated.Value(0)).current;
 
   // Edit Profile Animations
@@ -114,7 +115,7 @@ export default function ProfileHome() {
     savedAddresses[0];
 
   useEffect(() => {
-    if (showLogout || showAvatarModal || showEditProfileModal) {
+    if (showLogout || showAvatarModal) {
       Animated.timing(overlayOpacity, {
         toValue: 1,
         duration: 300,
@@ -134,13 +135,30 @@ export default function ProfileHome() {
         translateY.setValue(height);
       });
     }
-  }, [
-    showLogout,
-    showAvatarModal,
-    showEditProfileModal,
-    overlayOpacity,
-    translateY,
-  ]);
+  }, [showLogout, showAvatarModal, overlayOpacity, translateY]);
+
+  useEffect(() => {
+    if (showEditProfileModal) {
+      Animated.timing(overlayOpacity, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+      Animated.spring(profileTranslateY, {
+        toValue: 0,
+        useNativeDriver: true,
+        bounciness: 5,
+      }).start();
+    } else {
+      Animated.timing(overlayOpacity, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true,
+      }).start(() => {
+        profileTranslateY.setValue(-height);
+      });
+    }
+  }, [showEditProfileModal, overlayOpacity, profileTranslateY]);
 
   useEffect(() => {
     if (showEditProfileModal) {
@@ -654,7 +672,12 @@ export default function ProfileHome() {
         </View>
 
         {/* LOGOUT MODAL */}
-        <Modal visible={showLogout} transparent animationType="fade">
+        <Modal
+          visible={showLogout}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowLogout(false)}
+        >
           <Animated.View
             className="flex-1 bg-black/60"
             style={{ opacity: overlayOpacity }}
@@ -697,7 +720,12 @@ export default function ProfileHome() {
         </Modal>
 
         {/* AVATAR SELECTION MODAL */}
-        <Modal visible={showAvatarModal} transparent animationType="fade">
+        <Modal
+          visible={showAvatarModal}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowAvatarModal(false)}
+        >
           <Animated.View
             className="flex-1 bg-black/60"
             style={{ opacity: overlayOpacity }}
@@ -769,7 +797,12 @@ export default function ProfileHome() {
         </Modal>
 
         {/* EDIT PROFILE MODAL */}
-        <Modal visible={showEditProfileModal} transparent animationType="fade">
+        <Modal
+          visible={showEditProfileModal}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowEditProfileModal(false)}
+        >
           <Animated.View
             className="flex-1 bg-black/60"
             style={{ opacity: overlayOpacity }}
@@ -781,10 +814,10 @@ export default function ProfileHome() {
             />
           </Animated.View>
           <Animated.View
-            className="absolute bottom-0 left-0 right-0 bg-card rounded-t-[32px] p-6 border border-border shadow-2xl elevation-20"
+            className="absolute top-0 left-0 right-0 bg-card rounded-b-[40px] p-8 border-b border-border shadow-2xl elevation-20"
             style={[
-              { transform: [{ translateY }] },
-              { paddingBottom: Math.max(insets.bottom, 40) },
+              { transform: [{ translateY: profileTranslateY }] },
+              { paddingTop: insets.top + 20 },
             ]}
           >
             <View className="items-center mb-6">
@@ -858,17 +891,14 @@ export default function ProfileHome() {
               </TouchableOpacity>
             </View>
 
-            {/* DELETE ACCOUNT OPTION */}
+            {/* SUBTLE DELETE ACCOUNT OPTION */}
             <TouchableOpacity
-              className="mt-6 py-4 rounded-2xl bg-red-500/10 items-center justify-center border border-red-500/20"
               onPress={handleDeleteAccount}
+              className="mt-8 mb-2 self-center opacity-20"
             >
-              <View className="flex-row items-center gap-2">
-                <Ionicons name="trash-outline" size={20} color={Colors.error} />
-                <Text className="text-base font-[600] text-error">
-                  Delete Account
-                </Text>
-              </View>
+              <Text className="text-gray-200 text-[15px] font-[500] tracking-tighter">
+                Delete Account
+              </Text>
             </TouchableOpacity>
           </Animated.View>
         </Modal>

@@ -15,6 +15,7 @@ import {
   ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
+  LayoutAnimation,
   Modal,
   Platform,
   Pressable,
@@ -163,8 +164,11 @@ export default function SelectServiceScreen() {
   );
 
   const handleServiceSelect = (id: string) => {
-    setSelectedService(id);
-    setAddons({});
+    if (selectedService !== id) {
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+      setSelectedService(id);
+      setAddons({});
+    }
   };
 
   const handleUpdatePrice = async () => {
@@ -379,81 +383,98 @@ export default function SelectServiceScreen() {
             )}
           </View>
 
-          <Text className="text-[14px] font-[800] color-textSecondary uppercase tracking-widest mb-6 px-5">
-            Pick Add-ons
-          </Text>
-
-          <View className="mb-0 px-5">
-            {isLoadingAddons ? (
-              <ActivityIndicator color={Colors.primary} />
-            ) : addonsList.length === 0 ? (
-              <View className="bg-card p-6 rounded-[24px] items-center border border-border/50">
-                <Text className="color-textSecondary italic">
-                  No add-ons available
+          {selectedService && (
+            <View className="mt-8 mb-10">
+              <View className="flex-row items-center justify-between px-5 mb-6">
+                <Text className="text-[14px] font-[800] color-textSecondary uppercase tracking-widest px-1">
+                  Pick Add-ons
                 </Text>
+                <View className="bg-primary/20 px-3 py-1.5 rounded-full border border-primary/30 flex-row items-center">
+                  <Ionicons name="trending-up" size={14} color={Colors.primary} />
+                  <Text className="text-[11px] font-[900] color-primary uppercase ml-1.5">
+                    60% of users select these
+                  </Text>
+                </View>
               </View>
-            ) : (
-              <View className="gap-3">
-                {addonsList.map((addon: any) => {
-                  const aid = addon._id || addon.id;
-                  const isSelected = !!addons[aid];
-                  return (
-                    <Pressable
-                      key={aid}
-                      onPress={() => {
-                        setAddons((prev) => ({
-                          ...prev,
-                          [aid]: !prev[aid],
-                        }));
-                      }}
-                      className={`flex-row items-center p-4 rounded-[24px] border ${
-                        isSelected
-                          ? "bg-primary/10 border-primary"
-                          : "bg-card border-border/50"
-                      }`}
-                    >
-                      <View 
-                        className={`w-12 h-12 rounded-2xl items-center justify-center mr-4 ${
-                          isSelected ? "bg-primary/20" : "bg-background"
-                        }`}
-                      >
-                        <Ionicons
-                          name={isSelected ? "sparkles" : "add-circle-outline"}
-                          size={24}
-                          color={isSelected ? Colors.primary : Colors.textSecondary}
-                        />
-                      </View>
-                      
-                      <View className="flex-1">
-                        <Text
-                          className={`text-[15px] font-[800] ${
-                            isSelected ? "color-text" : "color-text"
+
+              <View className="px-5">
+                {isLoadingAddons ? (
+                  <ActivityIndicator color={Colors.primary} />
+                ) : addonsList.length === 0 ? (
+                  <View className="bg-card p-6 rounded-[24px] items-center border border-border/50">
+                    <Text className="color-textSecondary italic">
+                      No add-ons available
+                    </Text>
+                  </View>
+                ) : (
+                  <View className="gap-3">
+                    {addonsList.map((addon: any) => {
+                      const aid = addon._id || addon.id;
+                      const isSelected = !!addons[aid];
+                      return (
+                        <Pressable
+                          key={aid}
+                          onPress={() => {
+                            setAddons((prev) => ({
+                              ...prev,
+                              [aid]: !prev[aid],
+                            }));
+                          }}
+                          className={`flex-row items-center p-5 rounded-[28px] border ${
+                            isSelected
+                              ? "bg-primary/10 border-primary shadow-sm shadow-primary/10"
+                              : "bg-card border-border/50"
                           }`}
                         >
-                          {addon.name}
-                        </Text>
-                        <Text className="text-[12px] font-[700] color-primary mt-0.5">
-                          + ₹{addon.normalPrice || addon.price}
-                        </Text>
-                      </View>
+                          <View 
+                            className={`w-14 h-14 rounded-2xl items-center justify-center mr-4 shadow-sm ${
+                              isSelected ? "bg-primary/20" : "bg-background"
+                            }`}
+                          >
+                            <Ionicons
+                              name={isSelected ? "sparkles" : "add-circle-outline"}
+                              size={28}
+                              color={isSelected ? Colors.primary : Colors.textSecondary}
+                            />
+                          </View>
+                          
+                          <View className="flex-1">
+                            <Text
+                              className="text-[16px] font-[800] color-text"
+                            >
+                              {addon.name}
+                            </Text>
+                            <View className="flex-row items-center mt-1">
+                              <Text className="text-[14px] font-[900] color-primary">
+                                +₹{addon.normalPrice || addon.price}
+                              </Text>
+                              {isSelected && (
+                                <Text className="ml-2 text-[10px] font-[800] color-success uppercase tracking-widest">
+                                  Selected
+                                </Text>
+                              )}
+                            </View>
+                          </View>
 
-                      <View
-                        className={`w-6 h-6 rounded-full items-center justify-center border-2 ${
-                          isSelected
-                            ? "bg-primary border-primary"
-                            : "border-border/50"
-                        }`}
-                      >
-                        {isSelected && (
-                          <Ionicons name="checkmark" size={14} color="#000" />
-                        )}
-                      </View>
-                    </Pressable>
-                  );
-                })}
+                          <View
+                            className={`w-7 h-7 rounded-full items-center justify-center border-2 ${
+                              isSelected
+                                ? "bg-primary border-primary"
+                                : "border-border/50"
+                            }`}
+                          >
+                            {isSelected && (
+                              <Ionicons name="checkmark" size={16} color="#000" />
+                            )}
+                          </View>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                )}
               </View>
-            )}
-          </View>
+            </View>
+          )}
 
           {/* MY SAVED CARS */}
           {cars.length > 0 && (

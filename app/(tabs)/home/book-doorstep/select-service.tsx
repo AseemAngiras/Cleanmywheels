@@ -383,15 +383,17 @@ export default function SelectServiceScreen() {
             Pick Add-ons
           </Text>
 
-          <View className="mb-8 px-5">
+          <View className="mb-0 px-5">
             {isLoadingAddons ? (
               <ActivityIndicator color={Colors.primary} />
             ) : addonsList.length === 0 ? (
-              <Text className="color-textSecondary italic">
-                No add-ons available
-              </Text>
+              <View className="bg-card p-6 rounded-[24px] items-center border border-border/50">
+                <Text className="color-textSecondary italic">
+                  No add-ons available
+                </Text>
+              </View>
             ) : (
-              <View className="flex-row flex-wrap">
+              <View className="gap-3">
                 {addonsList.map((addon: any) => {
                   const aid = addon._id || addon.id;
                   const isSelected = !!addons[aid];
@@ -404,47 +406,48 @@ export default function SelectServiceScreen() {
                           [aid]: !prev[aid],
                         }));
                       }}
-                      style={{
-                        margin: 6,
-                        flexDirection: "row",
-                        alignItems: "center",
-                        paddingHorizontal: 16,
-                        paddingVertical: 12,
-                        borderRadius: 16,
-                        borderWidth: 1,
-                        backgroundColor: isSelected
-                          ? Colors.primary
-                          : Colors.card,
-                        borderColor: isSelected
-                          ? Colors.primary
-                          : "rgba(226, 232, 240, 0.5)",
-                      }}
+                      className={`flex-row items-center p-4 rounded-[24px] border ${
+                        isSelected
+                          ? "bg-primary/10 border-primary"
+                          : "bg-card border-border/50"
+                      }`}
                     >
-                      <View style={{ flex: 1, marginRight: 8 }}>
+                      <View 
+                        className={`w-12 h-12 rounded-2xl items-center justify-center mr-4 ${
+                          isSelected ? "bg-primary/20" : "bg-background"
+                        }`}
+                      >
+                        <Ionicons
+                          name={isSelected ? "sparkles" : "add-circle-outline"}
+                          size={24}
+                          color={isSelected ? Colors.primary : Colors.textSecondary}
+                        />
+                      </View>
+                      
+                      <View className="flex-1">
                         <Text
-                          style={{
-                            fontSize: 13,
-                            fontWeight: "800",
-                            color: isSelected ? "#000" : Colors.text,
-                          }}
+                          className={`text-[15px] font-[800] ${
+                            isSelected ? "color-text" : "color-text"
+                          }`}
                         >
                           {addon.name}
                         </Text>
-                        <Text
-                          style={{
-                            fontSize: 12,
-                            fontWeight: "700",
-                            color: isSelected ? "rgba(0,0,0,0.6)" : Colors.primary,
-                          }}
-                        >
+                        <Text className="text-[12px] font-[700] color-primary mt-0.5">
                           + ₹{addon.normalPrice || addon.price}
                         </Text>
                       </View>
-                      <Ionicons
-                        name={isSelected ? "checkmark-circle" : "add-circle"}
-                        size={20}
-                        color={isSelected ? "#000" : Colors.primary}
-                      />
+
+                      <View
+                        className={`w-6 h-6 rounded-full items-center justify-center border-2 ${
+                          isSelected
+                            ? "bg-primary border-primary"
+                            : "border-border/50"
+                        }`}
+                      >
+                        {isSelected && (
+                          <Ionicons name="checkmark" size={14} color="#000" />
+                        )}
+                      </View>
                     </Pressable>
                   );
                 })}

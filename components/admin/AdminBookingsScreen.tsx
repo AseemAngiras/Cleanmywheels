@@ -66,6 +66,8 @@ const mapBookingToUI = (booking: any) => {
     workerId: booking.worker?._id || booking.worker,
     workerName: booking.worker?.name || null,
     workerPhone: booking.worker?.phone || null,
+    addons: booking.addons,
+    addonsTotal: booking.addonsTotal,
   };
 };
 

@@ -1,16 +1,29 @@
 export interface Booking {
-  _id: string;
-  houseOrFlatNo: string;
-  locality: string;
-  landmark: string;
-  city: string;
-  postalCode: string;
-  addressType: string;
-  washPackage: string;
-  vehicleType: string;
-  vehicleNo: string;
-  bookingDate: string;
-  bookingTime: number;
-  status?: string;
-  totalAmount?: number;
+  id: string;
+  _id?: string;
+  center?: string;
+  date: string;
+  timeSlot: string;
+  car: string;
+  plate?: string;
+  address?: any;
+  phone?: string;
+  carImage?: string;
+  price: number;
+  serviceName: string;
+  serviceId?: string;
+  status: string;
+  realStatus?: string;
+  workerName?: string;
+  workerPhone?: string;
+  addons?: {
+    addOn: any;
+    price: number;
+    normalPrice?: number;
+  }[];
+  addonsTotal?: number;
+  // Raw fields from backend sometimes present
+  washPackage?: any;
+  vehicle?: any;
+  bookingDate?: string;
 }

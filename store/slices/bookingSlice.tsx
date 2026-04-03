@@ -1,25 +1,7 @@
 import { createSlice, nanoid, PayloadAction } from "@reduxjs/toolkit";
+import { Booking } from "@/types";
 
 export type BookingStatus = "upcoming" | "completed" | "cancelled" | "pending" | "confirmed";
-
-export interface Booking {
-  id: string;
-  center: string;
-  date: string;
-  timeSlot: string;
-  car: string;
-  plate?: string;
-  address?: string;
-  phone?: string;
-  carImage: string;
-  price: number;
-  serviceName: string;
-  serviceId?: string;
-  status: BookingStatus;
-  realStatus?: string;
-  workerName?: string;
-  workerPhone?: string;
-}
 
 export interface Ticket {
   id: string;

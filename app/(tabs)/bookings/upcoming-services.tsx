@@ -73,6 +73,8 @@ const mapBackendBooking = (booking: any): Booking => {
     phone: booking.user?.phone || "",
     workerName: booking.worker?.name,
     workerPhone: booking.worker?.phone,
+    addons: booking.addons,
+    addonsTotal: booking.addonsTotal,
   };
 };
 
@@ -560,6 +562,14 @@ export default function UpcomingServices() {
                   <Text className="mt-[6px] text-sm text-textSecondary">
                     {item.car}
                   </Text>
+                  {item.addons && item.addons.length > 0 && (
+                    <View className="flex-row items-center mt-2 bg-primary/10 self-start px-2 py-1 rounded-md border border-primary/20">
+                      <Ionicons name="add-circle" size={12} color={Colors.primary} />
+                      <Text className="text-[11px] font-[700] text-primary ml-1 uppercase">
+                        +{item.addons.length} Add-on{item.addons.length > 1 ? "s" : ""}
+                      </Text>
+                    </View>
+                  )}
                 </View>
 
                 {/* Stylized Icon to fill space */}
@@ -779,6 +789,33 @@ export default function UpcomingServices() {
                       </Text>
                     </View>
                   </View>
+
+                  {/* Add-ons Section */}
+                  {activeBooking.addons && activeBooking.addons.length > 0 && (
+                    <View className="mt-4 bg-primary/5 p-4 rounded-[24px] border border-primary/10">
+                      <View className="flex-row items-center mb-3">
+                        <Ionicons name="add-circle" size={18} color={Colors.primary} />
+                        <Text className="text-[15px] font-[700] color-text ml-2">Selected Add-ons</Text>
+                      </View>
+                      <View className="gap-2">
+                        {activeBooking.addons.map((addon: any, index: number) => (
+                          <View key={index} className="flex-row justify-between items-center bg-card p-3 rounded-xl border border-border/50">
+                            <Text className="text-[14px] font-[600] color-text">
+                              {addon.addOn?.name || "Extra Service"}
+                            </Text>
+                            <Text className="text-[14px] font-[700] color-primary">
+                              ₹{addon.price}
+                            </Text>
+                          </View>
+                        ))}
+                        <View className="h-[1px] bg-border/50 my-1" />
+                        <View className="flex-row justify-between items-center px-1">
+                          <Text className="text-[13px] font-[600] color-textSecondary">Add-ons Total</Text>
+                          <Text className="text-[15px] font-[800] color-text">₹{activeBooking.addonsTotal || 0}</Text>
+                        </View>
+                      </View>
+                    </View>
+                  )}
                 </View>
               </ScrollView>
             </View>

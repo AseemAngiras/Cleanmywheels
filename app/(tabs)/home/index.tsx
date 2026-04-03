@@ -273,6 +273,8 @@ export default function HomeScreen() {
         price,
         date,
         serviceId,
+        addons: booking.addons,
+        addonsTotal: booking.addonsTotal,
       });
     }
   });

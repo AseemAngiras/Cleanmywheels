@@ -205,6 +205,36 @@ export default function BookingDetailsModal({
                 </View>
               </View>
             </View>
+            {/* Add-ons */}
+            {booking.addons && booking.addons.length > 0 && (
+              <View className="mb-8">
+                <Text className="text-[13px] font-[800] color-textSecondary uppercase tracking-widest mb-4 px-2">
+                  Selected Add-ons
+                </Text>
+                <View className="bg-background/30 rounded-[32px] border border-border/50 p-6 gap-3">
+                  {booking.addons.map((addon: any, index: number) => (
+                    <View key={index} className="flex-row justify-between items-center bg-card/50 p-4 rounded-2xl border border-border/30">
+                      <View className="flex-row items-center flex-1">
+                        <View className="w-8 h-8 rounded-full bg-primary/10 items-center justify-center mr-3">
+                          <Ionicons name="add" size={16} color={Colors.primary} />
+                        </View>
+                        <Text className="text-[15px] color-text font-[600] flex-1">
+                          {addon.addOn?.name || "Extra Service"}
+                        </Text>
+                      </View>
+                      <Text className="text-[15px] font-[800] color-primary ml-2">
+                        ₹{addon.price}
+                      </Text>
+                    </View>
+                  ))}
+                  <View className="h-[1px] bg-border/50 my-2" />
+                  <View className="flex-row justify-between items-center px-2">
+                    <Text className="text-[14px] font-[700] color-textSecondary">Add-ons Total</Text>
+                    <Text className="text-[16px] font-[900] color-text">₹{booking.addonsTotal || 0}</Text>
+                  </View>
+                </View>
+              </View>
+            )}
 
             {/* Address */}
             <View className="mb-8">

@@ -218,10 +218,14 @@ export default function SelectServiceScreen() {
         };
       });
 
+    const selectedServiceData = services.find((s) => s.id === selectedService);
+
     router.push({
       pathname: "/(tabs)/home/book-doorstep/select-slot",
       params: {
         serviceId: selectedService,
+        serviceName: selectedServiceData?.name,
+        basePrice: selectedServiceData?.price,
         vehicleNumber,
         vehicleType,
         address,

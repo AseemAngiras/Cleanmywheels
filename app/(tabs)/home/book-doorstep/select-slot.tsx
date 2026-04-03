@@ -423,15 +423,25 @@ export default function SelectSlotScreen() {
         <View className="flex-row justify-between items-center mb-5 px-1">
           <View>
             <Text className="text-[12px] font-[800] color-textSecondary uppercase tracking-widest">
-              Selected Slot
+              Selected Service & Add-ons
             </Text>
+            <View className="flex-row items-center mt-1">
+               <Text className="text-[16px] font-[900] color-primary">
+                 {params.serviceName || "Wash"}
+               </Text>
+               {params.addons && JSON.parse(params.addons as string).length > 0 && (
+                 <Text className="text-[13px] font-[700] color-textSecondary ml-2">
+                   + {JSON.parse(params.addons as string).length} Add-ons
+                 </Text>
+               )}
+            </View>
             {selectedSlot ? (
-              <Text className="text-[18px] font-[900] color-primary mt-1">
+              <Text className="text-[14px] font-[800] color-text mt-0.5">
                 {dates[selectedDate].month} {dates[selectedDate].date} •{" "}
                 {timeSlots.find((s) => s.id === selectedSlot)?.time}
               </Text>
             ) : (
-              <Text className="text-[15px] font-[700] color-textSecondary italic mt-1">
+              <Text className="text-[13px] font-[700] color-textSecondary italic mt-0.5">
                 Pick a time to continue
               </Text>
             )}

@@ -122,13 +122,15 @@ export default function BookingSummaryScreen() {
     };
   }, [userId, token, isVerifyingPayment, params, displayGrandTotal, router]);
 
-  const checkPaymentStatus = async (bookingId: string) => {
+  const checkPaymentStatus = async (
+    bookingId: string,
+    isOneTimeCheck: boolean = false,
+  ) => {
     setIsVerifyingPayment(true);
     let attempts = 0;
     const maxAttempts = 10;
 
-    if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
-    pollIntervalRef.current = setInterval(async () => {
+    const performCheck = async (isFinalOneTime: boolean = false) => {
       attempts++;
       try {
         const result = await triggerGetBooking(bookingId).unwrap();
@@ -143,6 +145,7 @@ export default function BookingSummaryScreen() {
             pollIntervalRef.current = null;
           }
           setIsVerifyingPayment(false);
+          setShowGateway(false);
           router.push({
             pathname: "/(tabs)/home/book-doorstep/order-confirmation",
             params: {
@@ -152,16 +155,45 @@ export default function BookingSummaryScreen() {
               paymentMethod: "razorpay",
             },
           });
+          return true;
         } else if (status === "cancelled" || status === "failed") {
-          if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+          if (pollIntervalRef.current) {
+            clearInterval(pollIntervalRef.current);
+            pollIntervalRef.current = null;
+          }
           setIsVerifyingPayment(false);
-          Alert.alert("Payment Failed", "The payment was cancelled or failed.");
-        } else if (attempts >= maxAttempts) {
-          if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+          setShowGateway(false);
+          router.push({
+            pathname: "/(tabs)/home/book-doorstep/payment-failed",
+            params: {
+              ...params,
+              grandTotal: displayGrandTotal,
+              bookingId,
+            },
+          });
+          return true;
+        } else if (isFinalOneTime) {
           setIsVerifyingPayment(false);
+          setShowGateway(false);
+          router.push({
+            pathname: "/(tabs)/home/book-doorstep/payment-failed",
+            params: {
+              ...params,
+              grandTotal: displayGrandTotal,
+              bookingId,
+            },
+          });
+          return true;
+        } else if (!isOneTimeCheck && attempts >= maxAttempts) {
+          if (pollIntervalRef.current) {
+            clearInterval(pollIntervalRef.current);
+            pollIntervalRef.current = null;
+          }
+          setIsVerifyingPayment(false);
+          setShowGateway(false);
           Alert.alert(
             "Verification Pending",
-            "Payment confirmmation is taking longer. Check 'My Bookings' later.",
+            "Payment confirmation is taking longer. Check 'My Bookings' later.",
             [
               {
                 text: "My Bookings",
@@ -170,9 +202,28 @@ export default function BookingSummaryScreen() {
               { text: "Close", style: "cancel" },
             ],
           );
+          return true; // Stop
         }
+        return false; // Continue
       } catch (err) {
         console.error("Poll err", err);
+        return false;
+      }
+    };
+
+    if (isOneTimeCheck) {
+      setTimeout(async () => {
+        await performCheck(true);
+      }, 2000);
+      return;
+    }
+
+    if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+    pollIntervalRef.current = setInterval(async () => {
+      const stopped = await performCheck();
+      if (stopped && pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
+        pollIntervalRef.current = null;
       }
     }, 5000);
   };
@@ -452,9 +503,14 @@ export default function BookingSummaryScreen() {
             </Text>
             <TouchableOpacity
               onPress={() => {
+                if (pollIntervalRef.current) {
+                  clearInterval(pollIntervalRef.current);
+                  pollIntervalRef.current = null;
+                }
+                setIsVerifyingPayment(false);
                 setShowGateway(false);
                 if (currentBookingIdRef.current)
-                  checkPaymentStatus(currentBookingIdRef.current);
+                  checkPaymentStatus(currentBookingIdRef.current, true);
               }}
             >
               <Ionicons name="close" size={24} color={Colors.text} />

@@ -26,47 +26,67 @@ import {
   useGetMySubscriptionQuery,
 } from "../../../store/api/subscriptionApi";
 import { useAppSelector } from "../../../store/hooks";
-import { type Booking } from "../../../store/slices/bookingSlice";
+import { type Booking, type BookingStatus } from "../../../store/slices/bookingSlice";
 
 // Helper to map backend booking to display format
-const mapBackendBooking = (booking: any): Booking => ({
-  id: booking._id,
-  center: booking.washPackage?.name || "Car Wash Service",
-  date: new Date(booking.bookingDate).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }),
-  timeSlot: booking.bookingTime
-    ? `${
-        booking.bookingTime > 12
-          ? booking.bookingTime - 12
-          : booking.bookingTime
-      }:00 ${booking.bookingTime >= 12 ? "PM" : "AM"}`
-    : "N/A",
-  car: booking.vehicleType || booking.vehicle?.type || "Car",
-  carImage: "",
-  status:
-    booking.status?.toLowerCase() === "completed" ? "completed" : "upcoming",
-  serviceName: booking.serviceName || booking.washPackage?.name || "Car Wash",
-  price: booking.price || 0,
-  plate: booking.vehicleNo || booking.vehicle?.number || "N/A",
-  address: booking.locality
-    ? `${booking.houseOrFlatNo || ""}, ${booking.locality}, ${
-        booking.city || ""
-      }`.replace(/^, /, "")
-    : "Address not provided",
-  phone: booking.user?.phone || "",
-  workerName: booking.worker?.name,
-  workerPhone: booking.worker?.phone,
-});
+const mapBackendBooking = (booking: any): Booking => {
+  const rawStatus = booking.status?.toLowerCase();
+  let displayStatus: BookingStatus = "upcoming";
+
+  if (rawStatus === "completed") {
+    displayStatus = "completed";
+  } else if (rawStatus === "cancelled" || rawStatus === "failed") {
+    displayStatus = "cancelled";
+  } else if (rawStatus === "pending") {
+    displayStatus = "pending";
+  } else if (rawStatus === "confirmed") {
+    displayStatus = "confirmed";
+  }
+
+  return {
+    id: booking._id,
+    center: booking.washPackage?.name || "Car Wash Service",
+    date: new Date(booking.bookingDate).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    }),
+    timeSlot: booking.bookingTime
+      ? `${
+          booking.bookingTime > 12
+            ? booking.bookingTime - 12
+            : booking.bookingTime
+        }:00 ${booking.bookingTime >= 12 ? "PM" : "AM"}`
+      : "N/A",
+    car: booking.vehicleType || booking.vehicle?.type || "Car",
+    carImage: "",
+    status: displayStatus,
+    realStatus: booking.status,
+    serviceName: booking.serviceName || booking.washPackage?.name || "Car Wash",
+    price: booking.price || 0,
+    plate: booking.vehicleNo || booking.vehicle?.number || "N/A",
+    address: booking.locality
+      ? `${booking.houseOrFlatNo || ""}, ${booking.locality}, ${
+          booking.city || ""
+        }`.replace(/^, /, "")
+      : "Address not provided",
+    phone: booking.user?.phone || "",
+    workerName: booking.worker?.name,
+    workerPhone: booking.worker?.phone,
+  };
+};
 
 export default function UpcomingServices() {
   const router = useRouter();
 
+  const user = useAppSelector((state: RootState) => state.user.user);
+  const isAdmin =
+    user?.accountType === "Super Admin" || user?.accountType === "Admin";
+
   const {
     data: bookingsResponse,
     isFetching,
+    error,
     refetch,
   } = useGetBookingsQuery({ page: 1, perPage: 100 });
 
@@ -83,22 +103,28 @@ export default function UpcomingServices() {
   const bookingList = bookingsResponse?.data?.bookingList || [];
   const bookings = bookingList
     .filter((b: any) => {
+      const bUserId = b.user?._id || b.user;
+      const currentUserId = user?._id;
+
       // If not admin, only show own bookings
-      if (!isAdmin && b.user?._id !== user?._id) {
+      if (!isAdmin && bUserId !== currentUserId) {
         return false;
       }
 
-      const status = b.status?.toLowerCase();
+      const status = (b.status || "").toLowerCase();
 
-      // For admins, show pending bookings even without a worker (so they can assign one)
+      // For admins, show pending bookings (so they can assign a worker)
       if (isAdmin && status === "pending") {
         return true;
       }
 
-      if (status === "pending" && b.worker) {
-        return true;
+      // Hide pending bookings for regular users
+      if (status === "pending") {
+        return false;
       }
-      return !["completed", "cancelled", "pending", "failed"].includes(status);
+
+      // Skip completed or failed
+      return !["completed", "cancelled", "failed"].includes(status);
     })
     .map(mapBackendBooking);
 
@@ -108,10 +134,6 @@ export default function UpcomingServices() {
   const slideAnim = useRef(new Animated.Value(300)).current;
   const scaleAnim = useRef(new Animated.Value(0.95)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
-
-  const user = useAppSelector((state: RootState) => state.user.user);
-  const isAdmin =
-    user?.accountType === "Super Admin" || user?.accountType === "Admin";
 
   const { data: workersData } = useGetWorkersQuery({});
   const workers = workersData?.workers || [];
@@ -637,7 +659,7 @@ export default function UpcomingServices() {
                           <View className="flex-row items-center bg-black/5 px-2 py-1 rounded-full gap-1">
                             <Ionicons name="time" size={12} color="#1a1a1a" />
                             <Text className="text-[12px] font-[600] text-black">
-                              {activeBooking.status}
+                              {activeBooking.realStatus || activeBooking.status}
                             </Text>
                           </View>
                         </View>

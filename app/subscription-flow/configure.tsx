@@ -65,6 +65,7 @@ export default function SubscriptionConfigureScreen() {
     null,
   );
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string | null>(null);
+  const [selectedFrequency, setSelectedFrequency] = useState<string>("DAILY");
   const [startDate] = useState(new Date());
 
   const [showAddCarModal, setShowAddCarModal] = useState(false);
@@ -155,6 +156,7 @@ export default function SubscriptionConfigureScreen() {
         timeSlot: selectedTimeSlot,
         startDate: startDate.toISOString(),
         isAutoPay: "true",
+        frequencyType: selectedFrequency,
       },
     } as any);
   };
@@ -194,9 +196,22 @@ export default function SubscriptionConfigureScreen() {
             <Text className="text-[18px] font-[800] color-primary mb-1">
               {selectedPlan.name}
             </Text>
-            <Text className="text-[15px] font-[600] color-primary/80">
-              ₹{selectedPlan.price} / 30 days
-            </Text>
+            <View className="flex-row items-baseline">
+              <Text className="text-[22px] font-[900] color-primary">
+                ₹{Math.round(
+                  selectedPlan.price *
+                    (selectedPlan.frequencies?.find(
+                      (f) => f.type === selectedFrequency,
+                    )?.multiplier || 1),
+                )}
+              </Text>
+              <Text className="text-[14px] font-[700] color-primary/60 ml-2 uppercase">
+                /{" "}
+                {selectedPlan.frequencies?.find(
+                  (f) => f.type === selectedFrequency,
+                )?.label || "Month"}
+              </Text>
+            </View>
           </View>
 
           <Text className="text-[18px] font-[700] color-text mb-4">

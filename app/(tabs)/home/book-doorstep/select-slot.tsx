@@ -256,6 +256,7 @@ export default function SelectSlotScreen() {
         servicePrice: params.basePrice as string,
         totalPrice: (params.totalPrice || params.basePrice) as string,
         addressType: params.addressType as string,
+        addons: params.addons as string,
       },
     });
   };

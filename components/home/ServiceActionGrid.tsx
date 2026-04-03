@@ -29,7 +29,7 @@ export const ServiceActionGrid = ({
     if (isNavigating.current) return;
     isNavigating.current = true;
     if (hasActiveSubscription) {
-      router.push("/subscription/addons");
+      router.push("/subscription-flow/addons");
     } else {
       router.push("/(tabs)/subscriptions");
     }

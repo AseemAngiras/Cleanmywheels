@@ -30,6 +30,21 @@ export const ActiveSubscriptionCard = ({
       )
     : 0;
 
+  const totalServices =
+    subscription.totalServicesPlanned || subscription.servicesTotal || 30;
+  const progress = Math.min(
+    (subscription.servicesCompleted / totalServices) * 100,
+    100,
+  );
+
+  const frequencyLabel =
+    {
+      DAILY: "Daily",
+      WEEKLY: "Weekly",
+      BIWEEKLY: "Bi-weekly",
+      ALTERNATE_DAY: "Alternate Day",
+    }[subscription.frequencyType as string] || "Daily";
+
   return (
     <TouchableOpacity
       activeOpacity={0.9}
@@ -48,10 +63,15 @@ export const ActiveSubscriptionCard = ({
               #{subscription._id.slice(-6).toUpperCase()}
             </Text>
           </View>
-          <View className="flex-row items-center bg-green-500/10 px-3 py-1.5 rounded-full border border-green-500/20">
-            <View className="w-1.5 h-1.5 rounded-full bg-green-500 mr-2" />
-            <Text className="text-[10px] font-[800] color-green-500 tracking-widest">
-              ACTIVE
+          <View className="items-end">
+            <View className="flex-row items-center bg-green-500/10 px-3 py-1.5 rounded-full border border-green-500/20">
+              <View className="w-1.5 h-1.5 rounded-full bg-green-500 mr-2" />
+              <Text className="text-[10px] font-[800] color-green-500 tracking-widest uppercase">
+                {subscription.status || "ACTIVE"}
+              </Text>
+            </View>
+            <Text className="text-[11px] font-[800] color-primary uppercase tracking-widest mt-2 px-1">
+              {frequencyLabel}
             </Text>
           </View>
         </View>
@@ -90,6 +110,23 @@ export const ActiveSubscriptionCard = ({
             >
               {daysLeft} days left
             </Text>
+          </View>
+        </View>
+
+        <View className="mt-6 mb-2">
+          <View className="flex-row justify-between items-center mb-2">
+            <Text className="text-[10px] color-textSecondary font-[700] tracking-widest uppercase">
+              SERVICE PROGRESS
+            </Text>
+            <Text className="text-[11px] font-[800] color-text">
+              {subscription.servicesCompleted} / {totalServices} WASHES
+            </Text>
+          </View>
+          <View className="h-2 bg-background rounded-full overflow-hidden border border-border/30">
+            <View
+              className="h-full bg-primary rounded-full"
+              style={{ width: `${progress}%` }}
+            />
           </View>
         </View>
 

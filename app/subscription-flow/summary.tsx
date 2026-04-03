@@ -27,7 +27,7 @@ const RAZORPAY_KEY = process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID || "";
 
 export default function SubscriptionSummaryScreen() {
   const router = useRouter();
-  const { planId, vehicleId, timeSlot, startDate, isAutoPay } =
+  const { planId, vehicleId, timeSlot, startDate, isAutoPay, frequencyType } =
     useLocalSearchParams();
 
   const { data: plans } = useGetPlansQuery();
@@ -61,6 +61,7 @@ export default function SubscriptionSummaryScreen() {
         timeSlot: timeSlot as string,
         startDate: startDate as string,
         isAutoPay: isAutoPay === "true",
+        frequencyType: frequencyType as string,
       }).unwrap();
 
       const {
@@ -159,6 +160,7 @@ export default function SubscriptionSummaryScreen() {
                 paymentMethod: "Online",
                 selectedDate: startDate as string,
                 selectedTime: timeSlot as string,
+                frequencyType: frequencyType as string,
               },
             } as any);
           }, 5000);
@@ -316,10 +318,10 @@ export default function SubscriptionSummaryScreen() {
           <View className="mt-4 px-2">
             <View className="flex-row justify-between mb-3 items-center">
               <Text className="text-[15px] font-[600] color-textSecondary">
-                Subtotal
+                Frequency ({selectedPlan.frequencies?.find(f => f.type === frequencyType)?.label || "Daily"})
               </Text>
               <Text className="text-[16px] font-[700] color-text">
-                ₹{selectedPlan.price}
+                ₹{Math.round(selectedPlan.price * (selectedPlan.frequencies?.find(f => f.type === frequencyType)?.multiplier || 1))}
               </Text>
             </View>
             <View className="h-[1px] bg-border/50 w-full my-4" />
@@ -328,7 +330,7 @@ export default function SubscriptionSummaryScreen() {
                 Grand Total
               </Text>
               <Text className="text-[22px] font-[900] color-primary">
-                ₹{selectedPlan.price}
+                ₹{Math.round(selectedPlan.price * (selectedPlan.frequencies?.find(f => f.type === frequencyType)?.multiplier || 1))}
               </Text>
             </View>
           </View>

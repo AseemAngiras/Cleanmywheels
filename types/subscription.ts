@@ -14,6 +14,13 @@ export interface SubscriptionPlan {
   features: string[];
   razorpayPlanId: string;
   isActive: boolean;
+  frequencies?: {
+    type: "DAILY" | "WEEKLY" | "BIWEEKLY" | "ALTERNATE_DAY";
+    label: string;
+    description: string;
+    multiplier: number;
+    totalServices: number;
+  }[];
 }
 
 export interface Addon {
@@ -37,15 +44,23 @@ export interface UserSubscription {
     model: string;
     color: string;
     image?: string;
+    vehicleType?: string;
   };
   razorpaySubscriptionId?: string;
-  status: "active" | "created" | "authenticated" | "expired" | "cancelled";
+  status: "active" | "created" | "authenticated" | "expired" | "cancelled" | "ongoing";
   startDate: string;
   endDate: string;
   autoRenew: boolean;
   paymentMethod?: string;
   servicesTotal: number;
   servicesCompleted: number;
+  frequencyType?: "DAILY" | "WEEKLY" | "BIWEEKLY" | "ALTERNATE_DAY";
+  totalServicesPlanned?: number;
+  serviceDates?: {
+    date: string;
+    status: "pending" | "completed" | "skipped";
+    addons?: any[];
+  }[];
   worker?: {
     _id: string;
     name: string;

@@ -68,6 +68,7 @@ export const subscriptionApi = createApi({
         timeSlot: string;
         startDate: string;
         isAutoPay?: boolean;
+        frequencyType?: string;
       }
     >({
       query: (body) => ({

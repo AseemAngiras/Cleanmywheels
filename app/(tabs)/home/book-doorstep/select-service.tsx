@@ -1,4 +1,4 @@
-import { RootState } from "@/store";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   useGetWashPackagesQuery,
   useUpdateWashPackageMutation,
@@ -11,13 +11,10 @@ import {
   useNavigation,
   useRouter,
 } from "expo-router";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
-  Animated,
   KeyboardAvoidingView,
-  LayoutAnimation,
   Modal,
   Platform,
   Pressable,
@@ -30,73 +27,14 @@ import {
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Colors } from "@/constants/Colors";
-import { useSelector } from "react-redux";
 import BookingStepper from "../../../../components/BookingStepper";
 import { ListSkeleton } from "../../../../components/SkeletonLoader";
-import { useGetMySubscriptionQuery } from "@/store/api/subscriptionApi";
+import {
+  useGetMySubscriptionQuery,
+  useGetAddonsQuery,
+} from "@/store/api/subscriptionApi";
 
-// Animated expandable component for smooth transitions
-const ExpandableDetails = ({
-  isExpanded,
-  features,
-}: {
-  isExpanded: boolean;
-  features: string[];
-}) => {
-  const animatedHeight = useRef(new Animated.Value(0)).current;
-  const animatedOpacity = useRef(new Animated.Value(0)).current;
 
-  useEffect(() => {
-    Animated.parallel([
-      Animated.timing(animatedHeight, {
-        toValue: isExpanded ? 1 : 0,
-        duration: 300,
-        useNativeDriver: false,
-      }),
-      Animated.timing(animatedOpacity, {
-        toValue: isExpanded ? 1 : 0,
-        duration: 250,
-        useNativeDriver: false,
-      }),
-    ]).start();
-  }, [isExpanded, animatedHeight, animatedOpacity]);
-
-  const maxHeight = animatedHeight.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, 200],
-  });
-
-  return (
-    <Animated.View
-      style={{
-        maxHeight: maxHeight,
-        opacity: animatedOpacity,
-        overflow: "hidden",
-      }}
-    >
-      <View className="mt-4 pt-4 border-t border-border/30">
-        <View className="flex-row flex-wrap gap-2">
-          {features.map((feature, index) => (
-            <View
-              key={index}
-              className="flex-row items-center bg-primary/10 px-3 py-2 rounded-full border border-primary/20"
-            >
-              <Ionicons
-                name="checkmark-circle"
-                size={14}
-                color={Colors.primary}
-                style={{ marginRight: 6 }}
-              />
-              <Text className="text-[11px] color-primary font-[700] uppercase">
-                {feature.trim()}
-              </Text>
-            </View>
-          ))}
-        </View>
-      </View>
-    </Animated.View>
-  );
-};
 
 export default function SelectServiceScreen() {
   // const user = useSelector((state: RootState) => state.user.user);
@@ -107,14 +45,17 @@ export default function SelectServiceScreen() {
   const { data: subscriptions } = useGetMySubscriptionQuery();
 
   // Filter out subscribed vehicle from the list
-  const cars = allCars.filter((car: any) => {
-    if (!subscriptions || !Array.isArray(subscriptions)) return true;
-    return !subscriptions.some((sub: any) => {
-      if (sub.status !== "active" || !sub.vehicle) return false;
-      const subCarId = sub.vehicle._id || sub.vehicle;
-      return (car._id || car.id) === subCarId;
+  const cars = useMemo(() => {
+    const allCarsList = allCars || [];
+    if (!subscriptions || !Array.isArray(subscriptions)) return allCarsList;
+    return allCarsList.filter((car: any) => {
+      return !subscriptions.some((sub: any) => {
+        if (sub.status !== "active" || !sub.vehicle) return false;
+        const subCarId = sub.vehicle._id || sub.vehicle;
+        return (car._id || car.id) === subCarId;
+      });
     });
-  });
+  }, [allCars, subscriptions]);
 
   // const [createVehicle] = useCreateVehicleMutation();
   const router = useRouter();
@@ -130,6 +71,8 @@ export default function SelectServiceScreen() {
     isLoading: isLoadingPackages,
     // error: loadError,
   } = useGetWashPackagesQuery({ page: 1, perPage: 10 });
+  const { data: addonsList = [], isLoading: isLoadingAddons } =
+    useGetAddonsQuery();
 
   const [updateWashPackage, { isLoading: isUpdating }] =
     useUpdateWashPackageMutation();
@@ -157,7 +100,7 @@ export default function SelectServiceScreen() {
   );
 
   useEffect(() => {
-    if (services.length > 0 && !selectedService) {
+    if (services.length > 0 && selectedService === null) {
       setSelectedService(services[0].id);
     }
   }, [services, selectedService]);
@@ -174,7 +117,6 @@ export default function SelectServiceScreen() {
 
   const toggleDetails = (id: string, e: any) => {
     e.stopPropagation();
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setDetailsExpanded((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
@@ -187,16 +129,19 @@ export default function SelectServiceScreen() {
   const [vehicleNumber, setVehicleNumber] = useState("");
   const [selectedCarId, setSelectedCarId] = useState<string | null>(null);
 
-  const vehicleTypes = [
-    { id: "Hatchback", name: "Hatchback", icon: "car-hatchback" },
-    { id: "Sedan", name: "Sedan", icon: "car-side" },
-    { id: "SUV", name: "SUV", icon: "car-estate" },
-    { id: "Two Wheeler", name: "Two Wheeler", icon: "motorbike" },
-  ];
+  const vehicleTypes = useMemo(
+    () => [
+      { id: "Hatchback", name: "Hatchback", icon: "car-hatchback" },
+      { id: "Sedan", name: "Sedan", icon: "car-side" },
+      { id: "SUV", name: "SUV", icon: "car-estate" },
+      { id: "Two Wheeler", name: "Two Wheeler", icon: "motorbike" },
+    ],
+    [],
+  );
 
   useEffect(() => {
     if (selectedCarId) {
-      const selectedCar = cars.find(
+      const selectedCar = (cars as any[]).find(
         (c: any) => (c._id || c.id) === selectedCarId,
       );
       if (selectedCar) {
@@ -209,7 +154,7 @@ export default function SelectServiceScreen() {
         setVehicleNumber(selectedCar.vehicleNo || selectedCar.number || "");
       }
     }
-  }, [selectedCarId, cars]);
+  }, [selectedCarId, cars, vehicleTypes]);
 
   useFocusEffect(
     useCallback(() => {
@@ -218,7 +163,6 @@ export default function SelectServiceScreen() {
   );
 
   const handleServiceSelect = (id: string) => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setSelectedService(id);
     setAddons({});
   };
@@ -238,11 +182,20 @@ export default function SelectServiceScreen() {
     }
   };
 
-  const calculateTotal = () => {
+  const totalPrice = useMemo(() => {
     let servicePrice =
       services.find((s) => s.id === selectedService)?.price || 0;
-    return servicePrice;
-  };
+    const addonsTotal = Object.entries(addons).reduce((acc, [id, selected]) => {
+      if (selected) {
+        const addon = (addonsList as any[]).find(
+          (a: any) => (a._id || a.id) === id,
+        );
+        return acc + (addon?.normalPrice || addon?.price || 0);
+      }
+      return acc;
+    }, 0);
+    return servicePrice + addonsTotal;
+  }, [services, selectedService, addons, addonsList]);
 
   const handleNext = () => {
     if (!selectedService) {
@@ -253,6 +206,17 @@ export default function SelectServiceScreen() {
       Alert.alert("Error", "Please enter vehicle number");
       return;
     }
+
+    const selectedAddonDetails = Object.entries(addons)
+      .filter(([_, selected]) => selected)
+      .map(([id, _]) => {
+        const addon = addonsList.find((a: any) => (a._id || a.id) === id);
+        return {
+          id: addon?._id || addon?.id,
+          name: addon?.name,
+          price: addon?.normalPrice || addon?.price,
+        };
+      });
 
     router.push({
       pathname: "/(tabs)/home/book-doorstep/select-slot",
@@ -265,7 +229,8 @@ export default function SelectServiceScreen() {
         longitude,
         addressId,
         addressType,
-        totalPrice: calculateTotal(),
+        totalPrice,
+        addons: JSON.stringify(selectedAddonDetails),
       },
     });
   };
@@ -404,6 +369,79 @@ export default function SelectServiceScreen() {
                         )}
                       </View>
                     </TouchableOpacity>
+                  );
+                })}
+              </View>
+            )}
+          </View>
+
+          <Text className="text-[14px] font-[800] color-textSecondary uppercase tracking-widest mb-6 px-5">
+            Pick Add-ons
+          </Text>
+
+          <View className="mb-8 px-5">
+            {isLoadingAddons ? (
+              <ActivityIndicator color={Colors.primary} />
+            ) : addonsList.length === 0 ? (
+              <Text className="color-textSecondary italic">
+                No add-ons available
+              </Text>
+            ) : (
+              <View className="flex-row flex-wrap">
+                {addonsList.map((addon: any) => {
+                  const aid = addon._id || addon.id;
+                  const isSelected = !!addons[aid];
+                  return (
+                    <Pressable
+                      key={aid}
+                      onPress={() => {
+                        setAddons((prev) => ({
+                          ...prev,
+                          [aid]: !prev[aid],
+                        }));
+                      }}
+                      style={{
+                        margin: 6,
+                        flexDirection: "row",
+                        alignItems: "center",
+                        paddingHorizontal: 16,
+                        paddingVertical: 12,
+                        borderRadius: 16,
+                        borderWidth: 1,
+                        backgroundColor: isSelected
+                          ? Colors.primary
+                          : Colors.card,
+                        borderColor: isSelected
+                          ? Colors.primary
+                          : "rgba(226, 232, 240, 0.5)",
+                      }}
+                    >
+                      <View style={{ flex: 1, marginRight: 8 }}>
+                        <Text
+                          style={{
+                            fontSize: 13,
+                            fontWeight: "800",
+                            color: isSelected ? "#000" : Colors.text,
+                          }}
+                        >
+                          {addon.name}
+                        </Text>
+                        <Text
+                          style={{
+                            fontSize: 12,
+                            fontWeight: "700",
+                            color: isSelected ? "rgba(0,0,0,0.6)" : Colors.primary,
+                          }}
+                        >
+                          + ₹{addon.normalPrice || addon.price}
+                        </Text>
+                      </View>
+                      <Ionicons
+                        name={isSelected ? "checkmark-circle" : "add-circle"}
+                        size={20}
+                        color={isSelected ? "#000" : Colors.primary}
+                      />
+                    </Pressable>
                   );
                 })}
               </View>
@@ -595,7 +633,7 @@ export default function SelectServiceScreen() {
               Total Amount
             </Text>
             <Text className="text-[28px] font-[900] color-primary">
-              ₹{calculateTotal()}
+              ₹{totalPrice}
             </Text>
           </View>
           <View className="bg-primary/10 px-4 py-2 rounded-full border border-primary/20">

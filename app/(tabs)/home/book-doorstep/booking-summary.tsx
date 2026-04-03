@@ -261,6 +261,7 @@ export default function BookingSummaryScreen() {
           ? (selectedDate as string)
           : new Date().toISOString().split("T")[0],
         bookingTime: Number(hour),
+        addons: parsedAddons.map((a: any) => a.id),
       };
 
       const response = await createBooking(bookingPayload).unwrap();
@@ -275,7 +276,7 @@ export default function BookingSummaryScreen() {
             landmark: bookingPayload.landmark,
             city: bookingPayload.city,
             postalCode: postalCode,
-            addressType: (addressType as string) || "Home",
+            addressType: ((addressType as string) || "Home") as any,
             fullAddress: address as string,
           }),
         );

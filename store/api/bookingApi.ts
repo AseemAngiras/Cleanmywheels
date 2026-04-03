@@ -4,8 +4,6 @@ import { Platform } from "react-native";
 import { logout } from "../slices/authSlice";
 import { API_BASE_URL, APP_VERSION } from "./authApi";
 
-const TIMEZONE = Intl.DateTimeFormat().resolvedOptions().timeZone;
-
 export interface BookingsResponse {
   success: boolean;
   data: {
@@ -56,7 +54,14 @@ export const bookingApi = createApi({
       providesTags: ["Booking"],
     }),
     createBooking: builder.mutation<any, any>({
-      query: (body) => ({
+      query: (body: {
+        washPackage: string;
+        vehicle: string;
+        address: string;
+        bookingDate: string;
+        timeSlot: string;
+        addons?: string[];
+      }) => ({
         url: "/booking",
         method: "POST",
         body,

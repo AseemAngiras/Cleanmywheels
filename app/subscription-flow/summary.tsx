@@ -82,25 +82,24 @@ export default function SubscriptionSummaryScreen() {
 
   const priceKey = getPriceKey(
     selectedVehicle?.vehicleType || "Sedan",
-  ) as keyof typeof selectedPlan.prices;
+  ) as "hatchback" | "sedan" | "suv" | "twoWheeler";
+
   const basePrice =
-    (selectedPlan.prices && selectedPlan.prices[priceKey]) ||
+    (selectedPlan.prices?.[priceKey]?.[frequencyType as any]) ||
     selectedPlan.price ||
     0;
+
   const frequencyData = selectedPlan?.frequencies?.find(
     (f) => f.type === frequencyType,
-  ) || { multiplier: 1, services: 30 };
+  ) || { multiplier: 1, services: frequencyType === 'DAILY' ? 30 : frequencyType === 'WEEKLY' ? 4 : frequencyType === 'BIWEEKLY' ? 2 : 15 };
 
-  const pricePerService = basePrice / 30;
   const addonPricePerService = (selectedAddons as any[]).reduce(
     (sum: number, a: any) => sum + (a.subscriptionPrice || a.price || 0),
     0,
   );
 
   const finalPrice = Math.round(
-    (pricePerService + addonPricePerService) *
-      frequencyData.services *
-      (frequencyData.multiplier || 1),
+    basePrice + (addonPricePerService * frequencyData.services)
   );
 
   const handlePayment = async () => {

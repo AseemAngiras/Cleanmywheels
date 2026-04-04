@@ -114,26 +114,24 @@ export default function SubscriptionConfigureScreen() {
   );
   const priceKey = getPriceKey(
     selectedVehicle?.vehicleType || "Sedan",
-  ) as keyof typeof selectedPlan.prices;
+  ) as "hatchback" | "sedan" | "suv" | "twoWheeler";
+  
   const basePrice =
-    (selectedPlan.prices && selectedPlan.prices[priceKey]) ||
-    selectedPlan.price ||
+    (selectedPlan?.prices?.[priceKey as keyof typeof selectedPlan.prices]?.[selectedFrequency as any]) ||
+    selectedPlan?.price ||
     0;
 
   const frequencyData = selectedPlan?.frequencies?.find(
     (f) => f.type === selectedFrequency,
-  ) || { multiplier: 1, services: 30 };
+  ) || { multiplier: 1, services: selectedFrequency === 'DAILY' ? 30 : selectedFrequency === 'WEEKLY' ? 4 : selectedFrequency === 'BIWEEKLY' ? 2 : 15 };
 
-  const pricePerService = basePrice / 30;
   const addonPricePerService = selectedAddons.reduce(
     (sum, a) => sum + (a.subscriptionPrice || a.price || 0),
     0,
   );
 
   const currentTotalPrice = Math.round(
-    (pricePerService + addonPricePerService) *
-      frequencyData.services *
-      (frequencyData.multiplier || 1),
+    basePrice + (addonPricePerService * frequencyData.services)
   );
 
   useEffect(() => {

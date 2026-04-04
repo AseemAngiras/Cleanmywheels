@@ -7,19 +7,17 @@ export interface PlanFeature {
 export interface SubscriptionPlan {
   _id: string;
   name: string;
-  price: number;
+  tag?: string;
+  price?: number;
   prices: {
-    hatchback: number;
-    sedan: number;
-    suv: number;
-    twoWheeler: number;
+    hatchback: { DAILY: number; WEEKLY: number; BIWEEKLY: number; ALTERNATE_DAY: number; ONE_TIME: number };
+    sedan: { DAILY: number; WEEKLY: number; BIWEEKLY: number; ALTERNATE_DAY: number; ONE_TIME: number };
+    suv: { DAILY: number; WEEKLY: number; BIWEEKLY: number; ALTERNATE_DAY: number; ONE_TIME: number };
+    twoWheeler: { DAILY: number; WEEKLY: number; BIWEEKLY: number; ALTERNATE_DAY: number; ONE_TIME: number };
   };
-  currency: string;
-  durationDays: number;
-  description?: string;
   features: string[];
-  razorpayPlanId: string;
-  isActive: boolean;
+  status: "Active" | "Inactive" | "Archived";
+  razorpayPlanId?: string;
   frequencies?: {
     type: "DAILY" | "WEEKLY" | "BIWEEKLY" | "ALTERNATE_DAY";
     label: string;

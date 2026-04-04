@@ -17,6 +17,8 @@ import { Colors } from "@/constants/Colors";
 import {
   useGetWashPackagesQuery,
   useUpdateWashPackageMutation,
+  useCreateWashPackageMutation,
+  useDeleteWashPackageMutation,
   WashPackage,
 } from "@/store/api/washPackageApi";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -30,18 +32,25 @@ const VEHICLE_TYPE_TO_PRICE_KEY: Record<string, string> = {
 
 export default function AdminWashPackagesScreen() {
   const insets = useSafeAreaInsets();
-  
+
   const { data: response, isLoading } = useGetWashPackagesQuery({
     page: 1,
     perPage: 100,
-    packageType: "ONE_TIME"
+    packageType: "ONE_TIME",
   });
   const [updateWashPackage, { isLoading: isUpdating }] =
     useUpdateWashPackageMutation();
+  const [createWashPackage, { isLoading: isCreating }] =
+    useCreateWashPackageMutation();
+  const [deleteWashPackage] = useDeleteWashPackageMutation();
 
-  const packages = response?.data?.washPackageList || [];
+  const packages = (response?.data?.washPackageList || []).filter(
+    (pkg) => pkg.status !== "Archived",
+  );
 
-  const [editingPackage, setEditingPackage] = useState<WashPackage | null>(null);
+  const [editingPackage, setEditingPackage] = useState<WashPackage | null>(
+    null,
+  );
   const [editData, setEditData] = useState({
     name: "",
     features: "",
@@ -56,34 +65,121 @@ export default function AdminWashPackagesScreen() {
     setEditData({
       name: pkg.name,
       features: pkg.features?.join(", ") || "",
-      hatchback: (pkg.prices?.hatchback || pkg.price || 0).toString(),
-      sedan: (pkg.prices?.sedan || pkg.price || 0).toString(),
-      suv: (pkg.prices?.suv || pkg.price || 0).toString(),
-      twoWheeler: (pkg.prices?.twoWheeler || pkg.price || 0).toString(),
+      hatchback: (pkg.prices?.hatchback?.ONE_TIME || pkg.prices?.hatchback || pkg.price || 0).toString(),
+      sedan: (pkg.prices?.sedan?.ONE_TIME || pkg.prices?.sedan || pkg.price || 0).toString(),
+      suv: (pkg.prices?.suv?.ONE_TIME || pkg.prices?.suv || pkg.price || 0).toString(),
+      twoWheeler: (pkg.prices?.twoWheeler?.ONE_TIME || pkg.prices?.twoWheeler || pkg.price || 0).toString(),
     });
   };
 
   const handleUpdate = async () => {
     if (!editingPackage) return;
-    try {
-      await updateWashPackage({
-        id: editingPackage._id,
-        body: {
-          name: editData.name,
-          packageType: editData.packageType,
-          features: editData.features.split(",").map(f => f.trim()).filter(f => f),
-          prices: {
-            hatchback: Number(editData.hatchback),
-            sedan: Number(editData.sedan),
-            suv: Number(editData.suv),
-            twoWheeler: Number(editData.twoWheeler),
+
+    Alert.alert(
+      "Confirm Update",
+      "Are you sure you want to update this wash package?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Update",
+          onPress: async () => {
+            try {
+              await updateWashPackage({
+                id: editingPackage._id,
+                body: {
+                  name: editData.name,
+                  packageType: "ONE_TIME",
+                  features: editData.features
+                    .split(",")
+                    .map((f) => f.trim())
+                    .filter((f) => f),
+                  prices: {
+                    hatchback: { DAILY: 0, WEEKLY: 0, BIWEEKLY: 0, ALTERNATE_DAY: 0, ONE_TIME: Number(editData.hatchback) },
+                    sedan: { DAILY: 0, WEEKLY: 0, BIWEEKLY: 0, ALTERNATE_DAY: 0, ONE_TIME: Number(editData.sedan) },
+                    suv: { DAILY: 0, WEEKLY: 0, BIWEEKLY: 0, ALTERNATE_DAY: 0, ONE_TIME: Number(editData.suv) },
+                    twoWheeler: { DAILY: 0, WEEKLY: 0, BIWEEKLY: 0, ALTERNATE_DAY: 0, ONE_TIME: Number(editData.twoWheeler) },
+                  },
+                },
+              }).unwrap();
+              Alert.alert("Success", "Package updated successfully");
+              setEditingPackage(null);
+            } catch (err: any) {
+              Alert.alert(
+                "Error",
+                err?.data?.message || "Failed to update package",
+              );
+            }
           },
         },
-      }).unwrap();
-      Alert.alert("Success", "Package updated successfully");
-      setEditingPackage(null);
-    } catch (err: any) {
-      Alert.alert("Error", err?.data?.message || "Failed to update package");
+      ],
+    );
+  };
+
+  const handleAddNew = () => {
+    setEditingPackage({ _id: "new" } as any);
+    setEditData({
+      name: "",
+      features: "",
+      hatchback: "0",
+      sedan: "0",
+      suv: "0",
+      twoWheeler: "0",
+    });
+  };
+
+  const handleDelete = async (id: string) => {
+    Alert.alert(
+      "Delete Package",
+      "Are you sure you want to delete this wash package? This action cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await deleteWashPackage(id).unwrap();
+              Alert.alert("Success", "Package deleted successfully");
+            } catch (err: any) {
+              Alert.alert(
+                "Error",
+                err?.data?.message || "Failed to delete package",
+              );
+            }
+          },
+        },
+      ],
+    );
+  };
+
+  const handleSave = async () => {
+    if (editingPackage?._id === "new") {
+      try {
+        await createWashPackage({
+          name: editData.name,
+          packageType: "ONE_TIME",
+          features: editData.features
+            .split(",")
+            .map((f) => f.trim())
+            .filter((f) => f),
+          prices: {
+            hatchback: { DAILY: 0, WEEKLY: 0, BIWEEKLY: 0, ALTERNATE_DAY: 0, ONE_TIME: Number(editData.hatchback) },
+            sedan: { DAILY: 0, WEEKLY: 0, BIWEEKLY: 0, ALTERNATE_DAY: 0, ONE_TIME: Number(editData.sedan) },
+            suv: { DAILY: 0, WEEKLY: 0, BIWEEKLY: 0, ALTERNATE_DAY: 0, ONE_TIME: Number(editData.suv) },
+            twoWheeler: { DAILY: 0, WEEKLY: 0, BIWEEKLY: 0, ALTERNATE_DAY: 0, ONE_TIME: Number(editData.twoWheeler) },
+          },
+          price: Number(editData.hatchback),
+          status: "Active",
+          // logo: "https://cdn-icons-png.flaticon.com/512/3202/3202926.png",
+          tag: "Standard",
+        }).unwrap();
+        Alert.alert("Success", "Package created successfully");
+        setEditingPackage(null);
+      } catch (err: any) {
+        Alert.alert("Error", err?.data?.message || "Failed to create package");
+      }
+    } else {
+      handleUpdate();
     }
   };
 
@@ -105,6 +201,15 @@ export default function AdminWashPackagesScreen() {
             Admin Dashboard
           </Text>
         </View>
+        <TouchableOpacity
+          onPress={handleAddNew}
+          className="bg-primary px-4 py-2.5 rounded-full shadow-lg shadow-primary/30 flex-row items-center"
+        >
+          <Ionicons name="add" size={18} color="#000" />
+          <Text className="text-black font-[800] text-[12px] ml-1">
+            Add New
+          </Text>
+        </TouchableOpacity>
       </View>
 
       <ScrollView
@@ -115,9 +220,13 @@ export default function AdminWashPackagesScreen() {
           <ActivityIndicator color={Colors.primary} size="large" />
         ) : packages.length === 0 ? (
           <View className="items-center justify-center py-20">
-            <Ionicons name="car-outline" size={60} color={Colors.textSecondary} />
+            <Ionicons
+              name="car-outline"
+              size={60}
+              color={Colors.textSecondary}
+            />
             <Text className="color-textSecondary mt-4 font-[600]">
-              No {selectedType === "ONE_TIME" ? "one-time" : "subscription"} packages found
+              No one-time washes found
             </Text>
           </View>
         ) : (
@@ -146,33 +255,43 @@ export default function AdminWashPackagesScreen() {
               </View>
 
               <View className="mb-4">
-                 <Text className="text-[10px] color-textSecondary font-[700] uppercase mb-2">Features</Text>
-                 <View className="flex-row flex-wrap gap-2">
-                    {pkg.features?.map((f, i) => (
-                        <View key={i} className="bg-background px-3 py-1 rounded-full border border-border/30">
-                            <Text className="text-[10px] color-textSecondary font-[600]">{f}</Text>
-                        </View>
-                    ))}
-                 </View>
+                <Text className="text-[10px] color-textSecondary font-[700] uppercase mb-2">
+                  Features
+                </Text>
+                <View className="flex-row flex-wrap gap-2">
+                  {pkg.features?.map((f, i) => (
+                    <View
+                      key={i}
+                      className="bg-background px-3 py-1 rounded-full border border-border/30"
+                    >
+                      <Text className="text-[10px] color-textSecondary font-[600]">
+                        {f}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
               </View>
 
               <View className="flex-row flex-wrap gap-2">
-                {Object.entries(VEHICLE_TYPE_TO_PRICE_KEY).map(([type, key]) => {
-                  const price = (pkg.prices as any)?.[key] || pkg.price;
-                  return (
-                    <View
-                      key={type}
-                      className="bg-background px-3 py-2 rounded-xl border border-border/50 flex-1 min-w-[45%]"
-                    >
-                      <Text className="text-[10px] color-textSecondary font-[700] uppercase">
-                        {type}
-                      </Text>
-                      <Text className="text-[16px] font-[800] color-text mt-0.5">
-                        ₹{price}
-                      </Text>
-                    </View>
-                  );
-                })}
+                {Object.entries(VEHICLE_TYPE_TO_PRICE_KEY).map(
+                  ([type, key]) => {
+                    const priceData = (pkg.prices as any)?.[key];
+                    const price = typeof priceData === 'object' ? (priceData.ONE_TIME || 0) : (priceData || pkg.price);
+                    return (
+                      <View
+                        key={type}
+                        className="bg-background px-3 py-2 rounded-xl border border-border/50 flex-1 min-w-[45%]"
+                      >
+                        <Text className="text-[10px] color-textSecondary font-[700] uppercase">
+                          {type}
+                        </Text>
+                        <Text className="text-[16px] font-[800] color-text mt-0.5">
+                          ₹{price}
+                        </Text>
+                      </View>
+                    );
+                  },
+                )}
               </View>
             </View>
           ))
@@ -183,43 +302,26 @@ export default function AdminWashPackagesScreen() {
       <Modal visible={editingPackage !== null} transparent animationType="fade">
         <View className="flex-1 bg-black/60 justify-center items-center px-6">
           <View className="bg-card w-full rounded-[32px] p-6 border border-border shadow-2xl">
-            <Text className="text-[18px] font-[800] color-text mb-6">
-              Edit Package
-            </Text>
-
+            <View className="flex-row justify-between items-center mb-6">
+              <Text className="text-[18px] font-[800] color-text">
+                {editingPackage?._id === "new"
+                  ? "Add New Package"
+                  : "Edit Package"}
+              </Text>
+              {editingPackage?._id !== "new" && (
+                <TouchableOpacity
+                  onPress={() => {
+                    const id = editingPackage?._id;
+                    setEditingPackage(null);
+                    if (id) handleDelete(id);
+                  }}
+                  className="bg-red-500/10 w-10 h-10 rounded-full border border-red-500/20 items-center justify-center"
+                >
+                  <Ionicons name="trash-outline" size={20} color="#EF4444" />
+                </TouchableOpacity>
+              )}
+            </View>
             <ScrollView className="max-h-[500px] mb-6">
-              <View className="mb-4">
-                <Text className="text-[12px] font-[800] color-textSecondary uppercase mb-2 px-1">
-                  Service Type
-                </Text>
-                <View className="flex-row gap-2">
-                  <TouchableOpacity
-                    onPress={() => setEditData(prev => ({ ...prev, packageType: "ONE_TIME" }))}
-                    className={`flex-1 py-3 rounded-xl items-center border ${
-                      editData.packageType === "ONE_TIME"
-                        ? "bg-primary border-primary"
-                        : "bg-background border-border"
-                    }`}
-                  >
-                    <Text className={`font-[700] text-[12px] ${editData.packageType === "ONE_TIME" ? "color-black" : "color-textSecondary"}`}>
-                      ONE-TIME
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={() => setEditData(prev => ({ ...prev, packageType: "SUBSCRIPTION" }))}
-                    className={`flex-1 py-3 rounded-xl items-center border ${
-                      editData.packageType === "SUBSCRIPTION"
-                        ? "bg-primary border-primary"
-                        : "bg-background border-border"
-                    }`}
-                  >
-                    <Text className={`font-[700] text-[12px] ${editData.packageType === "SUBSCRIPTION" ? "color-black" : "color-textSecondary"}`}>
-                      SUBSCRIPTION
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-
               <View className="mb-4">
                 <Text className="text-[12px] font-[800] color-textSecondary uppercase mb-2 px-1">
                   Package Name
@@ -228,7 +330,9 @@ export default function AdminWashPackagesScreen() {
                   <TextInput
                     className="flex-1 text-[16px] font-[800] color-text"
                     value={editData.name}
-                    onChangeText={(val) => setEditData(prev => ({ ...prev, name: val }))}
+                    onChangeText={(val) =>
+                      setEditData((prev) => ({ ...prev, name: val }))
+                    }
                   />
                 </View>
               </View>
@@ -242,18 +346,24 @@ export default function AdminWashPackagesScreen() {
                     className="text-[14px] font-[600] color-text"
                     multiline
                     value={editData.features}
-                    onChangeText={(val) => setEditData(prev => ({ ...prev, features: val }))}
+                    onChangeText={(val) =>
+                      setEditData((prev) => ({ ...prev, features: val }))
+                    }
                     placeholder="E.g. Interior Cleaning, Tire Polish, Waxcoat"
                     placeholderTextColor="#64748B"
                   />
                 </View>
               </View>
 
-              <Text className="text-[14px] font-[800] color-text mt-4 mb-4">Pricing by Vehicle Type</Text>
-              
+              <Text className="text-[14px] font-[800] color-text mt-4 mb-4">
+                Pricing by Vehicle Type
+              </Text>
+
               <View className="flex-row flex-wrap justify-between">
                 {Object.keys(VEHICLE_TYPE_TO_PRICE_KEY).map((type) => {
-                  const key = VEHICLE_TYPE_TO_PRICE_KEY[type] as keyof typeof editData;
+                  const key = VEHICLE_TYPE_TO_PRICE_KEY[
+                    type
+                  ] as keyof typeof editData;
                   return (
                     <View key={type} className="w-[48%] mb-4">
                       <Text className="text-[10px] font-[800] color-textSecondary uppercase mb-2 px-1">
@@ -287,13 +397,15 @@ export default function AdminWashPackagesScreen() {
               </TouchableOpacity>
               <TouchableOpacity
                 className="flex-1 h-12 bg-primary rounded-xl items-center justify-center"
-                onPress={handleUpdate}
-                disabled={isUpdating}
+                onPress={handleSave}
+                disabled={isUpdating || isCreating}
               >
-                {isUpdating ? (
+                {isUpdating || isCreating ? (
                   <ActivityIndicator color="#000" />
                 ) : (
-                  <Text className="color-black font-[900]">Update</Text>
+                  <Text className="color-black font-[900]">
+                    {editingPackage?._id === "new" ? "Create" : "Update"}
+                  </Text>
                 )}
               </TouchableOpacity>
             </View>

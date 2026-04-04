@@ -17,6 +17,7 @@ import { notificationApi } from "./api/notificationApi";
 import { vehicleApi } from "./api/vehicleApi";
 import { washPackageApi } from "./api/washPackageApi";
 import { subscriptionApi } from "./api/subscriptionApi";
+import { subscriptionPlanApi } from "./api/subscriptionPlanApi";
 import { workerApi } from "./api/workerApi";
 import authReducer, { logout } from "./slices/authSlice";
 import bookingReducer from "./slices/bookingSlice";
@@ -43,6 +44,7 @@ const appReducer = combineReducers({
   [vehicleApi.reducerPath]: vehicleApi.reducer,
   [washPackageApi.reducerPath]: washPackageApi.reducer,
   [subscriptionApi.reducerPath]: subscriptionApi.reducer,
+  [subscriptionPlanApi.reducerPath]: subscriptionPlanApi.reducer,
   [workerApi.reducerPath]: workerApi.reducer,
 });
 
@@ -72,6 +74,7 @@ export const store = configureStore({
       vehicleApi.middleware,
       washPackageApi.middleware,
       subscriptionApi.middleware,
+      subscriptionPlanApi.middleware,
       workerApi.middleware,
     ),
 });

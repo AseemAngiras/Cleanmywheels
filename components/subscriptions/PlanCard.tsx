@@ -42,10 +42,10 @@ export const PlanCard = ({
           <Text className="text-3xl font-[800] text-text">
             {plan.prices
               ? Math.min(
-                  plan.prices.hatchback || Infinity,
-                  plan.prices.sedan || Infinity,
-                  plan.prices.suv || Infinity,
-                  plan.prices.twoWheeler || Infinity,
+                  (plan.prices.hatchback?.DAILY || plan.prices.hatchback || Infinity) as number,
+                  (plan.prices.sedan?.DAILY || plan.prices.sedan || Infinity) as number,
+                  (plan.prices.suv?.DAILY || plan.prices.suv || Infinity) as number,
+                  (plan.prices.twoWheeler?.DAILY || plan.prices.twoWheeler || Infinity) as number,
                 )
               : plan.price}
           </Text>

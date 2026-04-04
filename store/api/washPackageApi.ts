@@ -5,18 +5,20 @@ import { API_BASE_URL } from "./authApi";
 export interface WashPackage {
   _id: string;
   name: string;
-  logo: string;
+  // logo: string;
   tag: string;
   price: number;
   prices: {
-    hatchback: number;
-    sedan: number;
-    suv: number;
-    twoWheeler: number;
+    hatchback: { DAILY: number; WEEKLY: number; BIWEEKLY: number; ALTERNATE_DAY: number; ONE_TIME: number };
+    sedan: { DAILY: number; WEEKLY: number; BIWEEKLY: number; ALTERNATE_DAY: number; ONE_TIME: number };
+    suv: { DAILY: number; WEEKLY: number; BIWEEKLY: number; ALTERNATE_DAY: number; ONE_TIME: number };
+    twoWheeler: { DAILY: number; WEEKLY: number; BIWEEKLY: number; ALTERNATE_DAY: number; ONE_TIME: number };
   };
   features: string[];
   status: string;
   packageType: "ONE_TIME" | "SUBSCRIPTION";
+  description?: string;
+  durationDays?: number;
 }
 
 export interface WashPackagesResponse {
@@ -39,7 +41,7 @@ export const washPackageApi = createApi({
 
       const state = getState() as any;
       const token = state.auth?.token;
-      
+
       if (token) {
         headers.set("Authorization", `${token}`);
         headers.set("x-auth-token", token);
@@ -53,7 +55,16 @@ export const washPackageApi = createApi({
     },
   }),
   endpoints: (builder) => ({
-    getWashPackages: builder.query<WashPackagesResponse, { search?: string; page?: number; perPage?: number; packageType?: string; status?: string } | void>({
+    getWashPackages: builder.query<
+      WashPackagesResponse,
+      {
+        search?: string;
+        page?: number;
+        perPage?: number;
+        packageType?: string;
+        status?: string;
+      } | void
+    >({
       query: (params) => ({
         url: "/wash-package",
         method: "GET",
@@ -61,7 +72,10 @@ export const washPackageApi = createApi({
       }),
       providesTags: ["WashPackage"],
     }),
-    getWashPackageById: builder.query<{ success: boolean; data: WashPackage }, string>({
+    getWashPackageById: builder.query<
+      { success: boolean; data: WashPackage },
+      string
+    >({
       query: (id) => `/wash-package/${id}`,
       providesTags: (result, error, id) => [{ type: "WashPackage", id }],
     }),
@@ -73,7 +87,10 @@ export const washPackageApi = createApi({
       }),
       invalidatesTags: ["WashPackage"],
     }),
-    updateWashPackage: builder.mutation<any, { id: string; body: Partial<WashPackage> }>({
+    updateWashPackage: builder.mutation<
+      any,
+      { id: string; body: Partial<WashPackage> }
+    >({
       query: ({ id, body }) => ({
         url: `/wash-package/${id}`,
         method: "PUT",
@@ -81,7 +98,20 @@ export const washPackageApi = createApi({
       }),
       invalidatesTags: ["WashPackage"],
     }),
+    deleteWashPackage: builder.mutation<any, string>({
+      query: (id) => ({
+        url: `/wash-package/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["WashPackage"],
+    }),
   }),
 });
 
-export const { useGetWashPackagesQuery, useGetWashPackageByIdQuery, useUpdateWashPackageMutation, useCreateWashPackageMutation } = washPackageApi;
+export const {
+  useGetWashPackagesQuery,
+  useGetWashPackageByIdQuery,
+  useUpdateWashPackageMutation,
+  useCreateWashPackageMutation,
+  useDeleteWashPackageMutation,
+} = washPackageApi;

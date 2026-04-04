@@ -8,6 +8,12 @@ export interface SubscriptionPlan {
   _id: string;
   name: string;
   price: number;
+  prices: {
+    hatchback: number;
+    sedan: number;
+    suv: number;
+    twoWheeler: number;
+  };
   currency: string;
   durationDays: number;
   description?: string;
@@ -19,7 +25,7 @@ export interface SubscriptionPlan {
     label: string;
     description: string;
     multiplier: number;
-    totalServices: number;
+    services: number;
   }[];
 }
 

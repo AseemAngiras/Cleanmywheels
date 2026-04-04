@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Colors } from "@/constants/Colors";
 import React from "react";
@@ -25,10 +25,34 @@ import { useGetAddressesQuery } from "@/store/api/addressApi";
 const APP_NAME = "CleanMyWheels";
 const RAZORPAY_KEY = process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID || "";
 
+const getPriceKey = (type: string) => {
+  switch (type?.toLowerCase()?.replace(/\s+/g, "")) {
+    case "hatchback":
+      return "hatchback";
+    case "sedan":
+      return "sedan";
+    case "suv":
+      return "suv";
+    case "twowheeler":
+    case "bike":
+      return "twoWheeler";
+    default:
+      return "sedan";
+  }
+};
+
 export default function SubscriptionSummaryScreen() {
   const router = useRouter();
-  const { planId, vehicleId, timeSlot, startDate, isAutoPay, frequencyType } =
+  const { planId, vehicleId, timeSlot, startDate, isAutoPay, frequencyType = 'DAILY', addons: addonsStr } =
     useLocalSearchParams();
+
+  const selectedAddons = React.useMemo(() => {
+    try {
+      return addonsStr ? JSON.parse(addonsStr as string) : [];
+    } catch (e) {
+      return [];
+    }
+  }, [addonsStr]);
 
   const { data: plans } = useGetPlansQuery();
   const { data: vehicles } = useGetVehiclesQuery();
@@ -48,6 +72,37 @@ export default function SubscriptionSummaryScreen() {
   const defaultAddress =
     addressList.find((a: any) => a.isDefault) || addressList[0];
 
+  if (!selectedPlan || !selectedVehicle) {
+    return (
+      <View className="flex-1 bg-background items-center justify-center">
+        <ActivityIndicator size="large" color={Colors.primary} />
+      </View>
+    );
+  }
+
+  const priceKey = getPriceKey(
+    selectedVehicle?.vehicleType || "Sedan",
+  ) as keyof typeof selectedPlan.prices;
+  const basePrice =
+    (selectedPlan.prices && selectedPlan.prices[priceKey]) ||
+    selectedPlan.price ||
+    0;
+  const frequencyData = selectedPlan?.frequencies?.find(
+    (f) => f.type === frequencyType,
+  ) || { multiplier: 1, services: 30 };
+
+  const pricePerService = basePrice / 30;
+  const addonPricePerService = (selectedAddons as any[]).reduce(
+    (sum: number, a: any) => sum + (a.subscriptionPrice || a.price || 0),
+    0,
+  );
+
+  const finalPrice = Math.round(
+    (pricePerService + addonPricePerService) *
+      frequencyData.services *
+      (frequencyData.multiplier || 1),
+  );
+
   const handlePayment = async () => {
     if (!selectedPlan || !selectedVehicle) {
       Alert.alert("Error", "Required selection data missing.");
@@ -62,6 +117,7 @@ export default function SubscriptionSummaryScreen() {
         startDate: startDate as string,
         isAutoPay: isAutoPay === "true",
         frequencyType: frequencyType as string,
+        addons: selectedAddons,
       }).unwrap();
 
       const {
@@ -73,8 +129,8 @@ export default function SubscriptionSummaryScreen() {
 
       if (paymentLinkUrl) {
         const confirmationParams = {
-          addons: "[]",
-          grandTotal: String(selectedPlan.price),
+          addons: JSON.stringify(selectedAddons),
+          grandTotal: String(finalPrice),
           vehicleType: selectedVehicle.vehicleType,
           vehicleNumber: selectedVehicle.vehicleNo,
           serviceDate: startDate as string,
@@ -120,7 +176,7 @@ export default function SubscriptionSummaryScreen() {
         options.subscription_id = razorpaySubscriptionId;
       } else {
         options.order_id = orderId;
-        options.amount = response.amount || selectedPlan.price * 100;
+        options.amount = response.amount || finalPrice * 100;
         options.recurring = isAutoPay === "true";
       }
 
@@ -147,7 +203,7 @@ export default function SubscriptionSummaryScreen() {
               pathname: "/subscription-flow/order-confirmation",
               params: {
                 status: "success",
-                grandTotal: String(selectedPlan.price),
+                grandTotal: String(finalPrice),
                 vehicleType: selectedVehicle.vehicleType,
                 vehicleNumber: selectedVehicle.vehicleNo,
                 serviceDate: startDate as string,
@@ -222,7 +278,7 @@ export default function SubscriptionSummaryScreen() {
                 {selectedPlan.name}
               </Text>
               <Text className="text-[14px] font-[700] color-primary">
-                ₹{selectedPlan.price}
+                ₹{basePrice}
               </Text>
             </View>
             <View className="flex-1.2 bg-card rounded-[24px] p-5 border border-border shadow-sm">
@@ -268,6 +324,45 @@ export default function SubscriptionSummaryScreen() {
               </Text>
             </View>
           </View>
+
+          {selectedAddons.length > 0 && (
+            <View className="bg-card rounded-[24px] p-5 mb-4 border border-border shadow-sm">
+              <Text className="text-[13px] font-[700] color-textSecondary mb-4 tracking-widest uppercase">
+                Add-ons Included
+              </Text>
+              {selectedAddons.map((addon: any, index: number) => (
+                <View
+                  key={addon._id}
+                  className={`flex-row justify-between items-center ${index !== 0 ? "mt-3 pt-3 border-t border-border/30" : ""}`}
+                >
+                  <View className="flex-row items-center flex-1">
+                    <MaterialCommunityIcons
+                      name={(addon.icon as any) || "sparkles"}
+                      size={18}
+                      color={Colors.primary}
+                    />
+                    <Text
+                      className="text-[14px] font-[600] color-text ml-2 flex-1"
+                      numberOfLines={1}
+                    >
+                      {addon.name}
+                    </Text>
+                  </View>
+                  <Text className="text-[14px] font-[700] color-text">
+                    +₹{addon.subscriptionPrice || addon.price}
+                  </Text>
+                </View>
+              ))}
+              <View className="mt-4 pt-4 border-t border-border/50 flex-row justify-between items-center">
+                <Text className="text-[12px] font-[700] color-textSecondary uppercase tracking-widest">
+                  Add-on Total / service
+                </Text>
+                <Text className="text-[14px] font-[800] color-primary">
+                  ₹{addonPricePerService}
+                </Text>
+              </View>
+            </View>
+          )}
 
           <View className="bg-card rounded-[24px] p-5 mb-4 border border-border shadow-sm">
             <Text className="text-[13px] font-[700] color-textSecondary mb-4 tracking-widest uppercase">
@@ -321,7 +416,7 @@ export default function SubscriptionSummaryScreen() {
                 Frequency ({selectedPlan.frequencies?.find(f => f.type === frequencyType)?.label || "Daily"})
               </Text>
               <Text className="text-[16px] font-[700] color-text">
-                ₹{Math.round(selectedPlan.price * (selectedPlan.frequencies?.find(f => f.type === frequencyType)?.multiplier || 1))}
+                ₹{finalPrice}
               </Text>
             </View>
             <View className="h-[1px] bg-border/50 w-full my-4" />
@@ -330,7 +425,7 @@ export default function SubscriptionSummaryScreen() {
                 Grand Total
               </Text>
               <Text className="text-[22px] font-[900] color-primary">
-                ₹{Math.round(selectedPlan.price * (selectedPlan.frequencies?.find(f => f.type === frequencyType)?.multiplier || 1))}
+                ₹{finalPrice}
               </Text>
             </View>
           </View>
@@ -348,7 +443,7 @@ export default function SubscriptionSummaryScreen() {
               <ActivityIndicator color="#000" />
             ) : (
               <Text className="color-black text-[16px] font-[800]">
-                Pay ₹{selectedPlan.price}
+                Pay ₹{finalPrice}
               </Text>
             )}
           </TouchableOpacity>

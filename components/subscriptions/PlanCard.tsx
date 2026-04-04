@@ -34,9 +34,24 @@ export const PlanCard = ({
         <Text className="text-[18px] font-[700] text-text mb-1 text-center">
           {plan.name}
         </Text>
+        <Text className="text-[11px] font-[800] color-textSecondary uppercase tracking-widest mb-1">
+          Starting from
+        </Text>
         <View className="flex-row items-baseline justify-center">
           <Text className="text-sm font-[600] text-textSecondary mr-1">₹</Text>
-          <Text className="text-3xl font-[800] text-text">{plan.price}</Text>
+          <Text className="text-3xl font-[800] text-text">
+            {plan.prices
+              ? Math.min(
+                  plan.prices.hatchback || Infinity,
+                  plan.prices.sedan || Infinity,
+                  plan.prices.suv || Infinity,
+                  plan.prices.twoWheeler || Infinity,
+                )
+              : plan.price}
+          </Text>
+          <Text className="text-sm font-[600] text-textSecondary ml-1">
+            / service
+          </Text>
         </View>
       </View>
 

@@ -1,4 +1,4 @@
-import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+  import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Colors } from "@/constants/Colors";
 import React, { useState, useEffect } from "react";
@@ -20,6 +20,7 @@ import {
 import {
   useGetPlansQuery,
   useGetMySubscriptionQuery,
+  useGetAddonsQuery,
 } from "@/store/api/subscriptionApi";
 
 const TIME_SLOTS = [
@@ -34,6 +35,22 @@ const TIME_SLOTS = [
 ];
 
 const VEHICLE_TYPES = ["Sedan", "SUV", "Hatchback", "Two Wheeler"];
+
+const getPriceKey = (type: string) => {
+  switch (type?.toLowerCase()?.replace(/\s+/g, "")) {
+    case "hatchback":
+      return "hatchback";
+    case "sedan":
+      return "sedan";
+    case "suv":
+      return "suv";
+    case "twowheeler":
+    case "bike":
+      return "twoWheeler";
+    default:
+      return "sedan";
+  }
+};
 
 const getVehicleIconName = (type: string) => {
   switch (type?.toLowerCase()) {
@@ -66,7 +83,11 @@ export default function SubscriptionConfigureScreen() {
   );
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string | null>(null);
   const [selectedFrequency, setSelectedFrequency] = useState<string>("DAILY");
+  const [selectedAddons, setSelectedAddons] = useState<any[]>([]);
   const [startDate] = useState(new Date());
+
+  const { data: addonsData } = useGetAddonsQuery();
+  const addons = addonsData || [];
 
   const [showAddCarModal, setShowAddCarModal] = useState(false);
   const [newCarNo, setNewCarNo] = useState("");
@@ -87,6 +108,33 @@ export default function SubscriptionConfigureScreen() {
 
   const availableCars =
     cars?.filter((car: any) => !activeVehicleIds.has(String(car._id))) || [];
+
+  const selectedVehicle = availableCars.find(
+    (c: any) => c._id === selectedVehicleId,
+  );
+  const priceKey = getPriceKey(
+    selectedVehicle?.vehicleType || "Sedan",
+  ) as keyof typeof selectedPlan.prices;
+  const basePrice =
+    (selectedPlan.prices && selectedPlan.prices[priceKey]) ||
+    selectedPlan.price ||
+    0;
+
+  const frequencyData = selectedPlan?.frequencies?.find(
+    (f) => f.type === selectedFrequency,
+  ) || { multiplier: 1, services: 30 };
+
+  const pricePerService = basePrice / 30;
+  const addonPricePerService = selectedAddons.reduce(
+    (sum, a) => sum + (a.subscriptionPrice || a.price || 0),
+    0,
+  );
+
+  const currentTotalPrice = Math.round(
+    (pricePerService + addonPricePerService) *
+      frequencyData.services *
+      (frequencyData.multiplier || 1),
+  );
 
   useEffect(() => {
     if (availableCars.length > 0 && !selectedVehicleId) {
@@ -157,6 +205,7 @@ export default function SubscriptionConfigureScreen() {
         startDate: startDate.toISOString(),
         isAutoPay: "true",
         frequencyType: selectedFrequency,
+        addons: JSON.stringify(selectedAddons),
       },
     } as any);
   };
@@ -198,18 +247,10 @@ export default function SubscriptionConfigureScreen() {
             </Text>
             <View className="flex-row items-baseline">
               <Text className="text-[22px] font-[900] color-primary">
-                ₹{Math.round(
-                  selectedPlan.price *
-                    (selectedPlan.frequencies?.find(
-                      (f) => f.type === selectedFrequency,
-                    )?.multiplier || 1),
-                )}
+                ₹{currentTotalPrice}
               </Text>
               <Text className="text-[14px] font-[700] color-primary/60 ml-2 uppercase">
-                /{" "}
-                {selectedPlan.frequencies?.find(
-                  (f) => f.type === selectedFrequency,
-                )?.label || "Month"}
+                / {frequencyData.services} Services
               </Text>
             </View>
           </View>
@@ -271,6 +312,106 @@ export default function SubscriptionConfigureScreen() {
                 </Text>
               </TouchableOpacity>
             </View>
+          )}
+
+          <Text className="text-[18px] font-[700] color-text mb-4">
+            Select Frequency
+          </Text>
+          <View className="flex-row flex-wrap justify-between gap-y-3 mb-8">
+            {selectedPlan.frequencies?.map((freq) => (
+              <TouchableOpacity
+                key={freq.type}
+                className={`w-[48%] py-4 px-2 rounded-[18px] items-center border ${
+                  selectedFrequency === freq.type
+                    ? "bg-primary border-primary"
+                    : "bg-card border-border"
+                }`}
+                onPress={() => setSelectedFrequency(freq.type)}
+              >
+                <Text
+                  className={`text-[13px] font-[800] ${
+                    selectedFrequency === freq.type ? "text-black" : "text-text"
+                  }`}
+                >
+                  {freq.label}
+                </Text>
+                <Text
+                  className={`text-[10px] font-[600] mt-1 ${
+                    selectedFrequency === freq.type
+                      ? "text-black/60"
+                      : "text-textSecondary"
+                  }`}
+                >
+                  {freq.services} services
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {addons.length > 0 && (
+            <>
+              <Text className="text-[18px] font-[700] color-text mb-4">
+                Add Subscription Add-ons
+              </Text>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                className="mb-8"
+                contentContainerStyle={{ gap: 12 }}
+              >
+                {addons.map((addon: any) => {
+                  const isSelected = selectedAddons.some(
+                    (a) => a._id === addon._id,
+                  );
+                  return (
+                    <TouchableOpacity
+                      key={addon._id}
+                      className={`w-40 p-4 rounded-[24px] border ${
+                        isSelected
+                          ? "bg-primary border-primary"
+                          : "bg-card border-border"
+                      }`}
+                      onPress={() => {
+                        if (isSelected) {
+                          setSelectedAddons(
+                            selectedAddons.filter((a) => a._id !== addon._id),
+                          );
+                        } else {
+                          setSelectedAddons([...selectedAddons, addon]);
+                        }
+                      }}
+                    >
+                      <View
+                        className={`w-10 h-10 rounded-full items-center justify-center mb-3 ${
+                          isSelected ? "bg-black/10" : "bg-primary/10"
+                        }`}
+                      >
+                        <MaterialCommunityIcons
+                          name={(addon.icon as any) || "sparkles"}
+                          size={20}
+                          color={isSelected ? "#000" : Colors.primary}
+                        />
+                      </View>
+                      <Text
+                        className={`text-[13px] font-[800] mb-1 ${
+                          isSelected ? "text-black" : "text-text"
+                        }`}
+                        numberOfLines={1}
+                      >
+                        {addon.name}
+                      </Text>
+                      <Text
+                        className={`text-[14px] font-[900] ${
+                          isSelected ? "text-black" : "text-primary"
+                        }`}
+                      >
+                        ₹{addon.subscriptionPrice || addon.price}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            </>
           )}
 
           <Text className="text-[18px] font-[700] color-text mb-4">

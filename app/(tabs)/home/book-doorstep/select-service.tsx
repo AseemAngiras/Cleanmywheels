@@ -15,10 +15,8 @@ import {
   ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
-  LayoutAnimation,
   Modal,
   Platform,
-  Pressable,
   ScrollView,
   Text,
   TextInput,
@@ -34,7 +32,6 @@ import {
   useGetMySubscriptionQuery,
   useGetAddonsQuery,
 } from "@/store/api/subscriptionApi";
-
 
 
 export default function SelectServiceScreen() {
@@ -165,7 +162,6 @@ export default function SelectServiceScreen() {
 
   const handleServiceSelect = (id: string) => {
     if (selectedService !== id) {
-      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
       setSelectedService(id);
       setAddons({});
     }
@@ -187,18 +183,18 @@ export default function SelectServiceScreen() {
   };
 
   const totalPrice = useMemo(() => {
-    let servicePrice =
-      services.find((s) => s.id === selectedService)?.price || 0;
-    const addonsTotal = Object.entries(addons).reduce((acc, [id, selected]) => {
+    const service = services.find((s) => s.id === selectedService);
+    let total = service?.price || 0;
+    
+    const addonMap = new Map((addonsList as any[]).map(a => [a._id || a.id, a]));
+    Object.entries(addons).forEach(([id, selected]) => {
       if (selected) {
-        const addon = (addonsList as any[]).find(
-          (a: any) => (a._id || a.id) === id,
-        );
-        return acc + (addon?.normalPrice || addon?.price || 0);
+        const addon = addonMap.get(id) as any;
+        total += (addon?.normalPrice || addon?.price || 0);
       }
-      return acc;
-    }, 0);
-    return servicePrice + addonsTotal;
+    });
+    
+    return total;
   }, [services, selectedService, addons, addonsList]);
 
   const handleNext = () => {
@@ -261,7 +257,7 @@ export default function SelectServiceScreen() {
       <BookingStepper currentStep={1} />
 
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
         className="flex-1"
       >
         <ScrollView
@@ -361,9 +357,9 @@ export default function SelectServiceScreen() {
                         {isExpanded && (
                           <View className="mt-4">
                             <View className="flex-row flex-wrap gap-2">
-                              {service.features.map((feature, idx) => (
+                              {service.features.map((feature: string, idx: number) => (
                                 <View
-                                  key={idx}
+                                  key={`feat-${idx}`}
                                   className="px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 flex-row items-center"
                                 >
                                   <View className="w-1.5 h-1.5 rounded-full bg-primary mr-2" />
@@ -408,12 +404,13 @@ export default function SelectServiceScreen() {
                   </View>
                 ) : (
                   <View className="gap-3">
-                    {addonsList.map((addon: any) => {
+                    {addonsList.map((addon: any, idx: number) => {
                       const aid = addon._id || addon.id;
                       const isSelected = !!addons[aid];
                       return (
-                        <Pressable
-                          key={aid}
+                        <TouchableOpacity
+                          key={aid || `addon-${idx}`}
+                          activeOpacity={0.7}
                           onPress={() => {
                             setAddons((prev) => ({
                               ...prev,
@@ -422,12 +419,12 @@ export default function SelectServiceScreen() {
                           }}
                           className={`flex-row items-center p-5 rounded-[28px] border ${
                             isSelected
-                              ? "bg-primary/10 border-primary shadow-sm shadow-primary/10"
+                              ? "bg-primary/10 border-primary"
                               : "bg-card border-border/50"
                           }`}
                         >
                           <View 
-                            className={`w-14 h-14 rounded-2xl items-center justify-center mr-4 shadow-sm ${
+                            className={`w-14 h-14 rounded-2xl items-center justify-center mr-4 ${
                               isSelected ? "bg-primary/20" : "bg-background"
                             }`}
                           >
@@ -467,7 +464,7 @@ export default function SelectServiceScreen() {
                               <Ionicons name="checkmark" size={16} color="#000" />
                             )}
                           </View>
-                        </Pressable>
+                        </TouchableOpacity>
                       );
                     })}
                   </View>
@@ -490,7 +487,7 @@ export default function SelectServiceScreen() {
                 {cars.map((car: any) => {
                   const isSelected = selectedCarId === (car._id || car.id);
                   return (
-                    <Pressable
+                    <TouchableOpacity
                       key={car._id || car.id}
                       style={{
                         width: 100,
@@ -506,15 +503,6 @@ export default function SelectServiceScreen() {
                         borderColor: isSelected
                           ? Colors.primary
                           : "rgba(226, 232, 240, 0.5)",
-                        // Shadow for selected
-                        shadowColor: isSelected ? Colors.primary : "#000",
-                        shadowOffset: {
-                          width: 0,
-                          height: isSelected ? 4 : 0,
-                        },
-                        shadowOpacity: isSelected ? 0.2 : 0,
-                        shadowRadius: isSelected ? 8 : 0,
-                        elevation: isSelected ? 4 : 0,
                       }}
                       onPress={() => setSelectedCarId(car._id || car.id)}
                     >
@@ -581,7 +569,7 @@ export default function SelectServiceScreen() {
                       >
                         {car.vehicleType || car.type}
                       </Text>
-                    </Pressable>
+                    </TouchableOpacity>
                   );
                 })}
               </ScrollView>

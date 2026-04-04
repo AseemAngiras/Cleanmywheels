@@ -8,6 +8,12 @@ export interface WashPackage {
   logo: string;
   tag: string;
   price: number;
+  prices: {
+    hatchback: number;
+    sedan: number;
+    suv: number;
+    twoWheeler: number;
+  };
   features: string[];
   status: string;
 }

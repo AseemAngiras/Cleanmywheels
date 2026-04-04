@@ -329,6 +329,12 @@ export default function ProfileHome() {
               onPress={() => router.push("/(tabs)/pairings")}
             /> */}
             <Row
+              icon="car-outline"
+              title="Manage Wash Packages"
+              subtitle="Update package names and prices"
+              onPress={() => router.push("/(tabs)/admin/wash-packages")}
+            />
+            <Row
               icon="people-outline"
               title="Manage Users"
               subtitle="View registered users"

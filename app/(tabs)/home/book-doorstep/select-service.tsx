@@ -4,6 +4,8 @@ import {
   useUpdateWashPackageMutation,
 } from "@/store/api/washPackageApi";
 import { useGetVehiclesQuery } from "@/store/api/vehicleApi";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import {
   useFocusEffect,
@@ -33,11 +35,18 @@ import {
   useGetAddonsQuery,
 } from "@/store/api/subscriptionApi";
 
+const VEHICLE_TYPE_TO_PRICE_KEY: Record<string, string> = {
+  Hatchback: "hatchback",
+  Sedan: "sedan",
+  SUV: "suv",
+  "Two Wheeler": "twoWheeler",
+};
+
 
 export default function SelectServiceScreen() {
-  // const user = useSelector((state: RootState) => state.user.user);
+  const user = useSelector((state: RootState) => (state as any).user?.user);
   // const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
-  // const isAdmin = user?.accountType === "Super Admin";
+  const isAdmin = user?.accountType === "Super Admin";
 
   const { data: allCars = [] } = useGetVehiclesQuery();
   const { data: subscriptions } = useGetMySubscriptionQuery();
@@ -86,6 +95,7 @@ export default function SelectServiceScreen() {
         id: pkg._id,
         name: pkg.name,
         price: pkg.price,
+        prices: pkg.prices,
         description: pkg.tag || "Professional car wash service",
         details: pkg.features?.join(", ") || "Interior and exterior cleaning",
         features: pkg.features || [],
@@ -110,8 +120,19 @@ export default function SelectServiceScreen() {
     id: string;
     name: string;
     price: number;
+    prices: {
+      hatchback: number;
+      sedan: number;
+      suv: number;
+      twoWheeler: number;
+    };
   } | null>(null);
-  const [newPrice, setNewPrice] = useState("");
+  const [newPrices, setNewPrices] = useState({
+    hatchback: "",
+    sedan: "",
+    suv: "",
+    twoWheeler: "",
+  });
 
   const toggleDetails = (id: string, e: any) => {
     e.stopPropagation();
@@ -168,23 +189,32 @@ export default function SelectServiceScreen() {
   };
 
   const handleUpdatePrice = async () => {
-    if (!editingService || !newPrice) return;
+    if (!editingService) return;
     try {
       await updateWashPackage({
         id: editingService.id,
-        body: { price: Number(newPrice) },
+        body: {
+          prices: {
+            hatchback: Number(newPrices.hatchback),
+            sedan: Number(newPrices.sedan),
+            suv: Number(newPrices.suv),
+            twoWheeler: Number(newPrices.twoWheeler),
+          },
+        },
       }).unwrap();
-      Alert.alert("Success", "Price updated successfully");
+      Alert.alert("Success", "Prices updated successfully");
       setEditingService(null);
-      setNewPrice("");
     } catch (err: any) {
-      Alert.alert("Error", err?.data?.message || "Failed to update price");
+      Alert.alert("Error", err?.data?.message || "Failed to update prices");
     }
   };
 
   const totalPrice = useMemo(() => {
     const service = services.find((s) => s.id === selectedService);
-    let total = service?.price || 0;
+    
+    const priceKey = VEHICLE_TYPE_TO_PRICE_KEY[vehicleType] || "sedan";
+    let basePrice = (service?.prices as any)?.[priceKey] || service?.price || 0;
+    let total = basePrice;
     
     const addonMap = new Map((addonsList as any[]).map(a => [a._id || a.id, a]));
     Object.entries(addons).forEach(([id, selected]) => {
@@ -195,7 +225,7 @@ export default function SelectServiceScreen() {
     });
     
     return total;
-  }, [services, selectedService, addons, addonsList]);
+  }, [services, selectedService, addons, addonsList, vehicleType]);
 
   const handleNext = () => {
     if (!selectedService) {
@@ -219,13 +249,15 @@ export default function SelectServiceScreen() {
       });
 
     const selectedServiceData = services.find((s) => s.id === selectedService);
+    const priceKey = VEHICLE_TYPE_TO_PRICE_KEY[vehicleType] || "sedan";
+    const actualBasePrice = (selectedServiceData?.prices as any)?.[priceKey] || selectedServiceData?.price;
 
     router.push({
       pathname: "/(tabs)/home/book-doorstep/select-slot",
       params: {
         serviceId: selectedService,
         serviceName: selectedServiceData?.name,
-        basePrice: selectedServiceData?.price,
+        basePrice: actualBasePrice,
         vehicleNumber,
         vehicleType,
         address,
@@ -293,6 +325,21 @@ export default function SelectServiceScreen() {
                       key={service.id}
                       activeOpacity={0.9}
                       onPress={() => handleServiceSelect(service.id)}
+                      onLongPress={() => {
+                        if (!isAdmin) return;
+                        setEditingService({
+                          id: service.id,
+                          name: service.name,
+                          price: service.price,
+                          prices: service.prices || { hatchback: 0, sedan: 0, suv: 0, twoWheeler: 0 },
+                        });
+                        setNewPrices({
+                          hatchback: (service.prices?.hatchback || 0).toString(),
+                          sedan: (service.prices?.sedan || 0).toString(),
+                          suv: (service.prices?.suv || 0).toString(),
+                          twoWheeler: (service.prices?.twoWheeler || 0).toString(),
+                        });
+                      }}
                       className={`mb-4 rounded-[28px] overflow-hidden border ${
                         isSelected
                           ? "bg-card border-primary shadow-lg shadow-primary/20"
@@ -308,7 +355,10 @@ export default function SelectServiceScreen() {
                             </Text>
                             <View className="flex-row items-center mt-1">
                               <Text className="text-[20px] font-[900] color-primary">
-                                ₹{service.price}
+                                ₹{(() => {
+                                  const priceKey = VEHICLE_TYPE_TO_PRICE_KEY[vehicleType] || "sedan";
+                                  return (service.prices as any)?.[priceKey] || service.price;
+                                })()}
                               </Text>
                               {service.isBestseller && (
                                 <Text className="ml-3 text-[12px] font-[700] color-textSecondary uppercase tracking-widest">
@@ -359,7 +409,7 @@ export default function SelectServiceScreen() {
                             <View className="flex-row flex-wrap gap-2">
                               {service.features.map((feature: string, idx: number) => (
                                 <View
-                                  key={`feat-${idx}`}
+                                  key={idx}
                                   className="px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 flex-row items-center"
                                 >
                                   <View className="w-1.5 h-1.5 rounded-full bg-primary mr-2" />
@@ -678,24 +728,37 @@ export default function SelectServiceScreen() {
         <View className="flex-1 bg-black/60 justify-center items-center px-6">
           <View className="bg-card w-full rounded-[32px] p-6 border border-border shadow-2xl">
             <Text className="text-[18px] font-[800] color-text mb-2">
-              Edit Price
+              Edit Prices
             </Text>
             <Text className="text-[14px] color-textSecondary mb-6">
               {editingService?.name}
             </Text>
 
-            <View className="bg-background border border-border rounded-2xl px-4 h-14 flex-row items-center mb-6">
-              <Text className="text-[18px] font-[800] color-textSecondary mr-2">
-                ₹
-              </Text>
-              <TextInput
-                className="flex-1 text-[18px] font-[800] color-text"
-                keyboardType="numeric"
-                value={newPrice}
-                onChangeText={setNewPrice}
-                autoFocus
-              />
-            </View>
+            <ScrollView className="max-h-[400px] mb-6">
+              {Object.keys(VEHICLE_TYPE_TO_PRICE_KEY).map((type) => {
+                const key = VEHICLE_TYPE_TO_PRICE_KEY[type] as keyof typeof newPrices;
+                return (
+                  <View key={type} className="mb-4">
+                    <Text className="text-[12px] font-[800] color-textSecondary uppercase mb-2 px-1">
+                      {type} Price
+                    </Text>
+                    <View className="bg-background border border-border rounded-2xl px-4 h-14 flex-row items-center">
+                      <Text className="text-[18px] font-[800] color-textSecondary mr-2">
+                        ₹
+                      </Text>
+                      <TextInput
+                        className="flex-1 text-[18px] font-[800] color-text"
+                        keyboardType="numeric"
+                        value={newPrices[key].toString()}
+                        onChangeText={(val) =>
+                          setNewPrices((prev) => ({ ...prev, [key]: val }))
+                        }
+                      />
+                    </View>
+                  </View>
+                );
+              })}
+            </ScrollView>
 
             <View className="flex-row gap-4">
               <TouchableOpacity

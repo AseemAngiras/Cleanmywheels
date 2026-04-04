@@ -11,7 +11,7 @@ import {
   Image,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { Colors } from "@/constants/Colors";
 import {
@@ -30,9 +30,11 @@ const VEHICLE_TYPE_TO_PRICE_KEY: Record<string, string> = {
 
 export default function AdminWashPackagesScreen() {
   const insets = useSafeAreaInsets();
+  
   const { data: response, isLoading } = useGetWashPackagesQuery({
     page: 1,
     perPage: 100,
+    packageType: "ONE_TIME"
   });
   const [updateWashPackage, { isLoading: isUpdating }] =
     useUpdateWashPackageMutation();
@@ -40,7 +42,9 @@ export default function AdminWashPackagesScreen() {
   const packages = response?.data?.washPackageList || [];
 
   const [editingPackage, setEditingPackage] = useState<WashPackage | null>(null);
-  const [newPrices, setNewPrices] = useState({
+  const [editData, setEditData] = useState({
+    name: "",
+    features: "",
     hatchback: "",
     sedan: "",
     suv: "",
@@ -49,7 +53,9 @@ export default function AdminWashPackagesScreen() {
 
   const handleEdit = (pkg: WashPackage) => {
     setEditingPackage(pkg);
-    setNewPrices({
+    setEditData({
+      name: pkg.name,
+      features: pkg.features?.join(", ") || "",
       hatchback: (pkg.prices?.hatchback || pkg.price || 0).toString(),
       sedan: (pkg.prices?.sedan || pkg.price || 0).toString(),
       suv: (pkg.prices?.suv || pkg.price || 0).toString(),
@@ -63,18 +69,21 @@ export default function AdminWashPackagesScreen() {
       await updateWashPackage({
         id: editingPackage._id,
         body: {
+          name: editData.name,
+          packageType: editData.packageType,
+          features: editData.features.split(",").map(f => f.trim()).filter(f => f),
           prices: {
-            hatchback: Number(newPrices.hatchback),
-            sedan: Number(newPrices.sedan),
-            suv: Number(newPrices.suv),
-            twoWheeler: Number(newPrices.twoWheeler),
+            hatchback: Number(editData.hatchback),
+            sedan: Number(editData.sedan),
+            suv: Number(editData.suv),
+            twoWheeler: Number(editData.twoWheeler),
           },
         },
       }).unwrap();
-      Alert.alert("Success", "Prices updated successfully");
+      Alert.alert("Success", "Package updated successfully");
       setEditingPackage(null);
     } catch (err: any) {
-      Alert.alert("Error", err?.data?.message || "Failed to update prices");
+      Alert.alert("Error", err?.data?.message || "Failed to update package");
     }
   };
 
@@ -90,7 +99,7 @@ export default function AdminWashPackagesScreen() {
         </TouchableOpacity>
         <View className="flex-1 ml-4">
           <Text className="text-[20px] font-[800] color-text tracking-tight">
-            Manage Packages
+            One-time Washes
           </Text>
           <Text className="text-[12px] color-textSecondary font-[600] uppercase tracking-widest">
             Admin Dashboard
@@ -108,7 +117,7 @@ export default function AdminWashPackagesScreen() {
           <View className="items-center justify-center py-20">
             <Ionicons name="car-outline" size={60} color={Colors.textSecondary} />
             <Text className="color-textSecondary mt-4 font-[600]">
-              No wash packages found
+              No {selectedType === "ONE_TIME" ? "one-time" : "subscription"} packages found
             </Text>
           </View>
         ) : (
@@ -131,9 +140,20 @@ export default function AdminWashPackagesScreen() {
                   className="bg-primary/10 px-4 py-2 rounded-xl border border-primary/20"
                 >
                   <Text className="color-primary font-[800] text-[12px] uppercase">
-                    Edit Prices
+                    Edit Package
                   </Text>
                 </TouchableOpacity>
+              </View>
+
+              <View className="mb-4">
+                 <Text className="text-[10px] color-textSecondary font-[700] uppercase mb-2">Features</Text>
+                 <View className="flex-row flex-wrap gap-2">
+                    {pkg.features?.map((f, i) => (
+                        <View key={i} className="bg-background px-3 py-1 rounded-full border border-border/30">
+                            <Text className="text-[10px] color-textSecondary font-[600]">{f}</Text>
+                        </View>
+                    ))}
+                 </View>
               </View>
 
               <View className="flex-row flex-wrap gap-2">
@@ -163,37 +183,99 @@ export default function AdminWashPackagesScreen() {
       <Modal visible={editingPackage !== null} transparent animationType="fade">
         <View className="flex-1 bg-black/60 justify-center items-center px-6">
           <View className="bg-card w-full rounded-[32px] p-6 border border-border shadow-2xl">
-            <Text className="text-[18px] font-[800] color-text mb-2">
-              Edit Prices
-            </Text>
-            <Text className="text-[14px] color-textSecondary mb-6">
-              {editingPackage?.name}
+            <Text className="text-[18px] font-[800] color-text mb-6">
+              Edit Package
             </Text>
 
-            <ScrollView className="max-h-[400px] mb-6">
-              {Object.keys(VEHICLE_TYPE_TO_PRICE_KEY).map((type) => {
-                const key = VEHICLE_TYPE_TO_PRICE_KEY[type] as keyof typeof newPrices;
-                return (
-                  <View key={type} className="mb-4">
-                    <Text className="text-[12px] font-[800] color-textSecondary uppercase mb-2 px-1">
-                      {type} Price
+            <ScrollView className="max-h-[500px] mb-6">
+              <View className="mb-4">
+                <Text className="text-[12px] font-[800] color-textSecondary uppercase mb-2 px-1">
+                  Service Type
+                </Text>
+                <View className="flex-row gap-2">
+                  <TouchableOpacity
+                    onPress={() => setEditData(prev => ({ ...prev, packageType: "ONE_TIME" }))}
+                    className={`flex-1 py-3 rounded-xl items-center border ${
+                      editData.packageType === "ONE_TIME"
+                        ? "bg-primary border-primary"
+                        : "bg-background border-border"
+                    }`}
+                  >
+                    <Text className={`font-[700] text-[12px] ${editData.packageType === "ONE_TIME" ? "color-black" : "color-textSecondary"}`}>
+                      ONE-TIME
                     </Text>
-                    <View className="bg-background border border-border rounded-2xl px-4 h-14 flex-row items-center">
-                      <Text className="text-[18px] font-[800] color-textSecondary mr-2">
-                        ₹
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => setEditData(prev => ({ ...prev, packageType: "SUBSCRIPTION" }))}
+                    className={`flex-1 py-3 rounded-xl items-center border ${
+                      editData.packageType === "SUBSCRIPTION"
+                        ? "bg-primary border-primary"
+                        : "bg-background border-border"
+                    }`}
+                  >
+                    <Text className={`font-[700] text-[12px] ${editData.packageType === "SUBSCRIPTION" ? "color-black" : "color-textSecondary"}`}>
+                      SUBSCRIPTION
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              <View className="mb-4">
+                <Text className="text-[12px] font-[800] color-textSecondary uppercase mb-2 px-1">
+                  Package Name
+                </Text>
+                <View className="bg-background border border-border rounded-2xl px-4 h-14 flex-row items-center">
+                  <TextInput
+                    className="flex-1 text-[16px] font-[800] color-text"
+                    value={editData.name}
+                    onChangeText={(val) => setEditData(prev => ({ ...prev, name: val }))}
+                  />
+                </View>
+              </View>
+
+              <View className="mb-4">
+                <Text className="text-[12px] font-[800] color-textSecondary uppercase mb-2 px-1">
+                  Features (comma separated)
+                </Text>
+                <View className="bg-background border border-border rounded-2xl px-4 py-3 min-h-[100px]">
+                  <TextInput
+                    className="text-[14px] font-[600] color-text"
+                    multiline
+                    value={editData.features}
+                    onChangeText={(val) => setEditData(prev => ({ ...prev, features: val }))}
+                    placeholder="E.g. Interior Cleaning, Tire Polish, Waxcoat"
+                    placeholderTextColor="#64748B"
+                  />
+                </View>
+              </View>
+
+              <Text className="text-[14px] font-[800] color-text mt-4 mb-4">Pricing by Vehicle Type</Text>
+              
+              <View className="flex-row flex-wrap justify-between">
+                {Object.keys(VEHICLE_TYPE_TO_PRICE_KEY).map((type) => {
+                  const key = VEHICLE_TYPE_TO_PRICE_KEY[type] as keyof typeof editData;
+                  return (
+                    <View key={type} className="w-[48%] mb-4">
+                      <Text className="text-[10px] font-[800] color-textSecondary uppercase mb-2 px-1">
+                        {type}
                       </Text>
-                      <TextInput
-                        className="flex-1 text-[18px] font-[800] color-text"
-                        keyboardType="numeric"
-                        value={newPrices[key]}
-                        onChangeText={(val) =>
-                          setNewPrices((prev) => ({ ...prev, [key]: val }))
-                        }
-                      />
+                      <View className="bg-background border border-border rounded-2xl px-4 h-14 flex-row items-center">
+                        <Text className="text-[16px] font-[800] color-textSecondary mr-1">
+                          ₹
+                        </Text>
+                        <TextInput
+                          className="flex-1 text-[16px] font-[800] color-text"
+                          keyboardType="numeric"
+                          value={editData[key]}
+                          onChangeText={(val) =>
+                            setEditData((prev) => ({ ...prev, [key]: val }))
+                          }
+                        />
+                      </View>
                     </View>
-                  </View>
-                );
-              })}
+                  );
+                })}
+              </View>
             </ScrollView>
 
             <View className="flex-row gap-4">

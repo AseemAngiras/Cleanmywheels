@@ -330,13 +330,24 @@ export default function ProfileHome() {
             /> */}
             <Row
               icon="car-outline"
-              title="Manage Wash Packages"
-              subtitle="Update package names and prices"
-              onPress={() => router.push("/(tabs)/admin/wash-packages")}
+              title="Manage One-time Washes"
+              subtitle="Update wash names and prices"
+              onPress={() =>
+                router.push({
+                  pathname: "/(tabs)/admin/wash-packages",
+                  params: { type: "ONE_TIME" },
+                })
+              }
+            />
+            <Row
+              icon="calendar-outline"
+              title="Manage Subscription Plans"
+              subtitle="Update plan names and pricing"
+              onPress={() => router.push("/(tabs)/admin/subscription-plans")}
             />
             <Row
               icon="people-outline"
-              title="Manage Users"
+              title="Manage Professionals"
               subtitle="View registered users"
               onPress={() =>
                 Alert.alert(

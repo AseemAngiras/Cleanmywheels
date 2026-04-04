@@ -77,7 +77,12 @@ export default function SelectServiceScreen() {
     data: washPackagesData,
     isLoading: isLoadingPackages,
     // error: loadError,
-  } = useGetWashPackagesQuery({ page: 1, perPage: 10 });
+  } = useGetWashPackagesQuery({ 
+    page: 1, 
+    perPage: 10, 
+    packageType: "ONE_TIME",
+    status: "Active" 
+  });
   const { data: addonsList = [], isLoading: isLoadingAddons } =
     useGetAddonsQuery();
 

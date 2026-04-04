@@ -16,6 +16,7 @@ export interface WashPackage {
   };
   features: string[];
   status: string;
+  packageType: "ONE_TIME" | "SUBSCRIPTION";
 }
 
 export interface WashPackagesResponse {
@@ -52,7 +53,7 @@ export const washPackageApi = createApi({
     },
   }),
   endpoints: (builder) => ({
-    getWashPackages: builder.query<WashPackagesResponse, { search?: string; page?: number; perPage?: number } | void>({
+    getWashPackages: builder.query<WashPackagesResponse, { search?: string; page?: number; perPage?: number; packageType?: string; status?: string } | void>({
       query: (params) => ({
         url: "/wash-package",
         method: "GET",

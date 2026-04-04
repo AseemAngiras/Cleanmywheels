@@ -19,7 +19,10 @@ import {
 import { useFocusEffect, useRouter } from "expo-router";
 
 import type { RootState } from "../../../store";
-import { useGetBookingsQuery } from "../../../store/api/bookingApi";
+import {
+  useGetBookingsQuery,
+  useAssignWorkerAndNotifyMutation,
+} from "../../../store/api/bookingApi";
 import { useGetWorkersQuery } from "../../../store/api/workerApi";
 import {
   useAssignSubscriptionWorkerMutation,
@@ -141,6 +144,7 @@ export default function UpcomingServices() {
   const workers = workersData?.workers || [];
   const [workerModalVisible, setWorkerModalVisible] = useState(false);
   const [assignSubscriptionWorker] = useAssignSubscriptionWorkerMutation();
+  const [assignWorkerAndNotify] = useAssignWorkerAndNotifyMutation();
   const [isAssigningSubWorker, setIsAssigningSubWorker] = useState(false);
 
   const sendUserConfirmation = (worker: any, booking: any) => {
@@ -210,24 +214,34 @@ export default function UpcomingServices() {
 
     Alert.alert(
       "Confirm Assignment",
-      `Assign ${worker.name} to this job? This will open WhatsApp to notify both parties.`,
+      `Assign ${worker.name} to this job? This will notify both parties and update the booking.`,
       [
         { text: "Cancel", style: "cancel" },
         {
           text: "Assign & Notify",
-          onPress: () => {
-            sendUserConfirmation(worker, activeBooking);
+          onPress: async () => {
+            try {
+              await assignWorkerAndNotify({
+                bookingId: activeBooking.id,
+                workerId: worker._id,
+              }).unwrap();
 
-            setTimeout(() => {
-              sendWorkerJobDetails(worker, activeBooking);
-            }, 1500);
+              // Fallback manual notification if needed, though backend handles it
+              sendUserConfirmation(worker, activeBooking);
+              setTimeout(() => {
+                sendWorkerJobDetails(worker, activeBooking);
+              }, 1500);
 
-            setWorkerModalVisible(false);
-            closeSheet();
-            Alert.alert(
-              "Success",
-              "Worker assigned and notifications initiated!",
-            );
+              setWorkerModalVisible(false);
+              closeSheet();
+              Alert.alert(
+                "Success",
+                "Worker assigned and notified successfully!",
+              );
+            } catch (error) {
+              console.error("Assignment error:", error);
+              Alert.alert("Error", "Failed to assign worker. Please try again.");
+            }
           },
         },
       ],

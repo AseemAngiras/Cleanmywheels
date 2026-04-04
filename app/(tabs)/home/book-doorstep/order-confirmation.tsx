@@ -139,6 +139,23 @@ export default function OrderConfirmationScreen() {
                   {params.serviceName}
                 </Text>
               </View>
+                <Text className="text-[12px] font-[700] color-textSecondary uppercase tracking-wider">
+                  Add-ons
+                </Text>
+                <Text className="text-[14px] font-[800] color-text text-right flex-1 ml-4">
+                  {(() => {
+                    try {
+                      const addonsArray = params.addons
+                        ? JSON.parse(params.addons as string)
+                        : [];
+                      return Array.isArray(addonsArray) && addonsArray.length > 0
+                        ? addonsArray.map((a: any) => a.name).join(", ")
+                        : "None";
+                    } catch (e) {
+                      return "None";
+                    }
+                  })()}
+                </Text>
 
               <View className="flex-row justify-between items-start py-4 border-y border-border/20 border-dashed">
                 <Text className="text-[12px] font-[700] color-textSecondary uppercase tracking-wider">

@@ -329,6 +329,12 @@ export default function ProfileHome() {
               onPress={() => router.push("/(tabs)/pairings")}
             /> */}
             <Row
+              icon="sparkles-outline"
+              title="Manage Service Catalog"
+              subtitle="Update add-on names and multi-frequency pricing"
+              onPress={() => router.push("/(tabs)/admin/service-management")}
+            />
+            <Row
               icon="car-outline"
               title="Manage One-time Washes"
               subtitle="Update wash names and prices"

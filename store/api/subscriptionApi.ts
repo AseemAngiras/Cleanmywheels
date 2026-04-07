@@ -131,6 +131,33 @@ export const subscriptionApi = createApi({
     getAddons: builder.query<any[], void>({
       query: () => "/addons",
       transformResponse: (response: { data: any[] }) => response.data,
+      providesTags: ["Plans"],
+    }),
+
+    createAddon: builder.mutation<any, any>({
+      query: (body) => ({
+        url: "/addons",
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["Plans"],
+    }),
+
+    updateAddon: builder.mutation<any, { id: string; body: any }>({
+      query: ({ id, body }) => ({
+        url: `/addons/${id}`,
+        method: "PUT",
+        body,
+      }),
+      invalidatesTags: ["Plans"],
+    }),
+
+    deleteAddon: builder.mutation<any, string>({
+      query: (id) => ({
+        url: `/addons/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Plans"],
     }),
 
     createAddonOrder: builder.mutation<
@@ -181,6 +208,9 @@ export const {
   useAssignSubscriptionWorkerMutation,
   useMarkSubscriptionDailyDoneMutation,
   useGetAddonsQuery,
+  useCreateAddonMutation,
+  useUpdateAddonMutation,
+  useDeleteAddonMutation,
   useCreateAddonOrderMutation,
   useVerifyAddonPaymentMutation,
   useGetAllSubscriptionsQuery,

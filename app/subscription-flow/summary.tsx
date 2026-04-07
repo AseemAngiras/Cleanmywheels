@@ -85,7 +85,7 @@ export default function SubscriptionSummaryScreen() {
   ) as "hatchback" | "sedan" | "suv" | "twoWheeler";
 
   const basePrice =
-    (selectedPlan.prices?.[priceKey]?.[frequencyType as any]) ||
+    ((selectedPlan.prices as any)?.[priceKey]?.[frequencyType as any]) ||
     selectedPlan.price ||
     0;
 
@@ -93,14 +93,19 @@ export default function SubscriptionSummaryScreen() {
     (f) => f.type === frequencyType,
   ) || { multiplier: 1, services: frequencyType === 'DAILY' ? 30 : frequencyType === 'WEEKLY' ? 4 : frequencyType === 'BIWEEKLY' ? 8 : 15 };
 
-  const addonPricePerService = (selectedAddons as any[]).reduce(
-    (sum: number, a: any) => sum + (a.subscriptionPrice || a.price || 0),
+  const totalAddonsCost = (selectedAddons as any[]).reduce(
+    (sum: number, a: any) => {
+      const freqPrice = a.priceMatrix?.[frequencyType as string];
+      if (freqPrice && freqPrice > 0) {
+        return sum + freqPrice;
+      }
+      const perServicePrice = a.subscriptionPrice || a.price || 0;
+      return sum + (perServicePrice * frequencyData.services);
+    },
     0,
   );
 
-  const finalPrice = Math.round(
-    basePrice + (addonPricePerService * frequencyData.services)
-  );
+  const finalPrice = Math.round(basePrice + totalAddonsCost);
 
   const handlePayment = async () => {
     if (!selectedPlan || !selectedVehicle) {
@@ -331,7 +336,7 @@ export default function SubscriptionSummaryScreen() {
               </Text>
               {selectedAddons.map((addon: any, index: number) => (
                 <View
-                  key={addon._id}
+                  key={addon._id || index}
                   className={`flex-row justify-between items-center ${index !== 0 ? "mt-3 pt-3 border-t border-border/30" : ""}`}
                 >
                   <View className="flex-row items-center flex-1">
@@ -348,16 +353,20 @@ export default function SubscriptionSummaryScreen() {
                     </Text>
                   </View>
                   <Text className="text-[14px] font-[700] color-text">
-                    +₹{addon.subscriptionPrice || addon.price}
+                    +₹{
+                      (addon.priceMatrix?.[frequencyType as string] && addon.priceMatrix[frequencyType as string] > 0)
+                        ? addon.priceMatrix[frequencyType as string]
+                        : (addon.subscriptionPrice || addon.price || 0) * frequencyData.services
+                    }
                   </Text>
                 </View>
               ))}
               <View className="mt-4 pt-4 border-t border-border/50 flex-row justify-between items-center">
                 <Text className="text-[12px] font-[700] color-textSecondary uppercase tracking-widest">
-                  Add-on Total / service
+                  Total Add-on Cost (Monthly)
                 </Text>
                 <Text className="text-[14px] font-[800] color-primary">
-                  ₹{addonPricePerService}
+                  ₹{totalAddonsCost}
                 </Text>
               </View>
             </View>

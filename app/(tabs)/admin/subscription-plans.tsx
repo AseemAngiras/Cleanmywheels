@@ -21,6 +21,7 @@ import {
   useDeleteSubscriptionPlanMutation,
   SubscriptionPlan,
 } from "@/store/api/subscriptionPlanApi";
+import { useGetAddonsQuery } from "@/store/api/subscriptionApi";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const VEHICLE_TYPE_TO_PRICE_KEY: Record<string, string> = {
@@ -43,6 +44,8 @@ export default function AdminSubscriptionPlansScreen() {
     useCreateSubscriptionPlanMutation();
   const [deleteSubscriptionPlan] = useDeleteSubscriptionPlanMutation();
 
+  const { data: addons } = useGetAddonsQuery();
+
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [editingPackage, setEditingPackage] = useState<SubscriptionPlan | null>(
     null,
@@ -51,6 +54,7 @@ export default function AdminSubscriptionPlansScreen() {
     name: "",
     tag: "",
     features: [] as string[],
+    includedServiceIds: [] as string[],
     prices: {
       hatchback: { DAILY: 0, WEEKLY: 0, BIWEEKLY: 0, ALTERNATE_DAY: 0, ONE_TIME: 0 },
       sedan: { DAILY: 0, WEEKLY: 0, BIWEEKLY: 0, ALTERNATE_DAY: 0, ONE_TIME: 0 },
@@ -65,6 +69,7 @@ export default function AdminSubscriptionPlansScreen() {
       name: pkg.name,
       tag: pkg.tag || "",
       features: pkg.features || [],
+      includedServiceIds: pkg.includedServiceIds || [],
       prices: {
         hatchback: {
           DAILY: pkg.prices?.hatchback?.DAILY || 0,
@@ -130,6 +135,7 @@ export default function AdminSubscriptionPlansScreen() {
                   name: editData.name,
                   tag: editData.tag,
                   features: editData.features.filter((f) => f.trim() !== ""),
+                  includedServiceIds: editData.includedServiceIds,
                   prices: editData.prices,
                 },
               }).unwrap();
@@ -154,6 +160,7 @@ export default function AdminSubscriptionPlansScreen() {
       name: "",
       tag: "",
       features: [],
+      includedServiceIds: [],
       prices: {
         hatchback: { DAILY: 0, WEEKLY: 0, BIWEEKLY: 0, ALTERNATE_DAY: 0, ONE_TIME: 0 },
         sedan: { DAILY: 0, WEEKLY: 0, BIWEEKLY: 0, ALTERNATE_DAY: 0, ONE_TIME: 0 },
@@ -192,27 +199,30 @@ export default function AdminSubscriptionPlansScreen() {
   const handleSave = async () => {
     if (editingPackage?._id === "new") {
       try {
-          if (!editData.name.trim()) {
-            Alert.alert("Error", "Plan name is required");
-            return;
-          }
-          if (!editData.tag.trim()) {
-            Alert.alert("Error", "Plan tag is required");
-            return;
-          }
-          if (editData.features.filter(f => f.trim() !== "").length === 0) {
-            Alert.alert("Error", "At least one feature is required");
-            return;
-          }
+        if (!editData.name.trim()) {
+          Alert.alert("Error", "Plan name is required");
+          return;
+        }
+        if (!editData.tag.trim()) {
+          Alert.alert("Error", "Plan tag is required");
+          return;
+        }
+        if (editData.features.filter((f) => f.trim() !== "").length === 0) {
+          Alert.alert("Error", "At least one feature is required");
+          return;
+        }
 
-          await createSubscriptionPlan({
-            name: editData.name,
-            tag: editData.tag,
-            features: editData.features.filter((f) => f.trim() !== ""),
-            prices: editData.prices,
-            price: editData.prices.hatchback.DAILY || 0, 
-            status: "Active",
-          }).unwrap();
+        const payload = {
+          name: editData.name,
+          tag: editData.tag,
+          features: editData.features.filter((f) => f.trim() !== ""),
+          includedServiceIds: editData.includedServiceIds,
+          prices: editData.prices,
+          price: editData.prices.hatchback.DAILY || 0,
+          status: "Active" as const,
+        };
+
+        await createSubscriptionPlan(payload).unwrap();
         Alert.alert("Success", "Subscription plan created successfully");
         setEditModalVisible(false);
       } catch (error: any) {
@@ -256,7 +266,7 @@ export default function AdminSubscriptionPlansScreen() {
   };
 
   const packages = (response?.data?.subscriptionPlanList || []).filter(
-    (pkg) => pkg.status !== "Archived",
+    (pkg: any) => pkg.status !== "Archived",
   );
 
   return (
@@ -312,11 +322,11 @@ export default function AdminSubscriptionPlansScreen() {
         ) : (
           <View className="px-5 pt-6">
             {packages.map((pkg: SubscriptionPlan) => (
-              <TouchableOpacity
-                key={pkg._id}
-                onPress={() => handleEdit(pkg)}
-                className="bg-card rounded-[32px] p-5 mb-5 border border-border shadow-sm"
-              >
+              <View key={pkg._id}>
+                <TouchableOpacity
+                  onPress={() => handleEdit(pkg)}
+                  className="bg-card rounded-[32px] p-5 mb-5 border border-border shadow-sm"
+                >
                 <View className="flex-row justify-between items-start mb-4">
                   <View className="flex-1">
                     <Text className="text-[18px] font-[800] color-text mb-1">
@@ -375,13 +385,14 @@ export default function AdminSubscriptionPlansScreen() {
                       </View>
                     ))}
                   </View>
-                  <Ionicons
-                    name="chevron-forward"
-                    size={18}
-                    color={Colors.textSecondary}
-                  />
-                </View>
-              </TouchableOpacity>
+                    <Ionicons
+                      name="chevron-forward"
+                      size={18}
+                      color={Colors.textSecondary}
+                    />
+                  </View>
+                </TouchableOpacity>
+              </View>
             ))}
           </View>
         )}
@@ -512,7 +523,7 @@ export default function AdminSubscriptionPlansScreen() {
                   </TouchableOpacity>
                 </View>
                 {editData.features.map((feature, index) => (
-                  <View key={index} className="flex-row items-center mb-3">
+                  <View key={`feature-${index}`} className="flex-row items-center mb-3">
                     <View className="flex-1 bg-background border border-border rounded-2xl px-4 h-12 flex-row items-center">
                       <TextInput
                         className="flex-1 text-text font-[500] text-[13px]"
@@ -534,6 +545,40 @@ export default function AdminSubscriptionPlansScreen() {
                     </TouchableOpacity>
                   </View>
                 ))}
+              </View>
+
+              {/* Included Services (ID Linked) */}
+              <View className="mb-8">
+                <Text className="text-[12px] font-[800] color-textSecondary uppercase mb-3 px-1">
+                  Included Services (Direct Link)
+                </Text>
+                <View className="flex-row flex-wrap gap-2">
+                  {addons?.map((addon: any) => {
+                    const isIncluded = editData.includedServiceIds?.includes(addon._id);
+                    return (
+                      <View key={addon._id}>
+                        <TouchableOpacity
+                          onPress={() => {
+                            const newIds = isIncluded
+                              ? editData.includedServiceIds.filter(id => id !== addon._id)
+                              : [...(editData.includedServiceIds || []), addon._id];
+                            setEditData(prev => ({ ...prev, includedServiceIds: newIds }));
+                          }}
+                          className={`px-4 py-2 rounded-full border ${
+                            isIncluded ? "bg-primary border-primary" : "bg-card border-border"
+                          }`}
+                        >
+                          <Text className={`text-[12px] font-[700] ${isIncluded ? "text-black" : "text-text"}`}>
+                            {addon.name}
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                    );
+                  })}
+                </View>
+                <Text className="text-[11px] color-textSecondary mt-2 px-1 italic">
+                  * Linked services are hidden from the user&apos;s optional add-ons.
+                </Text>
               </View>
 
               <TouchableOpacity

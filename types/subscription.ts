@@ -15,7 +15,8 @@ export interface SubscriptionPlan {
     suv: { DAILY: number; WEEKLY: number; BIWEEKLY: number; ALTERNATE_DAY: number; ONE_TIME: number };
     twoWheeler: { DAILY: number; WEEKLY: number; BIWEEKLY: number; ALTERNATE_DAY: number; ONE_TIME: number };
   };
-  features: string[];
+  features: string[]; // Keep for compatibility
+  includedServiceIds?: string[]; // New ID-based linking
   status: "Active" | "Inactive" | "Archived";
   razorpayPlanId?: string;
   frequencies?: {
@@ -31,7 +32,14 @@ export interface Addon {
   _id: string;
   name: string;
   description: string;
-  price: number;
+  price: number; // Base/Fallback price
+  priceMatrix?: {
+    ONE_TIME?: number;
+    DAILY?: number;
+    WEEKLY?: number;
+    BIWEEKLY?: number;
+    ALTERNATE_DAY?: number;
+  };
   icon?: string;
   durationMinutes: number;
   isActive: boolean;

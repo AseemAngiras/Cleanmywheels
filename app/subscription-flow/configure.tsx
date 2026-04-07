@@ -89,6 +89,22 @@ export default function SubscriptionConfigureScreen() {
   const { data: addonsData } = useGetAddonsQuery();
   const addons = addonsData || [];
 
+  const filteredAddons = addons.filter((addon: any) => {
+    // 1. Check by ID (New Architecture)
+    const addonId = addon._id || addon.id;
+    if (selectedPlan?.includedServiceIds?.some((id: string) => String(id) === String(addonId))) {
+      return false;
+    }
+
+    // 2. Fallback to Name Matching (Compatibility)
+    if (!selectedPlan?.features) return true;
+    return !selectedPlan.features.some((feature: string) =>
+      feature.toLowerCase().trim() === addon.name.toLowerCase().trim() ||
+      feature.toLowerCase().includes(addon.name.toLowerCase()) ||
+      addon.name.toLowerCase().includes(feature.toLowerCase())
+    );
+  });
+
   const [showAddCarModal, setShowAddCarModal] = useState(false);
   const [newCarNo, setNewCarNo] = useState("");
   const [newCarType, setNewCarType] = useState("Sedan");
@@ -139,19 +155,32 @@ export default function SubscriptionConfigureScreen() {
             : 15,
   };
 
-  const addonPricePerService = selectedAddons.reduce(
-    (sum, a) => sum + (a.subscriptionPrice || a.price || 0),
-    0,
-  );
+  const totalAddonsCost = selectedAddons.reduce((sum, a) => {
+    const frequencyPrice = a.priceMatrix?.[selectedFrequency];
+    if (frequencyPrice && frequencyPrice > 0) {
+      return sum + frequencyPrice;
+    }
+    const perServicePrice = a.subscriptionPrice || a.price || 0;
+    return sum + perServicePrice * frequencyData.services;
+  }, 0);
 
-  const currentTotalPrice = Math.round(
-    basePrice + addonPricePerService * frequencyData.services,
-  );
+  const currentTotalPrice = Math.round(basePrice + totalAddonsCost);
 
   useEffect(() => {
     if (availableCars.length > 0 && !selectedVehicleId) {
     }
   }, [availableCars.length, selectedVehicleId]);
+
+  useEffect(() => {
+    if (selectedAddons.length > 0) {
+      const validAddons = selectedAddons.filter((addon) =>
+        filteredAddons.some((fa) => fa._id === addon._id),
+      );
+      if (validAddons.length !== selectedAddons.length) {
+        setSelectedAddons(validAddons);
+      }
+    }
+  }, [selectedPlan?._id, filteredAddons, selectedAddons]);
 
   const handleAddCar = async () => {
     if (!newCarNo.trim()) {
@@ -360,7 +389,7 @@ export default function SubscriptionConfigureScreen() {
             ))}
           </View>
 
-          {addons.length > 0 && (
+          {filteredAddons.length > 0 && (
             <>
               <Text className="text-[18px] font-[700] color-text mb-4">
                 Add Subscription Add-ons
@@ -371,10 +400,16 @@ export default function SubscriptionConfigureScreen() {
                 className="mb-8"
                 contentContainerStyle={{ gap: 12 }}
               >
-                {addons.map((addon: any) => {
+                {filteredAddons.map((addon: any) => {
                   const isSelected = selectedAddons.some(
                     (a) => a._id === addon._id,
                   );
+                  const freqPrice = addon.priceMatrix?.[selectedFrequency];
+                  const displayPrice =
+                    freqPrice && freqPrice > 0
+                      ? freqPrice
+                      : addon.subscriptionPrice || addon.price || 0;
+
                   return (
                     <TouchableOpacity
                       key={addon._id}
@@ -417,7 +452,7 @@ export default function SubscriptionConfigureScreen() {
                           isSelected ? "text-black" : "text-primary"
                         }`}
                       >
-                        ₹{addon.subscriptionPrice || addon.price}
+                        ₹{displayPrice}
                       </Text>
                     </TouchableOpacity>
                   );

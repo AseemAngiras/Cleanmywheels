@@ -69,7 +69,10 @@ const mapBackendBooking = (booking: any): Booking => {
     status: displayStatus,
     realStatus: booking.status,
     serviceName: booking.serviceName || booking.washPackage?.name || "Car Wash",
-    price: typeof booking.price === 'object' ? (booking.price.ONE_TIME || 0) : (booking.price || 0),
+    price:
+      typeof booking.price === "object"
+        ? booking.price.ONE_TIME || 0
+        : booking.price || 0,
     plate: booking.vehicleNo || booking.vehicle?.number || "N/A",
     address: booking.locality
       ? `${booking.houseOrFlatNo || ""}, ${booking.locality}, ${
@@ -127,7 +130,7 @@ export default function UpcomingServices() {
       }
 
       // Hide pending bookings for regular users
-      if (status === "pending") {
+      if (status === "pending" || status === "payment pending") {
         return false;
       }
 
@@ -582,23 +585,29 @@ export default function UpcomingServices() {
                   <Text className="mt-[6px] text-sm text-textSecondary">
                     {item.car}
                   </Text>
-                  
+
                   {/* Worker Badge */}
                   <View className="flex-row items-center mt-2">
-                    <View className={`flex-row items-center px-2 py-1 rounded-md border ${
-                      item.workerName 
-                        ? "bg-success/5 border-success/20" 
-                        : "bg-warning/5 border-warning/20"
-                    }`}>
-                      <Ionicons 
-                        name={item.workerName ? "person" : "hourglass-outline"} 
-                        size={12} 
-                        color={item.workerName ? "#10B981" : "#F59E0B"} 
+                    <View
+                      className={`flex-row items-center px-2 py-1 rounded-md border ${
+                        item.workerName
+                          ? "bg-success/5 border-success/20"
+                          : "bg-warning/5 border-warning/20"
+                      }`}
+                    >
+                      <Ionicons
+                        name={item.workerName ? "person" : "hourglass-outline"}
+                        size={12}
+                        color={item.workerName ? "#10B981" : "#F59E0B"}
                       />
-                      <Text className={`text-[11px] font-[700] ml-1 uppercase ${
-                        item.workerName ? "text-success" : "text-warning"
-                      }`}>
-                        {item.workerName ? `Valet: ${item.workerName}` : "Assignment Pending"}
+                      <Text
+                        className={`text-[11px] font-[700] ml-1 uppercase ${
+                          item.workerName ? "text-success" : "text-warning"
+                        }`}
+                      >
+                        {item.workerName
+                          ? `Valet: ${item.workerName}`
+                          : "Assignment Pending"}
                       </Text>
                     </View>
                   </View>
@@ -712,16 +721,26 @@ export default function UpcomingServices() {
                               {activeBooking.address.split(",")[0]}
                             </Text>
                           </View>
-                          <View className={`flex-row items-center px-2 py-1 rounded-full gap-1 ${
-                            activeBooking.workerName ? "bg-black/10" : "bg-white/40"
-                          }`}>
-                            <Ionicons 
-                              name={activeBooking.workerName ? "checkmark-circle" : "time"} 
-                              size={12} 
-                              color="#1a1a1a" 
+                          <View
+                            className={`flex-row items-center px-2 py-1 rounded-full gap-1 ${
+                              activeBooking.workerName
+                                ? "bg-black/10"
+                                : "bg-white/40"
+                            }`}
+                          >
+                            <Ionicons
+                              name={
+                                activeBooking.workerName
+                                  ? "checkmark-circle"
+                                  : "time"
+                              }
+                              size={12}
+                              color="#1a1a1a"
                             />
                             <Text className="text-[12px] font-[600] text-black">
-                              {activeBooking.workerName ? "Valet Assigned" : "Finding Valet"}
+                              {activeBooking.workerName
+                                ? "Valet Assigned"
+                                : "Finding Valet"}
                             </Text>
                           </View>
                         </View>

@@ -330,7 +330,7 @@ export default function ProfileHome() {
             /> */}
             <Row
               icon="sparkles-outline"
-              title="Manage Service Catalog"
+              title="Manage Add-ons"
               subtitle="Update add-on names and multi-frequency pricing"
               onPress={() => router.push("/(tabs)/admin/service-management")}
             />

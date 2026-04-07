@@ -91,7 +91,7 @@ export default function SubscriptionSummaryScreen() {
 
   const frequencyData = selectedPlan?.frequencies?.find(
     (f) => f.type === frequencyType,
-  ) || { multiplier: 1, services: frequencyType === 'DAILY' ? 30 : frequencyType === 'WEEKLY' ? 4 : frequencyType === 'BIWEEKLY' ? 2 : 15 };
+  ) || { multiplier: 1, services: frequencyType === 'DAILY' ? 30 : frequencyType === 'WEEKLY' ? 4 : frequencyType === 'BIWEEKLY' ? 8 : 15 };
 
   const addonPricePerService = (selectedAddons as any[]).reduce(
     (sum: number, a: any) => sum + (a.subscriptionPrice || a.price || 0),
@@ -174,7 +174,7 @@ export default function SubscriptionSummaryScreen() {
       if (razorpaySubscriptionId) {
         options.subscription_id = razorpaySubscriptionId;
       } else {
-        options.order_id = orderId;
+        options.order_id = orderId || response.id;
         options.amount = response.amount || finalPrice * 100;
         options.recurring = isAutoPay === "true";
       }

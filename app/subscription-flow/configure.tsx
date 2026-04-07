@@ -123,7 +123,7 @@ export default function SubscriptionConfigureScreen() {
 
   const frequencyData = selectedPlan?.frequencies?.find(
     (f) => f.type === selectedFrequency,
-  ) || { multiplier: 1, services: selectedFrequency === 'DAILY' ? 30 : selectedFrequency === 'WEEKLY' ? 4 : selectedFrequency === 'BIWEEKLY' ? 2 : 15 };
+  ) || { multiplier: 1, services: selectedFrequency === 'DAILY' ? 30 : selectedFrequency === 'WEEKLY' ? 4 : selectedFrequency === 'BIWEEKLY' ? 8 : 15 };
 
   const addonPricePerService = selectedAddons.reduce(
     (sum, a) => sum + (a.subscriptionPrice || a.price || 0),

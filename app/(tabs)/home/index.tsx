@@ -330,16 +330,26 @@ export default function HomeScreen() {
       return;
     }
 
+    const rebookAddons = (booking.addons || []).map((a: any) => ({
+      id: a.addOn?._id || a.addOn,
+      name: a.addOn?.name || "Addon",
+      price: a.price,
+    }));
+
     router.push({
       pathname: "/(tabs)/home/book-doorstep/select-slot",
       params: {
-        serviceName: booking.serviceName,
-        shopName: booking.center || "Your Location",
-        basePrice: booking.price ? Math.round(booking.price / 1.18) : 0,
-        address: booking.address,
-        vehicleType: booking.car?.split(" - ")[0] || "Sedan",
-        vehicleNumber: booking.car?.split(" - ")[1] || "",
-        serviceId: booking.serviceId,
+        serviceId: booking.serviceId as string,
+        serviceName: booking.serviceName as string,
+        shopName: (booking.center || "Your Location") as string,
+        basePrice: (
+          (booking.price || 0) - (booking.addonsTotal || 0)
+        ).toString(),
+        totalPrice: (booking.price || 0).toString(),
+        address: (booking.address || "") as string,
+        vehicleType: (booking.car?.split(" - ")[0] || "Sedan") as string,
+        vehicleNumber: (booking.car?.split(" - ")[1] || "") as string,
+        addons: JSON.stringify(rebookAddons),
       },
     });
 

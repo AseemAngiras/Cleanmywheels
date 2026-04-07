@@ -89,6 +89,8 @@ export default function SubscriptionConfigureScreen() {
   const { data: addonsData } = useGetAddonsQuery();
   const addons = addonsData || [];
 
+  const selectedPlan = plans?.find((p) => p._id === planId);
+
   const filteredAddons = addons.filter((addon: any) => {
     // 1. Check by ID (New Architecture)
     const addonId = addon._id || addon.id;
@@ -108,8 +110,6 @@ export default function SubscriptionConfigureScreen() {
   const [showAddCarModal, setShowAddCarModal] = useState(false);
   const [newCarNo, setNewCarNo] = useState("");
   const [newCarType, setNewCarType] = useState("Sedan");
-
-  const selectedPlan = plans?.find((p) => p._id === planId);
 
   const activeVehicleIds = new Set();
 
@@ -388,6 +388,31 @@ export default function SubscriptionConfigureScreen() {
               </TouchableOpacity>
             ))}
           </View>
+          {selectedPlan?.includedServiceIds && selectedPlan.includedServiceIds.length > 0 && (
+            <View className="mb-6">
+              <Text className="text-[18px] font-[700] color-text mb-4">
+                Included in your Plan
+              </Text>
+              <View className="flex-row flex-wrap gap-2">
+                {selectedPlan.includedServiceIds.map((id: string) => {
+                  const addon = addons.find((a: any) => String(a._id || a.id) === String(id));
+                  if (!addon) return null;
+                  return (
+                    <View 
+                      key={`included-${id}`}
+                      className="bg-primary/10 border border-primary/20 px-3 py-2 rounded-full flex-row items-center"
+                    >
+                      <MaterialCommunityIcons name={(addon.icon as any) || "check-circle"} size={14} color={Colors.primary} />
+                      <Text className="text-primary text-[12px] font-[700] ml-1">
+                        {addon.name}
+                      </Text>
+                    </View>
+                  );
+                })}
+              </View>
+            </View>
+          )}
+极
 
           {filteredAddons.length > 0 && (
             <>

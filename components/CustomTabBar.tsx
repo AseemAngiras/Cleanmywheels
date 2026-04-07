@@ -108,25 +108,26 @@ export function CustomTabBar({ state, descriptors, navigation }: any) {
 
   return (
     <View
-      className="absolute left-4 right-4"
-      style={[{ bottom: Math.max(insets.bottom, 12) }]}
+      className="bg-black border-t border-white/10 flex-row justify-between items-center px-4"
+      style={[
+        {
+          paddingBottom: Math.max(insets.bottom, 12),
+          paddingTop: 12,
+        },
+      ]}
     >
-      <View className="bg-[#1C1C1C]/95 border border-white/5 rounded-[40px] p-[10px] flex-row justify-between items-center shadow-2xl">
-        {state.routes
-          .filter((route: any) =>
-            ["home", "subscriptions", "bookings", "profile"].includes(
-              route.name,
-            ),
-          )
-          .map((route: any) => (
-            <TabItem
-              key={route.key}
-              route={route}
-              state={state}
-              navigation={navigation}
-            />
-          ))}
-      </View>
+      {state.routes
+        .filter((route: any) =>
+          ["home", "subscriptions", "bookings", "profile"].includes(route.name),
+        )
+        .map((route: any) => (
+          <TabItem
+            key={route.key}
+            route={route}
+            state={state}
+            navigation={navigation}
+          />
+        ))}
     </View>
   );
 }

@@ -99,54 +99,57 @@ export default function ShopTabBar({ state, descriptors, navigation }: any) {
 
   return (
     <View
-      className="absolute left-4 right-4"
-      style={[{ bottom: Math.max(insets.bottom, 12) }]}
+      className="bg-black border-t border-white/10 flex-row justify-between items-center px-4"
+      style={[
+        {
+          paddingBottom: Math.max(insets.bottom, 12),
+          paddingTop: 12,
+        },
+      ]}
     >
-      <View className="bg-[#1C1C1C]/95 border border-white/5 rounded-[40px] p-[10px] flex-row justify-between items-center shadow-2xl">
-        {ORDER.map((name) => {
-          const route = state.routes.find(
-            (r: any) =>
-              r.name === name ||
-              (name === "dashboard" && r.name === "dashboard/index"),
-          );
+      {ORDER.map((name) => {
+        const route = state.routes.find(
+          (r: any) =>
+            r.name === name ||
+            (name === "dashboard" && r.name === "dashboard/index"),
+        );
 
-          if (!route) return null;
+        if (!route) return null;
 
-          const activeRoute = state.routes[state.index];
-          const focused = activeRoute ? activeRoute.key === route.key : false;
+        const activeRoute = state.routes[state.index];
+        const focused = activeRoute ? activeRoute.key === route.key : false;
 
-          const label =
-            name === "subscriptions"
-              ? "Subscription"
-              : name === "dashboard"
-                ? "Dashboard"
-                : name === "bookings"
-                  ? "Bookings"
-                  : "Profile";
+        const label =
+          name === "subscriptions"
+            ? "Subscription"
+            : name === "dashboard"
+              ? "Dashboard"
+              : name === "bookings"
+                ? "Bookings"
+                : "Profile";
 
-          const onPress = () => {
-            const event = navigation.emit({
-              type: "tabPress",
-              target: route.key,
-              canPreventDefault: true,
-            });
+        const onPress = () => {
+          const event = navigation.emit({
+            type: "tabPress",
+            target: route.key,
+            canPreventDefault: true,
+          });
 
-            if (!focused && !event.defaultPrevented) {
-              navigation.navigate(route.name);
-            }
-          };
+          if (!focused && !event.defaultPrevented) {
+            navigation.navigate(route.name);
+          }
+        };
 
-          return (
-            <TabItem
-              key={name}
-              name={name}
-              focused={focused}
-              onPress={onPress}
-              label={label}
-            />
-          );
-        })}
-      </View>
+        return (
+          <TabItem
+            key={name}
+            name={name}
+            focused={focused}
+            onPress={onPress}
+            label={label}
+          />
+        );
+      })}
     </View>
   );
 }

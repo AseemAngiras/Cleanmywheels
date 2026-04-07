@@ -4,6 +4,7 @@ import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 
 interface NextServiceWidgetProps {
+  key?: string | number;
   date: string;
   vehicleNo: string;
   progress?: number;

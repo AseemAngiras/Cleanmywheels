@@ -31,47 +31,72 @@ export default function SubscriptionDetailsScreen() {
     if (!subscription) return [];
 
     const history = (subscription as any).serviceHistory || [];
+    const serviceDates = (subscription as any).serviceDates || [];
     const addons = subscription.nextServiceAddons || [];
+    const frequencyType = subscription.frequencyType || 'DAILY';
+    const totalServices = subscription.servicesTotal || 30;
     const logs: any[] = [];
-    const startDate = new Date(subscription.startDate);
 
-    for (let i = 0; i < 30; i++) {
-      const date = new Date(startDate);
-      date.setDate(startDate.getDate() + i);
-      const historyEntry = history.find(
-        (h: any) => new Date(h.date).toDateString() === date.toDateString(),
-      );
-
-      let status = "Scheduled";
-      if (historyEntry) {
-        status = "Completed";
-      } else if (
-        date < new Date() &&
-        date.toDateString() !== new Date().toDateString()
-      ) {
-        status = "Skipped";
-      }
-
-      logs.push({
-        id: `log-${i}`,
-        day: i + 1,
-        date: date,
-        status: status,
-        addons: [],
+    if (serviceDates.length > 0) {
+      serviceDates.forEach((sd: any, i: number) => {
+        logs.push({
+          id: `log-${i}`,
+          day: i + 1,
+          date: new Date(sd.date),
+          status: sd.status === 'completed' ? 'Completed' : (sd.status === 'skipped' ? 'Skipped' : 'Scheduled'),
+          addons: sd.addons || [],
+        });
       });
+    } else {
+      // Fallback to manual generation based on frequency
+      const startDate = new Date(subscription.startDate);
+      for (let i = 0; i < totalServices; i++) {
+        const date = new Date(startDate);
+        
+        if (frequencyType === 'DAILY') {
+          date.setDate(startDate.getDate() + i);
+        } else if (frequencyType === 'WEEKLY') {
+          date.setDate(startDate.getDate() + (i * 7));
+        } else if (frequencyType === 'BIWEEKLY') {
+          date.setDate(startDate.getDate() + (i * 3.5)); // Approx
+        } else if (frequencyType === 'ALTERNATE_DAY') {
+          date.setDate(startDate.getDate() + (i * 2));
+        }
+
+        const historyEntry = history.find(
+          (h: any) => new Date(h.date).toDateString() === date.toDateString(),
+        );
+
+        let status = "Scheduled";
+        if (historyEntry) {
+          status = "Completed";
+        } else if (
+          date < new Date() &&
+          date.toDateString() !== new Date().toDateString()
+        ) {
+          status = "Skipped";
+        }
+
+        logs.push({
+          id: `log-${i}`,
+          day: i + 1,
+          date: date,
+          status: status,
+          addons: [],
+        });
+      }
     }
 
+    // Map nextServiceAddons if they aren't already included in serviceDates
     addons.forEach((addon: any) => {
       let log;
-      if (addon.serviceDate) {
-        const sDate = new Date(addon.serviceDate).toDateString();
+      const targetDate = addon.serviceDate || addon.dateAdded;
+      if (targetDate) {
+        const sDate = new Date(targetDate).toDateString();
         log = logs.find((l) => l.date.toDateString() === sDate);
-      } else {
-        const addedDate = new Date(addon.dateAdded).toDateString();
-        log = logs.find((l) => l.date.toDateString() === addedDate);
       }
 
-      if (log) {
+      if (log && !log.addons.some((a: any) => a.addonId === addon.addonId)) {
         log.addons.push(addon);
       }
     });
@@ -83,7 +108,7 @@ export default function SubscriptionDetailsScreen() {
       nextService.isNext = true;
     }
 
-    return sortedLogs.sort((a, b) => a.date.getTime() - b.date.getTime());
+    return sortedLogs;
   }, [subscription]);
 
   if (isLoading || !subscription) {
@@ -139,19 +164,18 @@ export default function SubscriptionDetailsScreen() {
               });
               const uniqueAddons = Array.from(uniqueAddonsMap.values());
 
-              return uniqueAddons.map((addon: any, idx: number) => (
-                <View
-                  key={String(idx)}
-                  className="flex-row items-center gap-2 mb-1"
-                >
-                  <Ionicons name="sparkles" size={12} color={Colors.primary} />
-                  <Text className="text-[13px] color-text font-[500]">
-                    {addon.name} -{" "}
-                    <Text className="color-primary font-[700]">
-                      ₹{addon.price}
+              return (uniqueAddons as any[]).map((addon: any, idx: number) => (
+                <React.Fragment key={addon?._id || `addon-${idx}`}>
+                  <View className="flex-row items-center gap-2 mb-1">
+                    <Ionicons name="sparkles" size={12} color={Colors.primary} />
+                    <Text className="text-[13px] color-text font-[500]">
+                      {addon.name} -{" "}
+                      <Text className="color-primary font-[700]">
+                        ₹{addon.price}
+                      </Text>
                     </Text>
-                  </Text>
-                </View>
+                  </View>
+                </React.Fragment>
               ));
             })()}
           </View>

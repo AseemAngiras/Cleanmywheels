@@ -45,13 +45,6 @@ export default function HomeScreen() {
   const navigation = useNavigation();
   const bookings = useSelector((state: RootState) => state.bookings.bookings);
   const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
-  const userStateName = useSelector(
-    (state: RootState) => state.user.user?.name,
-  );
-  const profileName = useSelector((state: RootState) => state.profile.name);
-
-  const fullName = profileName || userStateName || "";
-  const firstName = fullName.split(" ")[0];
 
   const userAvatar = useSelector((state: RootState) => state.profile.avatar);
 
@@ -410,11 +403,32 @@ export default function HomeScreen() {
         {/* Next Service (For Subscribers) */}
         {isLoggedIn &&
           activeSubs.map((sub: any) => {
-            const startDate = new Date(sub.startDate || new Date());
+            const frequencyType = sub.frequencyType || 'DAILY';
             const completed = sub.servicesCompleted || 0;
             const total = sub.servicesTotal || 30;
-            const nextDate = new Date(startDate);
-            nextDate.setDate(startDate.getDate() + completed);
+            
+            let nextDate = new Date();
+            
+            if (sub.serviceDates && sub.serviceDates.length > 0) {
+              const nextPending = sub.serviceDates.find((sd: any) => sd.status === 'pending');
+              if (nextPending) {
+                nextDate = new Date(nextPending.date);
+              }
+            } else {
+              // Fallback to manual calculation based on frequency
+              const startDate = new Date(sub.startDate || new Date());
+              nextDate = new Date(startDate);
+              
+              if (frequencyType === 'DAILY') {
+                nextDate.setDate(startDate.getDate() + completed);
+              } else if (frequencyType === 'WEEKLY') {
+                nextDate.setDate(startDate.getDate() + (completed * 7));
+              } else if (frequencyType === 'BIWEEKLY') {
+                nextDate.setDate(startDate.getDate() + (completed * 3.5)); // Approx
+              } else if (frequencyType === 'ALTERNATE_DAY') {
+                nextDate.setDate(startDate.getDate() + (completed * 2));
+              }
+            }
 
             return (
               <NextServiceWidget

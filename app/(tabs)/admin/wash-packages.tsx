@@ -8,10 +8,9 @@ import {
   Alert,
   Modal,
   TextInput,
-  Image,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { router, useLocalSearchParams } from "expo-router";
+import { router } from "expo-router";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { Colors } from "@/constants/Colors";
 import {
@@ -65,10 +64,10 @@ export default function AdminWashPackagesScreen() {
     setEditData({
       name: pkg.name,
       features: pkg.features?.join(", ") || "",
-      hatchback: (pkg.prices?.hatchback?.ONE_TIME || pkg.prices?.hatchback || pkg.price || 0).toString(),
-      sedan: (pkg.prices?.sedan?.ONE_TIME || pkg.prices?.sedan || pkg.price || 0).toString(),
-      suv: (pkg.prices?.suv?.ONE_TIME || pkg.prices?.suv || pkg.price || 0).toString(),
-      twoWheeler: (pkg.prices?.twoWheeler?.ONE_TIME || pkg.prices?.twoWheeler || pkg.price || 0).toString(),
+      hatchback: (typeof pkg.prices?.hatchback === 'object' ? pkg.prices.hatchback.ONE_TIME : (pkg.prices?.hatchback || pkg.price || 0)).toString(),
+      sedan: (typeof pkg.prices?.sedan === 'object' ? pkg.prices.sedan.ONE_TIME : (pkg.prices?.sedan || pkg.price || 0)).toString(),
+      suv: (typeof pkg.prices?.suv === 'object' ? pkg.prices.suv.ONE_TIME : (pkg.prices?.suv || pkg.price || 0)).toString(),
+      twoWheeler: (typeof pkg.prices?.twoWheeler === 'object' ? pkg.prices.twoWheeler.ONE_TIME : (pkg.prices?.twoWheeler || pkg.price || 0)).toString(),
     });
   };
 
@@ -94,10 +93,10 @@ export default function AdminWashPackagesScreen() {
                     .map((f) => f.trim())
                     .filter((f) => f),
                   prices: {
-                    hatchback: { DAILY: 0, WEEKLY: 0, BIWEEKLY: 0, ALTERNATE_DAY: 0, ONE_TIME: Number(editData.hatchback) },
-                    sedan: { DAILY: 0, WEEKLY: 0, BIWEEKLY: 0, ALTERNATE_DAY: 0, ONE_TIME: Number(editData.sedan) },
-                    suv: { DAILY: 0, WEEKLY: 0, BIWEEKLY: 0, ALTERNATE_DAY: 0, ONE_TIME: Number(editData.suv) },
-                    twoWheeler: { DAILY: 0, WEEKLY: 0, BIWEEKLY: 0, ALTERNATE_DAY: 0, ONE_TIME: Number(editData.twoWheeler) },
+                    hatchback: Number(editData.hatchback),
+                    sedan: Number(editData.sedan),
+                    suv: Number(editData.suv),
+                    twoWheeler: Number(editData.twoWheeler),
                   },
                 },
               }).unwrap();
@@ -163,10 +162,10 @@ export default function AdminWashPackagesScreen() {
             .map((f) => f.trim())
             .filter((f) => f),
           prices: {
-            hatchback: { DAILY: 0, WEEKLY: 0, BIWEEKLY: 0, ALTERNATE_DAY: 0, ONE_TIME: Number(editData.hatchback) },
-            sedan: { DAILY: 0, WEEKLY: 0, BIWEEKLY: 0, ALTERNATE_DAY: 0, ONE_TIME: Number(editData.sedan) },
-            suv: { DAILY: 0, WEEKLY: 0, BIWEEKLY: 0, ALTERNATE_DAY: 0, ONE_TIME: Number(editData.suv) },
-            twoWheeler: { DAILY: 0, WEEKLY: 0, BIWEEKLY: 0, ALTERNATE_DAY: 0, ONE_TIME: Number(editData.twoWheeler) },
+            hatchback: Number(editData.hatchback),
+            sedan: Number(editData.sedan),
+            suv: Number(editData.suv),
+            twoWheeler: Number(editData.twoWheeler),
           },
           price: Number(editData.hatchback),
           status: "Active",

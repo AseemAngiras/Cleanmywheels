@@ -218,7 +218,8 @@ export default function SelectServiceScreen() {
     const service = services.find((s) => s.id === selectedService);
     
     const priceKey = VEHICLE_TYPE_TO_PRICE_KEY[vehicleType] || "sedan";
-    let basePrice = (service?.prices as any)?.[priceKey] || service?.price || 0;
+    const priceData = (service?.prices as any)?.[priceKey];
+    let basePrice = typeof priceData === 'object' ? (priceData.ONE_TIME || 0) : (priceData || service?.price || 0);
     let total = basePrice;
     
     const addonMap = new Map((addonsList as any[]).map(a => [a._id || a.id, a]));
@@ -255,7 +256,8 @@ export default function SelectServiceScreen() {
 
     const selectedServiceData = services.find((s) => s.id === selectedService);
     const priceKey = VEHICLE_TYPE_TO_PRICE_KEY[vehicleType] || "sedan";
-    const actualBasePrice = (selectedServiceData?.prices as any)?.[priceKey] || selectedServiceData?.price;
+    const priceData = (selectedServiceData?.prices as any)?.[priceKey];
+    const actualBasePrice = typeof priceData === 'object' ? (priceData.ONE_TIME || 0) : (priceData || selectedServiceData?.price);
 
     router.push({
       pathname: "/(tabs)/home/book-doorstep/select-slot",
@@ -362,7 +364,8 @@ export default function SelectServiceScreen() {
                               <Text className="text-[20px] font-[900] color-primary">
                                 ₹{(() => {
                                   const priceKey = VEHICLE_TYPE_TO_PRICE_KEY[vehicleType] || "sedan";
-                                  return (service.prices as any)?.[priceKey] || service.price;
+                                  const pData = (service.prices as any)?.[priceKey];
+                                  return typeof pData === 'object' ? (pData.ONE_TIME || 0) : (pData || service.price);
                                 })()}
                               </Text>
                               {service.isBestseller && (

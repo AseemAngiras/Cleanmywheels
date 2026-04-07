@@ -29,7 +29,10 @@ import {
   useGetMySubscriptionQuery,
 } from "../../../store/api/subscriptionApi";
 import { useAppSelector } from "../../../store/hooks";
-import { type Booking, type BookingStatus } from "../../../store/slices/bookingSlice";
+import {
+  type Booking,
+  type BookingStatus,
+} from "../../../store/slices/bookingSlice";
 
 // Helper to map backend booking to display format
 const mapBackendBooking = (booking: any): Booking => {
@@ -66,7 +69,7 @@ const mapBackendBooking = (booking: any): Booking => {
     status: displayStatus,
     realStatus: booking.status,
     serviceName: booking.serviceName || booking.washPackage?.name || "Car Wash",
-    price: booking.price || 0,
+    price: typeof booking.price === 'object' ? (booking.price.ONE_TIME || 0) : (booking.price || 0),
     plate: booking.vehicleNo || booking.vehicle?.number || "N/A",
     address: booking.locality
       ? `${booking.houseOrFlatNo || ""}, ${booking.locality}, ${
@@ -74,8 +77,8 @@ const mapBackendBooking = (booking: any): Booking => {
         }`.replace(/^, /, "")
       : "Address not provided",
     phone: booking.user?.phone || "",
-    workerName: booking.worker?.name,
-    workerPhone: booking.worker?.phone,
+    workerName: booking.worker?.name || booking.workerName,
+    workerPhone: booking.worker?.phone || booking.workerPhone,
     addons: booking.addons,
     addonsTotal: booking.addonsTotal,
   };
@@ -240,7 +243,10 @@ export default function UpcomingServices() {
               );
             } catch (error) {
               console.error("Assignment error:", error);
-              Alert.alert("Error", "Failed to assign worker. Please try again.");
+              Alert.alert(
+                "Error",
+                "Failed to assign worker. Please try again.",
+              );
             }
           },
         },
@@ -576,11 +582,37 @@ export default function UpcomingServices() {
                   <Text className="mt-[6px] text-sm text-textSecondary">
                     {item.car}
                   </Text>
+                  
+                  {/* Worker Badge */}
+                  <View className="flex-row items-center mt-2">
+                    <View className={`flex-row items-center px-2 py-1 rounded-md border ${
+                      item.workerName 
+                        ? "bg-success/5 border-success/20" 
+                        : "bg-warning/5 border-warning/20"
+                    }`}>
+                      <Ionicons 
+                        name={item.workerName ? "person" : "hourglass-outline"} 
+                        size={12} 
+                        color={item.workerName ? "#10B981" : "#F59E0B"} 
+                      />
+                      <Text className={`text-[11px] font-[700] ml-1 uppercase ${
+                        item.workerName ? "text-success" : "text-warning"
+                      }`}>
+                        {item.workerName ? `Valet: ${item.workerName}` : "Assignment Pending"}
+                      </Text>
+                    </View>
+                  </View>
+
                   {item.addons && item.addons.length > 0 && (
                     <View className="flex-row items-center mt-2 bg-primary/10 self-start px-2 py-1 rounded-md border border-primary/20">
-                      <Ionicons name="add-circle" size={12} color={Colors.primary} />
+                      <Ionicons
+                        name="add-circle"
+                        size={12}
+                        color={Colors.primary}
+                      />
                       <Text className="text-[11px] font-[700] text-primary ml-1 uppercase">
-                        +{item.addons.length} Add-on{item.addons.length > 1 ? "s" : ""}
+                        +{item.addons.length} Add-on
+                        {item.addons.length > 1 ? "s" : ""}
                       </Text>
                     </View>
                   )}
@@ -666,7 +698,7 @@ export default function UpcomingServices() {
                     <View className="flex-1 pr-3 justify-between">
                       <View>
                         <Text className="text-lg font-[700] text-black tracking-[-0.5px]">
-                          {activeBooking.workerName || "Valet Assigning..."}
+                          {activeBooking.workerName || "Assignment Pending"}
                         </Text>
 
                         <View className="flex-row flex-wrap gap-[6px] mt-1 mb-2">
@@ -680,10 +712,16 @@ export default function UpcomingServices() {
                               {activeBooking.address.split(",")[0]}
                             </Text>
                           </View>
-                          <View className="flex-row items-center bg-black/5 px-2 py-1 rounded-full gap-1">
-                            <Ionicons name="time" size={12} color="#1a1a1a" />
+                          <View className={`flex-row items-center px-2 py-1 rounded-full gap-1 ${
+                            activeBooking.workerName ? "bg-black/10" : "bg-white/40"
+                          }`}>
+                            <Ionicons 
+                              name={activeBooking.workerName ? "checkmark-circle" : "time"} 
+                              size={12} 
+                              color="#1a1a1a" 
+                            />
                             <Text className="text-[12px] font-[600] text-black">
-                              {activeBooking.realStatus || activeBooking.status}
+                              {activeBooking.workerName ? "Valet Assigned" : "Finding Valet"}
                             </Text>
                           </View>
                         </View>
@@ -808,24 +846,39 @@ export default function UpcomingServices() {
                   {activeBooking.addons && activeBooking.addons.length > 0 && (
                     <View className="mt-4 bg-primary/5 p-4 rounded-[24px] border border-primary/10">
                       <View className="flex-row items-center mb-3">
-                        <Ionicons name="add-circle" size={18} color={Colors.primary} />
-                        <Text className="text-[15px] font-[700] color-text ml-2">Selected Add-ons</Text>
+                        <Ionicons
+                          name="add-circle"
+                          size={18}
+                          color={Colors.primary}
+                        />
+                        <Text className="text-[15px] font-[700] color-text ml-2">
+                          Selected Add-ons
+                        </Text>
                       </View>
                       <View className="gap-2">
-                        {activeBooking.addons.map((addon: any, index: number) => (
-                          <View key={index} className="flex-row justify-between items-center bg-card p-3 rounded-xl border border-border/50">
-                            <Text className="text-[14px] font-[600] color-text">
-                              {addon.addOn?.name || "Extra Service"}
-                            </Text>
-                            <Text className="text-[14px] font-[700] color-primary">
-                              ₹{addon.price}
-                            </Text>
-                          </View>
-                        ))}
+                        {activeBooking.addons.map(
+                          (addon: any, index: number) => (
+                            <View
+                              key={index}
+                              className="flex-row justify-between items-center bg-card p-3 rounded-xl border border-border/50"
+                            >
+                              <Text className="text-[14px] font-[600] color-text">
+                                {addon.addOn?.name || "Extra Service"}
+                              </Text>
+                              <Text className="text-[14px] font-[700] color-primary">
+                                ₹{addon.price}
+                              </Text>
+                            </View>
+                          ),
+                        )}
                         <View className="h-[1px] bg-border/50 my-1" />
                         <View className="flex-row justify-between items-center px-1">
-                          <Text className="text-[13px] font-[600] color-textSecondary">Add-ons Total</Text>
-                          <Text className="text-[15px] font-[800] color-text">₹{activeBooking.addonsTotal || 0}</Text>
+                          <Text className="text-[13px] font-[600] color-textSecondary">
+                            Add-ons Total
+                          </Text>
+                          <Text className="text-[15px] font-[800] color-text">
+                            ₹{activeBooking.addonsTotal || 0}
+                          </Text>
                         </View>
                       </View>
                     </View>

@@ -35,22 +35,20 @@ export const PlanCard = ({
           {plan.name}
         </Text>
         <Text className="text-[11px] font-[800] color-textSecondary uppercase tracking-widest mb-1">
-          Starting from
+          Sedan Price
         </Text>
         <View className="flex-row items-baseline justify-center">
           <Text className="text-sm font-[600] text-textSecondary mr-1">₹</Text>
           <Text className="text-3xl font-[800] text-text">
-            {plan.prices
-              ? Math.min(
-                  (plan.prices.hatchback?.DAILY || plan.prices.hatchback || Infinity) as number,
-                  (plan.prices.sedan?.DAILY || plan.prices.sedan || Infinity) as number,
-                  (plan.prices.suv?.DAILY || plan.prices.suv || Infinity) as number,
-                  (plan.prices.twoWheeler?.DAILY || plan.prices.twoWheeler || Infinity) as number,
-                )
-              : plan.price}
+            {plan.prices?.sedan?.DAILY || 
+             plan.prices?.sedan?.WEEKLY || 
+             plan.prices?.sedan?.BIWEEKLY ||
+             plan.prices?.sedan?.ALTERNATE_DAY ||
+             plan.price || 
+             0}
           </Text>
           <Text className="text-sm font-[600] text-textSecondary ml-1">
-            / service
+            / month
           </Text>
         </View>
       </View>

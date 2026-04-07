@@ -1,4 +1,4 @@
-  import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Colors } from "@/constants/Colors";
 import React, { useState, useEffect } from "react";
@@ -112,18 +112,32 @@ export default function SubscriptionConfigureScreen() {
   const selectedVehicle = availableCars.find(
     (c: any) => c._id === selectedVehicleId,
   );
-  const priceKey = getPriceKey(
-    selectedVehicle?.vehicleType || "Sedan",
-  ) as "hatchback" | "sedan" | "suv" | "twoWheeler";
-  
+  const priceKey = getPriceKey(selectedVehicle?.vehicleType || "Sedan") as
+    | "hatchback"
+    | "sedan"
+    | "suv"
+    | "twoWheeler";
+
   const basePrice =
-    (selectedPlan?.prices?.[priceKey as keyof typeof selectedPlan.prices]?.[selectedFrequency as any]) ||
+    selectedPlan?.prices?.[priceKey as keyof typeof selectedPlan.prices]?.[
+      selectedFrequency as any
+    ] ||
     selectedPlan?.price ||
     0;
 
   const frequencyData = selectedPlan?.frequencies?.find(
     (f) => f.type === selectedFrequency,
-  ) || { multiplier: 1, services: selectedFrequency === 'DAILY' ? 30 : selectedFrequency === 'WEEKLY' ? 4 : selectedFrequency === 'BIWEEKLY' ? 8 : 15 };
+  ) || {
+    multiplier: 1,
+    services:
+      selectedFrequency === "DAILY"
+        ? 30
+        : selectedFrequency === "WEEKLY"
+          ? 4
+          : selectedFrequency === "BIWEEKLY"
+            ? 8
+            : 15,
+  };
 
   const addonPricePerService = selectedAddons.reduce(
     (sum, a) => sum + (a.subscriptionPrice || a.price || 0),
@@ -131,7 +145,7 @@ export default function SubscriptionConfigureScreen() {
   );
 
   const currentTotalPrice = Math.round(
-    basePrice + (addonPricePerService * frequencyData.services)
+    basePrice + addonPricePerService * frequencyData.services,
   );
 
   useEffect(() => {
@@ -315,7 +329,7 @@ export default function SubscriptionConfigureScreen() {
           <Text className="text-[18px] font-[700] color-text mb-4">
             Select Frequency
           </Text>
-          <View className="flex-row flex-wrap justify-between gap-y-3 mb-8">
+          <View className="flex-row flex-wrap justify-between gap-y-3">
             {selectedPlan.frequencies?.map((freq) => (
               <TouchableOpacity
                 key={freq.type}
@@ -334,13 +348,13 @@ export default function SubscriptionConfigureScreen() {
                   {freq.label}
                 </Text>
                 <Text
-                  className={`text-[10px] font-[600] mt-1 ${
+                  className={`text-[15px] font-[600] mb-2 ${
                     selectedFrequency === freq.type
                       ? "text-black/60"
                       : "text-textSecondary"
                   }`}
                 >
-                  {freq.services} services
+                  {freq.services} services/month
                 </Text>
               </TouchableOpacity>
             ))}
@@ -461,13 +475,21 @@ export default function SubscriptionConfigureScreen() {
           <View className="h-10" />
         </ScrollView>
 
-        <View className="p-10 bg-card border-t border-border/50 shadow-2xl">
+        <View className="p-8 bg-card border-t border-border/50 shadow-2xl flex-row items-center justify-between">
+          <View>
+            <Text className="text-[12px] font-[700] color-textSecondary uppercase tracking-widest mb-1">
+              {selectedPlan.name}
+            </Text>
+            <Text className="text-[20px] font-[900] color-primary">
+              ₹{currentTotalPrice}
+            </Text>
+          </View>
           <TouchableOpacity
-            className="bg-primary py-5 rounded-2xl items-center shadow-lg shadow-primary/30"
+            className="bg-primary px-8 py-4 rounded-2xl items-center shadow-lg shadow-primary/30"
             onPress={handleContinue}
           >
             <Text className="color-black text-[16px] font-[800]">
-              Continue to Summary
+              Continue
             </Text>
           </TouchableOpacity>
         </View>

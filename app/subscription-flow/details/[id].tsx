@@ -33,7 +33,7 @@ export default function SubscriptionDetailsScreen() {
     const history = (subscription as any).serviceHistory || [];
     const serviceDates = (subscription as any).serviceDates || [];
     const addons = subscription.nextServiceAddons || [];
-    const frequencyType = subscription.frequencyType || 'DAILY';
+    const frequencyType = subscription.frequencyType || "DAILY";
     const totalServices = subscription.servicesTotal || 30;
     const logs: any[] = [];
 
@@ -43,7 +43,12 @@ export default function SubscriptionDetailsScreen() {
           id: `log-${i}`,
           day: i + 1,
           date: new Date(sd.date),
-          status: sd.status === 'completed' ? 'Completed' : (sd.status === 'skipped' ? 'Skipped' : 'Scheduled'),
+          status:
+            sd.status === "completed"
+              ? "Completed"
+              : sd.status === "skipped"
+                ? "Skipped"
+                : "Scheduled",
           addons: sd.addons || [],
         });
       });
@@ -52,15 +57,15 @@ export default function SubscriptionDetailsScreen() {
       const startDate = new Date(subscription.startDate);
       for (let i = 0; i < totalServices; i++) {
         const date = new Date(startDate);
-        
-        if (frequencyType === 'DAILY') {
+
+        if (frequencyType === "DAILY") {
           date.setDate(startDate.getDate() + i);
-        } else if (frequencyType === 'WEEKLY') {
-          date.setDate(startDate.getDate() + (i * 7));
-        } else if (frequencyType === 'BIWEEKLY') {
-          date.setDate(startDate.getDate() + (i * 3.5)); // Approx
-        } else if (frequencyType === 'ALTERNATE_DAY') {
-          date.setDate(startDate.getDate() + (i * 2));
+        } else if (frequencyType === "WEEKLY") {
+          date.setDate(startDate.getDate() + i * 7);
+        } else if (frequencyType === "BIWEEKLY") {
+          date.setDate(startDate.getDate() + i * 3.5); // Approx
+        } else if (frequencyType === "ALTERNATE_DAY") {
+          date.setDate(startDate.getDate() + i * 2);
         }
 
         const historyEntry = history.find(
@@ -152,7 +157,7 @@ export default function SubscriptionDetailsScreen() {
           Daily Wash Service
         </Text>
 
-        {item.addons && item.addons.length > 0 && (
+        {/* {item.addons && item.addons.length > 0 && (
           <View className="mt-3 pt-3 border-t border-border/50">
             <Text className="text-[11px] font-[700] color-textSecondary mb-2 tracking-widest uppercase">
               Add-ons Purchased
@@ -179,7 +184,7 @@ export default function SubscriptionDetailsScreen() {
               ));
             })()}
           </View>
-        )}
+        )} */}
       </View>
     </View>
   );

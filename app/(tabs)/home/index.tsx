@@ -51,6 +51,15 @@ export default function HomeScreen() {
   const dispatch = useDispatch();
   const token = useSelector((state: RootState) => state.auth.token);
 
+  const user = useSelector((state: RootState) => state.user.user);
+  const isAdmin = user?.accountType === "Super Admin";
+
+  useEffect(() => {
+    if (isLoggedIn && isAdmin) {
+      router.replace("/(tabs)/dashboard");
+    }
+  }, [isLoggedIn, isAdmin, router]);
+
   useEffect(() => {
     if (token === "dummy-token") {
       dispatch(logout());

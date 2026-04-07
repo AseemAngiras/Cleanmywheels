@@ -260,7 +260,13 @@ export default function ProfileHome() {
         <View className="flex-row items-center justify-between px-5 mb-5 mt-[10px]">
           <TouchableOpacity
             className="w-10 h-10 rounded-full bg-card items-center justify-center border border-border"
-            onPress={() => router.back()}
+            onPress={() => {
+              if (isAdmin) {
+                router.replace("/(tabs)/dashboard");
+              } else {
+                router.back();
+              }
+            }}
           >
             <Ionicons name="chevron-back" size={20} color={Colors.text} />
           </TouchableOpacity>

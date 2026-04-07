@@ -6,8 +6,11 @@ import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
 import SocketManager from "../components/SocketManager";
 import { persistor, store } from "../store/index";
+import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
 import { useFonts } from "expo-font";
+
+SplashScreen.preventAutoHideAsync();
 
 const LoadingView = () => (
   <View
@@ -39,8 +42,14 @@ export default function RootLayout() {
     prepare();
   }, [fontsLoaded]);
 
-  if (!appIsReady) {
-    return <LoadingView />;
+  useEffect(() => {
+    if (appIsReady && fontsLoaded) {
+      SplashScreen.hideAsync();
+    }
+  }, [appIsReady, fontsLoaded]);
+
+  if (!appIsReady || !fontsLoaded) {
+    return null;
   }
 
   return (

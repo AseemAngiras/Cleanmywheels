@@ -8,6 +8,11 @@
     "scheme": "cleanmywheels",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/images/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#111111"
+    },
     "ios": {
       "bundleIdentifier": "com.cleanmywheels.app",
       "supportsTablet": true,

@@ -49,7 +49,7 @@ export default function SubscriptionSummaryScreen() {
   const selectedAddons = React.useMemo(() => {
     try {
       return addonsStr ? JSON.parse(addonsStr as string) : [];
-    } catch (e) {
+    } catch {
       return [];
     }
   }, [addonsStr]);
@@ -89,9 +89,6 @@ export default function SubscriptionSummaryScreen() {
     selectedPlan.price ||
     0;
 
-  const frequencyData = selectedPlan?.frequencies?.find(
-    (f) => f.type === frequencyType,
-  ) || { multiplier: 1, services: frequencyType === 'DAILY' ? 30 : frequencyType === 'WEEKLY' ? 4 : frequencyType === 'BIWEEKLY' ? 8 : 15 };
 
   const totalAddonsCost = (selectedAddons as any[]).reduce(
     (sum: number, a: any) => {
@@ -100,7 +97,7 @@ export default function SubscriptionSummaryScreen() {
         return sum + freqPrice;
       }
       const perServicePrice = a.subscriptionPrice || a.price || 0;
-      return sum + (perServicePrice * frequencyData.services);
+      return sum + perServicePrice;
     },
     0,
   );
@@ -356,7 +353,7 @@ export default function SubscriptionSummaryScreen() {
                     +₹{
                       (addon.priceMatrix?.[frequencyType as string] && addon.priceMatrix[frequencyType as string] > 0)
                         ? addon.priceMatrix[frequencyType as string]
-                        : (addon.subscriptionPrice || addon.price || 0) * frequencyData.services
+                        : (addon.subscriptionPrice || addon.price || 0)
                     }
                   </Text>
                 </View>

@@ -161,7 +161,7 @@ export default function SubscriptionConfigureScreen() {
       return sum + frequencyPrice;
     }
     const perServicePrice = a.subscriptionPrice || a.price || 0;
-    return sum + perServicePrice * frequencyData.services;
+    return sum + perServicePrice;
   }, 0);
 
   const currentTotalPrice = Math.round(basePrice + totalAddonsCost);

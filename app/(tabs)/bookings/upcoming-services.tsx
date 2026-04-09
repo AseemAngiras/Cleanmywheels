@@ -29,10 +29,8 @@ import {
   useGetMySubscriptionQuery,
 } from "../../../store/api/subscriptionApi";
 import { useAppSelector } from "../../../store/hooks";
-import {
-  type Booking,
-  type BookingStatus,
-} from "../../../store/slices/bookingSlice";
+import { type BookingStatus } from "../../../store/slices/bookingSlice";
+import { type Booking } from "../../../types";
 
 // Helper to map backend booking to display format
 const mapBackendBooking = (booking: any): Booking => {
@@ -114,7 +112,7 @@ export default function UpcomingServices() {
   const bookingList = bookingsResponse?.data?.bookingList || [];
   const bookings = bookingList
     .filter((b: any) => {
-      const bUserId = b.user?._id || b.user;
+      const bUserId = b.user?._id || b.user || b.userId;
       const currentUserId = user?._id;
 
       // If not admin, only show own bookings
@@ -123,6 +121,11 @@ export default function UpcomingServices() {
       }
 
       const status = (b.status || "").toLowerCase();
+
+      // Always show confirmed or upcoming bookings to their owners
+      if (status === "confirmed" || status === "upcoming") {
+        return true;
+      }
 
       // For admins, show pending bookings (so they can assign a worker)
       if (isAdmin && status === "pending") {

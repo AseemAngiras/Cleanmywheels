@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
 import { useEffect, useRef } from "react";
-import { Animated, TouchableOpacity, View } from "react-native";
+import { Animated, TouchableOpacity, View, Text } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Colors } from "@/constants/Colors";
 
@@ -55,9 +56,14 @@ const TabItem = ({ route, state, navigation }: any) => {
             ? "Bookings"
             : "Profile";
 
+  const handlePress = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    navigation.navigate(route.name);
+  };
+
   return (
     <TouchableOpacity
-      onPress={() => navigation.navigate(route.name)}
+      onPress={handlePress}
       activeOpacity={0.85}
     >
       <Animated.View

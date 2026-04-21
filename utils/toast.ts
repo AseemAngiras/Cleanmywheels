@@ -1,10 +1,19 @@
 import Toast from 'react-native-toast-message';
+import * as Haptics from 'expo-haptics';
 
 export const showToast = (
   type: 'success' | 'error' | 'info',
   text1: string,
   text2?: string
 ) => {
+  if (type === 'success') {
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+  } else if (type === 'error') {
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+  } else {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  }
+
   Toast.show({
     type,
     text1,

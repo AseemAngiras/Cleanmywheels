@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from "react";
-import { Animated, View, ViewStyle } from "react-native";
+import { Animated, View, ViewStyle, StyleSheet } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 
 interface SkeletonProps {
   width?: number | string;
@@ -9,7 +10,6 @@ interface SkeletonProps {
   className?: string;
 }
 
-// Single skeleton element
 export const Skeleton: React.FC<SkeletonProps> = ({
   width = "100%",
   height = 20,
@@ -17,43 +17,51 @@ export const Skeleton: React.FC<SkeletonProps> = ({
   style,
   className,
 }) => {
-  const shimmerAnim = useRef(new Animated.Value(0)).current;
+  const animatedValue = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.loop(
-      Animated.sequence([
-        Animated.timing(shimmerAnim, {
-          toValue: 1,
-          duration: 1000,
-          useNativeDriver: true,
-        }),
-        Animated.timing(shimmerAnim, {
-          toValue: 0,
-          duration: 1000,
-          useNativeDriver: true,
-        }),
-      ]),
+      Animated.timing(animatedValue, {
+        toValue: 1,
+        duration: 1500,
+        useNativeDriver: true,
+      }),
     ).start();
-  }, [shimmerAnim]);
+  }, [animatedValue]);
 
-  const opacity = shimmerAnim.interpolate({
+  const translateX = animatedValue.interpolate({
     inputRange: [0, 1],
-    outputRange: [0.1, 0.3],
+    outputRange: [-150, 150],
   });
 
   return (
-    <Animated.View
-      className={`bg-white/10 ${className || ""}`}
+    <View
+      className={`bg-[#222222] overflow-hidden ${className || ""}`}
       style={[
         {
           width: width as any,
           height,
           borderRadius,
-          opacity,
         },
         style,
       ]}
-    />
+    >
+      <Animated.View
+        style={[
+          StyleSheet.absoluteFill,
+          {
+            transform: [{ translateX }],
+          },
+        ]}
+      >
+        <LinearGradient
+          colors={["transparent", "rgba(255, 255, 255, 0.05)", "transparent"]}
+          start={{ x: 0, y: 0.5 }}
+          end={{ x: 1, y: 0.5 }}
+          style={StyleSheet.absoluteFill}
+        />
+      </Animated.View>
+    </View>
   );
 };
 

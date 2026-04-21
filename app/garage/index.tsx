@@ -1,5 +1,6 @@
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Colors } from "@/constants/Colors";
+import { toast } from "@/utils/toast";
 import React, { useRef, useState } from "react";
 import {
   Alert,
@@ -114,7 +115,7 @@ export default function MyCarsScreen() {
 
   const handleSaveCar = async () => {
     if (!type || !number) {
-      Alert.alert("Error", "Vehicle type and number are required");
+      toast.error("Error", "Vehicle type and number are required");
       return;
     }
     const cleanedNumber = number.trim().replace(/\s+/g, "").toUpperCase();
@@ -133,7 +134,7 @@ export default function MyCarsScreen() {
     });
 
     if (isDuplicate) {
-      Alert.alert(
+      toast.error(
         "Duplicate Vehicle",
         `A ${type} with number ${cleanedNumber} is already in your garage.`,
       );
@@ -149,10 +150,12 @@ export default function MyCarsScreen() {
       if (editingCarId)
         await updateVehicle({ id: editingCarId, data: payload }).unwrap();
       else await createVehicle(payload).unwrap();
+      
+      toast.success("Success", `Vehicle ${editingCarId ? "updated" : "added"} successfully`);
       closeModal();
     } catch (err: any) {
       console.error("Failed to save vehicle:", err);
-      Alert.alert("Error", err?.data?.message || "Failed to save vehicle");
+      toast.error("Error", err?.data?.message || "Failed to save vehicle");
     }
   };
 
@@ -168,7 +171,7 @@ export default function MyCarsScreen() {
 
   const handleRemoveCar = (id: string) => {
     if (isVehicleSubscribed(id)) {
-      Alert.alert("Cannot Remove", "This vehicle has an active subscription.");
+      toast.error("Cannot Remove", "This vehicle has an active subscription.");
       return;
     }
     Alert.alert("Remove Car", "Are you sure you want to remove this vehicle?", [
@@ -179,8 +182,9 @@ export default function MyCarsScreen() {
         onPress: async () => {
           try {
             await deleteVehicle(id).unwrap();
+            toast.success("Success", "Vehicle removed successfully");
           } catch {
-            Alert.alert("Error", "Failed to remove");
+            toast.error("Error", "Failed to remove");
           }
         },
       },

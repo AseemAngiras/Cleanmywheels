@@ -38,6 +38,7 @@ import { HeroSection } from "../../../components/home/HeroSection";
 import { ServiceActionGrid } from "../../../components/home/ServiceActionGrid";
 import { NextServiceWidget } from "../../../components/home/NextServiceWidget";
 import { CoreProtocols } from "../../../components/home/CoreProtocols";
+import { toast } from "@/utils/toast";
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -149,11 +150,11 @@ export default function HomeScreen() {
         }).unwrap();
       }
 
-      Alert.alert("OTP Sent", "Please check your messages.");
+      toast.success("OTP Sent", "Please check your messages.");
       setModalStep("otp");
     } catch (err: any) {
       console.error("Auth Request Failed", err);
-      Alert.alert(
+      toast.error(
         "Error",
         err?.data?.message ||
           "Failed to proceed. Try entering your name to register.",
@@ -166,7 +167,7 @@ export default function HomeScreen() {
   const handleVerifyOtp = async () => {
     const otpValue = otp.join("");
     if (otpValue.length < 6) {
-      Alert.alert("Invalid OTP", "Please enter the complete 6-digit OTP.");
+      toast.error("Invalid OTP", "Please enter the complete 6-digit OTP.");
       return;
     }
 
@@ -223,11 +224,11 @@ export default function HomeScreen() {
           }, 100);
         }
       } else {
-        Alert.alert("Login Failed", "No access token received.");
+        toast.error("Login Failed", "No access token received.");
       }
     } catch (err: any) {
       console.error("Login Verification Failed", err);
-      Alert.alert(
+      toast.error(
         "Login Failed",
         err?.data?.message || "Invalid OTP or Server Error",
       );

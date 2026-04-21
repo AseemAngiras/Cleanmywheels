@@ -1,5 +1,6 @@
 import { RootState } from "@/store";
 import { Colors } from "@/constants/Colors";
+import { toast } from "@/utils/toast";
 import {
   useCreateBookingMutation,
   useLazyGetBookingByIdQuery,
@@ -307,12 +308,14 @@ export default function BookingSummaryScreen() {
         checkPaymentStatus(bookingId);
       } else checkPaymentStatus(bookingId);
     } catch (err: any) {
-      if (err.status === 401) dispatch(logout());
-      else
-        Alert.alert(
+      if (err.status === 401) {
+        dispatch(logout());
+      } else {
+        toast.error(
           "Booking Failed",
           err?.data?.message || "Something went wrong",
         );
+      }
     }
   };
 

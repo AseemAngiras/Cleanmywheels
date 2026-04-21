@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
+import { toast } from "@/utils/toast";
 import React, { useEffect, useRef, useState } from "react";
 import {
   Alert,
@@ -189,10 +190,10 @@ export default function ProfileHome() {
       dispatch(updateProfile({ key: "name", value: tempName }));
       // dispatch(updateProfile({ key: "email", value: tempEmail }));
 
-      Alert.alert("Success", "Profile updated successfully");
+      toast.success("Success", "Profile updated successfully");
       setShowEditProfileModal(false);
     } catch (error: any) {
-      Alert.alert("Error", error?.data?.message || "Failed to update profile");
+      toast.error("Error", error?.data?.message || "Failed to update profile");
     }
   };
 
@@ -205,10 +206,10 @@ export default function ProfileHome() {
       dispatch(updateUser({ avatar: selectedAvatar }));
       dispatch(setAvatar(selectedAvatar));
 
-      Alert.alert("Success", "Avatar updated successfully");
+      toast.success("Success", "Avatar updated successfully");
       setShowAvatarModal(false);
     } catch (error: any) {
-      Alert.alert("Error", error?.data?.message || "Failed to update avatar");
+      toast.error("Error", error?.data?.message || "Failed to update avatar");
     }
   };
 
@@ -232,10 +233,10 @@ export default function ProfileHome() {
           onPress: async () => {
             try {
               await deleteAccountAPI({}).unwrap();
-              Alert.alert("Success", "Your account has been deleted.");
+              toast.success("Success", "Your account has been deleted.");
               handleLogout();
             } catch (error: any) {
-              Alert.alert(
+              toast.error(
                 "Error",
                 error?.data?.message || "Failed to delete account",
               );
@@ -328,12 +329,6 @@ export default function ProfileHome() {
             <Text className="text-base font-[600] mb-[10px] px-4 text-text">
               Admin Dashboard
             </Text>
-            {/* <Row
-              icon="calendar-outline"
-              title="Manage Bookings"
-              subtitle="View and assign active bookings"
-              onPress={() => router.push("/(tabs)/pairings")}
-            /> */}
             <Row
               icon="sparkles-outline"
               title="Manage Add-ons"
@@ -362,7 +357,7 @@ export default function ProfileHome() {
               title="Manage Professionals"
               subtitle="View registered users"
               onPress={() =>
-                Alert.alert(
+                toast.info(
                   "Coming Soon",
                   "User management is under development.",
                 )
@@ -373,7 +368,7 @@ export default function ProfileHome() {
               title="Analytics"
               subtitle="View platform performance"
               onPress={() =>
-                Alert.alert("Coming Soon", "Analytics is under development.")
+                toast.info("Coming Soon", "Analytics is under development.")
               }
             />
           </View>
@@ -557,15 +552,11 @@ export default function ProfileHome() {
                                                 removeAddresses(addr.id),
                                               );
                                               setExpandedAddressId(null);
-                                              Alert.alert(
+                                              toast.success(
                                                 "Success",
                                                 "Address deleted successfully",
                                               );
                                             } catch (error: any) {
-                                              console.log(
-                                                "Delete error",
-                                                error,
-                                              );
                                               if (
                                                 error?.status === 404 ||
                                                 error?.originalStatus === 404
@@ -574,7 +565,7 @@ export default function ProfileHome() {
                                                   removeAddresses(addr.id),
                                                 );
                                                 setExpandedAddressId(null);
-                                                Alert.alert(
+                                                toast.info(
                                                   "Notice",
                                                   "Address was already removed from server.",
                                                 );
@@ -634,28 +625,6 @@ export default function ProfileHome() {
                 subtitle="Manage your alerts and updates"
                 onPress={() => router.push("/profile/notifications")}
               />
-              {/* <Row
-                icon="gift-outline"
-                title="Refer & Earn"
-                subtitle="Invite friends and earn rewards"
-                onPress={() => {
-                  Share.share({
-                    message:
-                      "Check out CleanMyWheels! The best car wash service at your doorstep. Download now: https://cleanmywheels.com",
-                  });
-                }}
-              /> */}
-              {/* <Row
-                icon="shield-checkmark-outline"
-                title="Privacy & Security"
-                subtitle="Manage your data and account"
-                onPress={() =>
-                  Alert.alert(
-                    "Coming Soon",
-                    "Privacy settings are under development.",
-                  )
-                }
-              /> */}
             </View>
 
             {/* SUPPORT CARD */}

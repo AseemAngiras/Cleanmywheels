@@ -31,6 +31,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import Animated, { FadeInUp, ZoomIn, SlideInRight } from "react-native-reanimated";
 import { useDispatch, useSelector } from "react-redux";
 
 import { HomeBackground } from "../../../components/home/HomeBackground";
@@ -409,7 +410,11 @@ export default function HomeScreen() {
         </View>
 
         {/* Hero Section */}
-        <HeroSection isLoggedIn={isLoggedIn} />
+        <Animated.View
+          entering={FadeInUp.delay(200).duration(600)}
+        >
+          <HeroSection isLoggedIn={isLoggedIn} />
+        </Animated.View>
 
         {/* Action Grid (Book / Add-ons) */}
         <ServiceActionGrid
@@ -418,7 +423,13 @@ export default function HomeScreen() {
         />
 
         {/* Core Protocols (Replaces WhyChooseUs) */}
-        {!isLoggedIn && <CoreProtocols />}
+        {!isLoggedIn && (
+          <Animated.View
+            entering={ZoomIn.delay(400).duration(600)}
+          >
+            <CoreProtocols />
+          </Animated.View>
+        )}
 
         {/* Next Service (For Subscribers) */}
         {isLoggedIn &&
@@ -473,12 +484,15 @@ export default function HomeScreen() {
               contentContainerStyle={{ paddingHorizontal: 20, gap: 16 }}
             >
               {pastBookings.map((item, index) => (
-                <TouchableOpacity
+                <Animated.View
                   key={index}
-                  className="w-[200px] p-5 rounded-[24px] bg-[#181818] border border-primary/20 shadow-lg elevation-6"
-                  activeOpacity={0.9}
-                  onPress={() => handleRecentServicePress(item)}
+                  entering={SlideInRight.delay(400 + index * 100).duration(500)}
                 >
+                  <TouchableOpacity
+                    className="w-[200px] p-5 rounded-[24px] bg-[#181818] border border-primary/20 shadow-lg elevation-6"
+                    activeOpacity={0.9}
+                    onPress={() => handleRecentServicePress(item)}
+                  >
                   <View className="flex-row justify-between mb-4">
                     <View className="w-11 h-11 rounded-[14px] bg-primary/10 items-center justify-center border border-primary/10">
                       <Ionicons name="sparkles" size={20} color="#C8F000" />
@@ -520,6 +534,7 @@ export default function HomeScreen() {
                     </Text>
                   </View>
                 </TouchableOpacity>
+                </Animated.View>
               ))}
             </ScrollView>
           </View>

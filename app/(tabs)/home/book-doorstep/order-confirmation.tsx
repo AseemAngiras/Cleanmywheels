@@ -3,9 +3,9 @@ import { Colors } from "@/constants/Colors";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect } from "react";
 import { Text, TouchableOpacity, View, ScrollView } from "react-native";
+import LottieView from "lottie-react-native";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import MapView, { Marker } from "react-native-maps";
 import { useDispatch } from "react-redux";
 import { addBooking } from "../../../../store/slices/bookingSlice";
 
@@ -45,10 +45,13 @@ export default function OrderConfirmationScreen() {
       >
         {/* Status Header */}
         <View className="bg-card rounded-b-[44px] items-center pt-16 pb-12 px-6 shadow-xl border-b border-border/30">
-          <View className="w-20 h-20 rounded-full bg-green-500/20 items-center justify-center mb-6 shadow-lg shadow-green-500/20">
-            <View className="w-14 h-14 rounded-full bg-green-500 items-center justify-center">
-              <Ionicons name="checkmark" size={32} color="white" />
-            </View>
+          <View className="w-48 h-48 items-center justify-center -mb-2">
+            <LottieView
+              source={require("../../../../assets/animations/success.json")}
+              autoPlay
+              loop={false}
+              style={{ width: "100%", height: "100%" }}
+            />
           </View>
           <Text className="text-[28px] font-[900] color-text tracking-tighter">
             Booking Confirmed!
@@ -151,7 +154,7 @@ export default function OrderConfirmationScreen() {
                       return Array.isArray(addonsArray) && addonsArray.length > 0
                         ? addonsArray.map((a: any) => a.name).join(", ")
                         : "None";
-                    } catch (e) {
+                    } catch {
                       return "None";
                     }
                   })()}

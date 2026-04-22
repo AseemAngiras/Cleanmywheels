@@ -8,10 +8,10 @@ import {
   NativeModules,
   ScrollView,
   Text,
-  TouchableOpacity,
   View,
 } from "react-native";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
+import { InteractivePressable } from "@/components/ui/InteractivePressable";
 import RazorpayCheckout from "react-native-razorpay";
 import {
   useCreateSubscriptionMutation,
@@ -43,8 +43,15 @@ const getPriceKey = (type: string) => {
 
 export default function SubscriptionSummaryScreen() {
   const router = useRouter();
-  const { planId, vehicleId, timeSlot, startDate, isAutoPay, frequencyType = 'DAILY', addons: addonsStr } =
-    useLocalSearchParams();
+  const {
+    planId,
+    vehicleId,
+    timeSlot,
+    startDate,
+    isAutoPay,
+    frequencyType = "DAILY",
+    addons: addonsStr,
+  } = useLocalSearchParams();
 
   const selectedAddons = React.useMemo(() => {
     try {
@@ -80,15 +87,16 @@ export default function SubscriptionSummaryScreen() {
     );
   }
 
-  const priceKey = getPriceKey(
-    selectedVehicle?.vehicleType || "Sedan",
-  ) as "hatchback" | "sedan" | "suv" | "twoWheeler";
+  const priceKey = getPriceKey(selectedVehicle?.vehicleType || "Sedan") as
+    | "hatchback"
+    | "sedan"
+    | "suv"
+    | "twoWheeler";
 
   const basePrice =
-    ((selectedPlan.prices as any)?.[priceKey]?.[frequencyType as any]) ||
+    (selectedPlan.prices as any)?.[priceKey]?.[frequencyType as any] ||
     selectedPlan.price ||
     0;
-
 
   const totalAddonsCost = (selectedAddons as any[]).reduce(
     (sum: number, a: any) => {
@@ -252,12 +260,12 @@ export default function SubscriptionSummaryScreen() {
       <View className="flex-1 bg-background">
         {/* Header */}
         <View className="flex-row items-center px-5 pt-4 pb-6 bg-card border-b border-border/50">
-          <TouchableOpacity
+          <InteractivePressable
             onPress={() => router.back()}
             className="w-10 h-10 rounded-full bg-background items-center justify-center border border-border"
           >
             <Ionicons name="arrow-back" size={20} color={Colors.text} />
-          </TouchableOpacity>
+          </InteractivePressable>
           <Text className="text-[20px] font-[700] color-text ml-4">
             Order Summary
           </Text>
@@ -350,11 +358,11 @@ export default function SubscriptionSummaryScreen() {
                     </Text>
                   </View>
                   <Text className="text-[14px] font-[700] color-text">
-                    +₹{
-                      (addon.priceMatrix?.[frequencyType as string] && addon.priceMatrix[frequencyType as string] > 0)
-                        ? addon.priceMatrix[frequencyType as string]
-                        : (addon.subscriptionPrice || addon.price || 0)
-                    }
+                    +₹
+                    {addon.priceMatrix?.[frequencyType as string] &&
+                    addon.priceMatrix[frequencyType as string] > 0
+                      ? addon.priceMatrix[frequencyType as string]
+                      : addon.subscriptionPrice || addon.price || 0}
                   </Text>
                 </View>
               ))}
@@ -418,7 +426,10 @@ export default function SubscriptionSummaryScreen() {
           <View className="mt-4 px-2">
             <View className="flex-row justify-between mb-3 items-center">
               <Text className="text-[15px] font-[600] color-textSecondary">
-                Frequency ({selectedPlan.frequencies?.find(f => f.type === frequencyType)?.label || "Daily"})
+                Frequency (
+                {selectedPlan.frequencies?.find((f) => f.type === frequencyType)
+                  ?.label || "Daily"}
+                )
               </Text>
               <Text className="text-[16px] font-[700] color-text">
                 ₹{finalPrice}
@@ -439,7 +450,7 @@ export default function SubscriptionSummaryScreen() {
         </ScrollView>
 
         <View className="p-6 bg-card border-t border-border/50 shadow-2xl">
-          <TouchableOpacity
+          <InteractivePressable
             className={`bg-primary py-5 rounded-2xl items-center shadow-lg shadow-primary/30 ${isCreating ? "opacity-70" : ""}`}
             onPress={handlePayment}
             disabled={isCreating}
@@ -451,7 +462,7 @@ export default function SubscriptionSummaryScreen() {
                 Pay ₹{finalPrice}
               </Text>
             )}
-          </TouchableOpacity>
+          </InteractivePressable>
         </View>
       </View>
     </ScreenWrapper>

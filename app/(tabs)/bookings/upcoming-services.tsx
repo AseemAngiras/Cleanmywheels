@@ -1,7 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Colors } from "@/constants/Colors";
-import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Alert,
   Animated,
@@ -10,11 +6,16 @@ import {
   Image,
   Linking,
   Modal,
+  RefreshControl,
   ScrollView,
   Text,
-  TouchableOpacity,
   View,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Colors } from "../../../constants/Colors";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { InteractivePressable } from "../../../components/ui/InteractivePressable";
 
 import { useFocusEffect, useRouter } from "expo-router";
 
@@ -331,10 +332,9 @@ export default function UpcomingServices() {
           return (
             <>
               {activeSubs.map((sub: any) => (
-                <TouchableOpacity
+                <InteractivePressable
                   key={sub._id}
                   className="mb-6 mx-5"
-                  activeOpacity={0.9}
                   onPress={() =>
                     router.push(`/subscription-flow/details/${sub._id}` as any)
                   }
@@ -395,7 +395,7 @@ export default function UpcomingServices() {
                             Assigned Valet
                           </Text>
                         </View>
-                        <TouchableOpacity
+                        <InteractivePressable
                           onPress={() =>
                             Linking.openURL(
                               `tel:${sub.worker?.phone || sub.workerPhone}`,
@@ -408,7 +408,7 @@ export default function UpcomingServices() {
                             size={16}
                             color={Colors.primary}
                           />
-                        </TouchableOpacity>
+                        </InteractivePressable>
                       </View>
                     ) : (
                       <View className="mb-3 flex-row items-center bg-[#FFF7ED] p-2 rounded-lg">
@@ -565,15 +565,14 @@ export default function UpcomingServices() {
                       />
                     </View>
                   </View>
-                </TouchableOpacity>
+                </InteractivePressable>
               ))}
             </>
           );
         }}
         renderItem={({ item }: any) => {
           return (
-            <TouchableOpacity
-              activeOpacity={0.9}
+            <InteractivePressable
               className="mb-[10px]"
               onPress={() => setActiveBooking(item)}
             >
@@ -645,7 +644,7 @@ export default function UpcomingServices() {
 
                 {/* ACTION ROW */}
                 <View className="absolute bottom-4 left-4 right-4 flex-row items-center gap-3">
-                  <TouchableOpacity
+                  <InteractivePressable
                     className="flex-1 bg-primary rounded-[28px] py-[14px] px-5 flex-row items-center justify-center gap-[10px]"
                     onPress={() => setActiveBooking(item)}
                   >
@@ -653,14 +652,12 @@ export default function UpcomingServices() {
                       Review details
                     </Text>
                     <Ionicons name="chevron-forward" size={18} color="#000" />
-                  </TouchableOpacity>
+                  </InteractivePressable>
                 </View>
               </View>
-            </TouchableOpacity>
+            </InteractivePressable>
           );
         }}
-        onRefresh={refetch}
-        refreshing={isFetching}
         ListEmptyComponent={() => {
           if (activeSubs.length > 0) return null;
           return (
@@ -687,7 +684,7 @@ export default function UpcomingServices() {
           className="absolute inset-0 bg-black/70"
           style={[{ opacity: opacityAnim }]}
         >
-          <TouchableOpacity className="flex-1" onPress={closeSheet} />
+          <InteractivePressable className="flex-1" onPress={closeSheet} />
         </Animated.View>
 
         <Animated.View
@@ -767,21 +764,21 @@ export default function UpcomingServices() {
                         {!isAdmin &&
                           activeBooking.workerName &&
                           activeBooking.workerPhone && (
-                            <TouchableOpacity
+                            <InteractivePressable
                               className="w-8 h-8 rounded-full bg-black/10 justify-center items-center mr-2"
                               onPress={() =>
                                 handleCall(activeBooking.workerPhone)
                               }
                             >
                               <Ionicons name="call" size={20} color="#1a1a1a" />
-                            </TouchableOpacity>
+                            </InteractivePressable>
                           )}
-                        <TouchableOpacity
+                        <InteractivePressable
                           className="w-8 h-8 rounded-full bg-black/10 justify-center items-center mr-2"
                           onPress={closeSheet}
                         >
                           <Ionicons name="close" size={20} color="#1a1a1a" />
-                        </TouchableOpacity>
+                        </InteractivePressable>
                       </View>
                       <View className="w-20 h-20 rounded-[30px] bg-black/5 items-center justify-center mt-3 mr-2 border border-black/10">
                         <Ionicons
@@ -798,7 +795,7 @@ export default function UpcomingServices() {
                   </View>
 
                   {isAdmin && (
-                    <TouchableOpacity
+                    <InteractivePressable
                       className="absolute bottom-4 right-4 bg-black px-4 py-2 rounded-full"
                       onPress={() => setWorkerModalVisible(true)}
                     >
@@ -807,7 +804,7 @@ export default function UpcomingServices() {
                           ? "Reassign Worker"
                           : "Assign Worker"}
                       </Text>
-                    </TouchableOpacity>
+                    </InteractivePressable>
                   )}
                 </View>
 
@@ -914,9 +911,10 @@ export default function UpcomingServices() {
 
       {/* Worker Selection Modal */}
       <Modal visible={workerModalVisible} animationType="slide" transparent>
-        <TouchableOpacity
+        <InteractivePressable
           className="flex-1 bg-black/70"
           onPress={() => setWorkerModalVisible(false)}
+          scaleTo={1}
         />
         <View
           className="absolute bottom-0 left-0 right-0 bg-card rounded-t-[24px] p-5 h-1/2 shadow-2xl border border-border"
@@ -924,16 +922,16 @@ export default function UpcomingServices() {
         >
           <View className="flex-row justify-between items-center mb-5">
             <Text className="text-lg font-[700] text-text">Select Worker</Text>
-            <TouchableOpacity onPress={() => setWorkerModalVisible(false)}>
+            <InteractivePressable onPress={() => setWorkerModalVisible(false)}>
               <Ionicons name="close" size={24} color="#666" />
-            </TouchableOpacity>
+            </InteractivePressable>
           </View>
           <FlatList
             data={workers}
             keyExtractor={(item) => item._id}
             renderItem={({ item }) => {
               return (
-                <TouchableOpacity
+                <InteractivePressable
                   className="flex-row items-center py-3 border-b border-border"
                   onPress={() => handleAssignWorker(item)}
                 >
@@ -971,7 +969,7 @@ export default function UpcomingServices() {
                       Assign
                     </Text>
                   </View>
-                </TouchableOpacity>
+                </InteractivePressable>
               );
             }}
           />

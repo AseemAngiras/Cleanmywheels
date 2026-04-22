@@ -22,10 +22,15 @@ import {
   ScrollView,
   Text,
   TextInput,
-  TouchableOpacity,
   View,
 } from "react-native";
-import Animated, { FadeInUp, FadeInLeft, Layout, ZoomIn } from "react-native-reanimated";
+import Animated, {
+  FadeInUp,
+  FadeInLeft,
+  Layout,
+  ZoomIn,
+} from "react-native-reanimated";
+import { InteractivePressable } from "@/components/ui/InteractivePressable";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Colors } from "@/constants/Colors";
@@ -43,16 +48,28 @@ const VEHICLE_TYPE_TO_PRICE_KEY: Record<string, string> = {
   "Two Wheeler": "twoWheeler",
 };
 
+const getVehicleIconName = (type: string) => {
+  switch (type?.toLowerCase()) {
+    case "hatchback":
+      return "car-hatchback";
+    case "sedan":
+      return "car-side";
+    case "suv":
+      return "car-estate";
+    case "two wheeler":
+      return "motorbike";
+    default:
+      return "car";
+  }
+};
 
 export default function SelectServiceScreen() {
   const user = useSelector((state: RootState) => (state as any).user?.user);
-  // const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
   const isAdmin = user?.accountType === "Super Admin";
 
   const { data: allCars = [] } = useGetVehiclesQuery();
   const { data: subscriptions } = useGetMySubscriptionQuery();
 
-  // Filter out subscribed vehicle from the list
   const cars = useMemo(() => {
     const allCarsList = allCars || [];
     if (!subscriptions || !Array.isArray(subscriptions)) return allCarsList;
@@ -65,7 +82,6 @@ export default function SelectServiceScreen() {
     });
   }, [allCars, subscriptions]);
 
-  // const [createVehicle] = useCreateVehicleMutation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
@@ -78,11 +94,11 @@ export default function SelectServiceScreen() {
     data: washPackagesData,
     isLoading: isLoadingPackages,
     // error: loadError,
-  } = useGetWashPackagesQuery({ 
-    page: 1, 
-    perPage: 10, 
+  } = useGetWashPackagesQuery({
+    page: 1,
+    perPage: 10,
     packageType: "ONE_TIME",
-    status: "Active" 
+    status: "Active",
   });
   const { data: addonsList = [], isLoading: isLoadingAddons } =
     useGetAddonsQuery();
@@ -140,6 +156,27 @@ export default function SelectServiceScreen() {
     twoWheeler: "",
   });
 
+  const handleUpdatePrice = async () => {
+    if (!editingService) return;
+    try {
+      await updateWashPackage({
+        id: editingService.id,
+        body: {
+          prices: {
+            hatchback: Number(newPrices.hatchback),
+            sedan: Number(newPrices.sedan),
+            suv: Number(newPrices.suv),
+            twoWheeler: Number(newPrices.twoWheeler),
+          },
+        },
+      }).unwrap();
+      setEditingService(null);
+    } catch (err) {
+      console.error(err);
+      Alert.alert("Error", "Failed to update price");
+    }
+  };
+
   const toggleDetails = (id: string, e: any) => {
     e.stopPropagation();
     setDetailsExpanded((prev) => {
@@ -194,43 +231,27 @@ export default function SelectServiceScreen() {
     }
   };
 
-  const handleUpdatePrice = async () => {
-    if (!editingService) return;
-    try {
-      await updateWashPackage({
-        id: editingService.id,
-        body: {
-          prices: {
-            hatchback: Number(newPrices.hatchback),
-            sedan: Number(newPrices.sedan),
-            suv: Number(newPrices.suv),
-            twoWheeler: Number(newPrices.twoWheeler),
-          },
-        },
-      }).unwrap();
-      Alert.alert("Success", "Prices updated successfully");
-      setEditingService(null);
-    } catch (err: any) {
-      Alert.alert("Error", err?.data?.message || "Failed to update prices");
-    }
-  };
-
   const totalPrice = useMemo(() => {
     const service = services.find((s) => s.id === selectedService);
-    
+
     const priceKey = VEHICLE_TYPE_TO_PRICE_KEY[vehicleType] || "sedan";
     const priceData = (service?.prices as any)?.[priceKey];
-    let basePrice = typeof priceData === 'object' ? (priceData.ONE_TIME || 0) : (priceData || service?.price || 0);
+    let basePrice =
+      typeof priceData === "object"
+        ? priceData.ONE_TIME || 0
+        : priceData || service?.price || 0;
     let total = basePrice;
-    
-    const addonMap = new Map((addonsList as any[]).map(a => [a._id || a.id, a]));
+
+    const addonMap = new Map(
+      (addonsList as any[]).map((a) => [a._id || a.id, a]),
+    );
     Object.entries(addons).forEach(([id, selected]) => {
       if (selected) {
         const addon = addonMap.get(id) as any;
-        total += (addon?.normalPrice || addon?.price || 0);
+        total += addon?.normalPrice || addon?.price || 0;
       }
     });
-    
+
     return total;
   }, [services, selectedService, addons, addonsList, vehicleType]);
 
@@ -258,7 +279,10 @@ export default function SelectServiceScreen() {
     const selectedServiceData = services.find((s) => s.id === selectedService);
     const priceKey = VEHICLE_TYPE_TO_PRICE_KEY[vehicleType] || "sedan";
     const priceData = (selectedServiceData?.prices as any)?.[priceKey];
-    const actualBasePrice = typeof priceData === 'object' ? (priceData.ONE_TIME || 0) : (priceData || selectedServiceData?.price);
+    const actualBasePrice =
+      typeof priceData === "object"
+        ? priceData.ONE_TIME || 0
+        : priceData || selectedServiceData?.price;
 
     router.push({
       pathname: "/(tabs)/home/book-doorstep/select-slot",
@@ -282,12 +306,12 @@ export default function SelectServiceScreen() {
   return (
     <ScreenWrapper backgroundColor={Colors.background}>
       <View className="flex-row justify-between items-center px-5 py-4 bg-background">
-        <TouchableOpacity
+        <InteractivePressable
           onPress={() => router.back()}
           className="w-10 h-10 rounded-full bg-card items-center justify-center border border-border/50"
         >
           <Ionicons name="chevron-back" size={24} color={Colors.text} />
-        </TouchableOpacity>
+        </InteractivePressable>
         <Text className="text-[18px] font-[800] color-text tracking-tight">
           Select Service
         </Text>
@@ -329,114 +353,128 @@ export default function SelectServiceScreen() {
                   const isSelected = selectedService === service.id;
                   const isExpanded = detailsExpanded.has(service.id);
                   return (
-                    <Animated.View
-                      key={service.id}
-                      entering={FadeInUp.delay(index * 100).duration(500)}
-                      layout={Layout.springify()}
+                    <InteractivePressable
+                      key={service.id as any}
+                      onPress={() => handleServiceSelect(service.id)}
+                      onLongPress={() => {
+                        if (!isAdmin) return;
+                        setEditingService({
+                          id: service.id,
+                          name: service.name,
+                          price: service.price || 0,
+                          prices: service.prices || {
+                            hatchback: 0,
+                            sedan: 0,
+                            suv: 0,
+                            twoWheeler: 0,
+                          },
+                        });
+                        setNewPrices({
+                          hatchback: (
+                            service.prices?.hatchback || 0
+                          ).toString(),
+                          sedan: (service.prices?.sedan || 0).toString(),
+                          suv: (service.prices?.suv || 0).toString(),
+                          twoWheeler: (
+                            service.prices?.twoWheeler || 0
+                          ).toString(),
+                        });
+                      }}
+                      className="mb-4 overflow-hidden rounded-[28px]"
                     >
-                      <TouchableOpacity
-                        activeOpacity={0.9}
-                        onPress={() => handleServiceSelect(service.id)}
-                        onLongPress={() => {
-                          if (!isAdmin) return;
-                          setEditingService({
-                            id: service.id,
-                            name: service.name,
-                            price: service.price,
-                            prices: service.prices || { hatchback: 0, sedan: 0, suv: 0, twoWheeler: 0 },
-                          });
-                          setNewPrices({
-                            hatchback: (service.prices?.hatchback || 0).toString(),
-                            sedan: (service.prices?.sedan || 0).toString(),
-                            suv: (service.prices?.suv || 0).toString(),
-                            twoWheeler: (service.prices?.twoWheeler || 0).toString(),
-                          });
-                        }}
-                        className={`mb-4 rounded-[28px] overflow-hidden border ${
+                      <Animated.View
+                        entering={FadeInUp.delay(index * 100).duration(500)}
+                        className={`rounded-[28px] border ${
                           isSelected
                             ? "bg-card border-primary shadow-lg shadow-primary/20"
                             : "bg-card border-border/50 shadow-sm"
                         }`}
                       >
-                      <View className="p-5">
-                        {/* Main Row */}
-                        <View className="flex-row items-center justify-between mb-2">
-                          <View className="flex-1">
-                            <Text className="text-[18px] font-[800] color-text">
-                              {service.name}
-                            </Text>
-                            <View className="flex-row items-center mt-1">
-                              <Text className="text-[20px] font-[900] color-primary">
-                                ₹{(() => {
-                                  const priceKey = VEHICLE_TYPE_TO_PRICE_KEY[vehicleType] || "sedan";
-                                  const pData = (service.prices as any)?.[priceKey];
-                                  return typeof pData === 'object' ? (pData.ONE_TIME || 0) : (pData || service.price);
-                                })()}
+                        <View className="p-5">
+                          <View className="flex-row items-center justify-between mb-2">
+                            <View className="flex-1">
+                              <Text className="text-[18px] font-[800] color-text">
+                                {service.name}
                               </Text>
-                              {service.isBestseller && (
-                                <Text className="ml-3 text-[12px] font-[700] color-textSecondary uppercase tracking-widest">
-                                  Bestseller
+                              <View className="flex-row items-center mt-1">
+                                <Text className="text-[20px] font-[900] color-primary">
+                                  ₹
+                                  {(() => {
+                                    const priceKey =
+                                      VEHICLE_TYPE_TO_PRICE_KEY[vehicleType] ||
+                                      "sedan";
+                                    const pData = (service.prices as any)?.[
+                                      priceKey
+                                    ];
+                                    return typeof pData === "object"
+                                      ? pData.ONE_TIME || 0
+                                      : pData || service.price;
+                                  })()}
                                 </Text>
+                                {service.isBestseller && (
+                                  <Text className="ml-3 text-[12px] font-[700] color-textSecondary uppercase tracking-widest">
+                                    Bestseller
+                                  </Text>
+                                )}
+                              </View>
+                            </View>
+
+                            <View
+                              className={`w-6 h-6 rounded-full border-2 items-center justify-center ${
+                                isSelected
+                                  ? "bg-primary border-primary"
+                                  : "border-border/50"
+                              }`}
+                            >
+                              {isSelected && (
+                                <View className="w-2.5 h-2.5 rounded-full bg-black/80" />
                               )}
                             </View>
                           </View>
 
-                          <View
-                            className={`w-6 h-6 rounded-full border-2 items-center justify-center ${
-                              isSelected
-                                ? "bg-primary border-primary"
-                                : "border-border/50"
-                            }`}
+                          <Text
+                            className="text-[13px] color-textSecondary font-[500] leading-5"
+                            numberOfLines={isExpanded ? 0 : 1}
                           >
-                            {isSelected && (
-                              <View className="w-2.5 h-2.5 rounded-full bg-black/80" />
-                            )}
-                          </View>
-                        </View>
-
-                        <Text
-                          className="text-[13px] color-textSecondary font-[500] leading-5"
-                          numberOfLines={isExpanded ? 0 : 1}
-                        >
-                          {service.description}
-                        </Text>
-
-                        {/* Show Details Action */}
-                        <TouchableOpacity
-                          onPress={(e) => toggleDetails(service.id, e)}
-                          className="flex-row items-center justify-center mt-4 border-t border-border/20"
-                        >
-                          <Text className="text-[12px] font-[800] color-primary uppercase tracking-widest mr-1.5">
-                            {isExpanded ? "Hide details" : "Show details"}
+                            {service.description}
                           </Text>
-                          <Ionicons
-                            name={isExpanded ? "chevron-up" : "chevron-down"}
-                            size={16}
-                            color={Colors.primary}
-                          />
-                        </TouchableOpacity>
 
-                        {/* Expanded Content */}
-                        {isExpanded && (
-                          <View className="mt-4">
-                            <View className="flex-row flex-wrap gap-2">
-                              {service.features.map((feature: string, idx: number) => (
-                                <View
-                                  key={idx}
-                                  className="px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 flex-row items-center"
-                                >
-                                  <View className="w-1.5 h-1.5 rounded-full bg-primary mr-2" />
-                                  <Text className="text-[11px] font-[700] color-primary uppercase">
-                                    {feature}
-                                  </Text>
-                                </View>
-                              ))}
+                          <InteractivePressable
+                            onPress={(e) => toggleDetails(service.id, e)}
+                            className="flex-row items-center justify-center mt-4 border-t border-border/20"
+                          >
+                            <Text className="text-[12px] font-[800] color-primary uppercase tracking-widest mr-1.5">
+                              {isExpanded ? "Hide details" : "Show details"}
+                            </Text>
+                            <Ionicons
+                              name={isExpanded ? "chevron-up" : "chevron-down"}
+                              size={16}
+                              color={Colors.primary}
+                            />
+                          </InteractivePressable>
+
+                          {isExpanded && (
+                            <View className="mt-4">
+                              <View className="flex-row flex-wrap gap-2">
+                                {service.features.map(
+                                  (feature: string, idx: number) => (
+                                    <View
+                                      key={idx}
+                                      className="px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 flex-row items-center"
+                                    >
+                                      <View className="w-1.5 h-1.5 rounded-full bg-primary mr-2" />
+                                      <Text className="text-[11px] font-[700] color-primary uppercase">
+                                        {feature}
+                                      </Text>
+                                    </View>
+                                  ),
+                                )}
+                              </View>
                             </View>
-                          </View>
-                        )}
-                      </View>
-                    </TouchableOpacity>
-                    </Animated.View>
+                          )}
+                        </View>
+                      </Animated.View>
+                    </InteractivePressable>
                   );
                 })}
               </View>
@@ -449,12 +487,6 @@ export default function SelectServiceScreen() {
                 <Text className="text-[14px] font-[800] color-textSecondary uppercase tracking-widest px-1">
                   Pick Add-ons
                 </Text>
-                <View className="bg-primary/20 px-3 py-1.5 rounded-full border border-primary/30 flex-row items-center">
-                  <Ionicons name="trending-up" size={14} color={Colors.primary} />
-                  <Text className="text-[11px] font-[900] color-primary uppercase ml-1.5">
-                    60% of users select these
-                  </Text>
-                </View>
               </View>
 
               <View className="px-5">
@@ -472,41 +504,46 @@ export default function SelectServiceScreen() {
                       const aid = addon._id || addon.id;
                       const isSelected = !!addons[aid];
                       return (
-                        <Animated.View
-                          key={aid || `addon-${idx}`}
-                          entering={FadeInLeft.delay(100 + idx * 50).duration(400)}
-                          layout={Layout.springify()}
+                        <InteractivePressable
+                          key={(aid || `addon-${idx}`) as any}
+                          onPress={() => {
+                            setAddons((prev) => ({
+                              ...prev,
+                              [aid]: !prev[aid],
+                            }));
+                          }}
+                          className="mb-3"
                         >
-                          <TouchableOpacity
-                            activeOpacity={0.7}
-                            onPress={() => {
-                              setAddons((prev) => ({
-                                ...prev,
-                                [aid]: !prev[aid],
-                              }));
-                            }}
+                          <Animated.View
+                            entering={FadeInLeft.delay(100 + idx * 50).duration(
+                              400,
+                            )}
                             className={`flex-row items-center p-5 rounded-[28px] border ${
                               isSelected
                                 ? "bg-primary/10 border-primary"
                                 : "bg-card border-border/50"
                             }`}
                           >
-                            <View 
+                            <View
                               className={`w-14 h-14 rounded-2xl items-center justify-center mr-4 ${
                                 isSelected ? "bg-primary/20" : "bg-background"
                               }`}
                             >
                               <Ionicons
-                                name={isSelected ? "sparkles" : "add-circle-outline"}
+                                name={
+                                  isSelected ? "sparkles" : "add-circle-outline"
+                                }
                                 size={28}
-                                color={isSelected ? Colors.primary : Colors.textSecondary}
+                                color={
+                                  isSelected
+                                    ? Colors.primary
+                                    : Colors.textSecondary
+                                }
                               />
                             </View>
-                            
+
                             <View className="flex-1">
-                              <Text
-                                className="text-[16px] font-[800] color-text"
-                              >
+                              <Text className="text-[16px] font-[800] color-text">
                                 {addon.name}
                               </Text>
                               <View className="flex-row items-center mt-1">
@@ -529,11 +566,15 @@ export default function SelectServiceScreen() {
                               }`}
                             >
                               {isSelected && (
-                                <Ionicons name="checkmark" size={16} color="#000" />
+                                <Ionicons
+                                  name="checkmark"
+                                  size={16}
+                                  color="#000"
+                                />
                               )}
                             </View>
-                          </TouchableOpacity>
-                        </Animated.View>
+                          </Animated.View>
+                        </InteractivePressable>
                       );
                     })}
                   </View>
@@ -556,95 +597,93 @@ export default function SelectServiceScreen() {
                 {cars.map((car: any, index: number) => {
                   const isSelected = selectedCarId === (car._id || car.id);
                   return (
-                    <Animated.View 
-                      key={car._id || car.id}
-                      entering={FadeInUp.delay(index * 100).duration(500)}
-                    >
-                      <TouchableOpacity
-                      key={car._id || car.id}
-                      style={{
-                        width: 100,
-                        marginLeft: 10,
-                        padding: 10,
-                        borderRadius: 15,
-                        borderWidth: 1,
-                        alignItems: "center",
-                        position: "relative",
-                        backgroundColor: isSelected
-                          ? Colors.primary
-                          : Colors.card,
-                        borderColor: isSelected
-                          ? Colors.primary
-                          : "rgba(226, 232, 240, 0.5)",
-                      }}
+                    <InteractivePressable
+                      key={(car._id || car.id || index) as any}
                       onPress={() => setSelectedCarId(car._id || car.id)}
+                      className="w-[100px] ml-[10px]"
                     >
-                      {isSelected && (
-                        <Animated.View
-                          entering={ZoomIn.duration(300)}
+                      <Animated.View
+                        entering={FadeInUp.delay(index * 100).duration(500)}
+                        style={{
+                          padding: 10,
+                          borderRadius: 15,
+                          borderWidth: 1,
+                          alignItems: "center",
+                          position: "relative",
+                          backgroundColor: isSelected
+                            ? Colors.primary
+                            : Colors.card,
+                          borderColor: isSelected
+                            ? Colors.primary
+                            : "rgba(226, 232, 240, 0.5)",
+                        }}
+                      >
+                        {isSelected && (
+                          <Animated.View
+                            entering={ZoomIn.duration(300)}
+                            style={{
+                              position: "absolute",
+                              top: 8,
+                              right: 8,
+                              backgroundColor: "rgba(0,0,0,0.2)",
+                              width: 20,
+                              height: 20,
+                              borderRadius: 10,
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}
+                          >
+                            <Ionicons name="checkmark" size={12} color="#000" />
+                          </Animated.View>
+                        )}
+                        <View
                           style={{
-                            position: "absolute",
-                            top: 8,
-                            right: 8,
-                            backgroundColor: "rgba(0,0,0,0.2)",
-                            width: 20,
-                            height: 20,
-                            borderRadius: 10,
+                            width: 48,
+                            height: 48,
+                            borderRadius: 14,
                             alignItems: "center",
                             justifyContent: "center",
+                            marginBottom: 8,
+                            backgroundColor: isSelected
+                              ? "rgba(0,0,0,0.1)"
+                              : Colors.background,
                           }}
                         >
-                          <Ionicons name="checkmark" size={12} color="#000" />
-                        </Animated.View>
-                      )}
-                      <View
-                        style={{
-                          width: 48,
-                          height: 48,
-                          borderRadius: 14,
-                          alignItems: "center",
-                          justifyContent: "center",
-                          marginBottom: 8,
-                          backgroundColor: isSelected
-                            ? "rgba(0,0,0,0.1)"
-                            : Colors.background,
-                        }}
-                      >
-                        <MaterialCommunityIcons
-                          name={
-                            getVehicleIconName(
-                              car.vehicleType || car.type,
-                            ) as any
-                          }
-                          size={28}
-                          color={isSelected ? "#000" : Colors.textSecondary}
-                        />
-                      </View>
-                      <Text
-                        style={{
-                          fontSize: 12,
-                          fontWeight: "800",
-                          textAlign: "center",
-                          color: isSelected ? "#000" : Colors.text,
-                        }}
-                        numberOfLines={1}
-                      >
-                        {car.vehicleNo || car.number}
-                      </Text>
-                      <Text
-                        style={{
-                          fontSize: 10,
-                          fontWeight: "600",
-                          marginTop: 1,
-                          color: isSelected
-                            ? "rgba(0,0,0,0.6)"
-                            : Colors.textSecondary,
-                        }}
-                      >
-                        {car.vehicleType || car.type}
-                      </Text>
-                    </TouchableOpacity>
-                    </Animated.View>
+                          <MaterialCommunityIcons
+                            name={
+                              getVehicleIconName(
+                                car.vehicleType || car.type,
+                              ) as any
+                            }
+                            size={28}
+                            color={isSelected ? "#000" : Colors.textSecondary}
+                          />
+                        </View>
+                        <Text
+                          style={{
+                            fontSize: 12,
+                            fontWeight: "800",
+                            textAlign: "center",
+                            color: isSelected ? "#000" : Colors.text,
+                          }}
+                          numberOfLines={1}
+                        >
+                          {car.vehicleNo || car.number}
+                        </Text>
+                        <Text
+                          style={{
+                            fontSize: 10,
+                            fontWeight: "600",
+                            marginTop: 1,
+                            color: isSelected
+                              ? "rgba(0,0,0,0.6)"
+                              : Colors.textSecondary,
+                          }}
+                        >
+                          {car.vehicleType || car.type}
+                        </Text>
+                      </Animated.View>
+                    </InteractivePressable>
                   );
                 })}
               </ScrollView>
@@ -659,9 +698,8 @@ export default function SelectServiceScreen() {
             {vehicleTypes.map((type) => {
               const isSelected = vehicleType === type.id;
               return (
-                <TouchableOpacity
-                  key={type.id}
-                  activeOpacity={0.8}
+                <InteractivePressable
+                  key={type.id as any}
                   className={`w-[48%] mb-4 p-5 rounded-[24px] flex-row items-center border ${
                     isSelected
                       ? "bg-primary/20 border-primary"
@@ -688,7 +726,7 @@ export default function SelectServiceScreen() {
                   >
                     {type.name}
                   </Text>
-                </TouchableOpacity>
+                </InteractivePressable>
               );
             })}
           </View>
@@ -734,11 +772,8 @@ export default function SelectServiceScreen() {
           </View>
         </View>
 
-        <TouchableOpacity
-          activeOpacity={1}
-          onPress={handleNext}
-        >
-          <Animated.View 
+        <InteractivePressable onPress={handleNext}>
+          <Animated.View
             className="bg-primary h-14 rounded-2xl flex-row items-center justify-center shadow-lg shadow-primary/30"
             layout={Layout.springify()}
           >
@@ -750,7 +785,7 @@ export default function SelectServiceScreen() {
               style={{ marginLeft: 8 }}
             />
           </Animated.View>
-        </TouchableOpacity>
+        </InteractivePressable>
       </View>
 
       {/* Admin Edit Modal */}
@@ -766,7 +801,9 @@ export default function SelectServiceScreen() {
 
             <ScrollView className="max-h-[400px] mb-6">
               {Object.keys(VEHICLE_TYPE_TO_PRICE_KEY).map((type) => {
-                const key = VEHICLE_TYPE_TO_PRICE_KEY[type] as keyof typeof newPrices;
+                const key = VEHICLE_TYPE_TO_PRICE_KEY[
+                  type
+                ] as keyof typeof newPrices;
                 return (
                   <View key={type} className="mb-4">
                     <Text className="text-[12px] font-[800] color-textSecondary uppercase mb-2 px-1">
@@ -779,7 +816,7 @@ export default function SelectServiceScreen() {
                       <TextInput
                         className="flex-1 text-[18px] font-[800] color-text"
                         keyboardType="numeric"
-                        value={newPrices[key].toString()}
+                        value={newPrices[key] ? newPrices[key].toString() : ""}
                         onChangeText={(val) =>
                           setNewPrices((prev) => ({ ...prev, [key]: val }))
                         }
@@ -791,13 +828,13 @@ export default function SelectServiceScreen() {
             </ScrollView>
 
             <View className="flex-row gap-4">
-              <TouchableOpacity
+              <InteractivePressable
                 className="flex-1 h-12 rounded-xl items-center justify-center border border-border"
                 onPress={() => setEditingService(null)}
               >
                 <Text className="color-textSecondary font-[700]">Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
+              </InteractivePressable>
+              <InteractivePressable
                 className="flex-1 h-12 bg-primary rounded-xl items-center justify-center"
                 onPress={handleUpdatePrice}
                 disabled={isUpdating}
@@ -807,7 +844,7 @@ export default function SelectServiceScreen() {
                 ) : (
                   <Text className="color-black font-[900]">Update</Text>
                 )}
-              </TouchableOpacity>
+              </InteractivePressable>
             </View>
           </View>
         </View>
@@ -815,18 +852,3 @@ export default function SelectServiceScreen() {
     </ScreenWrapper>
   );
 }
-
-const getVehicleIconName = (type: string) => {
-  switch (type?.toLowerCase()) {
-    case "hatchback":
-      return "car-hatchback";
-    case "sedan":
-      return "car-side";
-    case "suv":
-      return "car-estate";
-    case "two wheeler":
-      return "motorbike";
-    default:
-      return "car";
-  }
-};

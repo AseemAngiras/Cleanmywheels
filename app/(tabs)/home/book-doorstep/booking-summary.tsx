@@ -27,6 +27,7 @@ import { useDispatch, useSelector } from "react-redux";
 import BookingStepper from "../../../../components/BookingStepper";
 import PulseLoader from "../../../../components/PulseLoader";
 import socketService from "@/services/socketService";
+import { InteractivePressable } from "@/components/ui/InteractivePressable";
 
 const VEHICLE_TYPE_MAP: Record<string, string> = {
   sedan: "Sedan",
@@ -460,7 +461,7 @@ export default function BookingSummaryScreen() {
         className="absolute bottom-0 left-0 right-0 bg-card px-6 pt-6 rounded-t-[44px] border-t border-border shadow-2xl"
         style={{ paddingBottom: Math.max(insets.bottom, 24) }}
       >
-        <TouchableOpacity
+        <InteractivePressable
           className={`h-14 rounded-2xl flex-row items-center justify-between px-6 shadow-lg ${isCreatingBooking ? "bg-border/30" : "bg-primary shadow-primary/30"}`}
           onPress={handlePay}
           disabled={isCreatingBooking}
@@ -479,7 +480,7 @@ export default function BookingSummaryScreen() {
           ) : (
             <Ionicons name="arrow-forward" size={20} color="#000" />
           )}
-        </TouchableOpacity>
+        </InteractivePressable>
       </View>
 
       {/* Loading Overlay */}

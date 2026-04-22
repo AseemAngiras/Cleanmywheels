@@ -2,12 +2,12 @@ import React, { useState } from "react";
 import {
   View,
   Text,
-  TouchableOpacity,
   FlatList,
   ActivityIndicator,
   Modal,
   Alert,
 } from "react-native";
+import { InteractivePressable } from "../ui/InteractivePressable";
 import { Ionicons } from "@expo/vector-icons";
 import {
   useGetWorkersQuery,
@@ -91,9 +91,8 @@ export default function AdminWorkerScreen() {
     const isSelected = selectedWorkerId === item._id;
 
     return (
-      <TouchableOpacity
+      <InteractivePressable
         className={`bg-card rounded-[32px] p-5 mb-4 border ${isSelected ? "border-primary" : "border-border"} shadow-sm`}
-        activeOpacity={0.9}
         onPress={() => setSelectedWorkerId(isSelected ? null : item._id)}
       >
         <View className="flex-row items-center mb-4">
@@ -167,7 +166,7 @@ export default function AdminWorkerScreen() {
 
         {isSelected && (
           <View className="flex-row gap-3 mt-5 pt-5 border-t border-border/50">
-            <TouchableOpacity
+            <InteractivePressable
               className="flex-1 bg-background border border-border flex-row items-center justify-center py-3.5 rounded-2xl"
               onPress={() => handleEditWorker(item)}
             >
@@ -180,16 +179,16 @@ export default function AdminWorkerScreen() {
               <Text className="color-text font-[800] text-[13px]">
                 Edit Details
               </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
+            </InteractivePressable>
+            <InteractivePressable
               className="bg-red-500/10 border border-red-500/20 px-4 items-center justify-center rounded-2xl"
               onPress={() => handleDeleteWorker(item)}
             >
               <Ionicons name="trash-outline" size={18} color="#EF4444" />
-            </TouchableOpacity>
+            </InteractivePressable>
           </View>
         )}
-      </TouchableOpacity>
+      </InteractivePressable>
     );
   };
 
@@ -203,7 +202,7 @@ export default function AdminWorkerScreen() {
           <Text className="text-[20px] font-[800] color-text">
             Professionals
           </Text>
-          <TouchableOpacity
+          <InteractivePressable
             className="bg-primary flex-row items-center px-4 py-2.5 rounded-full shadow-lg shadow-primary/30"
             onPress={handleAddWorker}
           >
@@ -214,7 +213,7 @@ export default function AdminWorkerScreen() {
               style={{ marginRight: 4 }}
             />
             <Text className="color-black font-[800] text-[13px]">Add New</Text>
-          </TouchableOpacity>
+          </InteractivePressable>
         </View>
 
         {isLoading ? (
@@ -250,9 +249,8 @@ export default function AdminWorkerScreen() {
           onRequestClose={() => setModalVisible(false)}
         >
           <View className="flex-1 justify-end">
-            <TouchableOpacity
+            <InteractivePressable
               className="absolute inset-0 bg-black/70"
-              activeOpacity={1}
               onPress={() => setModalVisible(false)}
             />
             <View className="bg-card mb-10 rounded-t-[40px] shadow-2xl border-t border-border max-h-[90%]">
@@ -261,12 +259,12 @@ export default function AdminWorkerScreen() {
                 <Text className="text-[22px] font-[800] color-text">
                   {editingWorker ? "Edit Professional" : "Add New Professional"}
                 </Text>
-                <TouchableOpacity
+                <InteractivePressable
                   onPress={() => setModalVisible(false)}
                   className="w-10 h-10 rounded-full bg-background items-center justify-center border border-border"
                 >
                   <Ionicons name="close" size={20} color={Colors.text} />
-                </TouchableOpacity>
+                </InteractivePressable>
               </View>
 
               <WorkerForm

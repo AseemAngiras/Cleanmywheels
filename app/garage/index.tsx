@@ -14,10 +14,10 @@ import {
   Pressable,
   Text,
   TextInput,
-  TouchableOpacity,
   View,
   ActivityIndicator,
 } from "react-native";
+import { InteractivePressable } from "@/components/ui/InteractivePressable";
 
 import {
   useCreateVehicleMutation,
@@ -344,12 +344,12 @@ export default function MyCarsScreen() {
   return (
     <ScreenWrapper backgroundColor={Colors.background}>
       <View className="flex-row justify-between items-center px-6 py-5 bg-background">
-        <TouchableOpacity
+        <InteractivePressable
           onPress={() => router.back()}
           className="p-2 bg-card rounded-xl border border-border/50"
         >
           <Ionicons name="chevron-back" size={20} color={Colors.text} />
-        </TouchableOpacity>
+        </InteractivePressable>
         <View className="items-center">
           <Text className="text-[25px] font-[800] color-text tracking-tight">
             My Garage
@@ -389,14 +389,14 @@ export default function MyCarsScreen() {
                 Add your vehicles to enjoy faster bookings and personalized
                 service.
               </Text>
-              <TouchableOpacity
+              <InteractivePressable
                 className="mt-10 bg-primary px-8 py-4 rounded-2xl shadow-lg shadow-primary/30"
                 onPress={() => openModal()}
               >
                 <Text className="text-[15px] font-[900] color-black uppercase tracking-tight">
                   Add New Vehicle
                 </Text>
-              </TouchableOpacity>
+              </InteractivePressable>
             </View>
           ) : (
             <View className="flex-1 items-center justify-center py-20">
@@ -408,18 +408,22 @@ export default function MyCarsScreen() {
 
       {/* FAB for Adding (Optional, depending on UI Preference) */}
       {!modalVisible && cars.length > 0 && (
-        <TouchableOpacity
+        <InteractivePressable
           className="absolute bottom-16 right-6 w-16 h-16 bg-primary rounded-full items-center justify-center shadow-xl shadow-primary/40 z-50 border-[4px] border-background"
           onPress={() => openModal()}
         >
           <Ionicons name="add" size={32} color="#000" />
-        </TouchableOpacity>
+        </InteractivePressable>
       )}
 
       {/* Add/Edit Modal */}
       <Modal visible={modalVisible} transparent animationType="none">
         <View className="flex-1 bg-black/60 justify-end">
-          <TouchableOpacity className="absolute inset-0" onPress={closeModal} />
+          <InteractivePressable
+            className="absolute inset-0"
+            onPress={closeModal}
+            scaleTo={1}
+          />
           <Animated.View
             style={{
               transform: [{ translateY: slideAnim }],
@@ -438,12 +442,12 @@ export default function MyCarsScreen() {
                   Enter your vehicle details below
                 </Text>
               </View>
-              <TouchableOpacity
+              <InteractivePressable
                 onPress={closeModal}
                 className="w-10 h-10 bg-background rounded-full items-center justify-center border border-border"
               >
                 <Ionicons name="close" size={20} color={Colors.text} />
-              </TouchableOpacity>
+              </InteractivePressable>
             </View>
 
             <View className="gap-6">

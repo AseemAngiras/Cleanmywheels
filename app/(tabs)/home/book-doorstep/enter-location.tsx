@@ -30,6 +30,7 @@ import {
 import { WebView } from "react-native-webview";
 import { getLeafletHtml } from "@/utils/leafletHtml";
 import { useDispatch, useSelector } from "react-redux";
+import { InteractivePressable } from "@/components/ui/InteractivePressable";
 
 export default function EnterLocationScreen() {
   const dispatch = useDispatch();
@@ -531,7 +532,7 @@ export default function EnterLocationScreen() {
           </View>
 
           <View className="flex-row mb-6">
-            <TouchableOpacity
+            <InteractivePressable
               className={`flex-row items-center px-6 py-3 rounded-full mr-4 border ${addressType === "Home" ? "bg-primary border-primary" : "bg-card border-border/50"}`}
               onPress={() => {
                 setAddressType("Home");
@@ -550,9 +551,9 @@ export default function EnterLocationScreen() {
               >
                 Home
               </Text>
-            </TouchableOpacity>
+            </InteractivePressable>
 
-            <TouchableOpacity
+            <InteractivePressable
               className={`flex-row items-center px-6 py-3 rounded-full border ${addressType === "Office" ? "bg-primary border-primary" : "bg-card border-border/50"}`}
               onPress={() => {
                 setAddressType("Office");
@@ -571,9 +572,9 @@ export default function EnterLocationScreen() {
               >
                 Office
               </Text>
-            </TouchableOpacity>
+            </InteractivePressable>
 
-            <TouchableOpacity
+            <InteractivePressable
               className={`flex-row items-center px-6 py-3 rounded-full border ${addressType === "Other" ? "bg-primary border-primary" : "bg-card border-border/50"}`}
               onPress={() => {
                 setAddressType("Other");
@@ -592,7 +593,7 @@ export default function EnterLocationScreen() {
               >
                 Other
               </Text>
-            </TouchableOpacity>
+            </InteractivePressable>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -606,7 +607,7 @@ export default function EnterLocationScreen() {
             {errorMsg}
           </Text>
         ) : null}
-        <TouchableOpacity
+        <InteractivePressable
           className={`bg-primary h-14 rounded-2xl flex-row items-center justify-center shadow-lg shadow-primary/30 ${isCreating ? "opacity-70" : ""}`}
           onPress={handleConfirm}
           disabled={isCreating}
@@ -618,7 +619,7 @@ export default function EnterLocationScreen() {
               Confirm Location
             </Text>
           )}
-        </TouchableOpacity>
+        </InteractivePressable>
       </View>
 
       <Modal

@@ -1,7 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useEffect, useRef } from "react";
-import { Animated, TouchableOpacity, View, Text } from "react-native";
+import { Animated, View, Text } from "react-native";
+import { InteractivePressable } from "./ui/InteractivePressable";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Colors } from "@/constants/Colors";
 
@@ -62,9 +63,8 @@ const TabItem = ({ route, state, navigation }: any) => {
   };
 
   return (
-    <TouchableOpacity
+    <InteractivePressable
       onPress={handlePress}
-      activeOpacity={0.85}
     >
       <Animated.View
         className={`h-12 rounded-[24px] flex-row items-center justify-center overflow-hidden ${
@@ -99,7 +99,7 @@ const TabItem = ({ route, state, navigation }: any) => {
           </Animated.Text>
         )}
       </Animated.View>
-    </TouchableOpacity>
+    </InteractivePressable>
   );
 };
 

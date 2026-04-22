@@ -1,3 +1,4 @@
+import { InteractivePressable } from "@/components/ui/InteractivePressable";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { toast } from "@/utils/toast";
@@ -269,7 +270,7 @@ export default function ProfileHome() {
           entering={FadeInUp.delay(100).duration(600)}
           className="flex-row items-center justify-between px-5 mb-5 mt-[10px]"
         >
-          <TouchableOpacity
+          <InteractivePressable
             className="w-10 h-10 rounded-full bg-card items-center justify-center border border-border"
             onPress={() => {
               if (isAdmin) {
@@ -280,7 +281,7 @@ export default function ProfileHome() {
             }}
           >
             <Ionicons name="chevron-back" size={20} color={Colors.text} />
-          </TouchableOpacity>
+          </InteractivePressable>
           <Text className="text-[20px] font-[700] text-text">Your Profile</Text>
           <View className="w-9" />
         </Animated.View>
@@ -291,7 +292,7 @@ export default function ProfileHome() {
           className="mx-5 mb-6 p-5 rounded-[24px] bg-card flex-row items-center justify-between border border-border shadow-lg elevation-4"
         >
           <View className="flex-row items-center gap-4">
-            <TouchableOpacity activeOpacity={1}>
+            <InteractivePressable>
               <Image
                 source={{
                   uri:
@@ -299,9 +300,9 @@ export default function ProfileHome() {
                 }}
                 className="w-16 h-16 rounded-full border-2 border-border bg-background"
               />
-            </TouchableOpacity>
+            </InteractivePressable>
             <View>
-              <TouchableOpacity onPress={() => setShowEditProfileModal(true)}>
+              <InteractivePressable onPress={() => setShowEditProfileModal(true)}>
                 <View className="flex-row items-center">
                   <Text className="text-[18px] font-[700] text-text mb-1">
                     {profileState?.name || userData?.name || "Your Name"}
@@ -321,7 +322,7 @@ export default function ProfileHome() {
                     </View>
                   )}
                 </View>
-              </TouchableOpacity>
+              </InteractivePressable>
               <Text className="text-sm color-textSecondary font-[500]">
                 {userData?.phone || profileState?.phone
                   ? `+91 ${userData?.phone || profileState?.phone}`
@@ -402,7 +403,7 @@ export default function ProfileHome() {
                 <Text className="text-base font-[600] text-text">
                   Saved Addresses
                 </Text>
-                <TouchableOpacity
+                <InteractivePressable
                   className="flex-row items-center gap-1"
                   onPress={() =>
                     router.push({
@@ -417,7 +418,7 @@ export default function ProfileHome() {
                     color={Colors.primary}
                   />
                   <Text className="text-primary font-[600]">Add</Text>
-                </TouchableOpacity>
+                </InteractivePressable>
               </View>
               {savedAddresses.length === 0 ? (
                 <View className="p-4">
@@ -427,14 +428,13 @@ export default function ProfileHome() {
                 </View>
               ) : (
                 <View>
-                  <TouchableOpacity
+                  <InteractivePressable
                     className={`flex-row items-center py-3 px-4 ${
                       isAddressDropdownOpen ? "border-b border-border" : ""
                     }`}
                     onPress={() =>
                       setIsAddressDropdownOpen(!isAddressDropdownOpen)
                     }
-                    activeOpacity={0.7}
                   >
                     <View className="w-10 h-10 rounded-xl bg-background items-center justify-center mr-3.5 border border-border">
                       <Ionicons name="location" size={18} color={Colors.text} />
@@ -459,7 +459,7 @@ export default function ProfileHome() {
                       size={20}
                       color={Colors.textSecondary}
                     />
-                  </TouchableOpacity>
+                  </InteractivePressable>
 
                   {/* Dropdown List */}
                   {isAddressDropdownOpen && (
@@ -471,11 +471,10 @@ export default function ProfileHome() {
 
                         return (
                           <View key={addr.id || idx}>
-                            <TouchableOpacity
+                            <InteractivePressable
                               className={`flex-row items-center py-3 px-4 pl-6 ${
                                 isDefault ? "bg-primary/10" : "bg-background"
                               } ${isExpanded ? "" : "border-b border-border"}`}
-                              activeOpacity={0.7}
                               onPress={() => {
                                 setExpandedAddressId(
                                   isExpanded ? null : addr.id,
@@ -522,7 +521,7 @@ export default function ProfileHome() {
                                 size={16}
                                 color={Colors.textSecondary}
                               />
-                            </TouchableOpacity>
+                            </InteractivePressable>
 
                             {/* ACTIONS ROW (Visible if expanded) */}
                             {isExpanded && (
@@ -532,7 +531,7 @@ export default function ProfileHome() {
                                 }`}
                               >
                                 {!isDefault && (
-                                  <TouchableOpacity
+                                  <InteractivePressable
                                     className="flex-row items-center gap-1.5"
                                     onPress={() => {
                                       dispatch(setDefaultAddress(addr.id));
@@ -548,10 +547,10 @@ export default function ProfileHome() {
                                     <Text className="text-sm color-primary font-[500]">
                                       Make Default
                                     </Text>
-                                  </TouchableOpacity>
+                                  </InteractivePressable>
                                 )}
 
-                                <TouchableOpacity
+                                <InteractivePressable
                                   className="flex-row items-center gap-1.5"
                                   onPress={() => {
                                     Alert.alert(
@@ -609,7 +608,7 @@ export default function ProfileHome() {
                                   <Text className="text-sm color-[#EF4444] font-[500]">
                                     Delete
                                   </Text>
-                                </TouchableOpacity>
+                                </InteractivePressable>
                               </View>
                             )}
                           </View>
@@ -708,7 +707,7 @@ export default function ProfileHome() {
             className="flex-1 bg-black/60"
             style={{ opacity: overlayOpacity }}
           >
-            <TouchableOpacity
+            <InteractivePressable
               className="flex-1"
               activeOpacity={1}
               onPress={() => setShowLogout(false)}
@@ -729,18 +728,18 @@ export default function ProfileHome() {
               manage your bookings.
             </Text>
             <View className="flex-row gap-3">
-              <TouchableOpacity
+              <InteractivePressable
                 className="flex-1 py-4 rounded-2xl bg-background items-center justify-center border border-border"
                 onPress={() => setShowLogout(false)}
               >
                 <Text className="text-base font-[600] text-text">Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
+              </InteractivePressable>
+              <InteractivePressable
                 className="flex-1 py-4 rounded-2xl bg-primary items-center justify-center shadow shadow-primary"
                 onPress={handleLogout}
               >
                 <Text className="text-base font-[700] text-black">Logout</Text>
-              </TouchableOpacity>
+              </InteractivePressable>
             </View>
           </RNAnimated.View>
         </Modal>
@@ -756,7 +755,7 @@ export default function ProfileHome() {
             className="flex-1 bg-black/60"
             style={{ opacity: overlayOpacity }}
           >
-            <TouchableOpacity
+            <InteractivePressable
               className="flex-1"
               activeOpacity={1}
               onPress={() => setShowAvatarModal(false)}
@@ -781,7 +780,7 @@ export default function ProfileHome() {
 
             <View className="flex-row flex-wrap justify-center gap-4 mb-6">
               {AVATARS.map((avatar) => (
-                <TouchableOpacity
+                <InteractivePressable
                   key={avatar}
                   onPress={() => setSelectedAvatar(avatar)}
                   className={`w-[70px] h-[70px] rounded-full border-2 p-1 ${
@@ -799,26 +798,26 @@ export default function ProfileHome() {
                       <Ionicons name="checkmark" size={12} color="black" />
                     </View>
                   )}
-                </TouchableOpacity>
+                </InteractivePressable>
               ))}
             </View>
 
-            <TouchableOpacity
+            <InteractivePressable
               className="py-4 rounded-2xl bg-primary items-center justify-center shadow shadow-primary mb-3"
               onPress={handleUpdateAvatar}
             >
               <Text className="text-base font-[700] text-black">
                 Save Avatar
               </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
+            </InteractivePressable>
+            <InteractivePressable
               className="py-4 rounded-2xl items-center justify-center"
               onPress={() => setShowAvatarModal(false)}
             >
               <Text className="text-base font-[600] text-textSecondary">
                 Cancel
               </Text>
-            </TouchableOpacity>
+            </InteractivePressable>
           </RNAnimated.View>
         </Modal>
 
@@ -833,7 +832,7 @@ export default function ProfileHome() {
             className="flex-1 bg-black/60"
             style={{ opacity: overlayOpacity }}
           >
-            <TouchableOpacity
+            <InteractivePressable
               className="flex-1"
               activeOpacity={1}
               onPress={() => setShowEditProfileModal(false)}

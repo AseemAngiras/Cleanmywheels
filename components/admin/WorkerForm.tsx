@@ -3,11 +3,11 @@ import {
   View,
   Text,
   TextInput,
-  TouchableOpacity,
   ActivityIndicator,
   Alert,
   ScrollView,
 } from "react-native";
+import { InteractivePressable } from "../ui/InteractivePressable";
 import { Ionicons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
 import { Colors } from "@/constants/Colors";
@@ -209,7 +209,7 @@ export const WorkerForm: React.FC<WorkerFormProps> = ({
 
         {/* Actions */}
         <View className="flex-row gap-4 mt-4">
-          <TouchableOpacity
+          <InteractivePressable
             className="flex-1 h-14 bg-background border border-border rounded-2xl items-center justify-center shadow-sm"
             onPress={onCancel}
             disabled={isLoading}
@@ -217,9 +217,9 @@ export const WorkerForm: React.FC<WorkerFormProps> = ({
             <Text className="text-[15px] font-[800] color-textSecondary">
               Cancel
             </Text>
-          </TouchableOpacity>
+          </InteractivePressable>
 
-          <TouchableOpacity
+          <InteractivePressable
             className="flex-[2] h-14 bg-primary rounded-2xl items-center justify-center shadow-lg shadow-primary/20"
             onPress={handleSubmit}
             disabled={isLoading}
@@ -231,7 +231,7 @@ export const WorkerForm: React.FC<WorkerFormProps> = ({
                 {submitLabel}
               </Text>
             )}
-          </TouchableOpacity>
+          </InteractivePressable>
         </View>
       </ScrollView>
     </View>

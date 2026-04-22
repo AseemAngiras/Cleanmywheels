@@ -10,13 +10,14 @@ import { useGetAddressesQuery } from "@/store/api/addressApi";
 import { useGetBookingsQuery } from "@/store/api/bookingApi";
 import { useGetMySubscriptionQuery } from "@/store/api/subscriptionApi";
 import { loginSuccess, logout } from "@/store/slices/authSlice";
-import { Booking } from "@/store/slices/bookingSlice";
+import { type BookingStatus } from "@/store/slices/bookingSlice";
 import { setUser } from "@/store/slices/userSlice";
 
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useNavigation, useRouter } from "expo-router";
+import { InteractivePressable } from "@/components/ui/InteractivePressable";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -28,7 +29,6 @@ import {
   ScrollView,
   Text,
   TextInput,
-  TouchableOpacity,
   View,
 } from "react-native";
 import Animated, { FadeInUp, ZoomIn, SlideInRight } from "react-native-reanimated";
@@ -302,7 +302,7 @@ export default function HomeScreen() {
     }, [navigation]),
   );
 
-  const handleRecentServicePress = (booking: Partial<Booking>) => {
+  const handleRecentServicePress = (booking: any) => {
     if (isNavigating.current) return;
     isNavigating.current = true;
 
@@ -383,16 +383,16 @@ export default function HomeScreen() {
 
           <View className="mt-2">
             {!isLoggedIn ? (
-              <TouchableOpacity
+              <InteractivePressable
                 className="bg-primary px-4 py-2 rounded-md shadow-md shadow-primary"
                 onPress={() => setIsLoginModalVisible(true)}
               >
                 <Text className="font-[900] text-black italic text-[12px]">
                   LOG IN
                 </Text>
-              </TouchableOpacity>
+              </InteractivePressable>
             ) : (
-              <TouchableOpacity
+              <InteractivePressable
                 className="w-12 h-12 rounded-full overflow-hidden border-2 border-[#333] elevation-4 shadow-lg shadow-black"
                 onPress={() => router.push("/(tabs)/profile")}
               >
@@ -404,7 +404,7 @@ export default function HomeScreen() {
                   }}
                   className="w-full h-full"
                 />
-              </TouchableOpacity>
+              </InteractivePressable>
             )}
           </View>
         </View>
@@ -488,9 +488,8 @@ export default function HomeScreen() {
                   key={index}
                   entering={SlideInRight.delay(400 + index * 100).duration(500)}
                 >
-                  <TouchableOpacity
+                  <InteractivePressable
                     className="w-[200px] p-5 rounded-[24px] bg-[#181818] border border-primary/20 shadow-lg elevation-6"
-                    activeOpacity={0.9}
                     onPress={() => handleRecentServicePress(item)}
                   >
                   <View className="flex-row justify-between mb-4">
@@ -533,7 +532,7 @@ export default function HomeScreen() {
                       ₹ {item.price}
                     </Text>
                   </View>
-                </TouchableOpacity>
+                </InteractivePressable>
                 </Animated.View>
               ))}
             </ScrollView>
@@ -554,12 +553,12 @@ export default function HomeScreen() {
             className="flex-1 px-6"
           >
             {/* Header / Back Button */}
-            <TouchableOpacity
+            <InteractivePressable
               onPress={handleCloseModal}
               className="w-10 h-10 items-center justify-center -ml-2 mb-8"
             >
               <Ionicons name="chevron-back" size={28} color="white" />
-            </TouchableOpacity>
+            </InteractivePressable>
 
             <KeyboardAvoidingView
               behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -578,9 +577,9 @@ export default function HomeScreen() {
                 {modalStep === "otp" && (
                   <View className="flex-row items-center ml-1">
                     <Text className="text-base text-white font-[600]">+91 {phoneNumber}</Text>
-                    <TouchableOpacity onPress={() => setModalStep("details")} className="ml-2">
+                    <InteractivePressable onPress={() => setModalStep("details")} className="ml-2">
                        <Ionicons name="pencil" size={14} color="#C8F000" />
-                    </TouchableOpacity>
+                    </InteractivePressable>
                   </View>
                 )}
               </View>
@@ -604,7 +603,7 @@ export default function HomeScreen() {
                     </View>
                   </View>
 
-                  <TouchableOpacity
+                  <InteractivePressable
                     className="bg-primary h-[60px] rounded-[16px] items-center justify-center shadow-2xl shadow-primary/40"
                     onPress={handleSendOtp}
                     disabled={isLoading}
@@ -616,7 +615,7 @@ export default function HomeScreen() {
                         Continue
                       </Text>
                     )}
-                  </TouchableOpacity>
+                  </InteractivePressable>
                 </View>
               ) : (
                 <View>
@@ -682,7 +681,7 @@ export default function HomeScreen() {
                     </Text>
                   )}
 
-                  <TouchableOpacity
+                  <InteractivePressable
                     className="bg-primary h-[60px] rounded-[16px] items-center justify-center mb-8 shadow-2xl shadow-primary/40"
                     onPress={handleVerifyOtp}
                     disabled={isLoading}
@@ -694,13 +693,13 @@ export default function HomeScreen() {
                         Verify
                       </Text>
                     )}
-                  </TouchableOpacity>
+                  </InteractivePressable>
 
                   <View className="items-center">
                     <Text className="text-sm text-gray-500 font-[500] mb-2">
                       Didn&apos;t receive code?
                     </Text>
-                    <TouchableOpacity
+                    <InteractivePressable
                       onPress={() => {
                         if (timer === 0) {
                           handleSendOtp();
@@ -721,7 +720,7 @@ export default function HomeScreen() {
                           - 00:{timer < 10 ? `0${timer}` : timer}
                         </Text>
                       )}
-                    </TouchableOpacity>
+                    </InteractivePressable>
                   </View>
                 </View>
               )}

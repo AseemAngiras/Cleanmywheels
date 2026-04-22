@@ -35,6 +35,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { InteractivePressable } from "@/components/ui/InteractivePressable";
 
 type TimeSlot = {
   id: string;
@@ -453,7 +454,7 @@ export default function SelectSlotScreen() {
           </View>
         </View>
 
-        <TouchableOpacity
+        <InteractivePressable
           className={`h-14 rounded-2xl flex-row items-center justify-center shadow-lg ${
             selectedSlot ? "bg-primary shadow-primary/30" : "bg-border/20"
           }`}
@@ -473,7 +474,7 @@ export default function SelectSlotScreen() {
             color={selectedSlot ? "#000" : "#64748B"}
             style={{ marginLeft: 8 }}
           />
-        </TouchableOpacity>
+        </InteractivePressable>
       </View>
 
       {/* Login Bottom Sheet */}

@@ -17,9 +17,9 @@ import {
   Switch,
   Text,
   TextInput,
-  TouchableOpacity,
   View,
 } from "react-native";
+import { InteractivePressable } from "@/components/ui/InteractivePressable";
 
 import { useFocusEffect } from "expo-router";
 import { useGetBookingsQuery } from "../../../store/api/bookingApi";
@@ -204,8 +204,7 @@ export default function PastServices() {
     const isCompleted = item.status === "completed";
 
     return (
-      <TouchableOpacity
-        activeOpacity={0.9}
+      <InteractivePressable
         className="mb-5 mx-4"
         onPress={() => setActiveBooking(item)}
       >
@@ -267,7 +266,7 @@ export default function PastServices() {
             />
           </View>
         </View>
-      </TouchableOpacity>
+      </InteractivePressable>
     );
   };
 
@@ -301,7 +300,7 @@ export default function PastServices() {
           className="absolute inset-0 bg-black/70"
           style={[{ opacity: opacityAnim }]}
         >
-          <TouchableOpacity className="flex-1" onPress={closeSheet} />
+          <InteractivePressable className="flex-1" onPress={closeSheet} scaleTo={1} />
         </Animated.View>
 
         <Animated.View
@@ -372,12 +371,12 @@ export default function PastServices() {
                     {/* --- RIGHT COLUMN: ACTIONS & IMAGE --- */}
                     <View className="items-end">
                       <View className="flex-row gap-2">
-                        <TouchableOpacity
+                        <InteractivePressable
                           className="w-8 h-8 rounded-full bg-black/10 justify-center items-center mr-2"
                           onPress={closeSheet}
                         >
                           <Ionicons name="close" size={20} color="#1a1a1a" />
-                        </TouchableOpacity>
+                        </InteractivePressable>
                       </View>
 
                       <View className="w-20 h-20 rounded-[30px] bg-black/5 items-center justify-center mt-3 mr-2 border border-black/10">
@@ -498,9 +497,9 @@ export default function PastServices() {
               <Text className="text-xl font-bold text-gray-900">
                 Raise Complaint
               </Text>
-              <TouchableOpacity onPress={closeComplaintModal}>
+              <InteractivePressable onPress={closeComplaintModal}>
                 <Ionicons name="close" size={24} color="#000" />
-              </TouchableOpacity>
+              </InteractivePressable>
             </View>
 
             <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
@@ -538,7 +537,7 @@ export default function PastServices() {
               <Text className="text-sm font-[600] text-gray-900 mb-2 mt-2.5">
                 Upload Photo (Optional)
               </Text>
-              <TouchableOpacity
+              <InteractivePressable
                 className="h-[150px] bg-gray-50 rounded-[12px] border border-gray-100 border-dashed items-center justify-center mt-1"
                 onPress={pickImage}
               >
@@ -555,17 +554,17 @@ export default function PastServices() {
                     </Text>
                   </>
                 )}
-              </TouchableOpacity>
+              </InteractivePressable>
             </ScrollView>
 
-            <TouchableOpacity
+            <InteractivePressable
               className="bg-gray-900 py-4 rounded-full items-center mt-2.5 mb-5"
               onPress={submitComplaint}
             >
               <Text className="text-white text-base font-bold">
                 Submit Complaint
               </Text>
-            </TouchableOpacity>
+            </InteractivePressable>
           </View>
         </KeyboardAvoidingView>
       </Modal>

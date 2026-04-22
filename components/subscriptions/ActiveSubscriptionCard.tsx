@@ -2,7 +2,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/constants/Colors";
 import { useRouter } from "expo-router";
 import React from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import { Text, View } from "react-native";
+import { InteractivePressable } from "@/components/ui/InteractivePressable";
 
 interface ActiveSubscriptionCardProps {
   subscription: any;
@@ -46,8 +47,7 @@ export const ActiveSubscriptionCard = ({
     }[subscription.frequencyType as string] || "Daily";
 
   return (
-    <TouchableOpacity
-      activeOpacity={0.9}
+    <InteractivePressable
       onPress={() =>
         router.push(`/subscription-flow/details/${subscription._id}` as any)
       }
@@ -137,6 +137,6 @@ export const ActiveSubscriptionCard = ({
           <Ionicons name="arrow-forward" size={14} color={Colors.text} />
         </View>
       </View>
-    </TouchableOpacity>
+    </InteractivePressable>
   );
 };

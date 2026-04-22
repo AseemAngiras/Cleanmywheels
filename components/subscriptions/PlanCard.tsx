@@ -1,7 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/constants/Colors";
 import React from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import { Text, View } from "react-native";
+import { InteractivePressable } from "@/components/ui/InteractivePressable";
 
 interface PlanCardProps {
   plan: any;
@@ -15,8 +16,7 @@ export const PlanCard = ({
   isPopular = false,
 }: PlanCardProps) => {
   return (
-    <TouchableOpacity
-      activeOpacity={0.9}
+    <InteractivePressable
       onPress={() => onSubscribe(plan)}
       className={`w-full bg-card rounded-[24px] p-5 mb-4 border shadow-sm ${
         isPopular ? "border-primary bg-primary/5" : "border-border"
@@ -40,12 +40,12 @@ export const PlanCard = ({
         <View className="flex-row items-baseline justify-center">
           <Text className="text-sm font-[600] text-textSecondary mr-1">₹</Text>
           <Text className="text-3xl font-[800] text-text">
-            {plan.prices?.sedan?.DAILY || 
-             plan.prices?.sedan?.WEEKLY || 
-             plan.prices?.sedan?.BIWEEKLY ||
-             plan.prices?.sedan?.ALTERNATE_DAY ||
-             plan.price || 
-             0}
+            {plan.prices?.sedan?.DAILY ||
+              plan.prices?.sedan?.WEEKLY ||
+              plan.prices?.sedan?.BIWEEKLY ||
+              plan.prices?.sedan?.ALTERNATE_DAY ||
+              plan.price ||
+              0}
           </Text>
           <Text className="text-sm font-[600] text-textSecondary ml-1">
             / month
@@ -82,6 +82,6 @@ export const PlanCard = ({
           className="ml-1"
         />
       </View>
-    </TouchableOpacity>
+    </InteractivePressable>
   );
 };

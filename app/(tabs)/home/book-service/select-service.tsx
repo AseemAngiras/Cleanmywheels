@@ -11,12 +11,12 @@ import {
   LayoutAnimation,
   Platform,
   TextInput,
-  TouchableOpacity,
   TouchableWithoutFeedback,
   View,
   ScrollView,
   Text,
 } from "react-native";
+import { InteractivePressable } from "@/components/ui/InteractivePressable";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useDispatch } from "react-redux";
@@ -222,9 +222,9 @@ export default function SelectServiceScreen() {
   return (
     <ScreenWrapper backgroundColor={Colors.background}>
       <View className="flex-row justify-between items-center px-5 py-4 bg-background">
-        <TouchableOpacity onPress={() => router.back()} className="p-1">
+        <InteractivePressable onPress={() => router.back()} className="p-1">
           <Ionicons name="chevron-back" size={24} color={Colors.text} />
-        </TouchableOpacity>
+        </InteractivePressable>
         <Text className="text-[18px] font-[800] color-text tracking-tight">
           Select Service
         </Text>
@@ -249,13 +249,12 @@ export default function SelectServiceScreen() {
                 const isExpanded = detailsExpanded.has(service.id);
 
                 return (
-                  <TouchableOpacity
+                  <InteractivePressable
                     key={service.id}
                     className={`bg-card rounded-[32px] overflow-hidden border ${
                       isSelected ? "border-primary" : "border-border"
                     } shadow-sm`}
                     onPress={() => handleServiceSelect(service.id)}
-                    activeOpacity={0.9}
                   >
                     <View className="p-5">
                       <View className="flex-row">
@@ -308,7 +307,7 @@ export default function SelectServiceScreen() {
                         </View>
                       </View>
 
-                      <TouchableOpacity
+                      <InteractivePressable
                         onPress={(e) => toggleDetails(service.id, e)}
                         className="flex-row items-center justify-center mt-4 pt-4 border-t border-border/50"
                       >
@@ -320,7 +319,7 @@ export default function SelectServiceScreen() {
                           size={18}
                           color={Colors.primary}
                         />
-                      </TouchableOpacity>
+                      </InteractivePressable>
 
                       {isExpanded && (
                         <View className="mt-4 p-4 bg-background/50 rounded-2xl border border-border/50">
@@ -330,7 +329,7 @@ export default function SelectServiceScreen() {
                         </View>
                       )}
                     </View>
-                  </TouchableOpacity>
+                  </InteractivePressable>
                 );
               })}
             </View>
@@ -350,7 +349,7 @@ export default function SelectServiceScreen() {
                   {currentAddons.map((addon) => {
                     const isSelected = !!addons[addon.id];
                     return (
-                      <TouchableOpacity
+                      <InteractivePressable
                         key={addon.id}
                         className={`flex-row items-center h-12 px-6 rounded-full mr-3 border ${
                           isSelected
@@ -377,7 +376,7 @@ export default function SelectServiceScreen() {
                             className="ml-2"
                           />
                         )}
-                      </TouchableOpacity>
+                      </InteractivePressable>
                     );
                   })}
                 </ScrollView>
@@ -398,7 +397,7 @@ export default function SelectServiceScreen() {
                   {cars.map((car) => {
                     const isSelected = selectedCarId === car.id;
                     return (
-                      <TouchableOpacity
+                      <InteractivePressable
                         key={car.id}
                         className={`w-32 h-28 rounded-[24px] mr-3 items-center justify-center border ${
                           isSelected
@@ -422,7 +421,7 @@ export default function SelectServiceScreen() {
                         >
                           {car.type}
                         </Text>
-                      </TouchableOpacity>
+                      </InteractivePressable>
                     );
                   })}
                 </ScrollView>
@@ -438,7 +437,7 @@ export default function SelectServiceScreen() {
                 {vehicleTypes.map((type) => {
                   const isSelected = vehicleType === type.id;
                   return (
-                    <TouchableOpacity
+                    <InteractivePressable
                       key={type.id}
                       className={`items-center justify-center w-[22%] h-20 rounded-2xl border ${
                         isSelected
@@ -460,7 +459,7 @@ export default function SelectServiceScreen() {
                       >
                         {type.name}
                       </Text>
-                    </TouchableOpacity>
+                    </InteractivePressable>
                   );
                 })}
               </View>
@@ -495,13 +494,13 @@ export default function SelectServiceScreen() {
             ₹{calculateTotal()}
           </Text>
         </View>
-        <TouchableOpacity
+        <InteractivePressable
           className={`bg-primary h-14 w-40 rounded-2xl items-center justify-center shadow-lg shadow-primary/30 ${!selectedService ? "opacity-50" : ""}`}
           disabled={!selectedService}
           onPress={handleNext}
         >
           <Text className="text-[16px] font-[900] color-black">Next Step</Text>
-        </TouchableOpacity>
+        </InteractivePressable>
       </View>
     </ScreenWrapper>
   );

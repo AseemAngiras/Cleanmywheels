@@ -8,10 +8,10 @@ import {
   ScrollView,
   Text,
   TextInput,
-  TouchableOpacity,
   View,
   Modal,
 } from "react-native";
+import { InteractivePressable } from "@/components/ui/InteractivePressable";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import {
   useGetVehiclesQuery,
@@ -94,16 +94,21 @@ export default function SubscriptionConfigureScreen() {
   const filteredAddons = addons.filter((addon: any) => {
     // 1. Check by ID (New Architecture)
     const addonId = addon._id || addon.id;
-    if (selectedPlan?.includedServiceIds?.some((id: string) => String(id) === String(addonId))) {
+    if (
+      selectedPlan?.includedServiceIds?.some(
+        (id: string) => String(id) === String(addonId),
+      )
+    ) {
       return false;
     }
 
     // 2. Fallback to Name Matching (Compatibility)
     if (!selectedPlan?.features) return true;
-    return !selectedPlan.features.some((feature: string) =>
-      feature.toLowerCase().trim() === addon.name.toLowerCase().trim() ||
-      feature.toLowerCase().includes(addon.name.toLowerCase()) ||
-      addon.name.toLowerCase().includes(feature.toLowerCase())
+    return !selectedPlan.features.some(
+      (feature: string) =>
+        feature.toLowerCase().trim() === addon.name.toLowerCase().trim() ||
+        feature.toLowerCase().includes(addon.name.toLowerCase()) ||
+        addon.name.toLowerCase().includes(feature.toLowerCase()),
     );
   });
 
@@ -267,12 +272,12 @@ export default function SubscriptionConfigureScreen() {
       <View className="flex-1 bg-background">
         {/* Header */}
         <View className="flex-row items-center px-5 pt-4 pb-6 bg-card border-b border-border/50">
-          <TouchableOpacity
+          <InteractivePressable
             onPress={() => router.back()}
             className="w-10 h-10 rounded-full bg-background items-center justify-center border border-border"
           >
             <Ionicons name="arrow-back" size={20} color={Colors.text} />
-          </TouchableOpacity>
+          </InteractivePressable>
           <Text className="text-[20px] font-[700] color-text ml-4">
             Configure Plan
           </Text>
@@ -295,7 +300,6 @@ export default function SubscriptionConfigureScreen() {
               </Text>
             </View>
           </View>
-
           <Text className="text-[18px] font-[700] color-text mb-4">
             Select Vehicle
           </Text>
@@ -304,7 +308,7 @@ export default function SubscriptionConfigureScreen() {
           ) : (
             <View className="flex-row flex-wrap justify-between gap-y-4 mb-8">
               {availableCars.map((car: any) => (
-                <TouchableOpacity
+                <InteractivePressable
                   key={car._id}
                   className={`w-[48%] rounded-[24px] p-5 items-center border ${
                     selectedVehicleId === car._id
@@ -338,10 +342,10 @@ export default function SubscriptionConfigureScreen() {
                   >
                     {car.vehicleNo}
                   </Text>
-                </TouchableOpacity>
+                </InteractivePressable>
               ))}
 
-              <TouchableOpacity
+              <InteractivePressable
                 className="w-[48%] bg-card rounded-[24px] p-5 items-center border border-primary border-dashed justify-center "
                 onPress={() => setShowAddCarModal(true)}
               >
@@ -351,16 +355,15 @@ export default function SubscriptionConfigureScreen() {
                 <Text className="text-[13px] font-[700] color-primary text-center">
                   Add Vehicle
                 </Text>
-              </TouchableOpacity>
+              </InteractivePressable>
             </View>
           )}
-
           <Text className="text-[18px] font-[700] color-text mb-4">
             Select Frequency
           </Text>
           <View className="flex-row flex-wrap justify-between gap-y-3">
             {selectedPlan.frequencies?.map((freq) => (
-              <TouchableOpacity
+              <InteractivePressable
                 key={freq.type}
                 className={`w-[48%] py-4 px-2 rounded-[18px] items-center border ${
                   selectedFrequency === freq.type
@@ -385,35 +388,41 @@ export default function SubscriptionConfigureScreen() {
                 >
                   {freq.services} services/month
                 </Text>
-              </TouchableOpacity>
+              </InteractivePressable>
             ))}
           </View>
-          {selectedPlan?.includedServiceIds && selectedPlan.includedServiceIds.length > 0 && (
-            <View className="mb-6">
-              <Text className="text-[18px] font-[700] color-text mb-4">
-                Included in your Plan
-              </Text>
-              <View className="flex-row flex-wrap gap-2">
-                {selectedPlan.includedServiceIds.map((id: string) => {
-                  const addon = addons.find((a: any) => String(a._id || a.id) === String(id));
-                  if (!addon) return null;
-                  return (
-                    <View 
-                      key={`included-${id}`}
-                      className="bg-primary/10 border border-primary/20 px-3 py-2 rounded-full flex-row items-center"
-                    >
-                      <MaterialCommunityIcons name={(addon.icon as any) || "check-circle"} size={14} color={Colors.primary} />
-                      <Text className="text-primary text-[12px] font-[700] ml-1">
-                        {addon.name}
-                      </Text>
-                    </View>
-                  );
-                })}
+          {selectedPlan?.includedServiceIds &&
+            selectedPlan.includedServiceIds.length > 0 && (
+              <View className="mb-6">
+                <Text className="text-[18px] font-[700] color-text mb-4">
+                  Included in your Plan
+                </Text>
+                <View className="flex-row flex-wrap gap-2">
+                  {selectedPlan.includedServiceIds.map((id: string) => {
+                    const addon = addons.find(
+                      (a: any) => String(a._id || a.id) === String(id),
+                    );
+                    if (!addon) return null;
+                    return (
+                      <View
+                        key={`included-${id}`}
+                        className="bg-primary/10 border border-primary/20 px-3 py-2 rounded-full flex-row items-center"
+                      >
+                        <MaterialCommunityIcons
+                          name={(addon.icon as any) || "check-circle"}
+                          size={14}
+                          color={Colors.primary}
+                        />
+                        <Text className="text-primary text-[12px] font-[700] ml-1">
+                          {addon.name}
+                        </Text>
+                      </View>
+                    );
+                  })}
+                </View>
               </View>
-            </View>
-          )}
-极
-
+            )}
+          极
           {filteredAddons.length > 0 && (
             <>
               <Text className="text-[18px] font-[700] color-text mb-4">
@@ -436,7 +445,7 @@ export default function SubscriptionConfigureScreen() {
                       : addon.subscriptionPrice || addon.price || 0;
 
                   return (
-                    <TouchableOpacity
+                    <InteractivePressable
                       key={addon._id}
                       className={`w-40 p-4 rounded-[24px] border ${
                         isSelected
@@ -479,19 +488,18 @@ export default function SubscriptionConfigureScreen() {
                       >
                         ₹{displayPrice}
                       </Text>
-                    </TouchableOpacity>
+                    </InteractivePressable>
                   );
                 })}
               </ScrollView>
             </>
           )}
-
           <Text className="text-[18px] font-[700] color-text mb-4">
             Select Time Slot
           </Text>
           <View className="flex-row flex-wrap justify-between gap-y-3 mb-8">
             {TIME_SLOTS.map((slot) => (
-              <TouchableOpacity
+              <InteractivePressable
                 key={slot}
                 className={`w-[48%] py-4 rounded-[18px] items-center border ${
                   selectedTimeSlot === slot
@@ -509,10 +517,9 @@ export default function SubscriptionConfigureScreen() {
                 >
                   {slot}
                 </Text>
-              </TouchableOpacity>
+              </InteractivePressable>
             ))}
           </View>
-
           <Text className="text-[18px] font-[700] color-text mb-4">
             Duration
           </Text>
@@ -531,7 +538,6 @@ export default function SubscriptionConfigureScreen() {
               </Text>
             </Text>
           </View>
-
           <View className="h-10" />
         </ScrollView>
 
@@ -544,14 +550,12 @@ export default function SubscriptionConfigureScreen() {
               ₹{currentTotalPrice}
             </Text>
           </View>
-          <TouchableOpacity
+          <InteractivePressable
             className="bg-primary px-8 py-4 rounded-2xl items-center shadow-lg shadow-primary/30"
             onPress={handleContinue}
           >
-            <Text className="color-black text-[16px] font-[800]">
-              Continue
-            </Text>
-          </TouchableOpacity>
+            <Text className="color-black text-[16px] font-[800]">Continue</Text>
+          </InteractivePressable>
         </View>
 
         {/* ADD CAR MODAL */}
@@ -579,7 +583,7 @@ export default function SubscriptionConfigureScreen() {
               </Text>
               <View className="flex-row flex-wrap gap-2 mb-8">
                 {VEHICLE_TYPES.map((type) => (
-                  <TouchableOpacity
+                  <InteractivePressable
                     key={type}
                     className={`py-2.5 px-5 rounded-full border ${
                       newCarType === type
@@ -597,20 +601,20 @@ export default function SubscriptionConfigureScreen() {
                     >
                       {type}
                     </Text>
-                  </TouchableOpacity>
+                  </InteractivePressable>
                 ))}
               </View>
 
               <View className="flex-row gap-4">
-                <TouchableOpacity
+                <InteractivePressable
                   onPress={() => setShowAddCarModal(false)}
                   className="flex-1 py-4 bg-background border border-border rounded-2xl items-center"
                 >
                   <Text className="text-[15px] font-[700] color-textSecondary">
                     Cancel
                   </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
+                </InteractivePressable>
+                <InteractivePressable
                   onPress={handleAddCar}
                   className="flex-1 py-4 bg-primary rounded-2xl items-center shadow-md shadow-primary/20"
                   disabled={isAddingCar}
@@ -622,7 +626,7 @@ export default function SubscriptionConfigureScreen() {
                       Save Vehicle
                     </Text>
                   )}
-                </TouchableOpacity>
+                </InteractivePressable>
               </View>
             </View>
           </View>

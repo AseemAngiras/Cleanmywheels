@@ -9,9 +9,9 @@ import {
   Image,
   ScrollView,
   Text,
-  TouchableOpacity,
   View,
 } from "react-native";
+import { InteractivePressable } from "@/components/ui/InteractivePressable";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
@@ -150,12 +150,12 @@ export default function AddonsScreen() {
       <View className="flex-1 bg-background">
         {/* Header */}
         <View className="flex-row items-center px-5 pt-4 pb-6 bg-card border-b border-border/50">
-          <TouchableOpacity
+          <InteractivePressable
             onPress={() => router.back()}
             className="w-10 h-10 rounded-full bg-background items-center justify-center border border-border"
           >
             <Ionicons name="arrow-back" size={20} color={Colors.text} />
-          </TouchableOpacity>
+          </InteractivePressable>
           <Text className="text-[20px] font-[700] color-text ml-4">
             Add-ons
           </Text>
@@ -200,7 +200,7 @@ export default function AddonsScreen() {
                 const vehicleNo = sub.vehicle?.vehicleNo || "No Number";
 
                 return (
-                  <TouchableOpacity
+                  <InteractivePressable
                     key={sub._id}
                     className={`flex-row items-center p-4 rounded-[24px] border ${
                       isSelected
@@ -209,7 +209,6 @@ export default function AddonsScreen() {
                     }`}
                     style={{ width: 220 }}
                     onPress={() => setSelectedSubId(sub._id)}
-                    activeOpacity={0.8}
                   >
                     <View className="w-11 h-11 rounded-full bg-background items-center justify-center mr-3 border border-border/50">
                       <Ionicons
@@ -244,7 +243,7 @@ export default function AddonsScreen() {
                         <Ionicons name="checkmark" size={12} color="#000" />
                       </View>
                     )}
-                  </TouchableOpacity>
+                  </InteractivePressable>
                 );
               })}
             </ScrollView>
@@ -262,7 +261,7 @@ export default function AddonsScreen() {
                     When do you want this service?
                   </Text>
                 </View>
-                <TouchableOpacity
+                <InteractivePressable
                   onPress={() => setShowDatePicker(true)}
                   className="bg-card px-5 py-3.5 rounded-[20px] border border-border flex-row items-center"
                 >
@@ -284,7 +283,7 @@ export default function AddonsScreen() {
                     color={Colors.textSecondary}
                     className="ml-3"
                   />
-                </TouchableOpacity>
+                </InteractivePressable>
               </View>
 
               {showDatePicker && (
@@ -334,7 +333,7 @@ export default function AddonsScreen() {
                     (a) => a._id === addon._id,
                   );
                   return (
-                    <TouchableOpacity
+                    <InteractivePressable
                       key={addon._id}
                       className={`p-4 rounded-[24px] flex-row items-center border ${
                         isSelected
@@ -342,7 +341,6 @@ export default function AddonsScreen() {
                           : "bg-card border-border"
                       }`}
                       onPress={() => toggleAddon(addon)}
-                      activeOpacity={0.8}
                     >
                       <Image
                         source={{
@@ -384,7 +382,7 @@ export default function AddonsScreen() {
                           />
                         )}
                       </View>
-                    </TouchableOpacity>
+                    </InteractivePressable>
                   );
                 })}
               </View>
@@ -408,7 +406,7 @@ export default function AddonsScreen() {
                 ₹{totalAmount}
               </Text>
             </View>
-            <TouchableOpacity
+            <InteractivePressable
               className="bg-primary px-10 py-4 rounded-2xl shadow-lg shadow-primary/30"
               onPress={handlePayment}
               disabled={isCreatingOrder || isVerifying}
@@ -420,7 +418,7 @@ export default function AddonsScreen() {
                   Pay Now
                 </Text>
               )}
-            </TouchableOpacity>
+            </InteractivePressable>
           </View>
         )}
       </View>

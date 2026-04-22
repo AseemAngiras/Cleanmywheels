@@ -4,6 +4,7 @@ import React, { useRef } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import Animated, { FadeInLeft, FadeInRight } from "react-native-reanimated";
+import { InteractivePressable } from "../ui/InteractivePressable";
 
 interface ServiceActionGridProps {
   isLoggedIn: boolean;
@@ -46,9 +47,8 @@ export const ServiceActionGrid = ({
         entering={FadeInLeft.delay(200).duration(500)}
         className="flex-[1.2]"
       >
-        <TouchableOpacity
+        <InteractivePressable
           className="rounded-[24px] shadow-lg elevation-5 h-[140px]"
-          activeOpacity={0.9}
           onPress={handleBookPress}
         >
           <LinearGradient
@@ -68,7 +68,7 @@ export const ServiceActionGrid = ({
               <Ionicons name="flash" size={24} color="#000" />
             </View>
           </LinearGradient>
-        </TouchableOpacity>
+        </InteractivePressable>
       </Animated.View>
 
       {/* Secondary: Subscription - Only if logged in */}
@@ -77,9 +77,8 @@ export const ServiceActionGrid = ({
           entering={FadeInRight.delay(300).duration(500)}
           className="flex-[0.8]"
         >
-          <TouchableOpacity
+          <InteractivePressable
             className="rounded-[24px] shadow-lg elevation-5 h-[140px]"
-            activeOpacity={0.9}
             onPress={handleSubPress}
           >
             <LinearGradient
@@ -109,7 +108,7 @@ export const ServiceActionGrid = ({
                 />
               </View>
             </LinearGradient>
-          </TouchableOpacity>
+          </InteractivePressable>
         </Animated.View>
       )}
     </View>

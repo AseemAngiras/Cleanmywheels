@@ -4,7 +4,6 @@ import { toast } from "@/utils/toast";
 import React, { useEffect, useRef, useState } from "react";
 import {
   Alert,
-  Animated,
   Dimensions,
   Image,
   Modal,
@@ -13,8 +12,16 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Pressable,
+  Animated as RNAnimated,
 } from "react-native";
 import { useSelector } from "react-redux";
+import Animated, { 
+  FadeInUp, 
+  useAnimatedStyle, 
+  useSharedValue, 
+  withSpring,
+} from "react-native-reanimated";
 
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -66,9 +73,9 @@ export default function ProfileHome() {
   const [showLogout, setShowLogout] = useState(false);
   const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [selectedAvatar, setSelectedAvatar] = useState("");
-  const translateY = useRef(new Animated.Value(height)).current;
-  const profileTranslateY = useRef(new Animated.Value(-height)).current;
-  const overlayOpacity = useRef(new Animated.Value(0)).current;
+  const translateY = useRef(new RNAnimated.Value(height)).current;
+  const profileTranslateY = useRef(new RNAnimated.Value(-height)).current;
+  const overlayOpacity = useRef(new RNAnimated.Value(0)).current;
 
   // Edit Profile Animations
   const [showEditProfileModal, setShowEditProfileModal] = useState(false);
@@ -117,18 +124,18 @@ export default function ProfileHome() {
 
   useEffect(() => {
     if (showLogout || showAvatarModal) {
-      Animated.timing(overlayOpacity, {
+      RNAnimated.timing(overlayOpacity, {
         toValue: 1,
         duration: 300,
         useNativeDriver: true,
       }).start();
-      Animated.spring(translateY, {
+      RNAnimated.spring(translateY, {
         toValue: 0,
         useNativeDriver: true,
         bounciness: 5,
       }).start();
     } else {
-      Animated.timing(overlayOpacity, {
+      RNAnimated.timing(overlayOpacity, {
         toValue: 0,
         duration: 200,
         useNativeDriver: true,
@@ -140,18 +147,18 @@ export default function ProfileHome() {
 
   useEffect(() => {
     if (showEditProfileModal) {
-      Animated.timing(overlayOpacity, {
+      RNAnimated.timing(overlayOpacity, {
         toValue: 1,
         duration: 300,
         useNativeDriver: true,
       }).start();
-      Animated.spring(profileTranslateY, {
+      RNAnimated.spring(profileTranslateY, {
         toValue: 0,
         useNativeDriver: true,
         bounciness: 5,
       }).start();
     } else {
-      Animated.timing(overlayOpacity, {
+      RNAnimated.timing(overlayOpacity, {
         toValue: 0,
         duration: 200,
         useNativeDriver: true,
@@ -258,7 +265,10 @@ export default function ProfileHome() {
         showsVerticalScrollIndicator={false}
       >
         {/* HEADER */}
-        <View className="flex-row items-center justify-between px-5 mb-5 mt-[10px]">
+        <Animated.View 
+          entering={FadeInUp.delay(100).duration(600)}
+          className="flex-row items-center justify-between px-5 mb-5 mt-[10px]"
+        >
           <TouchableOpacity
             className="w-10 h-10 rounded-full bg-card items-center justify-center border border-border"
             onPress={() => {
@@ -273,10 +283,13 @@ export default function ProfileHome() {
           </TouchableOpacity>
           <Text className="text-[20px] font-[700] text-text">Your Profile</Text>
           <View className="w-9" />
-        </View>
+        </Animated.View>
 
         {/* PROFILE CARD */}
-        <View className="mx-5 mb-6 p-5 rounded-[24px] bg-card flex-row items-center justify-between border border-border shadow-lg elevation-4">
+        <Animated.View 
+          entering={FadeInUp.delay(200).duration(600)}
+          className="mx-5 mb-6 p-5 rounded-[24px] bg-card flex-row items-center justify-between border border-border shadow-lg elevation-4"
+        >
           <View className="flex-row items-center gap-4">
             <TouchableOpacity activeOpacity={1}>
               <Image
@@ -321,11 +334,14 @@ export default function ProfileHome() {
               )}
             </View>
           </View>
-        </View>
+        </Animated.View>
 
         {/* ADMIN ACTIONS */}
         {isAdmin && (
-          <View className="mx-5 mb-5 py-3 rounded-[24px] bg-card border border-border overflow-hidden">
+          <Animated.View 
+            entering={FadeInUp.delay(300).duration(600)}
+            className="mx-5 mb-5 py-3 rounded-[24px] bg-card border border-border overflow-hidden"
+          >
             <Text className="text-base font-[600] mb-[10px] px-4 text-text">
               Admin Dashboard
             </Text>
@@ -371,14 +387,17 @@ export default function ProfileHome() {
                 toast.info("Coming Soon", "Analytics is under development.")
               }
             />
-          </View>
+          </Animated.View>
         )}
 
         {/* USER SECTIONS */}
         {!isAdmin && (
           <>
             {/* SAVED ADDRESSES */}
-            <View className="mx-5 mb-5 py-3 rounded-[24px] bg-card border border-border overflow-hidden">
+            <Animated.View 
+              entering={FadeInUp.delay(300).duration(600)}
+              className="mx-5 mb-5 py-3 rounded-[24px] bg-card border border-border overflow-hidden"
+            >
               <View className="px-4 py-2.5 border-b border-border flex-row justify-between items-center">
                 <Text className="text-base font-[600] text-text">
                   Saved Addresses
@@ -600,10 +619,13 @@ export default function ProfileHome() {
                   )}
                 </View>
               )}
-            </View>
+            </Animated.View>
 
             {/* ACCOUNT CARD */}
-            <View className="mx-5 mb-5 py-3 rounded-[24px] bg-card border border-border overflow-hidden">
+            <Animated.View 
+              entering={FadeInUp.delay(400).duration(600)}
+              className="mx-5 mb-5 py-3 rounded-[24px] bg-card border border-border overflow-hidden"
+            >
               <Text className="text-base font-[600] mb-[10px] px-4 text-text">
                 Account Settings
               </Text>
@@ -625,10 +647,13 @@ export default function ProfileHome() {
                 subtitle="Manage your alerts and updates"
                 onPress={() => router.push("/profile/notifications")}
               />
-            </View>
+            </Animated.View>
 
             {/* SUPPORT CARD */}
-            <View className="mx-5 mb-5 py-3 rounded-[24px] bg-card border border-border overflow-hidden">
+            <Animated.View 
+              entering={FadeInUp.delay(500).duration(600)}
+              className="mx-5 mb-5 py-3 rounded-[24px] bg-card border border-border overflow-hidden"
+            >
               <Text className="text-base font-[600] mb-[10px] px-4 text-text">
                 Support & Info
               </Text>
@@ -655,19 +680,22 @@ export default function ProfileHome() {
                 subtitle="Read our privacy policy"
                 onPress={() => router.push("/profile/privacy-policy")}
               />
-            </View>
+            </Animated.View>
           </>
         )}
 
         {/* LOGOUT ROW (always visible at bottom) */}
-        <View className="mx-5 mb-5 py-3 rounded-[24px] bg-card border border-border overflow-hidden">
+        <Animated.View 
+          entering={FadeInUp.delay(600).duration(600)}
+          className="mx-5 mb-5 py-3 rounded-[24px] bg-card border border-border overflow-hidden"
+        >
           <Row
             icon="log-out-outline"
             title="Logout"
             onPress={() => setShowLogout(true)}
             danger
           />
-        </View>
+        </Animated.View>
 
         {/* LOGOUT MODAL */}
         <Modal
@@ -676,7 +704,7 @@ export default function ProfileHome() {
           animationType="fade"
           onRequestClose={() => setShowLogout(false)}
         >
-          <Animated.View
+          <RNAnimated.View
             className="flex-1 bg-black/60"
             style={{ opacity: overlayOpacity }}
           >
@@ -685,8 +713,8 @@ export default function ProfileHome() {
               activeOpacity={1}
               onPress={() => setShowLogout(false)}
             />
-          </Animated.View>
-          <Animated.View
+          </RNAnimated.View>
+          <RNAnimated.View
             className="absolute bottom-0 left-0 right-0 bg-card rounded-t-[32px] p-6 border border-border shadow-2xl elevation-20"
             style={[
               { transform: [{ translateY }] },
@@ -714,7 +742,7 @@ export default function ProfileHome() {
                 <Text className="text-base font-[700] text-black">Logout</Text>
               </TouchableOpacity>
             </View>
-          </Animated.View>
+          </RNAnimated.View>
         </Modal>
 
         {/* AVATAR SELECTION MODAL */}
@@ -724,7 +752,7 @@ export default function ProfileHome() {
           animationType="fade"
           onRequestClose={() => setShowAvatarModal(false)}
         >
-          <Animated.View
+          <RNAnimated.View
             className="flex-1 bg-black/60"
             style={{ opacity: overlayOpacity }}
           >
@@ -733,8 +761,8 @@ export default function ProfileHome() {
               activeOpacity={1}
               onPress={() => setShowAvatarModal(false)}
             />
-          </Animated.View>
-          <Animated.View
+          </RNAnimated.View>
+          <RNAnimated.View
             className="absolute bottom-0 left-0 right-0 bg-card rounded-t-[32px] p-6 border border-border shadow-2xl elevation-20"
             style={[
               { transform: [{ translateY }] },
@@ -791,7 +819,7 @@ export default function ProfileHome() {
                 Cancel
               </Text>
             </TouchableOpacity>
-          </Animated.View>
+          </RNAnimated.View>
         </Modal>
 
         {/* EDIT PROFILE MODAL */}
@@ -801,7 +829,7 @@ export default function ProfileHome() {
           animationType="fade"
           onRequestClose={() => setShowEditProfileModal(false)}
         >
-          <Animated.View
+          <RNAnimated.View
             className="flex-1 bg-black/60"
             style={{ opacity: overlayOpacity }}
           >
@@ -810,8 +838,8 @@ export default function ProfileHome() {
               activeOpacity={1}
               onPress={() => setShowEditProfileModal(false)}
             />
-          </Animated.View>
-          <Animated.View
+          </RNAnimated.View>
+          <RNAnimated.View
             className="absolute top-0 left-0 right-0 bg-card rounded-b-[40px] p-8 border-b border-border shadow-2xl elevation-20"
             style={[
               { transform: [{ translateY: profileTranslateY }] },
@@ -898,7 +926,7 @@ export default function ProfileHome() {
                 Delete Account
               </Text>
             </TouchableOpacity>
-          </Animated.View>
+          </RNAnimated.View>
         </Modal>
       </ScrollView>
     </ScreenWrapper>
@@ -917,36 +945,49 @@ const Row = ({
   subtitle?: string;
   onPress: () => void;
   danger?: boolean;
-}) => (
-  <TouchableOpacity
-    className="flex-row items-center py-3.5 px-4"
-    onPress={onPress}
-  >
-    <View
-      className={`w-10 h-10 rounded-xl items-center justify-center mr-3.5 border border-border ${
-        danger ? "bg-red-500/10 border-red-500/20" : "bg-background"
-      }`}
+}) => {
+  const scale = useSharedValue(1);
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  return (
+    <Pressable
+      onPressIn={() => (scale.value = withSpring(0.96))}
+      onPressOut={() => (scale.value = withSpring(1))}
+      onPress={onPress}
     >
-      <Ionicons
-        name={icon}
-        size={20}
-        color={danger ? Colors.error : Colors.text}
-      />
-    </View>
-    <View className="flex-1">
-      <Text
-        className={`text-base font-[600] text-text mb-[2px] ${
-          danger ? "text-error" : ""
-        }`}
+      <Animated.View
+        className="flex-row items-center py-3.5 px-4"
+        style={animatedStyle}
       >
-        {title}
-      </Text>
-      {subtitle && (
-        <Text className="text-[12px] color-textSecondary font-[500]">
-          {subtitle}
-        </Text>
-      )}
-    </View>
-    <Ionicons name="chevron-forward" size={20} color={Colors.textSecondary} />
-  </TouchableOpacity>
-);
+        <View
+          className={`w-10 h-10 rounded-xl items-center justify-center mr-3.5 border border-border ${
+            danger ? "bg-red-500/10 border-red-500/20" : "bg-background"
+          }`}
+        >
+          <Ionicons
+            name={icon}
+            size={20}
+            color={danger ? Colors.error : Colors.text}
+          />
+        </View>
+        <View className="flex-1">
+          <Text
+            className={`text-base font-[600] text-text mb-[2px] ${
+              danger ? "text-error" : ""
+            }`}
+          >
+            {title}
+          </Text>
+          {subtitle && (
+            <Text className="text-[12px] color-textSecondary font-[500]">
+              {subtitle}
+            </Text>
+          )}
+        </View>
+        <Ionicons name="chevron-forward" size={20} color={Colors.textSecondary} />
+      </Animated.View>
+    </Pressable>
+  );
+};

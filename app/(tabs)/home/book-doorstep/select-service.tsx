@@ -25,6 +25,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import Animated, { FadeInUp, FadeInLeft, Layout, ZoomIn } from "react-native-reanimated";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Colors } from "@/constants/Colors";
@@ -324,35 +325,39 @@ export default function SelectServiceScreen() {
               </View>
             ) : (
               <View className="px-5">
-                {services.map((service) => {
+                {services.map((service, index) => {
                   const isSelected = selectedService === service.id;
                   const isExpanded = detailsExpanded.has(service.id);
                   return (
-                    <TouchableOpacity
+                    <Animated.View
                       key={service.id}
-                      activeOpacity={0.9}
-                      onPress={() => handleServiceSelect(service.id)}
-                      onLongPress={() => {
-                        if (!isAdmin) return;
-                        setEditingService({
-                          id: service.id,
-                          name: service.name,
-                          price: service.price,
-                          prices: service.prices || { hatchback: 0, sedan: 0, suv: 0, twoWheeler: 0 },
-                        });
-                        setNewPrices({
-                          hatchback: (service.prices?.hatchback || 0).toString(),
-                          sedan: (service.prices?.sedan || 0).toString(),
-                          suv: (service.prices?.suv || 0).toString(),
-                          twoWheeler: (service.prices?.twoWheeler || 0).toString(),
-                        });
-                      }}
-                      className={`mb-4 rounded-[28px] overflow-hidden border ${
-                        isSelected
-                          ? "bg-card border-primary shadow-lg shadow-primary/20"
-                          : "bg-card border-border/50 shadow-sm"
-                      }`}
+                      entering={FadeInUp.delay(index * 100).duration(500)}
+                      layout={Layout.springify()}
                     >
+                      <TouchableOpacity
+                        activeOpacity={0.9}
+                        onPress={() => handleServiceSelect(service.id)}
+                        onLongPress={() => {
+                          if (!isAdmin) return;
+                          setEditingService({
+                            id: service.id,
+                            name: service.name,
+                            price: service.price,
+                            prices: service.prices || { hatchback: 0, sedan: 0, suv: 0, twoWheeler: 0 },
+                          });
+                          setNewPrices({
+                            hatchback: (service.prices?.hatchback || 0).toString(),
+                            sedan: (service.prices?.sedan || 0).toString(),
+                            suv: (service.prices?.suv || 0).toString(),
+                            twoWheeler: (service.prices?.twoWheeler || 0).toString(),
+                          });
+                        }}
+                        className={`mb-4 rounded-[28px] overflow-hidden border ${
+                          isSelected
+                            ? "bg-card border-primary shadow-lg shadow-primary/20"
+                            : "bg-card border-border/50 shadow-sm"
+                        }`}
+                      >
                       <View className="p-5">
                         {/* Main Row */}
                         <View className="flex-row items-center justify-between mb-2">
@@ -431,6 +436,7 @@ export default function SelectServiceScreen() {
                         )}
                       </View>
                     </TouchableOpacity>
+                    </Animated.View>
                   );
                 })}
               </View>
@@ -466,63 +472,68 @@ export default function SelectServiceScreen() {
                       const aid = addon._id || addon.id;
                       const isSelected = !!addons[aid];
                       return (
-                        <TouchableOpacity
+                        <Animated.View
                           key={aid || `addon-${idx}`}
-                          activeOpacity={0.7}
-                          onPress={() => {
-                            setAddons((prev) => ({
-                              ...prev,
-                              [aid]: !prev[aid],
-                            }));
-                          }}
-                          className={`flex-row items-center p-5 rounded-[28px] border ${
-                            isSelected
-                              ? "bg-primary/10 border-primary"
-                              : "bg-card border-border/50"
-                          }`}
+                          entering={FadeInLeft.delay(100 + idx * 50).duration(400)}
+                          layout={Layout.springify()}
                         >
-                          <View 
-                            className={`w-14 h-14 rounded-2xl items-center justify-center mr-4 ${
-                              isSelected ? "bg-primary/20" : "bg-background"
+                          <TouchableOpacity
+                            activeOpacity={0.7}
+                            onPress={() => {
+                              setAddons((prev) => ({
+                                ...prev,
+                                [aid]: !prev[aid],
+                              }));
+                            }}
+                            className={`flex-row items-center p-5 rounded-[28px] border ${
+                              isSelected
+                                ? "bg-primary/10 border-primary"
+                                : "bg-card border-border/50"
                             }`}
                           >
-                            <Ionicons
-                              name={isSelected ? "sparkles" : "add-circle-outline"}
-                              size={28}
-                              color={isSelected ? Colors.primary : Colors.textSecondary}
-                            />
-                          </View>
-                          
-                          <View className="flex-1">
-                            <Text
-                              className="text-[16px] font-[800] color-text"
+                            <View 
+                              className={`w-14 h-14 rounded-2xl items-center justify-center mr-4 ${
+                                isSelected ? "bg-primary/20" : "bg-background"
+                              }`}
                             >
-                              {addon.name}
-                            </Text>
-                            <View className="flex-row items-center mt-1">
-                              <Text className="text-[14px] font-[900] color-primary">
-                                +₹{addon.normalPrice || addon.price}
+                              <Ionicons
+                                name={isSelected ? "sparkles" : "add-circle-outline"}
+                                size={28}
+                                color={isSelected ? Colors.primary : Colors.textSecondary}
+                              />
+                            </View>
+                            
+                            <View className="flex-1">
+                              <Text
+                                className="text-[16px] font-[800] color-text"
+                              >
+                                {addon.name}
                               </Text>
-                              {isSelected && (
-                                <Text className="ml-2 text-[10px] font-[800] color-success uppercase tracking-widest">
-                                  Selected
+                              <View className="flex-row items-center mt-1">
+                                <Text className="text-[14px] font-[900] color-primary">
+                                  +₹{addon.normalPrice || addon.price}
                                 </Text>
+                                {isSelected && (
+                                  <Text className="ml-2 text-[10px] font-[800] color-success uppercase tracking-widest">
+                                    Selected
+                                  </Text>
+                                )}
+                              </View>
+                            </View>
+
+                            <View
+                              className={`w-7 h-7 rounded-full items-center justify-center border-2 ${
+                                isSelected
+                                  ? "bg-primary border-primary"
+                                  : "border-border/50"
+                              }`}
+                            >
+                              {isSelected && (
+                                <Ionicons name="checkmark" size={16} color="#000" />
                               )}
                             </View>
-                          </View>
-
-                          <View
-                            className={`w-7 h-7 rounded-full items-center justify-center border-2 ${
-                              isSelected
-                                ? "bg-primary border-primary"
-                                : "border-border/50"
-                            }`}
-                          >
-                            {isSelected && (
-                              <Ionicons name="checkmark" size={16} color="#000" />
-                            )}
-                          </View>
-                        </TouchableOpacity>
+                          </TouchableOpacity>
+                        </Animated.View>
                       );
                     })}
                   </View>
@@ -542,10 +553,14 @@ export default function SelectServiceScreen() {
                 showsHorizontalScrollIndicator={false}
                 className="overflow-visible"
               >
-                {cars.map((car: any) => {
+                {cars.map((car: any, index: number) => {
                   const isSelected = selectedCarId === (car._id || car.id);
                   return (
-                    <TouchableOpacity
+                    <Animated.View 
+                      key={car._id || car.id}
+                      entering={FadeInUp.delay(index * 100).duration(500)}
+                    >
+                      <TouchableOpacity
                       key={car._id || car.id}
                       style={{
                         width: 100,
@@ -565,7 +580,8 @@ export default function SelectServiceScreen() {
                       onPress={() => setSelectedCarId(car._id || car.id)}
                     >
                       {isSelected && (
-                        <View
+                        <Animated.View
+                          entering={ZoomIn.duration(300)}
                           style={{
                             position: "absolute",
                             top: 8,
@@ -579,7 +595,7 @@ export default function SelectServiceScreen() {
                           }}
                         >
                           <Ionicons name="checkmark" size={12} color="#000" />
-                        </View>
+                        </Animated.View>
                       )}
                       <View
                         style={{
@@ -628,6 +644,7 @@ export default function SelectServiceScreen() {
                         {car.vehicleType || car.type}
                       </Text>
                     </TouchableOpacity>
+                    </Animated.View>
                   );
                 })}
               </ScrollView>
@@ -718,16 +735,21 @@ export default function SelectServiceScreen() {
         </View>
 
         <TouchableOpacity
-          className="bg-primary h-14 rounded-2xl flex-row items-center justify-center shadow-lg shadow-primary/30"
+          activeOpacity={1}
           onPress={handleNext}
         >
-          <Text className="text-[16px] font-[900] color-black">Continue</Text>
-          <Ionicons
-            name="arrow-forward"
-            size={18}
-            color="#000"
-            style={{ marginLeft: 8 }}
-          />
+          <Animated.View 
+            className="bg-primary h-14 rounded-2xl flex-row items-center justify-center shadow-lg shadow-primary/30"
+            layout={Layout.springify()}
+          >
+            <Text className="text-[16px] font-[900] color-black">Continue</Text>
+            <Ionicons
+              name="arrow-forward"
+              size={18}
+              color="#000"
+              style={{ marginLeft: 8 }}
+            />
+          </Animated.View>
         </TouchableOpacity>
       </View>
 

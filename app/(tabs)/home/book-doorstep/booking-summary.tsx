@@ -5,13 +5,14 @@ import {
   useCreateBookingMutation,
   useLazyGetBookingByIdQuery,
 } from "@/store/api/bookingApi";
+import { useGetAddonsQuery } from "@/store/api/subscriptionApi";
 import { logout } from "@/store/slices/authSlice";
 import { addAddress } from "@/store/slices/profileSlice";
 import { addCar } from "@/store/slices/userSlice";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { WebView } from "react-native-webview";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
   Modal,
@@ -69,22 +70,48 @@ export default function BookingSummaryScreen() {
     selectedDate,
     selectedTime,
     address,
-    totalPrice,
     serviceId,
     addressType,
   } = params;
 
-  const parsedAddons = addons ? JSON.parse(addons as string) : [];
-  const displayServicePrice = parseFloat(servicePrice as string) || 0;
-  const addonsTotal = Array.isArray(parsedAddons)
-    ? parsedAddons.reduce(
-        (acc: number, curr: any) => acc + (parseFloat(curr.price) || 0),
-        0,
-      )
-    : 0;
+  const { data: addonsList } = useGetAddonsQuery(undefined);
+  const [selectedAddons, setSelectedAddons] = useState<any[]>([]);
 
-  const displayGrandTotal =
-    parseFloat(totalPrice as string) || displayServicePrice + addonsTotal;
+  useEffect(() => {
+    try {
+      if (addons) {
+        setSelectedAddons(JSON.parse(addons as string));
+      }
+    } catch (e) {
+      console.error("Error parsing addons", e);
+    }
+  }, [addons]);
+
+  const toggleAddon = useCallback((addon: any) => {
+    setSelectedAddons((prev) => {
+      const addonId = addon.id || addon._id;
+      const exists = prev.find((a) => (a.id || a._id) === addonId);
+      if (exists) {
+        return prev.filter((a) => (a.id || a._id) !== addonId);
+      } else {
+        return [...prev, addon];
+      }
+    });
+  }, []);
+
+  const displayServicePrice = parseFloat(servicePrice as string) || 0;
+  const addonsTotal = useMemo(() => {
+    return Array.isArray(selectedAddons)
+      ? selectedAddons.reduce(
+          (acc: number, curr: any) => acc + (parseFloat(curr.price) || 0),
+          0,
+        )
+      : 0;
+  }, [selectedAddons]);
+
+  const displayGrandTotal = useMemo(() => {
+    return displayServicePrice + addonsTotal;
+  }, [displayServicePrice, addonsTotal]);
 
   useEffect(() => {
     navigation.getParent()?.setOptions({ tabBarStyle: { display: "none" } });
@@ -263,7 +290,7 @@ export default function BookingSummaryScreen() {
           ? (selectedDate as string)
           : new Date().toISOString().split("T")[0],
         bookingTime: Number(hour),
-        addons: parsedAddons.map((a: any) => a.id),
+        addons: selectedAddons.map((a: any) => a.id || a._id),
       };
 
       const response = await createBooking(bookingPayload).unwrap();
@@ -432,11 +459,22 @@ export default function BookingSummaryScreen() {
             </Text>
           </View>
 
-          {parsedAddons.map((addon: any) => (
-            <View key={addon.id} className="flex-row justify-between mb-4 px-1">
-              <Text className="text-[14px] font-[600] color-textSecondary">
-                {addon.name}
-              </Text>
+          {selectedAddons.map((addon: any) => (
+            <View
+              key={addon.id || addon._id}
+              className="flex-row justify-between mb-4 px-1 items-center"
+            >
+              <View className="flex-row items-center flex-1">
+                <Text className="text-[14px] font-[600] color-textSecondary">
+                  {addon.name}
+                </Text>
+                <InteractivePressable
+                  onPress={() => toggleAddon(addon)}
+                  className="ml-2"
+                >
+                  <Ionicons name="close-circle" size={16} color="#ef4444" />
+                </InteractivePressable>
+              </View>
               <Text className="text-[14px] font-[800] color-text">
                 +₹{addon.price}
               </Text>
@@ -454,6 +492,61 @@ export default function BookingSummaryScreen() {
             </Text>
           </View>
         </View>
+
+        {/* Enhance Your Wash Section */}
+        {addonsList &&
+          addonsList.some(
+            (a) => !selectedAddons.find((sa) => (sa.id || sa._id) === a._id),
+          ) && (
+            <View className="mt-8">
+              <Text className="text-[11px] font-[800] color-textSecondary uppercase tracking-[2px] mb-4 px-1">
+                Enhance Your Wash
+              </Text>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{ gap: 12 }}
+              >
+                {addonsList
+                  .filter(
+                    (a) =>
+                      !selectedAddons.find((sa) => (sa.id || sa._id) === a._id),
+                  )
+                  .map((addon: any) => (
+                    <InteractivePressable
+                      key={addon._id}
+                      onPress={() => toggleAddon(addon)}
+                      className="bg-card border border-border/50 p-4 rounded-[24px] w-[160px] shadow-sm"
+                    >
+                      <View className="w-10 h-10 rounded-xl bg-primary/10 items-center justify-center mb-3">
+                        <MaterialCommunityIcons
+                          name={(addon.icon as any) || "sparkles"}
+                          size={20}
+                          color={Colors.primary}
+                        />
+                      </View>
+                      <Text
+                        className="text-[13px] font-[800] color-text mb-1"
+                        numberOfLines={1}
+                      >
+                        {addon.name}
+                      </Text>
+                      <Text className="text-[11px] color-textSecondary mb-3 h-8 leading-4 font-[500]">
+                        {addon.description?.substring(0, 40)}...
+                      </Text>
+                      <View className="flex-row items-center justify-between">
+                        <Text className="text-[14px] font-[900] color-primary">
+                          ₹{addon.price}
+                        </Text>
+                        <View className="w-7 h-7 rounded-full bg-primary items-center justify-center">
+                          <Ionicons name="add" size={18} color="#000" />
+                        </View>
+                      </View>
+                    </InteractivePressable>
+                  ))}
+              </ScrollView>
+            </View>
+          )}
       </ScrollView>
 
       {/* Footer */}

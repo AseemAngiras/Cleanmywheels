@@ -10,12 +10,21 @@ export const getLeafletHtml = (initialLat: number, initialLong: number) => `
     <style>
         body { padding: 0; margin: 0; }
         html, body, #map { height: 100%; width: 100vw; }
+        .leaflet-bottom.leaflet-right {
+            bottom: 100px; /* Lift above Confirm/Cancel buttons */
+        }
     </style>
 </head>
 <body>
     <div id="map"></div>
     <script>
-        var map = L.map('map').setView([${initialLat}, ${initialLong}], 16);
+        var map = L.map('map', {
+            zoomControl: false
+        }).setView([${initialLat}, ${initialLong}], 16);
+
+        L.control.zoom({
+            position: 'bottomright'
+        }).addTo(map);
         
         L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,

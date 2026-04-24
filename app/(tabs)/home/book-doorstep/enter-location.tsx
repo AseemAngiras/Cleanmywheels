@@ -24,7 +24,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  TouchableWithoutFeedback,
   View,
 } from "react-native";
 import { WebView } from "react-native-webview";
@@ -111,7 +110,7 @@ export default function EnterLocationScreen() {
       selectedCoord?.lat || 51.505,
       selectedCoord?.long || -0.09,
     );
-  }, [mapVisible]);
+  }, [mapVisible, selectedCoord?.lat, selectedCoord?.long]);
 
   React.useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
@@ -171,7 +170,9 @@ export default function EnterLocationScreen() {
 
   const handleInputChange =
     (setter: (val: string) => void) => (value: string) => {
-      setter(value);
+      // Only allow letters, numbers, spaces, and hyphens
+      const filteredValue = value.replace(/[^a-zA-Z0-9\s-]/g, "");
+      setter(filteredValue);
       if (selectedSavedAddressId) setSelectedSavedAddressId(null);
       if (errorMsg) setErrorMsg("");
     };

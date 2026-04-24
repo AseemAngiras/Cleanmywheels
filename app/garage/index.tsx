@@ -113,6 +113,11 @@ export default function MyCarsScreen() {
     ]).start(() => setModalVisible(false));
   };
 
+  const handleNumberChange = (value: string) => {
+    const filtered = value.replace(/[^A-Z0-9]/gi, "").toUpperCase();
+    setNumber(filtered);
+  };
+
   const handleSaveCar = async () => {
     if (!type || !number) {
       toast.error("Error", "Vehicle type and number are required");
@@ -150,8 +155,11 @@ export default function MyCarsScreen() {
       if (editingCarId)
         await updateVehicle({ id: editingCarId, data: payload }).unwrap();
       else await createVehicle(payload).unwrap();
-      
-      toast.success("Success", `Vehicle ${editingCarId ? "updated" : "added"} successfully`);
+
+      toast.success(
+        "Success",
+        `Vehicle ${editingCarId ? "updated" : "added"} successfully`,
+      );
       closeModal();
     } catch (err: any) {
       console.error("Failed to save vehicle:", err);
@@ -429,7 +437,7 @@ export default function MyCarsScreen() {
               transform: [{ translateY: slideAnim }],
               opacity: fadeAnim,
             }}
-            className="bg-card rounded-t-[44px] p-8 pb-12 border-t border-border shadow-2xl"
+            className="bg-card rounded-t-[44px] p-8 pb-[330px] border-t border-border shadow-2xl"
           >
             <View className="w-14 h-1.5 bg-border/50 rounded-full self-center mb-10" />
 
@@ -519,7 +527,7 @@ export default function MyCarsScreen() {
                     placeholder="E.G. MH01CK1234"
                     placeholderTextColor="#64748B"
                     value={number}
-                    onChangeText={setNumber}
+                    onChangeText={handleNumberChange}
                     autoCapitalize="characters"
                     maxLength={10}
                   />
@@ -533,7 +541,7 @@ export default function MyCarsScreen() {
                   borderRadius: 16,
                   alignItems: "center",
                   justifyContent: "center",
-                  marginTop: 16,
+                  marginTop: 0,
                   shadowColor: Colors.primary,
                   shadowOffset: { width: 0, height: 10 },
                   shadowOpacity: 0.3,

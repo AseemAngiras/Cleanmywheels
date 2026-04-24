@@ -78,6 +78,8 @@ export interface UserSubscription {
     name: string;
     phone: string;
   };
+  workerName?: string;
+  workerPhone?: string;
   nextServiceAddons?: {
     addonId: Addon;
     name: string;

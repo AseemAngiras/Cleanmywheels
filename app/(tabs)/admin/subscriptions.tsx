@@ -206,7 +206,9 @@ export default function AdminSubscriptionsScreen() {
                 ? "bg-green-500/10 border-green-500/20"
                 : item.status === "ongoing"
                   ? "bg-blue-500/10 border-blue-500/20"
-                  : "bg-background border-border"
+                  : item.status === "expired"
+                    ? "bg-red-500/10 border-red-500/20"
+                    : "bg-background border-border"
             }`}
           >
             <Text
@@ -215,7 +217,9 @@ export default function AdminSubscriptionsScreen() {
                   ? "text-green-500"
                   : item.status === "ongoing"
                     ? "text-blue-500"
-                    : "text-textSecondary"
+                    : item.status === "expired"
+                      ? "text-red-500"
+                      : "text-textSecondary"
               }`}
             >
               {item.status}
@@ -253,20 +257,20 @@ export default function AdminSubscriptionsScreen() {
             <Text className="text-[12px] font-[700] color-textSecondary uppercase tracking-widest">
               Service Progress
             </Text>
-            <Text className="text-[13px] font-[800] color-primary">
+            <Text className={`text-[13px] font-[800] ${item.status === 'expired' ? 'text-red-500' : 'text-primary'}`}>
               {item.servicesCompleted}/{item.servicesTotal}
             </Text>
           </View>
           <View className="h-2 bg-background rounded-full overflow-hidden border border-border/30">
             <View
-              className="h-full bg-primary"
+              className={`h-full ${item.status === 'expired' ? 'bg-red-500' : 'bg-primary'}`}
               style={{
-                width: `${(item.servicesCompleted / item.servicesTotal) * 100}%`,
+                width: `${Math.min((item.servicesCompleted / item.servicesTotal) * 100, 100)}%`,
               }}
             />
           </View>
           <Text className="text-[11px] color-textSecondary/60 mt-2 font-[600] text-right">
-            Expires in {getDaysRemaining(item.endDate)} days
+            {item.status === "expired" ? "Subscription Ended" : `Expires in ${getDaysRemaining(item.endDate)} days`}
           </Text>
         </View>
 
@@ -316,9 +320,14 @@ export default function AdminSubscriptionsScreen() {
                     </TouchableOpacity>
                   </>
                 )}
+                {item.status === "expired" && (
+                  <View className="flex-1 bg-background py-3.5 rounded-2xl border border-border items-center justify-center">
+                    <Text className="color-textSecondary font-[700] text-[13px]">No Active Tasks</Text>
+                  </View>
+                )}
               </View>
             </View>
-          ) : (
+          ) : item.status !== "expired" ? (
             <TouchableOpacity
               className="bg-primary flex-row items-center justify-center py-4 rounded-2xl shadow-lg shadow-primary/30"
               onPress={() => {
@@ -336,6 +345,10 @@ export default function AdminSubscriptionsScreen() {
                 Assign Professional
               </Text>
             </TouchableOpacity>
+          ) : (
+             <View className="bg-background py-4 rounded-2xl border border-border items-center justify-center">
+                <Text className="color-textSecondary font-[700] text-[15px]">Subscription Expired</Text>
+             </View>
           )}
         </View>
       </View>

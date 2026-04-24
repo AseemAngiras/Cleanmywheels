@@ -89,12 +89,14 @@ export default function SubscriptionPlansScreen() {
     );
   }
 
-  const activeSubs = Array.isArray(subscriptions)
+  const allSubs = Array.isArray(subscriptions)
     ? subscriptions
     : subscriptions
       ? [subscriptions]
       : [];
-  const hasActiveSubs = activeSubs.length > 0;
+
+  const actuallyActive = allSubs.filter((sub: any) => sub.status !== "expired");
+  const pastSubs = allSubs.filter((sub: any) => sub.status === "expired");
 
   return (
     <ScreenWrapper backgroundColor={Colors.background}>
@@ -119,7 +121,7 @@ export default function SubscriptionPlansScreen() {
             )}
           </View>
         </View>
-        {!arePlansVisible && hasActiveSubs && (
+        {!arePlansVisible && actuallyActive.length > 0 && (
           <TouchableOpacity
             onPress={togglePlans}
             className="bg-primary/10 px-4 py-2 rounded-full border border-primary/20"
@@ -136,22 +138,36 @@ export default function SubscriptionPlansScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* ACTIVE SUBSCRIPTIONS */}
-        {hasActiveSubs && !arePlansVisible && (
+        {actuallyActive.length > 0 && !arePlansVisible && (
           <View className="mb-8">
             <Text className="text-[11px] font-[800] color-textSecondary uppercase tracking-[2px] mb-4 px-1">
               Active Subscriptions
             </Text>
-            {activeSubs.map((sub: any) => (
-              <React.Fragment key={sub._id}>
-                <ActiveSubscriptionCard subscription={sub} />
-              </React.Fragment>
+            {actuallyActive.map((sub: any) => (
+              <ActiveSubscriptionCard key={sub._id} subscription={sub} />
+            ))}
+          </View>
+        )}
+
+        {/* PAST SUBSCRIPTIONS - Always show if they exist */}
+        {pastSubs.length > 0 && (
+          <View className="mb-8 opacity-90">
+            <Text className="text-[11px] font-[800] color-textSecondary uppercase tracking-[2px] mb-4 px-1">
+              Past Services
+            </Text>
+            {pastSubs.map((sub: any) => (
+              <ActiveSubscriptionCard
+                key={sub._id}
+                subscription={sub}
+                variant="past"
+              />
             ))}
           </View>
         )}
 
         {!arePlansVisible && (
           <View>
-            {hasActiveSubs && (
+            {(actuallyActive.length > 0 || pastSubs.length > 0) && (
               <Text className="text-[11px] font-[800] color-textSecondary uppercase tracking-[2px] mb-4 px-1">
                 Exclusive Benefits
               </Text>
@@ -165,13 +181,12 @@ export default function SubscriptionPlansScreen() {
           <View>
             <View className="mb-6">
               {plans?.map((plan: any, index: number) => (
-                <React.Fragment key={plan._id}>
-                  <PlanCard
-                    plan={plan}
-                    onSubscribe={handleSubscribe}
-                    isPopular={index === 1}
-                  />
-                </React.Fragment>
+                <PlanCard
+                  key={plan._id}
+                  plan={plan}
+                  onSubscribe={handleSubscribe}
+                  isPopular={index === 1}
+                />
               ))}
             </View>
             <View className="bg-primary/5 p-6 rounded-[32px] border border-primary/20 items-center">

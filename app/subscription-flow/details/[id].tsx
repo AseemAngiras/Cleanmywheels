@@ -202,40 +202,116 @@ export default function SubscriptionDetailsScreen() {
           >
             <Ionicons name="arrow-back" size={20} color={Colors.text} />
           </TouchableOpacity>
-          <Text className="text-[20px] font-[700] color-text ml-4">
-            Subscription Log
-          </Text>
+          <View className="ml-4 flex-1">
+            <Text className="text-[20px] font-[700] color-text">
+              Subscription Log
+            </Text>
+            <Text className="text-[10px] color-textSecondary font-mono opacity-60 uppercase tracking-tighter">
+              ID: {subscription._id}
+            </Text>
+          </View>
+          <View
+            className={`px-3 py-1.5 rounded-full border ${
+              subscription.status === "expired"
+                ? "bg-red-500/10 border-red-500/20"
+                : "bg-green-500/10 border-green-500/20"
+            }`}
+          >
+            <Text
+              className={`text-[10px] font-[800] uppercase ${
+                subscription.status === "expired"
+                  ? "color-red-500"
+                  : "color-green-500"
+              }`}
+            >
+              {subscription.status || "Active"}
+            </Text>
+          </View>
         </View>
 
-        <View className="m-5 bg-card rounded-[32px] p-5 shadow-sm border border-border">
-          <View className="flex-row items-center mb-5">
+        <View className="m-5 bg-card rounded-[32px] p-6 shadow-sm border border-border">
+          <View className="flex-row items-center mb-6">
             <View className="w-12 h-12 rounded-full bg-primary items-center justify-center mr-4">
               <Ionicons name="car-sport" size={24} color="#000" />
             </View>
-            <View>
+            <View className="flex-1">
               <Text className="text-[18px] font-[800] color-text">
                 {subscription.vehicle?.brand || "Vehicle"}
               </Text>
-              <Text className="text-[14px] font-[600] color-textSecondary">
-                {subscription.vehicle?.vehicleNo || "No Number"}
-              </Text>
+              <View className="flex-row items-center">
+                <Text className="text-[14px] font-[600] color-textSecondary">
+                  {subscription.vehicle?.vehicleNo || "No Number"}
+                </Text>
+                <View className="w-1 h-1 rounded-full bg-border mx-2" />
+                <Text className="text-[12px] color-textSecondary font-[500]">
+                  {subscription.vehicle?.vehicleType || "Sedan"}
+                </Text>
+              </View>
             </View>
           </View>
 
-          <View className="h-[1px] bg-border mb-5" />
+          <View className="h-[1px] bg-border/50 mb-6" />
 
-          <View className="flex-row justify-between">
-            <View>
-              <Text className="text-[11px] font-[700] color-textSecondary mb-1 tracking-widest uppercase">
-                Plan
+          {(subscription.worker || subscription.workerName) && (
+            <>
+              <View className="flex-row items-center mb-6">
+                <View className="w-10 h-10 rounded-full bg-primary/10 items-center justify-center mr-3 border border-primary/20">
+                  <Ionicons name="person" size={20} color={Colors.primary} />
+                </View>
+                <View className="flex-1">
+                  <Text className="text-[10px] font-[700] color-textSecondary tracking-widest uppercase">
+                    Assigned Worker
+                  </Text>
+                  <Text className="text-[15px] font-[700] color-text">
+                    {subscription.workerName ||
+                      subscription.worker?.name ||
+                      "CleanMyWheels Expert"}
+                  </Text>
+                  {subscription.status !== "expired" &&
+                    (subscription.workerPhone || subscription.worker?.phone) && (
+                      <Text className="text-[12px] color-primary font-[600] mt-0.5">
+                        {subscription.workerPhone || subscription.worker?.phone}
+                      </Text>
+                    )}
+                </View>
+                {subscription.status !== "expired" &&
+                  (subscription.workerPhone || subscription.worker?.phone) && (
+                    <TouchableOpacity
+                      onPress={() => {
+                        const phone =
+                          subscription.workerPhone ||
+                          subscription.worker?.phone;
+                        if (phone) {
+                          import("react-native").then(({ Linking }) => {
+                            Linking.openURL(`tel:${phone}`);
+                          });
+                        }
+                      }}
+                      className="w-10 h-10 rounded-full bg-primary items-center justify-center shadow-sm"
+                    >
+                      <Ionicons name="call" size={18} color="#000" />
+                    </TouchableOpacity>
+                  )}
+              </View>
+              <View className="h-[1px] bg-border/50 mb-6" />
+            </>
+          )}
+
+          <View className="flex-row justify-between mb-6">
+            <View className="flex-1">
+              <Text className="text-[10px] font-[700] color-textSecondary mb-1.5 tracking-widest uppercase">
+                Plan & Frequency
               </Text>
               <Text className="text-[15px] font-[700] color-text">
                 {subscription.plan?.name || "Monthly"}
               </Text>
+              <Text className="text-[12px] color-primary font-[800] uppercase mt-0.5">
+                {subscription.frequencyType || "Daily"}
+              </Text>
             </View>
-            <View className="items-end">
-              <Text className="text-[11px] font-[700] color-textSecondary mb-1 tracking-widest uppercase">
-                Expiring On
+            <View className="items-end flex-1">
+              <Text className="text-[10px] font-[700] color-textSecondary mb-1.5 tracking-widest uppercase">
+                {subscription.status === "expired" ? "Completed On" : "Expiring On"}
               </Text>
               <Text className="text-[15px] font-[700] color-text">
                 {new Date(subscription.endDate).toLocaleDateString("en-IN", {
@@ -244,6 +320,31 @@ export default function SubscriptionDetailsScreen() {
                   year: "numeric",
                 })}
               </Text>
+            </View>
+          </View>
+
+          <View className="mt-2">
+            <View className="flex-row justify-between items-center mb-2">
+              <Text className="text-[10px] color-textSecondary font-[700] tracking-widest uppercase">
+                Overall Progress
+              </Text>
+              <Text className="text-[11px] font-[800] color-text">
+                {subscription.servicesCompleted || 0} /{" "}
+                {subscription.servicesTotal || 30} WASHES
+              </Text>
+            </View>
+            <View className="h-2 bg-background rounded-full overflow-hidden border border-border/30">
+              <View
+                className="h-full bg-primary rounded-full"
+                style={{
+                  width: `${Math.min(
+                    ((subscription.servicesCompleted || 0) /
+                      (subscription.servicesTotal || 30)) *
+                      100,
+                    100,
+                  )}%`,
+                }}
+              />
             </View>
           </View>
         </View>

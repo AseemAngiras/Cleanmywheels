@@ -40,17 +40,21 @@ export const notificationApi = createApi({
   reducerPath: "notificationApi",
   baseQuery: fetchBaseQuery({
     baseUrl: API_BASE_URL,
-    prepareHeaders: (headers, { getState }) => {
-      const token = (getState() as RootState).auth.token;
-      if (token) {
-        headers.set("Authorization", token);
-        headers.set("x-auth-token", token);
-      }
-      headers.set("Content-Type", "application/json");
-      headers.set("x-platform", Platform.OS);
-      headers.set("x-version", APP_VERSION);
-      return headers;
-    },
+      prepareHeaders: (headers, { getState }) => {
+        headers.set("Content-Type", "application/json");
+        headers.set("Accept", "application/json");
+
+        const token = (getState() as RootState).auth.token;
+        if (token) {
+          headers.set("Authorization", token);
+          headers.set("x-auth-token", token);
+        }
+        headers.set("x-platform", Platform.OS === "ios" ? "ios" : "android");
+        headers.set("x-version", APP_VERSION);
+        headers.set("x-time-zone", "330");
+        headers.set("Accept-Language", "en");
+        return headers;
+      },
   }),
   tagTypes: ["Notification"],
   endpoints: (builder) => ({
@@ -70,11 +74,20 @@ export const notificationApi = createApi({
       transformResponse: (response: NotificationResponse) => response.data.unSeenCount,
       providesTags: ["Notification"],
     }),
+
+    updatePushToken: builder.mutation<{ success: boolean; message: string }, { pushToken: string }>({
+      query: (body) => ({
+        url: "/notification/update-push-token",
+        method: "PUT",
+        body,
+      }),
+    }),
   }),
 });
 
 export const { 
   useGetNotificationsQuery, 
   useGetUnseenCountQuery,
-  useLazyGetNotificationsQuery 
+  useLazyGetNotificationsQuery,
+  useUpdatePushTokenMutation
 } = notificationApi;

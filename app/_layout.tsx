@@ -12,6 +12,7 @@ import { useEffect, useState } from "react";
 import { useFonts } from "expo-font";
 import Toast from "react-native-toast-message";
 import { Ionicons } from "@expo/vector-icons";
+import NotificationManager from "../components/NotificationManager";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -97,6 +98,7 @@ export default function RootLayout() {
         <SafeAreaProvider>
           <View className="flex-1 bg-background">
             <SocketManager />
+            <NotificationManager />
             <View className="flex-1">
               <Stack screenOptions={{ headerShown: false }}>
                 <Stack.Screen name="index" />

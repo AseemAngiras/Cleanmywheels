@@ -1,35 +1,29 @@
 {
-    "project_info": {
-        "project_number": "000000000000",
-        "project_id": "placeholder-project"
-    },
-    "client": [
-        {
-            "client_info": {
-                "mobilesdk_app_id": "1:000000000000:android:0000000000000000",
-                "android_client_info": {
-                    "package_name": "com.cleanmywheels.app"
-                }
-            },
-            "oauth_client": [],
-            "api_key": [
-                {
-                    "current_key": "PLACEHOLDER_KEY"
-                }
-            ],
-            "services": {
-                "analytics_service": {
-                    "status": 1
-                },
-                "appinvite_service": {
-                    "status": 1,
-                    "other_platform_oauth_client": []
-                },
-                "ads_service": {
-                    "status": 2
-                }
-            }
+  "project_info": {
+    "project_number": "69696977988",
+    "project_id": "cleanmywheels-cbe99",
+    "storage_bucket": "cleanmywheels-cbe99.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:69696977988:android:623f49875b1a759541d011",
+        "android_client_info": {
+          "package_name": "com.cleanmywheels.app"
         }
-    ],
-    "configuration_version": "1"
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCqmtTeCRwqwAyNv_eSxj0hQA98rpeKE3k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
 }

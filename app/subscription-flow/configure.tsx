@@ -22,6 +22,7 @@ import {
   useGetMySubscriptionQuery,
   useGetAddonsQuery,
 } from "@/store/api/subscriptionApi";
+import { useAlert } from "@/components/providers/AlertProvider";
 
 const TIME_SLOTS = [
   "6 AM - 7 AM",
@@ -86,6 +87,7 @@ export default function SubscriptionConfigureScreen() {
   const [selectedAddons, setSelectedAddons] = useState<any[]>([]);
   const [startDate] = useState(new Date());
 
+  const {showAlert} = useAlert();
   const { data: addonsData } = useGetAddonsQuery();
   const addons = addonsData || [];
 
@@ -193,7 +195,18 @@ export default function SubscriptionConfigureScreen() {
       return;
     }
 
-    const cleanedNo = newCarNo.trim().replace(/\s+/g, "").toUpperCase();
+    const cleanedNo = newCarNo.trim().replace(/\s+/g, " ").toUpperCase();
+    
+    const standardRegex = /^[A-Z]{2}[0-9]{1,2}[A-Z]{0,3}[0-9]{4}$/;
+    const bhRegex = /^[0-9]{2}\s?BH\s?[0-9]{4}\s?[A-Z]{2}$/;
+
+    if (!standardRegex.test(cleanedNo.replace(/\s+/g, "")) && !bhRegex.test(cleanedNo)) {
+      showAlert({
+        title:"Invalid Vehicle Number",
+        message:"Please enter a valid format (e.g., MH01AB1234 or 22 BH 1234 AA).",
+      });
+      return;
+    }
 
     const isDuplicate = cars?.some((car: any) => {
       const existingNo = (car.vehicleNo || car.number || "")
@@ -574,8 +587,9 @@ export default function SubscriptionConfigureScreen() {
                 placeholder="MH01AB1234"
                 placeholderTextColor={Colors.textSecondary}
                 value={newCarNo}
-                onChangeText={setNewCarNo}
+                onChangeText={(text) => setNewCarNo(text.replace(/[^a-zA-Z0-9\s]/g, "").toUpperCase())}
                 autoCapitalize="characters"
+                maxLength={13}
               />
 
               <Text className="text-[13px] font-[700] color-textSecondary mb-3 tracking-widest uppercase">

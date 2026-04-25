@@ -115,7 +115,7 @@ export default function MyCarsScreen() {
   };
 
   const handleNumberChange = (value: string) => {
-    const filtered = value.replace(/[^A-Z0-9]/gi, "").toUpperCase();
+    const filtered = value.replace(/[^a-zA-Z0-9\s]/gi, "").toUpperCase();
     setNumber(filtered);
   };
 
@@ -124,7 +124,15 @@ export default function MyCarsScreen() {
       toast.error("Error", "Vehicle type and number are required");
       return;
     }
-    const cleanedNumber = number.trim().replace(/\s+/g, "").toUpperCase();
+    const cleanedNumber = number.trim().replace(/\s+/g, " ").toUpperCase();
+
+    const standardRegex = /^[A-Z]{2}[0-9]{1,2}[A-Z]{0,3}[0-9]{4}$/;
+    const bhRegex = /^[0-9]{2}\s?BH\s?[0-9]{4}\s?[A-Z]{2}$/;
+
+    if (!standardRegex.test(cleanedNumber.replace(/\s+/g, "")) && !bhRegex.test(cleanedNumber)) {
+      toast.error("Invalid Number", "Please enter a valid format (e.g. MH01AB1234 or 22 BH 1234 AA)");
+      return;
+    }
 
     const isDuplicate = cars.some((car: any) => {
       const carId = car._id || car.id;

@@ -757,6 +757,7 @@ export default function ProfileHome() {
                   const val = text.replace(/[^a-zA-Z\s]/g, "");
                   setTempName(val);
                 }}
+                maxLength={40}
                 placeholder="Enter your name"
                 placeholderTextColor={Colors.textSecondary}
               />

@@ -40,6 +40,7 @@ import {
   useGetMySubscriptionQuery,
   useGetAddonsQuery,
 } from "@/store/api/subscriptionApi";
+import { useAlert } from "@/components/providers/AlertProvider";
 
 const VEHICLE_TYPE_TO_PRICE_KEY: Record<string, string> = {
   Hatchback: "hatchback",
@@ -82,6 +83,7 @@ export default function SelectServiceScreen() {
     });
   }, [allCars, subscriptions]);
 
+  const {showAlert} = useAlert();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
@@ -257,11 +259,31 @@ export default function SelectServiceScreen() {
 
   const handleNext = () => {
     if (!selectedService) {
-      Alert.alert("Error", "Please select a service package");
+      showAlert({
+        title:"Error",
+        message:"Please select a service package",
+        type:"error",
+      });
       return;
     }
-    if (!vehicleNumber.trim()) {
-      Alert.alert("Error", "Please enter vehicle number");
+    const cleanNumber = vehicleNumber.trim().toUpperCase();
+    if (!cleanNumber) {
+      showAlert({
+        title:"Error", 
+        message: "Please enter vehicle number"
+      });
+      return;
+    }
+
+    const bhRegex = /^[0-9]{2}\s?BH\s?[0-9]{4}\s?[A-Z]{2}$/;
+    const standardRegex = /^[A-Z]{2}[0-9]{1,2}[A-Z]{0,3}[0-9]{4}$/;
+
+    if (!bhRegex.test(cleanNumber) && !standardRegex.test(cleanNumber)) {
+      showAlert({
+        title:"Invalid Vehicle Number",
+        message:"Please enter a valid format (e.g. MH01AB1234 or 22 BH 1234 AA)",
+        type:"error",
+      });
       return;
     }
 
@@ -744,8 +766,9 @@ export default function SelectServiceScreen() {
               placeholder="E.G. MH01CK1234"
               placeholderTextColor="#64748B"
               value={vehicleNumber}
-              onChangeText={setVehicleNumber}
+              onChangeText={(text) => setVehicleNumber(text.replace(/[^a-zA-Z0-9\s]/g, "").toUpperCase())}
               autoCapitalize="characters"
+              maxLength={13}
             />
           </View>
         </ScrollView>

@@ -487,6 +487,7 @@ export default function EnterLocationScreen() {
                 className={`bg-card rounded-2xl p-4 h-14 color-text font-[600] border ${errorMsg.includes("House") ? "border-red-500/50" : "border-border/50"}`}
                 placeholder="House / Flat No."
                 placeholderTextColor="#64748B"
+                maxLength={30}
                 value={flatNumber}
                 onChangeText={handleInputChange(setFlatNumber)}
               />
@@ -496,6 +497,7 @@ export default function EnterLocationScreen() {
                 className={`bg-card rounded-2xl p-4 h-14 color-text font-[600] border ${errorMsg.includes("Locality") ? "border-red-500/50" : "border-border/50"}`}
                 placeholder="Locality / Area"
                 placeholderTextColor="#64748B"
+                maxLength={30}
                 value={locality}
                 onChangeText={handleInputChange(setLocality)}
               />
@@ -506,6 +508,7 @@ export default function EnterLocationScreen() {
             className="bg-card rounded-2xl p-4 h-14 color-text font-[600] border border-border/50 mb-4"
             placeholder="Landmark (Optional)"
             placeholderTextColor="#64748B"
+            maxLength={30}
             value={landmark}
             onChangeText={handleInputChange(setLandmark)}
           />
@@ -516,6 +519,7 @@ export default function EnterLocationScreen() {
                 className={`bg-card rounded-2xl p-4 h-14 color-text font-[600] border ${errorMsg.includes("City") ? "border-red-500/50" : "border-border/50"}`}
                 placeholder="City"
                 placeholderTextColor="#64748B"
+                maxLength={30}
                 value={city}
                 onChangeText={handleInputChange(setCity)}
               />
@@ -642,6 +646,7 @@ export default function EnterLocationScreen() {
                 className="flex-1 text-[15px] color-text font-[600]"
                 placeholder="Search spot..."
                 placeholderTextColor="#64748B"
+                maxLength={30}
                 value={searchQuery}
                 onChangeText={(text) => setSearchQuery(text.replace(/[<>'"%;()&+]/g, ""))}
               />

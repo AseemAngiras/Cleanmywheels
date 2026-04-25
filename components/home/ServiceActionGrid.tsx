@@ -48,12 +48,12 @@ export const ServiceActionGrid = ({
         className="flex-[1.2]"
       >
         <InteractivePressable
-          className="rounded-[24px] shadow-lg elevation-5 h-[140px]"
+          className="rounded-[24px] border border-[#333] shadow-lg elevation-5 h-[140px] overflow-hidden"
           onPress={handleBookPress}
         >
           <LinearGradient
             colors={["#1A1A1A", "#111111"]}
-            className="flex-1 p-4 rounded-[24px] border border-[#333] justify-between"
+            className="flex-1 p-4 justify-between"
           >
             <View>
               <Text className="text-primary text-[10px] font-[700] tracking-[1px] mb-1 uppercase">
@@ -78,12 +78,12 @@ export const ServiceActionGrid = ({
           className="flex-[0.8]"
         >
           <InteractivePressable
-            className="rounded-[24px] shadow-lg elevation-5 h-[140px]"
+            className="rounded-[24px] border border-[#333] shadow-lg elevation-5 h-[140px] overflow-hidden"
             onPress={handleSubPress}
           >
             <LinearGradient
               colors={["#1A1A1A", "#111111"]}
-              className="flex-1 p-4 rounded-[24px] border border-[#333] justify-between"
+              className="flex-1 p-4 justify-between"
             >
               <View>
                 <Text className="text-primary text-[10px] font-[700] tracking-[1px] mb-1 uppercase">

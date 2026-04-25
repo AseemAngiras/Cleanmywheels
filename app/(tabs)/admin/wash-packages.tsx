@@ -330,7 +330,7 @@ export default function AdminWashPackagesScreen() {
                     className="flex-1 text-[16px] font-[800] color-text"
                     value={editData.name}
                     onChangeText={(val) =>
-                      setEditData((prev) => ({ ...prev, name: val }))
+                      setEditData((prev) => ({ ...prev, name: val.replace(/[<>'"%;()&+]/g, "") }))
                     }
                   />
                 </View>
@@ -346,7 +346,7 @@ export default function AdminWashPackagesScreen() {
                     multiline
                     value={editData.features}
                     onChangeText={(val) =>
-                      setEditData((prev) => ({ ...prev, features: val }))
+                      setEditData((prev) => ({ ...prev, features: val.replace(/[<>'"%;()&+]/g, "") }))
                     }
                     placeholder="E.g. Interior Cleaning, Tire Polish, Waxcoat"
                     placeholderTextColor="#64748B"
@@ -377,7 +377,7 @@ export default function AdminWashPackagesScreen() {
                           keyboardType="numeric"
                           value={editData[key]}
                           onChangeText={(val) =>
-                            setEditData((prev) => ({ ...prev, [key]: val }))
+                            setEditData((prev) => ({ ...prev, [key]: val.replace(/[^0-9]/g, "") }))
                           }
                         />
                       </View>

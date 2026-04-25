@@ -256,7 +256,7 @@ export default function ServiceManagementScreen() {
                 <TextInput
                   className="bg-background border border-border rounded-2xl px-4 h-14 text-[16px] font-[700] color-text"
                   value={editData.name}
-                  onChangeText={(val) => setEditData((p: any) => ({ ...p, name: val }))}
+                  onChangeText={(val) => setEditData((p: any) => ({ ...p, name: val.replace(/[<>'"%;()&+]/g, "") }))}
                   placeholder="e.g. Interior Cleaning"
                 />
               </View>
@@ -267,7 +267,7 @@ export default function ServiceManagementScreen() {
                   className="bg-background border border-border rounded-2xl px-4 py-3 min-h-[80px] text-[14px] font-[500] color-text"
                   multiline
                   value={editData.description}
-                  onChangeText={(val) => setEditData((p: any) => ({ ...p, description: val }))}
+                  onChangeText={(val) => setEditData((p: any) => ({ ...p, description: val.replace(/[<>'"%;()&+]/g, "") }))}
                   placeholder="What is included in this service?"
                 />
               </View>
@@ -285,7 +285,7 @@ export default function ServiceManagementScreen() {
                         value={editData.priceMatrix[key]}
                         onChangeText={(val) => setEditData((p: any) => ({
                           ...p,
-                          priceMatrix: { ...p.priceMatrix, [key]: val }
+                          priceMatrix: { ...p.priceMatrix, [key]: val.replace(/[^0-9]/g, "") }
                         }))}
                       />
                     </View>

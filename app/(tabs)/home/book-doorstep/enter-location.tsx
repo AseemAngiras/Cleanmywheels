@@ -322,12 +322,8 @@ export default function EnterLocationScreen() {
             addressType: addressType,
           },
         });
-    } catch (error: any) {
-      console.error("Failed to save address:", error);
-      const errorMessage =
-        error?.data?.message ||
-        error?.message ||
-        "Please check your connection and try again.";
+    } catch {
+      const errorMessage = "Please check your connection and try again.";
       setErrorMsg(errorMessage);
       Alert.alert("Failed to save address", errorMessage);
     }
@@ -527,7 +523,7 @@ export default function EnterLocationScreen() {
                 keyboardType="number-pad"
                 maxLength={6}
                 value={postalCode}
-                onChangeText={handleInputChange(setPostalCode)}
+                onChangeText={(text) => setPostalCode(text.replace(/[^0-9]/g, ""))}
               />
             </View>
           </View>
@@ -642,7 +638,7 @@ export default function EnterLocationScreen() {
                 placeholder="Search spot..."
                 placeholderTextColor="#64748B"
                 value={searchQuery}
-                onChangeText={setSearchQuery}
+                onChangeText={(text) => setSearchQuery(text.replace(/[<>'"%;()&+]/g, ""))}
               />
               {isSearching && (
                 <ActivityIndicator

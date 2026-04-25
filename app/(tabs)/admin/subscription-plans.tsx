@@ -452,7 +452,7 @@ export default function AdminSubscriptionPlansScreen() {
                     placeholder="Enter plan name"
                     placeholderTextColor={Colors.textSecondary}
                     onChangeText={(text) =>
-                      setEditData((prev) => ({ ...prev, name: text }))
+                      setEditData((prev) => ({ ...prev, name: text.replace(/[<>'"%;()&+]/g, "") }))
                     }
                   />
                 </View>
@@ -469,7 +469,7 @@ export default function AdminSubscriptionPlansScreen() {
                     placeholder="Enter tag"
                     placeholderTextColor={Colors.textSecondary}
                     onChangeText={(text) =>
-                      setEditData((prev) => ({ ...prev, tag: text }))
+                      setEditData((prev) => ({ ...prev, tag: text.replace(/[<>'"%;()&+]/g, "") }))
                     }
                   />
                 </View>
@@ -500,7 +500,7 @@ export default function AdminSubscriptionPlansScreen() {
                                 className="flex-1 text-text font-[800] text-[14px]"
                                 value={(editData.prices[VEHICLE_TYPE_TO_PRICE_KEY[type] as keyof typeof editData.prices] as any)[freq.key].toString()}
                                 keyboardType="numeric"
-                                onChangeText={(text) => updateVehiclePrice(type, freq.key, text)}
+                                onChangeText={(text) => updateVehiclePrice(type, freq.key, text.replace(/[^0-9]/g, ""))}
                               />
                             </View>
                           </View>
@@ -528,7 +528,7 @@ export default function AdminSubscriptionPlansScreen() {
                       <TextInput
                         className="flex-1 text-text font-[500] text-[13px]"
                         value={feature}
-                        onChangeText={(text) => updateFeature(text, index)}
+                        onChangeText={(text) => updateFeature(text.replace(/[<>'"%;()&+]/g, ""), index)}
                         placeholder="Feature description..."
                         placeholderTextColor={Colors.textSecondary}
                       />

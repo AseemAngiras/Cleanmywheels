@@ -25,7 +25,6 @@ export default function VehicleDetailsScreen() {
   const router = useRouter();
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
-  const params = useLocalSearchParams();
 
   const [vehicleType, setVehicleType] = useState("Sedan");
   const [vehicleNumber, setVehicleNumber] = useState("");
@@ -249,7 +248,7 @@ export default function VehicleDetailsScreen() {
                       placeholder="e.g. MH 01 AB 1234"
                       placeholderTextColor="#64748B"
                       value={vehicleNumber}
-                      onChangeText={setVehicleNumber}
+                      onChangeText={(text) => setVehicleNumber(text.replace(/[^a-zA-Z0-9]/g, "").toUpperCase())}
                       autoCapitalize="characters"
                     />
                   </View>

@@ -1,3 +1,4 @@
+import { Colors } from "@/constants/Colors";
 import { Stack } from "expo-router";
 
 export default function ProfileLayout() {
@@ -5,6 +6,7 @@ export default function ProfileLayout() {
     <Stack
       screenOptions={{
         headerShown: false,
+        contentStyle: { backgroundColor: Colors.background },
       }}
     />
   );

@@ -13,6 +13,7 @@ import { useFonts } from "expo-font";
 import Toast from "react-native-toast-message";
 import { Ionicons } from "@expo/vector-icons";
 import NotificationManager from "../components/NotificationManager";
+import { Colors } from "../constants/Colors";
 
 import { AlertProvider } from "../components/providers/AlertProvider";
 
@@ -60,10 +61,10 @@ const LoadingView = () => (
       flex: 1,
       justifyContent: "center",
       alignItems: "center",
-      backgroundColor: "#F3F4F7",
+      backgroundColor: Colors.background,
     }}
   >
-    <ActivityIndicator size="large" color="#84c95c" />
+    <ActivityIndicator size="large" color={Colors.primary} />
   </View>
 );
 
@@ -103,7 +104,12 @@ export default function RootLayout() {
               <SocketManager />
               <NotificationManager />
               <View className="flex-1">
-                <Stack screenOptions={{ headerShown: false }}>
+                <Stack 
+                  screenOptions={{ 
+                    headerShown: false,
+                    contentStyle: { backgroundColor: Colors.background }
+                  }}
+                >
                   <Stack.Screen name="index" />
                   <Stack.Screen name="(tabs)" />
                 </Stack>

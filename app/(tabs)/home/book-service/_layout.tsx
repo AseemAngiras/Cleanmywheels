@@ -1,15 +1,16 @@
-
-import { Stack, useNavigation } from 'expo-router';
+import { Stack } from 'expo-router';
 import React from 'react';
+import { Colors } from '../../../../constants/Colors';
 
 export default function BookServiceLayout() {
-    const navigation = useNavigation();
-
     // Hide default tab bar
     // Tab bar logic handled in local root layout
 
     return (
-        <Stack screenOptions={{ headerShown: false }}>
+        <Stack screenOptions={{ 
+            headerShown: false,
+            contentStyle: { backgroundColor: Colors.background }
+        }}>
             <Stack.Screen name="select-service" />
             <Stack.Screen name="shops-list" />
             <Stack.Screen name="select-slot" />

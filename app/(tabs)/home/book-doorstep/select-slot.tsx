@@ -24,7 +24,6 @@ import { Colors } from "@/constants/Colors";
 import { Ionicons } from "@expo/vector-icons";
 import {
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -35,6 +34,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useAlert } from "@/components/providers/AlertProvider";
 import { InteractivePressable } from "@/components/ui/InteractivePressable";
 
 type TimeSlot = {
@@ -51,6 +51,7 @@ export default function SelectSlotScreen() {
   const userPhone = userState?.phone;
 
   const router = useRouter();
+  const { showAlert } = useAlert();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const params = useLocalSearchParams();
@@ -157,11 +158,19 @@ export default function SelectSlotScreen() {
 
   const handleSendOtp = async () => {
     if (!name.trim()) {
-      Alert.alert("Required", "Please enter your name.");
+      showAlert({
+        title: "Required",
+        message: "Please enter your name.",
+        type: "warning",
+      });
       return;
     }
     if (!phoneNumber.trim() || phoneNumber.length < 10) {
-      Alert.alert("Invalid Phone", "Please enter a valid phone number.");
+      showAlert({
+        title: "Invalid Phone",
+        message: "Please enter a valid phone number.",
+        type: "warning",
+      });
       return;
     }
 
@@ -186,14 +195,22 @@ export default function SelectSlotScreen() {
       }).unwrap();
       setModalStep("otp");
     } catch (err: any) {
-      Alert.alert("Error", err?.data?.message || "Something went wrong.");
+      showAlert({
+        title: "Error",
+        message: err?.data?.message || "Something went wrong.",
+        type: "error",
+      });
     }
   };
 
   const handleVerifyOtp = async () => {
     const otpValue = otp.join("").trim();
     if (otpValue.length < 6) {
-      Alert.alert("Invalid OTP", "Please enter the complete 6-digit OTP.");
+      showAlert({
+        title: "Invalid OTP",
+        message: "Please enter the complete 6-digit OTP.",
+        type: "warning",
+      });
       return;
     }
 
@@ -235,10 +252,18 @@ export default function SelectSlotScreen() {
         setModalStep("details");
         navigateToSummary();
       } else {
-        Alert.alert("Error", response.message || "Verification failed.");
+        showAlert({
+          title: "Error",
+          message: response.message || "Verification failed.",
+          type: "error",
+        });
       }
     } catch (err: any) {
-      Alert.alert("Error", err?.data?.message || "Invalid OTP");
+      showAlert({
+        title: "Error",
+        message: err?.data?.message || "Invalid OTP",
+        type: "error",
+      });
     }
   };
 

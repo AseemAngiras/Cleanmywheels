@@ -4,7 +4,6 @@ import { router } from "expo-router";
 import { toast } from "@/utils/toast";
 import React, { useEffect, useRef, useState } from "react";
 import {
-  Alert,
   Dimensions,
   Image,
   Modal,
@@ -16,6 +15,7 @@ import {
   Pressable,
   Animated as RNAnimated,
 } from "react-native";
+import { useAlert } from "@/components/providers/AlertProvider";
 import { useSelector } from "react-redux";
 import Animated, { 
   FadeInUp, 
@@ -60,6 +60,7 @@ const AVATARS = [
 
 export default function ProfileHome() {
   const dispatch = useAppDispatch();
+  const { showAlert } = useAlert();
   const insets = useSafeAreaInsets();
   const { data: subscriptions } = useGetMySubscriptionQuery(undefined);
 
@@ -81,7 +82,6 @@ export default function ProfileHome() {
   // Edit Profile Animations
   const [showEditProfileModal, setShowEditProfileModal] = useState(false);
   const [tempName, setTempName] = useState("");
-  const [tempEmail, setTempEmail] = useState("");
   const [isNameWarningVisible, setIsNameWarningVisible] = useState(false);
 
   const [updateUserProfileAPI] = useUpdateProfileMutation();
@@ -172,7 +172,7 @@ export default function ProfileHome() {
   useEffect(() => {
     if (showEditProfileModal) {
       setTempName(profileState.name || userData?.name || "");
-      setTempEmail(profileState.email || userData?.email || "");
+      setTempName(profileState.name || userData?.name || "");
     }
     if (showAvatarModal) {
       setSelectedAvatar(profileState?.avatar || AVATARS[0]);
@@ -181,10 +181,8 @@ export default function ProfileHome() {
     showEditProfileModal,
     showAvatarModal,
     profileState.name,
-    profileState.email,
     profileState.avatar,
     userData?.name,
-    userData?.email,
   ]);
 
   const handleSaveProfile = async () => {
@@ -230,10 +228,11 @@ export default function ProfileHome() {
   };
 
   const handleDeleteAccount = () => {
-    Alert.alert(
-      "Delete Account",
-      "Are you sure you want to delete your account? This action is permanent and cannot be undone.",
-      [
+    showAlert({
+      title: "Delete Account",
+      message: "Are you sure you want to delete your account? This action is permanent and cannot be undone.",
+      type: "error",
+      buttons: [
         { text: "Cancel", style: "cancel" },
         {
           text: "Delete",
@@ -252,7 +251,7 @@ export default function ProfileHome() {
           },
         },
       ],
-    );
+    });
   };
 
   return (
@@ -469,8 +468,9 @@ export default function ProfileHome() {
                           profileState.defaultAddressId === addr.id;
                         const isExpanded = expandedAddressId === addr.id;
 
+                        const ViewWithKey = View as any;
                         return (
-                          <View key={addr.id || idx}>
+                          <ViewWithKey key={addr.id || `addr-${idx}`}>
                             <InteractivePressable
                               className={`flex-row items-center py-3 px-4 pl-6 ${
                                 isDefault ? "bg-primary/10" : "bg-background"
@@ -553,10 +553,11 @@ export default function ProfileHome() {
                                 <InteractivePressable
                                   className="flex-row items-center gap-1.5"
                                   onPress={() => {
-                                    Alert.alert(
-                                      "Delete Address",
-                                      "Are you sure you want to remove this address?",
-                                      [
+                                    showAlert({
+                                      title: "Delete Address",
+                                      message: "Are you sure you want to remove this address?",
+                                      type: "error",
+                                      buttons: [
                                         { text: "Cancel", style: "cancel" },
                                         {
                                           text: "Delete",
@@ -597,7 +598,7 @@ export default function ProfileHome() {
                                           },
                                         },
                                       ],
-                                    );
+                                    });
                                   }}
                                 >
                                   <Ionicons
@@ -611,7 +612,7 @@ export default function ProfileHome() {
                                 </InteractivePressable>
                               </View>
                             )}
-                          </View>
+                          </ViewWithKey>
                         );
                       })}
                     </View>
@@ -667,10 +668,11 @@ export default function ProfileHome() {
                 title="Contact Support"
                 subtitle="Talk to our support team"
                 onPress={() =>
-                  Alert.alert(
-                    "Contact Support",
-                    "Email: support@cleanmywheels.com\nPhone: +91 99999 88888",
-                  )
+                  showAlert({
+                    title: "Contact Support",
+                    message: "Email: support@cleanmywheels.com\nPhone: +91 99999 88888",
+                    type: "info",
+                  })
                 }
               />
               <Row
@@ -709,7 +711,6 @@ export default function ProfileHome() {
           >
             <InteractivePressable
               className="flex-1"
-              activeOpacity={1}
               onPress={() => setShowLogout(false)}
             />
           </RNAnimated.View>
@@ -757,7 +758,6 @@ export default function ProfileHome() {
           >
             <InteractivePressable
               className="flex-1"
-              activeOpacity={1}
               onPress={() => setShowAvatarModal(false)}
             />
           </RNAnimated.View>
@@ -834,7 +834,6 @@ export default function ProfileHome() {
           >
             <InteractivePressable
               className="flex-1"
-              activeOpacity={1}
               onPress={() => setShowEditProfileModal(false)}
             />
           </RNAnimated.View>

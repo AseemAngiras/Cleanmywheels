@@ -4,12 +4,12 @@ import { Colors } from "@/constants/Colors";
 import React from "react";
 import {
   ActivityIndicator,
-  Alert,
   NativeModules,
   ScrollView,
   Text,
   View,
 } from "react-native";
+import { useAlert } from "@/components/providers/AlertProvider";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { InteractivePressable } from "@/components/ui/InteractivePressable";
 import RazorpayCheckout from "react-native-razorpay";
@@ -43,6 +43,7 @@ const getPriceKey = (type: string) => {
 
 export default function SubscriptionSummaryScreen() {
   const router = useRouter();
+  const { showAlert } = useAlert();
   const {
     planId,
     vehicleId,
@@ -114,7 +115,11 @@ export default function SubscriptionSummaryScreen() {
 
   const handlePayment = async () => {
     if (!selectedPlan || !selectedVehicle) {
-      Alert.alert("Error", "Required selection data missing.");
+      showAlert({
+        title: "Error",
+        message: "Required selection data missing.",
+        type: "error",
+      });
       return;
     }
 
@@ -190,10 +195,11 @@ export default function SubscriptionSummaryScreen() {
       }
 
       if (!NativeModules.RazorpayCheckout) {
-        Alert.alert(
-          "Error",
-          "Native Payment Module Missing and no Web Link provided.",
-        );
+        showAlert({
+          title: "Error",
+          message: "Native Payment Module Missing and no Web Link provided.",
+          type: "error",
+        });
         return;
       }
 
@@ -231,16 +237,18 @@ export default function SubscriptionSummaryScreen() {
           }, 5000);
         })
         .catch((error: any) => {
-          Alert.alert(
-            "Payment Cancelled",
-            error.description || "Payment failed",
-          );
+          showAlert({
+            title: "Payment Cancelled",
+            message: error.description || "Payment failed",
+            type: "warning",
+          });
         });
     } catch (err: any) {
-      Alert.alert(
-        "Error",
-        err?.data?.message || "Failed to initiate subscription",
-      );
+      showAlert({
+        title: "Error",
+        message: err?.data?.message || "Failed to initiate subscription",
+        type: "error",
+      });
     }
   };
 

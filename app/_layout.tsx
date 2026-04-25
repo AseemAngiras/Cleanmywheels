@@ -14,6 +14,8 @@ import Toast from "react-native-toast-message";
 import { Ionicons } from "@expo/vector-icons";
 import NotificationManager from "../components/NotificationManager";
 
+import { AlertProvider } from "../components/providers/AlertProvider";
+
 SplashScreen.preventAutoHideAsync();
 
 const toastConfig = {
@@ -96,17 +98,19 @@ export default function RootLayout() {
     <Provider store={store}>
       <PersistGate loading={<LoadingView />} persistor={persistor}>
         <SafeAreaProvider>
-          <View className="flex-1 bg-background">
-            <SocketManager />
-            <NotificationManager />
-            <View className="flex-1">
-              <Stack screenOptions={{ headerShown: false }}>
-                <Stack.Screen name="index" />
-                <Stack.Screen name="(tabs)" />
-              </Stack>
+          <AlertProvider>
+            <View className="flex-1 bg-background">
+              <SocketManager />
+              <NotificationManager />
+              <View className="flex-1">
+                <Stack screenOptions={{ headerShown: false }}>
+                  <Stack.Screen name="index" />
+                  <Stack.Screen name="(tabs)" />
+                </Stack>
+              </View>
             </View>
-          </View>
-          <Toast config={toastConfig} />
+            <Toast config={toastConfig} />
+          </AlertProvider>
         </SafeAreaProvider>
       </PersistGate>
     </Provider>

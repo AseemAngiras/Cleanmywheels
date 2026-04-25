@@ -16,7 +16,6 @@ import React, { useMemo, useState } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -26,6 +25,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useAlert } from "@/components/providers/AlertProvider";
 import { WebView } from "react-native-webview";
 import { getLeafletHtml } from "@/utils/leafletHtml";
 import { useDispatch, useSelector } from "react-redux";
@@ -34,6 +34,7 @@ import { InteractivePressable } from "@/components/ui/InteractivePressable";
 export default function EnterLocationScreen() {
   const dispatch = useDispatch();
   const router = useRouter();
+  const { showAlert } = useAlert();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const params = useLocalSearchParams();
@@ -325,7 +326,11 @@ export default function EnterLocationScreen() {
     } catch {
       const errorMessage = "Please check your connection and try again.";
       setErrorMsg(errorMessage);
-      Alert.alert("Failed to save address", errorMessage);
+      showAlert({
+        title: "Failed to save address",
+        message: errorMessage,
+        type: "error",
+      });
     }
   };
 

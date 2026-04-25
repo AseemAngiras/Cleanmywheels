@@ -14,7 +14,6 @@ import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { WebView } from "react-native-webview";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  Alert,
   Modal,
   Text,
   TouchableOpacity,
@@ -22,6 +21,7 @@ import {
   ScrollView,
   ActivityIndicator,
 } from "react-native";
+import { useAlert } from "@/components/providers/AlertProvider";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useDispatch, useSelector } from "react-redux";
@@ -45,6 +45,7 @@ export default function BookingSummaryScreen() {
   const navigation = useNavigation();
   const params = useLocalSearchParams();
   const dispatch = useDispatch();
+  const { showAlert } = useAlert();
   const insets = useSafeAreaInsets();
 
   const [createBooking, { isLoading: isCreatingBooking }] =
@@ -220,17 +221,18 @@ export default function BookingSummaryScreen() {
           }
           setIsVerifyingPayment(false);
           setShowGateway(false);
-          Alert.alert(
-            "Verification Pending",
-            "Payment confirmation is taking longer. Check 'My Bookings' later.",
-            [
+          showAlert({
+            title: "Verification Pending",
+            message: "Payment confirmation is taking longer. Check 'My Bookings' later.",
+            type: "info",
+            buttons: [
               {
                 text: "My Bookings",
                 onPress: () => router.push("/(tabs)/bookings"),
               },
               { text: "Close", style: "cancel" },
             ],
-          );
+          });
           return true; // Stop
         }
         return false; // Continue

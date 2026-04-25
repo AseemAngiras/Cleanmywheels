@@ -3,7 +3,6 @@ import { Colors } from "@/constants/Colors";
 import { toast } from "@/utils/toast";
 import React, { useRef, useState } from "react";
 import {
-  Alert,
   Animated,
   Dimensions,
   Easing,
@@ -17,6 +16,7 @@ import {
   View,
   ActivityIndicator,
 } from "react-native";
+import { useAlert } from "@/components/providers/AlertProvider";
 import { InteractivePressable } from "@/components/ui/InteractivePressable";
 
 import {
@@ -37,6 +37,7 @@ const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 export default function MyCarsScreen() {
   const router = useRouter();
+  const { showAlert } = useAlert();
   const user = useSelector((state: RootState) => state.user.user);
   const isAdmin = user?.accountType === "Super Admin";
 
@@ -182,21 +183,26 @@ export default function MyCarsScreen() {
       toast.error("Cannot Remove", "This vehicle has an active subscription.");
       return;
     }
-    Alert.alert("Remove Car", "Are you sure you want to remove this vehicle?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Remove",
-        style: "destructive",
-        onPress: async () => {
-          try {
-            await deleteVehicle(id).unwrap();
-            toast.success("Success", "Vehicle removed successfully");
-          } catch {
-            toast.error("Error", "Failed to remove");
-          }
+    showAlert({
+      title: "Remove Car",
+      message: "Are you sure you want to remove this vehicle?",
+      type: "warning",
+      buttons: [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Remove",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await deleteVehicle(id).unwrap();
+              toast.success("Success", "Vehicle removed successfully");
+            } catch {
+              toast.error("Error", "Failed to remove");
+            }
+          },
         },
-      },
-    ]);
+      ],
+    });
   };
 
   const VEHICLE_TYPES = ["Sedan", "SUV", "Hatchback", "Two Wheeler"];

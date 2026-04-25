@@ -5,7 +5,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
-  Alert,
   Modal,
   ScrollView,
   Text,
@@ -14,6 +13,7 @@ import {
   View,
 } from "react-native";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
+import { useAlert } from "@/components/providers/AlertProvider";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useDispatch, useSelector } from "react-redux";
 import BookingStepper from "../../../../components/BookingStepper";
@@ -24,6 +24,7 @@ export default function BookingSummaryScreen() {
   const router = useRouter();
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
+  const { showAlert } = useAlert();
   const { bookingDraft } = useLocalSearchParams();
 
   const parsedBooking = bookingDraft
@@ -83,7 +84,11 @@ export default function BookingSummaryScreen() {
 
   const handleBooking = async () => {
     if (!selectedPaymentMethod) {
-      Alert.alert("Payment Required", "Please select a payment option");
+      showAlert({
+        title: "Payment Required",
+        message: "Please select a payment option",
+        type: "warning",
+      });
       return;
     }
 
@@ -124,10 +129,11 @@ export default function BookingSummaryScreen() {
         },
       });
     } catch (err: any) {
-      Alert.alert(
-        "Error",
-        err?.data?.message || "Failed to create booking. Please try again.",
-      );
+      showAlert({
+        title: "Error",
+        message: err?.data?.message || "Failed to create booking. Please try again.",
+        type: "error",
+      });
     }
   };
 

@@ -5,7 +5,6 @@ import { Colors } from "@/constants/Colors";
 import React, { useState, useEffect, useMemo } from "react";
 import {
   ActivityIndicator,
-  Alert,
   Image,
   ScrollView,
   Text,
@@ -20,10 +19,12 @@ import {
   useGetAddonsQuery,
   useGetMySubscriptionQuery,
 } from "@/store/api/subscriptionApi";
+import { useAlert } from "@/components/providers/AlertProvider";
 
 export default function AddonsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { showAlert } = useAlert();
 
   const { data: subscriptions, isLoading: isSubLoading } =
     useGetMySubscriptionQuery(undefined);
@@ -78,22 +79,37 @@ export default function AddonsScreen() {
 
   const handlePayment = async () => {
     if (!activeSubscription) {
-      Alert.alert("Error", "No active subscription selected.");
+      showAlert({
+        title: "Error",
+        message: "No active subscription selected.",
+        type: "error",
+      });
       return;
     }
     if (selectedAddons.length === 0) {
-      Alert.alert("Select Add-ons", "Please select at least one add-on.");
+      showAlert({
+        title: "Select Add-ons",
+        message: "Please select at least one add-on.",
+      });
       return;
     }
 
     const now = new Date();
     if (serviceDate < new Date(now.setHours(0, 0, 0, 0))) {
-      Alert.alert("Invalid Date", "Please select a future date or today.");
+      showAlert({
+        title: "Invalid Date",
+        message: "Please select a future date or today.",
+        type: "error",
+      });
       return;
     }
     const subEnd = new Date(activeSubscription.endDate);
     if (serviceDate > subEnd) {
-      Alert.alert("Invalid Date", "Date cannot be after subscription expiry.");
+      showAlert({
+        title: "Invalid Date",
+        message: "Date cannot be after subscription expiry.",
+        type: "error",
+      });
       return;
     }
 
@@ -109,6 +125,7 @@ export default function AddonsScreen() {
       const { paymentLinkUrl, subscriptionId, referenceId } = response;
 
       if (paymentLinkUrl) {
+        // ... (router.push logic)
         router.push({
           pathname: "/(tabs)/home/book-doorstep/payment-webview",
           params: {
@@ -128,9 +145,17 @@ export default function AddonsScreen() {
         return;
       }
 
-      Alert.alert("Error", "Failed to generate payment link.");
+      showAlert({
+        title: "Error",
+        message: "Failed to generate payment link.",
+        type: "error",
+      });
     } catch (err: any) {
-      Alert.alert("Error", err?.data?.message || "Failed to create order");
+      showAlert({
+        title: "Error",
+        message: err?.data?.message || "Failed to create order",
+        type: "error",
+      });
     }
   };
 
@@ -303,10 +328,10 @@ export default function AddonsScreen() {
                       );
 
                       if (isDone) {
-                        Alert.alert(
-                          "Service Completed",
-                          "Service for this date is already marked as done.",
-                        );
+                        showAlert({
+                          title: "Service Completed",
+                          message: "Service for this date is already marked as done.",
+                        });
                         return;
                       }
                       setServiceDate(date);

@@ -9,7 +9,6 @@ import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   FlatList,
   Image,
   Linking,
@@ -20,6 +19,7 @@ import {
   View,
 } from "react-native";
 import { Colors } from "@/constants/Colors";
+import { useAlert } from "@/components/providers/AlertProvider";
 
 import BookingDetailsModal from "./BookingDetailsModal";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
@@ -82,6 +82,7 @@ const parseSubTimeSlotToHour = (slot: string): number | null => {
 };
 
 export default function AdminBookingsScreen() {
+  const { showAlert } = useAlert();
   const [filter, setFilter] = useState("All");
   const [workerModalVisible, setWorkerModalVisible] = useState(false);
   const [detailsModalVisible, setDetailsModalVisible] = useState(false);
@@ -173,10 +174,10 @@ export default function AdminBookingsScreen() {
   const handleAssignWorker = async (worker: any) => {
     setWorkerModalVisible(false);
 
-    Alert.alert(
-      "Confirm Assignment",
-      `Assign ${worker.name} to ${selectedBooking?.customerName}?`,
-      [
+    showAlert({
+      title: "Confirm Assignment",
+      message: `Assign ${worker.name} to ${selectedBooking?.customerName}?`,
+      buttons: [
         { text: "Cancel", style: "cancel" },
         {
           text: "Confirm & Notify",
@@ -186,30 +187,32 @@ export default function AdminBookingsScreen() {
                 bookingId: selectedBooking.id,
                 workerId: worker._id,
               }).unwrap();
-              Alert.alert(
-                "Worker Assigned",
-                "Assignment saved! If the automated WhatsApp is not received, you can send it manually from the booking details.",
-              );
+              showAlert({
+                title: "Worker Assigned",
+                message: "Assignment saved! If the automated WhatsApp is not received, you can send it manually from the booking details.",
+                type: "success",
+              });
               refetch();
             } catch {
-              Alert.alert(
-                "Error",
-                "Failed to assign worker. Please try again.",
-              );
+              showAlert({
+                title: "Error",
+                message: "Failed to assign worker. Please try again.",
+                type: "error",
+              });
             }
           },
         },
       ],
-    );
+    });
   };
 
   const handleMarkComplete = async (
     booking: ReturnType<typeof mapBookingToUI>,
   ) => {
-    Alert.alert(
-      "Mark as Complete",
-      `Mark this booking for ${booking.customerName} as completed?`,
-      [
+    showAlert({
+      title: "Mark as Complete",
+      message: `Mark this booking for ${booking.customerName} as completed?`,
+      buttons: [
         { text: "Cancel", style: "cancel" },
         {
           text: "Complete",
@@ -219,15 +222,23 @@ export default function AdminBookingsScreen() {
                 id: booking.id,
                 status: "Completed",
               }).unwrap();
-              Alert.alert("Success", "Booking marked as completed!");
+              showAlert({
+                title: "Success",
+                message: "Booking marked as completed!",
+                type: "success",
+              });
               refetch();
             } catch {
-              Alert.alert("Error", "Failed to update booking status.");
+              showAlert({
+                title: "Error",
+                message: "Failed to update booking status.",
+                type: "error",
+              });
             }
           },
         },
       ],
-    );
+    });
   };
 
   const renderCard = ({
@@ -348,7 +359,7 @@ export default function AdminBookingsScreen() {
             onPress={() => {
               const phoneUrl = `tel:+${item.phone}`;
               Linking.openURL(phoneUrl).catch(() =>
-                Alert.alert("Error", "Could not open dialer"),
+                showAlert({ title: "Error", message: "Could not open dialer", type: "error" }),
               );
             }}
           >

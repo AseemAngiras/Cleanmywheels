@@ -5,7 +5,6 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
   Modal,
   TextInput,
   KeyboardAvoidingView,
@@ -15,6 +14,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { Colors } from "@/constants/Colors";
+import { useAlert } from "@/components/providers/AlertProvider";
 import {
   useGetAddonsQuery,
   useCreateAddonMutation,
@@ -34,6 +34,7 @@ const PRICE_KEYS = [
 
 export default function ServiceManagementScreen() {
   const insets = useSafeAreaInsets();
+  const { showAlert } = useAlert();
 
   const { data: addons, isLoading } = useGetAddonsQuery();
   const [createAddon, { isLoading: isCreating }] = useCreateAddonMutation();
@@ -90,10 +91,11 @@ export default function ServiceManagementScreen() {
   };
 
   const handleDelete = async (id: string) => {
-    Alert.alert(
-      "Delete Service",
-      "Are you sure you want to delete this service? This may affect active subscriptions.",
-      [
+    showAlert({
+      title: "Delete Service",
+      message: "Are you sure you want to delete this service? This may affect active subscriptions.",
+      type: "error",
+      buttons: [
         { text: "Cancel", style: "cancel" },
         {
           text: "Delete",
@@ -101,19 +103,31 @@ export default function ServiceManagementScreen() {
           onPress: async () => {
             try {
               await deleteAddon(id).unwrap();
-              Alert.alert("Success", "Service deleted successfully");
+              showAlert({
+                title: "Success",
+                message: "Service deleted successfully",
+                type: "success",
+              });
             } catch (err: any) {
-              Alert.alert("Error", err?.data?.message || "Failed to delete");
+              showAlert({
+                title: "Error",
+                message: err?.data?.message || "Failed to delete",
+                type: "error",
+              });
             }
           },
         },
-      ]
-    );
+      ],
+    });
   };
 
   const handleSave = async () => {
     if (!editData.name.trim()) {
-      Alert.alert("Error", "Name is required");
+      showAlert({
+        title: "Error",
+        message: "Name is required",
+        type: "error",
+      });
       return;
     }
 
@@ -135,14 +149,26 @@ export default function ServiceManagementScreen() {
     try {
       if (editingAddon?._id === "new") {
         await createAddon(payload).unwrap();
-        Alert.alert("Success", "Service created successfully");
+        showAlert({
+          title: "Success",
+          message: "Service created successfully",
+          type: "success",
+        });
       } else if (editingAddon?._id) {
         await updateAddon({ id: editingAddon._id, body: payload }).unwrap();
-        Alert.alert("Success", "Service updated successfully");
+        showAlert({
+          title: "Success",
+          message: "Service updated successfully",
+          type: "success",
+        });
       }
       setEditingAddon(null);
     } catch (err: any) {
-      Alert.alert("Error", err?.data?.message || "Failed to save");
+      showAlert({
+        title: "Error",
+        message: err?.data?.message || "Failed to save",
+        type: "error",
+      });
     }
   };
 

@@ -5,7 +5,6 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
   Modal,
   TextInput,
 } from "react-native";
@@ -13,6 +12,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { Colors } from "@/constants/Colors";
+import { useAlert } from "@/components/providers/AlertProvider";
 import {
   useGetWashPackagesQuery,
   useUpdateWashPackageMutation,
@@ -31,6 +31,7 @@ const VEHICLE_TYPE_TO_PRICE_KEY: Record<string, string> = {
 
 export default function AdminWashPackagesScreen() {
   const insets = useSafeAreaInsets();
+  const { showAlert } = useAlert();
 
   const { data: response, isLoading } = useGetWashPackagesQuery({
     page: 1,
@@ -74,10 +75,11 @@ export default function AdminWashPackagesScreen() {
   const handleUpdate = async () => {
     if (!editingPackage) return;
 
-    Alert.alert(
-      "Confirm Update",
-      "Are you sure you want to update this wash package?",
-      [
+    showAlert({
+      title: "Confirm Update",
+      message: "Are you sure you want to update this wash package?",
+      type: "info",
+      buttons: [
         { text: "Cancel", style: "cancel" },
         {
           text: "Update",
@@ -100,18 +102,23 @@ export default function AdminWashPackagesScreen() {
                   },
                 },
               }).unwrap();
-              Alert.alert("Success", "Package updated successfully");
+              showAlert({
+                title: "Success",
+                message: "Package updated successfully",
+                type: "success",
+              });
               setEditingPackage(null);
             } catch (err: any) {
-              Alert.alert(
-                "Error",
-                err?.data?.message || "Failed to update package",
-              );
+              showAlert({
+                title: "Error",
+                message: err?.data?.message || "Failed to update package",
+                type: "error",
+              });
             }
           },
         },
       ],
-    );
+    });
   };
 
   const handleAddNew = () => {
@@ -127,10 +134,11 @@ export default function AdminWashPackagesScreen() {
   };
 
   const handleDelete = async (id: string) => {
-    Alert.alert(
-      "Delete Package",
-      "Are you sure you want to delete this wash package? This action cannot be undone.",
-      [
+    showAlert({
+      title: "Delete Package",
+      message: "Are you sure you want to delete this wash package? This action cannot be undone.",
+      type: "error",
+      buttons: [
         { text: "Cancel", style: "cancel" },
         {
           text: "Delete",
@@ -138,17 +146,22 @@ export default function AdminWashPackagesScreen() {
           onPress: async () => {
             try {
               await deleteWashPackage(id).unwrap();
-              Alert.alert("Success", "Package deleted successfully");
+              showAlert({
+                title: "Success",
+                message: "Package deleted successfully",
+                type: "success",
+              });
             } catch (err: any) {
-              Alert.alert(
-                "Error",
-                err?.data?.message || "Failed to delete package",
-              );
+              showAlert({
+                title: "Error",
+                message: err?.data?.message || "Failed to delete package",
+                type: "error",
+              });
             }
           },
         },
       ],
-    );
+    });
   };
 
   const handleSave = async () => {
@@ -172,10 +185,18 @@ export default function AdminWashPackagesScreen() {
           // logo: "https://cdn-icons-png.flaticon.com/512/3202/3202926.png",
           tag: "Standard",
         }).unwrap();
-        Alert.alert("Success", "Package created successfully");
+        showAlert({
+          title: "Success",
+          message: "Package created successfully",
+          type: "success",
+        });
         setEditingPackage(null);
       } catch (err: any) {
-        Alert.alert("Error", err?.data?.message || "Failed to create package");
+        showAlert({
+          title: "Error",
+          message: err?.data?.message || "Failed to create package",
+          type: "error",
+        });
       }
     } else {
       handleUpdate();

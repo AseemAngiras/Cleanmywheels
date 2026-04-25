@@ -5,7 +5,6 @@ import {
   FlatList,
   ActivityIndicator,
   Modal,
-  Alert,
 } from "react-native";
 import { InteractivePressable } from "../ui/InteractivePressable";
 import { Ionicons } from "@expo/vector-icons";
@@ -19,8 +18,10 @@ import {
 import { WorkerForm } from "./WorkerForm";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { Colors } from "@/constants/Colors";
+import { useAlert } from "@/components/providers/AlertProvider";
 
 export default function AdminWorkerScreen() {
+  const { showAlert } = useAlert();
   const [modalVisible, setModalVisible] = useState(false);
   const [editingWorker, setEditingWorker] = useState<Worker | null>(null);
   const [selectedWorkerId, setSelectedWorkerId] = useState<string | null>(null);
@@ -44,10 +45,11 @@ export default function AdminWorkerScreen() {
   };
 
   const handleDeleteWorker = (worker: Worker) => {
-    Alert.alert(
-      "Delete Professional",
-      `Are you sure you want to remove ${worker.name}?`,
-      [
+    showAlert({
+      title: "Delete Professional",
+      message: `Are you sure you want to remove ${worker.name}?`,
+      type: "error",
+      buttons: [
         { text: "Cancel", style: "cancel" },
         {
           text: "Delete",
@@ -55,35 +57,52 @@ export default function AdminWorkerScreen() {
           onPress: async () => {
             try {
               await deleteWorker(worker._id).unwrap();
-              Alert.alert("Success", "Worker deleted successfully");
+              showAlert({
+                title: "Success",
+                message: "Worker deleted successfully",
+                type: "success",
+              });
             } catch (error) {
-              Alert.alert("Error", "Failed to delete worker");
+              showAlert({
+                title: "Error",
+                message: "Failed to delete worker",
+                type: "error",
+              });
             }
           },
         },
       ],
-    );
+    });
   };
 
   const handleSubmit = async (values: any) => {
     try {
       if (editingWorker) {
         await updateWorker({ id: editingWorker._id, data: values }).unwrap();
-        Alert.alert("Success", "Worker updated successfully");
+        showAlert({
+          title: "Success",
+          message: "Worker updated successfully",
+          type: "success",
+        });
       } else {
         await createWorker({
           ...values,
           countryCode: "+91",
           joiningDate: new Date().toISOString(),
         }).unwrap();
-        Alert.alert("Success", "Worker created successfully");
+        showAlert({
+          title: "Success",
+          message: "Worker created successfully",
+          type: "success",
+        });
       }
       setModalVisible(false);
     } catch (error: any) {
-      Alert.alert(
-        "Error",
-        error?.data?.message || "Failed to save worker details",
-      );
+      showAlert({
+        title: "Error",
+        message: error?.data?.message || "Failed to save worker details",
+        type: "error",
+      });
     }
   };
 

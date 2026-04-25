@@ -4,7 +4,6 @@ import { Colors } from "@/constants/Colors";
 import React, { useState, useEffect } from "react";
 import {
   ActivityIndicator,
-  Alert,
   ScrollView,
   Text,
   TextInput,
@@ -191,7 +190,11 @@ export default function SubscriptionConfigureScreen() {
 
   const handleAddCar = async () => {
     if (!newCarNo.trim()) {
-      Alert.alert("Invalid Input", "Please enter vehicle number");
+      showAlert({
+        title: "Invalid Input",
+        message: "Please enter vehicle number",
+        type: "warning",
+      });
       return;
     }
 
@@ -219,10 +222,11 @@ export default function SubscriptionConfigureScreen() {
     });
 
     if (isDuplicate) {
-      Alert.alert(
-        "Duplicate Vehicle",
-        `A ${newCarType} with number ${cleanedNo} is already in your garage.`,
-      );
+      showAlert({
+        title: "Duplicate Vehicle",
+        message: `A ${newCarType} with number ${cleanedNo} is already in your garage.`,
+        type: "info",
+      });
       return;
     }
 
@@ -241,15 +245,27 @@ export default function SubscriptionConfigureScreen() {
       if (createdVehicle?._id) {
         setSelectedVehicleId(createdVehicle._id);
       }
-      Alert.alert("Success", "Vehicle added successfully!");
+      showAlert({
+        title: "Success",
+        message: "Vehicle added successfully!",
+        type: "success",
+      });
     } catch (e: any) {
-      Alert.alert("Error", e?.data?.message || "Failed to add vehicle");
+      showAlert({
+        title: "Error",
+        message: e?.data?.message || "Failed to add vehicle",
+        type: "error",
+      });
     }
   };
 
   const handleContinue = () => {
     if (!selectedVehicleId || !selectedTimeSlot) {
-      Alert.alert("Missing Details", "Please select a vehicle and time slot.");
+      showAlert({
+        title: "Missing Details",
+        message: "Please select a vehicle and time slot.",
+        type: "warning",
+      });
       return;
     }
 

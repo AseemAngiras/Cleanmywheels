@@ -1,5 +1,4 @@
 import {
-  Alert,
   Animated,
   Easing,
   FlatList,
@@ -18,6 +17,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { InteractivePressable } from "../../../components/ui/InteractivePressable";
 
 import { useFocusEffect, useRouter } from "expo-router";
+import { useAlert } from "@/components/providers/AlertProvider";
 
 import type { RootState } from "../../../store";
 import {
@@ -88,6 +88,7 @@ const mapBackendBooking = (booking: any): Booking => {
 
 export default function UpcomingServices() {
   const router = useRouter();
+  const { showAlert } = useAlert();
 
   const user = useAppSelector((state: RootState) => state.user.user);
   const isAdmin =
@@ -179,7 +180,11 @@ export default function UpcomingServices() {
       if (supported) {
         Linking.openURL(url);
       } else {
-        Alert.alert("Error", "WhatsApp is not installed");
+        showAlert({
+          title: "Error",
+          message: "WhatsApp is not installed",
+          type: "error",
+        });
       }
     });
   };
@@ -211,21 +216,30 @@ export default function UpcomingServices() {
           workerId: worker._id,
         }).unwrap();
 
-        Alert.alert("Success", `Assigned ${worker.name} to subscription!`);
+        showAlert({
+          title: "Success",
+          message: `Assigned ${worker.name} to subscription!`,
+          type: "success",
+        });
         setWorkerModalVisible(false);
         setIsAssigningSubWorker(false);
       } catch {
-        Alert.alert("Error", "Failed to assign worker");
+        showAlert({
+          title: "Error",
+          message: "Failed to assign worker",
+          type: "error",
+        });
       }
       return;
     }
 
     if (!activeBooking) return;
 
-    Alert.alert(
-      "Confirm Assignment",
-      `Assign ${worker.name} to this job? This will notify both parties and update the booking.`,
-      [
+    showAlert({
+      title: "Confirm Assignment",
+      message: `Assign ${worker.name} to this job? This will notify both parties and update the booking.`,
+      type: "info",
+      buttons: [
         { text: "Cancel", style: "cancel" },
         {
           text: "Assign & Notify",
@@ -244,21 +258,23 @@ export default function UpcomingServices() {
 
               setWorkerModalVisible(false);
               closeSheet();
-              Alert.alert(
-                "Success",
-                "Worker assigned and notified successfully!",
-              );
+              showAlert({
+                title: "Success",
+                message: "Worker assigned and notified successfully!",
+                type: "success",
+              });
             } catch (error) {
               console.error("Assignment error:", error);
-              Alert.alert(
-                "Error",
-                "Failed to assign worker. Please try again.",
-              );
+              showAlert({
+                title: "Error",
+                message: "Failed to assign worker. Please try again.",
+                type: "error",
+              });
             }
           },
         },
       ],
-    );
+    });
   };
 
   useEffect(() => {

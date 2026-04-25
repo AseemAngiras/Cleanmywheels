@@ -7,13 +7,13 @@ import {
   ActivityIndicator,
   Modal,
   TextInput,
-  Alert,
   Image,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { Colors } from "@/constants/Colors";
+import { useAlert } from "@/components/providers/AlertProvider";
 import {
   useGetSubscriptionPlansQuery,
   useUpdateSubscriptionPlanMutation,
@@ -33,6 +33,7 @@ const VEHICLE_TYPE_TO_PRICE_KEY: Record<string, string> = {
 
 export default function AdminSubscriptionPlansScreen() {
   const insets = useSafeAreaInsets();
+  const { showAlert } = useAlert();
 
   const { data: response, isLoading } = useGetSubscriptionPlansQuery({
     page: 1,
@@ -108,22 +109,35 @@ export default function AdminSubscriptionPlansScreen() {
     if (!editingPackage) return;
 
     if (!editData.name.trim()) {
-      Alert.alert("Error", "Plan name is required");
+      showAlert({
+        title: "Error",
+        message: "Plan name is required",
+        type: "error",
+      });
       return;
     }
     if (!editData.tag.trim()) {
-      Alert.alert("Error", "Plan tag is required");
+      showAlert({
+        title: "Error",
+        message: "Plan tag is required",
+        type: "error",
+      });
       return;
     }
     if (editData.features.filter((f) => f.trim() !== "").length === 0) {
-      Alert.alert("Error", "At least one feature is required");
+      showAlert({
+        title: "Error",
+        message: "At least one feature is required",
+        type: "error",
+      });
       return;
     }
 
-    Alert.alert(
-      "Confirm Update",
-      "Are you sure you want to update this subscription plan?",
-      [
+    showAlert({
+      title: "Confirm Update",
+      message: "Are you sure you want to update this subscription plan?",
+      type: "info",
+      buttons: [
         { text: "Cancel", style: "cancel" },
         {
           text: "Update",
@@ -140,18 +154,23 @@ export default function AdminSubscriptionPlansScreen() {
                 },
               }).unwrap();
 
-              Alert.alert("Success", "Subscription plan updated successfully");
+              showAlert({
+                title: "Success",
+                message: "Subscription plan updated successfully",
+                type: "success",
+              });
               setEditModalVisible(false);
             } catch (error: any) {
-              Alert.alert(
-                "Error",
-                error?.data?.message || "Failed to update plan",
-              );
+              showAlert({
+                title: "Error",
+                message: error?.data?.message || "Failed to update plan",
+                type: "error",
+              });
             }
           },
         },
       ],
-    );
+    });
   };
 
   const handleAddNew = () => {
@@ -172,10 +191,11 @@ export default function AdminSubscriptionPlansScreen() {
   };
 
   const handleDelete = async (id: string) => {
-    Alert.alert(
-      "Delete Plan",
-      "Are you sure you want to delete this subscription plan? This action cannot be undone.",
-      [
+    showAlert({
+      title: "Delete Plan",
+      message: "Are you sure you want to delete this subscription plan? This action cannot be undone.",
+      type: "error",
+      buttons: [
         { text: "Cancel", style: "cancel" },
         {
           text: "Delete",
@@ -183,32 +203,49 @@ export default function AdminSubscriptionPlansScreen() {
           onPress: async () => {
             try {
               await deleteSubscriptionPlan(id).unwrap();
-              Alert.alert("Success", "Plan deleted successfully");
+              showAlert({
+                title: "Success",
+                message: "Plan deleted successfully",
+                type: "success",
+              });
             } catch (err: any) {
-              Alert.alert(
-                "Error",
-                err?.data?.message || "Failed to delete plan",
-              );
+              showAlert({
+                title: "Error",
+                message: err?.data?.message || "Failed to delete plan",
+                type: "error",
+              });
             }
           },
         },
       ],
-    );
+    });
   };
 
   const handleSave = async () => {
     if (editingPackage?._id === "new") {
       try {
         if (!editData.name.trim()) {
-          Alert.alert("Error", "Plan name is required");
+          showAlert({
+            title: "Error",
+            message: "Plan name is required",
+            type: "error",
+          });
           return;
         }
         if (!editData.tag.trim()) {
-          Alert.alert("Error", "Plan tag is required");
+          showAlert({
+            title: "Error",
+            message: "Plan tag is required",
+            type: "error",
+          });
           return;
         }
         if (editData.features.filter((f) => f.trim() !== "").length === 0) {
-          Alert.alert("Error", "At least one feature is required");
+          showAlert({
+            title: "Error",
+            message: "At least one feature is required",
+            type: "error",
+          });
           return;
         }
 
@@ -223,10 +260,18 @@ export default function AdminSubscriptionPlansScreen() {
         };
 
         await createSubscriptionPlan(payload).unwrap();
-        Alert.alert("Success", "Subscription plan created successfully");
+        showAlert({
+          title: "Success",
+          message: "Subscription plan created successfully",
+          type: "success",
+        });
         setEditModalVisible(false);
       } catch (error: any) {
-        Alert.alert("Error", error?.data?.message || "Failed to create plan");
+        showAlert({
+          title: "Error",
+          message: error?.data?.message || "Failed to create plan",
+          type: "error",
+        });
       }
     } else {
       handleUpdate();

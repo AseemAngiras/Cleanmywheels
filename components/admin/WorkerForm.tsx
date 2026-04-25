@@ -4,13 +4,13 @@ import {
   Text,
   TextInput,
   ActivityIndicator,
-  Alert,
   ScrollView,
 } from "react-native";
 import { InteractivePressable } from "../ui/InteractivePressable";
 import { Ionicons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
 import { Colors } from "@/constants/Colors";
+import { useAlert } from "@/components/providers/AlertProvider";
 
 interface WorkerFormProps {
   initialValues?: {
@@ -33,6 +33,7 @@ export const WorkerForm: React.FC<WorkerFormProps> = ({
   isLoading,
   submitLabel,
 }) => {
+  const { showAlert } = useAlert();
   const [name, setName] = useState(initialValues?.name || "");
   const [phone, setPhone] = useState(initialValues?.phone || "");
   const [jobRole, setJobRole] = useState(initialValues?.jobRole || "");
@@ -43,7 +44,11 @@ export const WorkerForm: React.FC<WorkerFormProps> = ({
 
   const handleSubmit = async () => {
     if (!name || !phone || !jobRole) {
-      Alert.alert("Error", "Please fill in all required fields");
+      showAlert({
+        title: "Error",
+        message: "Please fill in all required fields",
+        type: "error",
+      });
       return;
     }
     await onSubmit({ name, phone, jobRole, address, status });

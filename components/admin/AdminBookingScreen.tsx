@@ -6,7 +6,6 @@ import {
   FlatList,
   TouchableOpacity,
   Modal,
-  Alert,
 } from "react-native";
 import {
   useGetBookingsQuery,
@@ -15,8 +14,10 @@ import {
 import { useGetWorkersQuery } from "@/store/api/workerApi";
 import { Colors } from "@/constants/Colors";
 import { Ionicons } from "@expo/vector-icons";
+import { useAlert } from "@/components/providers/AlertProvider";
 
 const AdminBookingScreen = () => {
+  const { showAlert } = useAlert();
   const { data, isLoading, refetch } = useGetBookingsQuery({
     page: 1,
     perPage: 50,
@@ -44,12 +45,20 @@ const AdminBookingScreen = () => {
         workerId: worker._id,
       }).unwrap();
 
-      Alert.alert("Success", `Assigned ${worker.name} to booking`);
+      showAlert({
+        title: "Success",
+        message: `Assigned ${worker.name} to booking`,
+        type: "success",
+      });
       setWorkerModalVisible(false);
       setSelectedBooking(null);
       refetch();
     } catch {
-      Alert.alert("Error", "Failed to assign worker");
+      showAlert({
+        title: "Error",
+        message: "Failed to assign worker",
+        type: "error",
+      });
     }
   };
 
@@ -132,7 +141,7 @@ const AdminBookingScreen = () => {
       ) : (
         <FlatList
           data={bookings}
-          keyExtractor={(item) => item._id}
+          keyExtractor={(item, index) => item?._id || index.toString()}
           renderItem={renderBookingItem}
           contentContainerStyle={{ paddingBottom: 40 }}
           showsVerticalScrollIndicator={false}

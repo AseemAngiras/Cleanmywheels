@@ -2,7 +2,6 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   Text,
   TouchableOpacity,
   View,
@@ -14,6 +13,7 @@ import {
   useVerifyAddonPaymentMutation,
   useVerifySubscriptionMutation,
 } from "@/store/api/subscriptionApi";
+import { useAlert } from "@/components/providers/AlertProvider";
 import { Colors } from "@/constants/Colors";
 
 export default function PaymentWebViewScreen() {
@@ -35,6 +35,7 @@ export default function PaymentWebViewScreen() {
 
   const [verifyAddonPayment] = useVerifyAddonPaymentMutation();
   const [verifySubscription] = useVerifySubscriptionMutation();
+  const { showAlert } = useAlert();
 
   const [isLoading, setIsLoading] = useState(true);
   const [verifying, setVerifying] = useState(false);
@@ -149,10 +150,11 @@ export default function PaymentWebViewScreen() {
         }, 5000);
       } catch (error) {
         console.error("Verification failed", error);
-        Alert.alert(
-          "Verification Failed",
-          "Payment successful but verification failed.",
-        );
+        showAlert({
+          title: "Verification Failed",
+          message: "Payment successful but verification failed.",
+          type: "error",
+        });
         setIsLoading(false);
         setVerifying(false);
       }

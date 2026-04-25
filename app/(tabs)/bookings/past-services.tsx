@@ -5,7 +5,6 @@ import { Colors } from "@/constants/Colors";
 import * as ImagePicker from "expo-image-picker";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  Alert,
   Animated,
   Easing,
   FlatList,
@@ -22,6 +21,7 @@ import {
 import { InteractivePressable } from "@/components/ui/InteractivePressable";
 
 import { useFocusEffect } from "expo-router";
+import { useAlert } from "@/components/providers/AlertProvider";
 import { useGetBookingsQuery } from "../../../store/api/bookingApi";
 import { useAppDispatch, useAppSelector } from "../../../store/hooks";
 import { type RootState } from "../../../store";
@@ -64,6 +64,7 @@ const mapBackendBooking = (booking: any) => ({
 
 export default function PastServices() {
   const dispatch = useAppDispatch();
+  const { showAlert } = useAlert();
 
   const {
     data: bookingsResponse,
@@ -178,7 +179,11 @@ export default function PastServices() {
 
   const submitComplaint = () => {
     if (!complaintText.trim()) {
-      Alert.alert("Required", "Please describe your issue.");
+      showAlert({
+        title: "Required",
+        message: "Please describe your issue.",
+        type: "error",
+      });
       return;
     }
 
@@ -193,10 +198,11 @@ export default function PastServices() {
       }),
     );
 
-    Alert.alert(
-      "Complaint Received",
-      `Your ticket #${ticketId} has been created. Our support team will review it shortly.`,
-    );
+    showAlert({
+      title: "Complaint Received",
+      message: `Your ticket #${ticketId} has been created. Our support team will review it shortly.`,
+      type: "success",
+    });
     closeComplaintModal();
   };
 

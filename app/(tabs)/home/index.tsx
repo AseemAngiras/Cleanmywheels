@@ -21,7 +21,6 @@ import { InteractivePressable } from "@/components/ui/InteractivePressable";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -44,6 +43,7 @@ export default function HomeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
+  const { showAlert } = useAlert();
   const bookings = useSelector((state: RootState) => state.bookings.bookings);
   const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
 
@@ -305,10 +305,17 @@ export default function HomeScreen() {
     isNavigating.current = true;
 
     if (!booking.serviceId) {
-      Alert.alert(
-        "Rebook Unavailable",
-        "This past booking cannot be quick-rebooked. Please start a new booking.",
-        [
+      showAlert({
+        title: "Rebook Unavailable",
+        message: "This past booking cannot be quick-rebooked. Please start a new booking.",
+        buttons: [
+          {
+            text: "Cancel",
+            style: "cancel",
+            onPress: () => {
+              isNavigating.current = false;
+            },
+          },
           {
             text: "Start New Booking",
             onPress: () => {
@@ -318,15 +325,8 @@ export default function HomeScreen() {
               }, 1000);
             },
           },
-          {
-            text: "Cancel",
-            style: "cancel",
-            onPress: () => {
-              isNavigating.current = false;
-            },
-          },
         ],
-      );
+      });
       return;
     }
 

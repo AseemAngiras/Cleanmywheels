@@ -175,7 +175,7 @@ export default function SelectServiceScreen() {
       setEditingService(null);
     } catch (err) {
       console.error(err);
-      Alert.alert("Error", "Failed to update price");
+      showAlert({title: "Error", message: "Failed to update price"});
     }
   };
 

@@ -5,7 +5,6 @@ import { useRouter } from "expo-router";
 import React, { useState, useCallback } from "react";
 import {
   ActivityIndicator,
-  Alert,
   FlatList,
   Image,
   Linking,
@@ -17,6 +16,7 @@ import {
 } from "react-native";
 import { useFocusEffect } from "expo-router";
 import { Colors } from "@/constants/Colors";
+import { useAlert } from "@/components/providers/AlertProvider";
 
 import {
   useAssignSubscriptionWorkerMutation,
@@ -32,6 +32,7 @@ export default function AdminSubscriptionsScreen() {
   const [filter, setFilter] = useState("Requests");
   const [workerModalVisible, setWorkerModalVisible] = useState(false);
   const [selectedSub, setSelectedSub] = useState<any>(null);
+  const { showAlert } = useAlert();
 
   const { data: workersData } = useGetWorkersQuery({});
   const workers = workersData?.workers || [];
@@ -73,10 +74,11 @@ export default function AdminSubscriptionsScreen() {
     setWorkerModalVisible(false);
     if (!selectedSub) return;
 
-    Alert.alert(
-      "Confirm Assignment",
-      `Assign ${worker.name} to ${selectedSub.user?.name}'s subscription?`,
-      [
+    showAlert({
+      title: "Confirm Assignment",
+      message: `Assign ${worker.name} to ${selectedSub.user?.name}'s subscription?`,
+      type: "info",
+      buttons: [
         { text: "Cancel", style: "cancel" },
         {
           text: "Confirm",
@@ -89,18 +91,23 @@ export default function AdminSubscriptionsScreen() {
                 workerPhone: worker.phone,
               }).unwrap();
 
-              Alert.alert("Success", "Worker assigned successfully!");
+              showAlert({
+                title: "Success",
+                message: "Worker assigned successfully!",
+                type: "success",
+              });
               refetch();
             } catch (err: any) {
-              Alert.alert(
-                "Error",
-                err?.data?.message || "Failed to assign worker.",
-              );
+              showAlert({
+                title: "Error",
+                message: err?.data?.message || "Failed to assign worker.",
+                type: "error",
+              });
             }
           },
         },
       ],
-    );
+    });
   };
 
   const getDaysRemaining = (endDate: string) => {
@@ -114,30 +121,43 @@ export default function AdminSubscriptionsScreen() {
   const [markDailyDone] = useMarkSubscriptionDailyDoneMutation();
 
   const handleMarkDone = async (id: string) => {
-    Alert.alert(
-      "Confirm Service",
-      "Are you sure you want to mark today's service as done?",
-      [
+    showAlert({
+      title: "Confirm Service",
+      message: "Are you sure you want to mark today's service as done?",
+      type: "info",
+      buttons: [
         { text: "Cancel", style: "cancel" },
         {
           text: "Confirm",
           onPress: async () => {
             try {
               await markDailyDone({ subscriptionId: id }).unwrap();
-              Alert.alert("Success", "Service marked as done for today!");
+              showAlert({
+                title: "Success",
+                message: "Service marked as done for today!",
+                type: "success",
+              });
               refetch();
             } catch (err) {
-              Alert.alert("Error", "Failed to mark service as done.");
+              showAlert({
+                title: "Error",
+                message: "Failed to mark service as done.",
+                type: "error",
+              });
             }
           },
         },
       ],
-    );
+    });
   };
 
   const handleNotifyWorker = (item: any) => {
     const workerPhone = item.worker?.phone || item.workerPhone;
-    if (!workerPhone) return Alert.alert("Error", "Worker phone not found");
+    if (!workerPhone) return showAlert({
+      title: "Error",
+      message: "Worker phone not found",
+      type: "error",
+    });
 
     const startDate = new Date(item.startDate);
     const completed = item.servicesCompleted || 0;
@@ -167,7 +187,11 @@ export default function AdminSubscriptionsScreen() {
       if (supported) {
         Linking.openURL(url);
       } else {
-        Alert.alert("Error", "WhatsApp is not installed");
+        showAlert({
+          title: "Error",
+          message: "WhatsApp is not installed",
+          type: "error",
+        });
       }
     });
   };

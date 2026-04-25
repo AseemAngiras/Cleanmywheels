@@ -6,10 +6,10 @@ import {
   TouchableOpacity,
   ScrollView,
   Linking,
-  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/constants/Colors";
+import { useAlert } from "@/components/providers/AlertProvider";
 
 interface BookingDetailsModalProps {
   visible: boolean;
@@ -22,11 +22,12 @@ export default function BookingDetailsModal({
   onClose,
   booking,
 }: BookingDetailsModalProps) {
+  const { showAlert } = useAlert();
   if (!booking) return null;
 
   const handleCall = (phone: string) => {
     Linking.openURL(`tel:${phone}`).catch(() =>
-      Alert.alert("Error", "Could not open dialer"),
+      showAlert({ title: "Error", message: "Could not open dialer", type: "error" }),
     );
   };
 
@@ -50,13 +51,17 @@ export default function BookingDetailsModal({
     const url = `whatsapp://send?phone=${phone}&text=${encodeURIComponent(message)}`;
 
     Linking.openURL(url).catch(() =>
-      Alert.alert("Error", "WhatsApp not installed"),
+      showAlert({ title: "Error", message: "WhatsApp not installed", type: "error" }),
     );
   };
 
   const notifyWorker = () => {
     if (!booking.workerPhone) {
-      Alert.alert("Error", "No professional assigned to this booking");
+      showAlert({
+        title: "Error",
+        message: "No professional assigned to this booking",
+        type: "error",
+      });
       return;
     }
     const phone = formatWhatsAppPhone(booking.workerPhone);
@@ -69,7 +74,7 @@ export default function BookingDetailsModal({
     const url = `whatsapp://send?phone=${phone}&text=${encodeURIComponent(message)}`;
 
     Linking.openURL(url).catch(() =>
-      Alert.alert("Error", "WhatsApp not installed"),
+      showAlert({ title: "Error", message: "WhatsApp not installed", type: "error" }),
     );
   };
 

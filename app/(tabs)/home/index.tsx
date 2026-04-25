@@ -22,7 +22,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
-  Image,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -48,7 +47,6 @@ export default function HomeScreen() {
   const bookings = useSelector((state: RootState) => state.bookings.bookings);
   const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
 
-  const userAvatar = useSelector((state: RootState) => state.profile.avatar);
 
   const dispatch = useDispatch();
   const token = useSelector((state: RootState) => state.auth.token);
@@ -396,14 +394,11 @@ export default function HomeScreen() {
                 className="w-12 h-12 rounded-full overflow-hidden border-2 border-[#333] elevation-4 shadow-lg shadow-black"
                 onPress={() => router.push("/(tabs)/profile")}
               >
-                <Image
-                  source={{
-                    uri:
-                      userAvatar ||
-                      "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
-                  }}
-                  className="w-full h-full"
-                />
+                <View className="w-full h-full bg-[#1A1A1A] items-center justify-center">
+                  <Text className="text-primary font-[900] text-[18px]">
+                    {(userProfile?.user?.name || user?.name || "U").charAt(0).toUpperCase()}
+                  </Text>
+                </View>
               </InteractivePressable>
             )}
           </View>

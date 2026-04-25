@@ -5,7 +5,6 @@ import { toast } from "@/utils/toast";
 import React, { useEffect, useRef, useState } from "react";
 import {
   Dimensions,
-  Image,
   Modal,
   ScrollView,
   Text,
@@ -41,7 +40,6 @@ import { useAppDispatch } from "@/store/hooks";
 import { logout } from "@/store/slices/authSlice";
 import {
   removeAddresses,
-  setAvatar,
   setDefaultAddress,
   updateProfile,
 } from "@/store/slices/profileSlice";
@@ -49,14 +47,6 @@ import { updateUser } from "@/store/slices/userSlice";
 
 const { height } = Dimensions.get("window");
 
-const AVATARS = [
-  "https://i.pravatar.cc/150?img=12",
-  "https://i.pravatar.cc/150?img=5",
-  "https://i.pravatar.cc/150?img=3",
-  "https://i.pravatar.cc/150?img=9",
-  "https://i.pravatar.cc/150?img=60",
-  "https://i.pravatar.cc/150?img=68",
-];
 
 export default function ProfileHome() {
   const dispatch = useAppDispatch();
@@ -73,8 +63,6 @@ export default function ProfileHome() {
   const isPremiumUser = !!activeSub;
 
   const [showLogout, setShowLogout] = useState(false);
-  const [showAvatarModal, setShowAvatarModal] = useState(false);
-  const [selectedAvatar, setSelectedAvatar] = useState("");
   const translateY = useRef(new RNAnimated.Value(height)).current;
   const profileTranslateY = useRef(new RNAnimated.Value(-height)).current;
   const overlayOpacity = useRef(new RNAnimated.Value(0)).current;
@@ -124,7 +112,7 @@ export default function ProfileHome() {
     savedAddresses[0];
 
   useEffect(() => {
-    if (showLogout || showAvatarModal) {
+    if (showLogout) {
       RNAnimated.timing(overlayOpacity, {
         toValue: 1,
         duration: 300,
@@ -144,7 +132,7 @@ export default function ProfileHome() {
         translateY.setValue(height);
       });
     }
-  }, [showLogout, showAvatarModal, overlayOpacity, translateY]);
+  }, [showLogout, overlayOpacity, translateY]);
 
   useEffect(() => {
     if (showEditProfileModal) {
@@ -172,16 +160,10 @@ export default function ProfileHome() {
   useEffect(() => {
     if (showEditProfileModal) {
       setTempName(profileState.name || userData?.name || "");
-      setTempName(profileState.name || userData?.name || "");
-    }
-    if (showAvatarModal) {
-      setSelectedAvatar(profileState?.avatar || AVATARS[0]);
     }
   }, [
     showEditProfileModal,
-    showAvatarModal,
     profileState.name,
-    profileState.avatar,
     userData?.name,
   ]);
 
@@ -203,21 +185,6 @@ export default function ProfileHome() {
     }
   };
 
-  const handleUpdateAvatar = async () => {
-    try {
-      await updateUserProfileAPI({
-        avatar: selectedAvatar,
-      }).unwrap();
-
-      dispatch(updateUser({ avatar: selectedAvatar }));
-      dispatch(setAvatar(selectedAvatar));
-
-      toast.success("Success", "Avatar updated successfully");
-      setShowAvatarModal(false);
-    } catch (error: any) {
-      toast.error("Error", error?.data?.message || "Failed to update avatar");
-    }
-  };
 
   const handleLogout = () => {
     setShowLogout(false);
@@ -291,15 +258,11 @@ export default function ProfileHome() {
           className="mx-5 mb-6 p-5 rounded-[24px] bg-card flex-row items-center justify-between border border-border shadow-lg elevation-4"
         >
           <View className="flex-row items-center gap-4">
-            <InteractivePressable>
-              <Image
-                source={{
-                  uri:
-                    profileState?.avatar || "https://i.pravatar.cc/150?img=12",
-                }}
-                className="w-16 h-16 rounded-full border-2 border-border bg-background"
-              />
-            </InteractivePressable>
+            <View className="w-16 h-16 rounded-full border-2 border-border bg-[#1A1A1A] items-center justify-center">
+              <Text className="text-primary font-[900] text-2xl">
+                {(profileState?.name || userData?.name || "U").charAt(0).toUpperCase()}
+              </Text>
+            </View>
             <View>
               <InteractivePressable onPress={() => setShowEditProfileModal(true)}>
                 <View className="flex-row items-center">
@@ -745,81 +708,6 @@ export default function ProfileHome() {
           </RNAnimated.View>
         </Modal>
 
-        {/* AVATAR SELECTION MODAL */}
-        <Modal
-          visible={showAvatarModal}
-          transparent
-          animationType="fade"
-          onRequestClose={() => setShowAvatarModal(false)}
-        >
-          <RNAnimated.View
-            className="flex-1 bg-black/60"
-            style={{ opacity: overlayOpacity }}
-          >
-            <InteractivePressable
-              className="flex-1"
-              onPress={() => setShowAvatarModal(false)}
-            />
-          </RNAnimated.View>
-          <RNAnimated.View
-            className="absolute bottom-0 left-0 right-0 bg-card rounded-t-[32px] p-6 border border-border shadow-2xl elevation-20"
-            style={[
-              { transform: [{ translateY }] },
-              { paddingBottom: Math.max(insets.bottom, 40) },
-            ]}
-          >
-            <View className="items-center mb-6">
-              <View className="w-12 h-1 bg-border rounded-full mb-6" />
-              <Text className="text-[22px] font-[700] text-text">
-                Choose Avatar
-              </Text>
-              <Text className="text-[15px] color-textSecondary text-center">
-                Select an avatar that best represents you
-              </Text>
-            </View>
-
-            <View className="flex-row flex-wrap justify-center gap-4 mb-6">
-              {AVATARS.map((avatar) => (
-                <InteractivePressable
-                  key={avatar}
-                  onPress={() => setSelectedAvatar(avatar)}
-                  className={`w-[70px] h-[70px] rounded-full border-2 p-1 ${
-                    selectedAvatar === avatar
-                      ? "border-primary"
-                      : "border-border"
-                  }`}
-                >
-                  <Image
-                    source={{ uri: avatar }}
-                    className="w-full h-full rounded-full"
-                  />
-                  {selectedAvatar === avatar && (
-                    <View className="absolute -top-1 -right-1 bg-primary rounded-full w-5 h-5 items-center justify-center border border-card">
-                      <Ionicons name="checkmark" size={12} color="black" />
-                    </View>
-                  )}
-                </InteractivePressable>
-              ))}
-            </View>
-
-            <InteractivePressable
-              className="py-4 rounded-2xl bg-primary items-center justify-center shadow shadow-primary mb-3"
-              onPress={handleUpdateAvatar}
-            >
-              <Text className="text-base font-[700] text-black">
-                Save Avatar
-              </Text>
-            </InteractivePressable>
-            <InteractivePressable
-              className="py-4 rounded-2xl items-center justify-center"
-              onPress={() => setShowAvatarModal(false)}
-            >
-              <Text className="text-base font-[600] text-textSecondary">
-                Cancel
-              </Text>
-            </InteractivePressable>
-          </RNAnimated.View>
-        </Modal>
 
         {/* EDIT PROFILE MODAL */}
         <Modal

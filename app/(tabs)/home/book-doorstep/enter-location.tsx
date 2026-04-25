@@ -577,7 +577,7 @@ export default function EnterLocationScreen() {
             </InteractivePressable>
 
             <InteractivePressable
-              className={`flex-row items-center px-6 py-3 rounded-full border ${addressType === "Other" ? "bg-primary border-primary" : "bg-card border-border/50"}`}
+              className={`flex-row items-center ml-3 px-6 py-3 rounded-full border ${addressType === "Other" ? "bg-primary border-primary" : "bg-card border-border/50"}`}
               onPress={() => {
                 setAddressType("Other");
                 if (selectedSavedAddressId) setSelectedSavedAddressId(null);

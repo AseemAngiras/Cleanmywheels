@@ -23,6 +23,7 @@ import { useGetVehiclesQuery } from "@/store/api/vehicleApi";
 import { useGetAddressesQuery } from "@/store/api/addressApi";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const APP_NAME = "CleanMyWheels";
 const RAZORPAY_KEY = process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID || "";
@@ -45,6 +46,7 @@ const getPriceKey = (type: string) => {
 
 export default function SubscriptionSummaryScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { showAlert } = useAlert();
   const {
     planId,
@@ -466,7 +468,10 @@ export default function SubscriptionSummaryScreen() {
           <View className="h-10" />
         </ScrollView>
 
-        <View className="p-6 bg-card border-t border-border/50 shadow-2xl">
+        <View 
+          className="p-6 bg-card border-t border-border/50 shadow-2xl"
+          style={{ paddingBottom: Math.max(insets.bottom, 24) }}
+        >
           <InteractivePressable
             className={`bg-primary py-5 rounded-2xl items-center shadow-lg shadow-primary/30 ${isCreating ? "opacity-70" : ""}`}
             onPress={handlePayment}

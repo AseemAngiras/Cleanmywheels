@@ -520,13 +520,13 @@ export default function BookingSummaryScreen() {
                       onPress={() => toggleAddon(addon)}
                       className="bg-card border border-border/50 p-4 rounded-[24px] w-[160px] shadow-sm"
                     >
-                      <View className="w-10 h-10 rounded-xl bg-primary/10 items-center justify-center mb-3">
+                      {/* <View className="w-10 h-10 rounded-xl bg-primary/10 items-center justify-center mb-3">
                         <MaterialCommunityIcons
                           name={(addon.icon as any) || "sparkles"}
                           size={20}
                           color={Colors.primary}
                         />
-                      </View>
+                      </View> */}
                       <Text
                         className="text-[13px] font-[800] color-text mb-1"
                         numberOfLines={1}

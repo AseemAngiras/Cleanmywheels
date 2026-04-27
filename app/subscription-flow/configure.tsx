@@ -22,6 +22,7 @@ import {
   useGetAddonsQuery,
 } from "@/store/api/subscriptionApi";
 import { useAlert } from "@/components/providers/AlertProvider";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const TIME_SLOTS = [
   "6 AM - 7 AM",
@@ -70,6 +71,7 @@ const getVehicleIconName = (type: string) => {
 
 export default function SubscriptionConfigureScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { planId } = useLocalSearchParams();
   const { data: plans } = useGetPlansQuery();
   const { data: cars, isLoading: isLoadingCars } = useGetVehiclesQuery();
@@ -451,7 +453,6 @@ export default function SubscriptionConfigureScreen() {
                 </View>
               </View>
             )}
-          极
           {filteredAddons.length > 0 && (
             <>
               <Text className="text-[18px] font-[700] color-text mb-4">
@@ -491,7 +492,7 @@ export default function SubscriptionConfigureScreen() {
                         }
                       }}
                     >
-                      <View
+                      {/* <View
                         className={`w-10 h-10 rounded-full items-center justify-center mb-3 ${
                           isSelected ? "bg-black/10" : "bg-primary/10"
                         }`}
@@ -501,7 +502,7 @@ export default function SubscriptionConfigureScreen() {
                           size={20}
                           color={isSelected ? "#000" : Colors.primary}
                         />
-                      </View>
+                      </View> */}
                       <Text
                         className={`text-[13px] font-[800] mb-1 ${
                           isSelected ? "text-black" : "text-text"
@@ -570,7 +571,10 @@ export default function SubscriptionConfigureScreen() {
           <View className="h-10" />
         </ScrollView>
 
-        <View className="p-8 bg-card border-t border-border/50 shadow-2xl flex-row items-center justify-between">
+        <View 
+          className="p-8 bg-card border-t border-border/50 shadow-2xl flex-row items-center justify-between"
+          style={{ paddingBottom: Math.max(insets.bottom, 24) }}
+        >
           <View>
             <Text className="text-[12px] font-[700] color-textSecondary uppercase tracking-widest mb-1">
               {selectedPlan.name}

@@ -13,7 +13,8 @@ import { router, useFocusEffect } from "expo-router";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { Colors } from "@/constants/Colors";
 import { useAlert } from "@/components/providers/AlertProvider";
-import { BackHandler } from "react-native";
+import { BackHandler, KeyboardAvoidingView, Platform } from "react-native";
+import { InteractivePressable } from "@/components/ui/InteractivePressable";
 import {
   useGetWashPackagesQuery,
   useUpdateWashPackageMutation,
@@ -332,10 +333,18 @@ export default function AdminWashPackagesScreen() {
       </ScrollView>
 
       {/* Edit Modal */}
-      <Modal visible={editingPackage !== null} transparent animationType="fade">
-        <View className="flex-1 bg-black/60 justify-center items-center px-6">
-          <View className="bg-card w-full rounded-[32px] p-6 border border-border shadow-2xl">
-            <View className="flex-row justify-between items-center mb-6">
+      <Modal visible={editingPackage !== null} transparent animationType="slide">
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          className="flex-1 justify-end"
+        >
+          <InteractivePressable
+            className="absolute inset-0 bg-black/60"
+            onPress={() => setEditingPackage(null)}
+          />
+          <View className="bg-card w-full rounded-t-[32px] h-[85%] border border-border shadow-2xl overflow-hidden">
+            <View className="w-12 h-1.5 bg-border/50 rounded-full self-center my-4" />
+            <View className="flex-row justify-between items-center px-6 mb-6">
               <Text className="text-[18px] font-[800] color-text">
                 {editingPackage?._id === "new"
                   ? "Add New Package"
@@ -354,7 +363,12 @@ export default function AdminWashPackagesScreen() {
                 </TouchableOpacity>
               )}
             </View>
-            <ScrollView className="max-h-[500px] mb-6">
+            <ScrollView 
+              className="flex-1 px-6"
+              contentContainerStyle={{ paddingBottom: 250 }}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            >
               <View className="mb-4">
                 <Text className="text-[12px] font-[800] color-textSecondary uppercase mb-2 px-1">
                   Package Name
@@ -421,7 +435,7 @@ export default function AdminWashPackagesScreen() {
               </View>
             </ScrollView>
 
-            <View className="flex-row gap-4">
+            <View className="flex-row gap-4 px-6" style={{ paddingBottom: Math.max(insets.bottom, 24) }}>
               <TouchableOpacity
                 className="flex-1 h-12 rounded-xl items-center justify-center border border-border"
                 onPress={() => setEditingPackage(null)}
@@ -443,7 +457,7 @@ export default function AdminWashPackagesScreen() {
               </TouchableOpacity>
             </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </ScreenWrapper>
   );

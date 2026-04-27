@@ -14,7 +14,8 @@ import { router, useFocusEffect } from "expo-router";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { Colors } from "@/constants/Colors";
 import { useAlert } from "@/components/providers/AlertProvider";
-import { BackHandler } from "react-native";
+import { BackHandler, KeyboardAvoidingView, Platform } from "react-native";
+import { InteractivePressable } from "@/components/ui/InteractivePressable";
 import {
   useGetSubscriptionPlansQuery,
   useUpdateSubscriptionPlanMutation,
@@ -463,8 +464,15 @@ export default function AdminSubscriptionPlansScreen() {
         transparent={true}
         onRequestClose={() => setEditModalVisible(false)}
       >
-        <View className="flex-1 justify-end bg-black/70">
-          <View className="bg-card rounded-t-[40px] border-t border-border max-h-[90%]">
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          className="flex-1 justify-end"
+        >
+          <InteractivePressable
+            className="absolute inset-0 bg-black/70"
+            onPress={() => setEditModalVisible(false)}
+          />
+          <View className="bg-card rounded-t-[40px] h-[85%] border-t border-border shadow-2xl overflow-hidden">
             <View className="w-12 h-1.5 bg-border/50 rounded-full self-center my-4" />
 
             <View className="flex-row justify-between items-center px-6 mb-6">
@@ -496,8 +504,10 @@ export default function AdminSubscriptionPlansScreen() {
             </View>
 
             <ScrollView
-              className="px-6 pb-12"
+              className="flex-1 px-6"
+              contentContainerStyle={{ paddingBottom: 300 }}
               showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
             >
               <View className="mb-4">
                 <Text className="text-[12px] font-[800] color-textSecondary uppercase mb-2 px-1">
@@ -639,10 +649,13 @@ export default function AdminSubscriptionPlansScreen() {
                 </Text>
               </View>
 
+            </ScrollView>
+
+            <View className="px-6" style={{ paddingBottom: Math.max(insets.bottom, 24) }}>
               <TouchableOpacity
                 onPress={handleSave}
                 disabled={isUpdating || isCreating}
-                className="bg-primary h-14 rounded-2xl items-center justify-center shadow-lg shadow-primary/30 mb-10"
+                className="bg-primary h-14 rounded-2xl items-center justify-center shadow-lg shadow-primary/30"
               >
                 {isUpdating || isCreating ? (
                   <ActivityIndicator color="#000" />
@@ -654,9 +667,9 @@ export default function AdminSubscriptionPlansScreen() {
                   </Text>
                 )}
               </TouchableOpacity>
-            </ScrollView>
+            </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </ScreenWrapper>
   );

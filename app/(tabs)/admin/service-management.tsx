@@ -16,6 +16,7 @@ import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { Colors } from "@/constants/Colors";
 import { useAlert } from "@/components/providers/AlertProvider";
 import { BackHandler } from "react-native";
+import { InteractivePressable } from "@/components/ui/InteractivePressable";
 import {
   useGetAddonsQuery,
   useCreateAddonMutation,
@@ -263,11 +264,16 @@ export default function ServiceManagementScreen() {
 
       <Modal visible={editingAddon !== null} transparent animationType="slide">
         <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          className="flex-1 bg-black/60 justify-end"
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          className="flex-1 justify-end"
         >
-          <View className="bg-card w-full rounded-t-[32px] p-6 border-t border-border shadow-2xl">
-            <View className="flex-row justify-between items-center mb-6">
+          <InteractivePressable
+            className="absolute inset-0 bg-black/60"
+            onPress={() => setEditingAddon(null)}
+          />
+          <View className="bg-card w-full rounded-t-[32px] h-[85%] border-t border-border shadow-2xl overflow-hidden">
+            <View className="w-12 h-1.5 bg-border/50 rounded-full self-center my-4" />
+            <View className="flex-row justify-between items-center px-6 mb-6">
               <Text className="text-[20px] font-[900] color-text">
                 {editingAddon?._id === "new" ? "New Service" : "Edit Service"}
               </Text>
@@ -289,7 +295,12 @@ export default function ServiceManagementScreen() {
               </View>
             </View>
 
-            <ScrollView className="max-h-[60vh]">
+            <ScrollView 
+              className="flex-1 px-6"
+              contentContainerStyle={{ paddingBottom: 250 }}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            >
               <View className="mb-4">
                 <Text className="text-[12px] font-[800] color-textSecondary uppercase mb-2 px-1">Service Name</Text>
                 <TextInput
@@ -333,18 +344,20 @@ export default function ServiceManagementScreen() {
               </View>
             </ScrollView>
 
-            <TouchableOpacity
-              onPress={handleSave}
-              className="mt-6 bg-primary py-4 rounded-2xl items-center shadow-lg shadow-primary/30"
-              disabled={isUpdating || isCreating}
-            >
-              {isUpdating || isCreating ? (
-                <ActivityIndicator color="#000" />
-              ) : (
-                <Text className="text-black text-[16px] font-[900]">Save Service</Text>
-              )}
-            </TouchableOpacity>
-            <View style={{ height: insets.bottom }} />
+            <View className="px-6 pb-6">
+              <TouchableOpacity
+                onPress={handleSave}
+                className="mt-6 bg-primary py-4 rounded-2xl items-center shadow-lg shadow-primary/30"
+                disabled={isUpdating || isCreating}
+              >
+                {isUpdating || isCreating ? (
+                  <ActivityIndicator color="#000" />
+                ) : (
+                  <Text className="text-black text-[16px] font-[900]">Save Service</Text>
+                )}
+              </TouchableOpacity>
+              <View style={{ height: insets.bottom }} />
+            </View>
           </View>
         </KeyboardAvoidingView>
       </Modal>

@@ -14,7 +14,10 @@ import {
   TouchableOpacity,
   View,
   BackHandler,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
+import { InteractivePressable } from "@/components/ui/InteractivePressable";
 import { useFocusEffect } from "expo-router";
 import { Colors } from "@/constants/Colors";
 import { useAlert } from "@/components/providers/AlertProvider";
@@ -477,68 +480,72 @@ export default function AdminSubscriptionsScreen() {
 
         {/* Worker Modal */}
         <Modal
-          visible={workerModalVisible}
-          animationType="slide"
-          transparent={true}
-          onRequestClose={() => setWorkerModalVisible(false)}
+        visible={workerModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setWorkerModalVisible(false)}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          className="flex-1 justify-end"
         >
-          <View className="flex-1 justify-end">
-            <TouchableOpacity
-              className="absolute inset-0 bg-black/70"
-              activeOpacity={1}
-              onPress={() => setWorkerModalVisible(false)}
-            />
-            <View className="bg-card rounded-t-[40px] p-6 pb-12 border-t border-border shadow-2xl">
-              <View className="w-12 h-1.5 bg-border/50 rounded-full self-center mb-6" />
-              <Text className="text-[22px] font-[800] color-text mb-6 pl-2">
-                Select Worker
-              </Text>
+          <InteractivePressable
+            className="absolute inset-0 bg-black/70"
+            onPress={() => setWorkerModalVisible(false)}
+          />
+          <View className="bg-card rounded-t-[40px] h-[70%] border-t border-border shadow-2xl overflow-hidden">
+            <View className="w-12 h-1.5 bg-border/50 rounded-full self-center my-6" />
+            <Text className="text-[22px] font-[800] color-text mb-6 px-6">
+              Select Worker
+            </Text>
 
-              <FlatList
-                data={workers}
-                keyExtractor={(item) => item._id}
-                renderItem={({ item: worker }) => (
-                  <TouchableOpacity
-                    className="flex-row items-center py-4 px-2 border-b border-border/50"
-                    onPress={() => handleAssignWorker(worker)}
+            <FlatList
+              data={workers}
+              keyExtractor={(item) => item._id}
+              className="flex-1 px-6"
+              contentContainerStyle={{ paddingBottom: 100 }}
+              renderItem={({ item: worker }) => (
+                <TouchableOpacity
+                  className="flex-row items-center py-4 px-2 border-b border-border/50"
+                  onPress={() => handleAssignWorker(worker)}
+                >
+                  <View className="w-11 h-11 rounded-full bg-background items-center justify-center mr-4 border border-border/50 overflow-hidden">
+                    {worker.profileImage ? (
+                      <Image
+                        source={{ uri: worker.profileImage }}
+                        className="w-11 h-11"
+                      />
+                    ) : (
+                      <Text className="text-[18px] font-[800] color-text">
+                        {worker.name.charAt(0)}
+                      </Text>
+                    )}
+                  </View>
+                  <View className="flex-1">
+                    <Text className="text-[16px] font-[700] color-text">
+                      {worker.name}
+                    </Text>
+                    <Text className="text-[12px] color-textSecondary mt-0.5 font-[500]">
+                      {worker.phone}
+                    </Text>
+                  </View>
+                  <View
+                    className={`px-2.5 py-1 rounded-full ${worker.status === "Active" ? "bg-green-500/10" : "bg-background"}`}
                   >
-                    <View className="w-11 h-11 rounded-full bg-background items-center justify-center mr-4 border border-border/50 overflow-hidden">
-                      {worker.profileImage ? (
-                        <Image
-                          source={{ uri: worker.profileImage }}
-                          className="w-11 h-11"
-                        />
-                      ) : (
-                        <Text className="text-[18px] font-[800] color-text">
-                          {worker.name.charAt(0)}
-                        </Text>
-                      )}
-                    </View>
-                    <View className="flex-1">
-                      <Text className="text-[16px] font-[700] color-text">
-                        {worker.name}
-                      </Text>
-                      <Text className="text-[12px] color-textSecondary mt-0.5 font-[500]">
-                        {worker.phone}
-                      </Text>
-                    </View>
-                    <View
-                      className={`px-2.5 py-1 rounded-full ${worker.status === "Active" ? "bg-green-500/10" : "bg-background"}`}
+                    <Text
+                      className={`text-[10px] font-[800] ${worker.status === "Active" ? "color-green-500" : "color-textSecondary"}`}
                     >
-                      <Text
-                        className={`text-[10px] font-[800] ${worker.status === "Active" ? "color-green-500" : "color-textSecondary"}`}
-                      >
-                        {worker.status}
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
-                )}
-                showsVerticalScrollIndicator={false}
-                style={{ maxHeight: 400 }}
-              />
+                      {worker.status}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              )}
+              showsVerticalScrollIndicator={false}
+            />
 
+            <View className="px-6 pb-10">
               <TouchableOpacity
-                className="mt-8 py-4.5 bg-background border border-border rounded-2xl items-center"
+                className="mt-4 py-4 bg-background border border-border rounded-2xl items-center"
                 onPress={() => setWorkerModalVisible(false)}
               >
                 <Text className="text-[16px] font-[800] color-text">
@@ -547,7 +554,8 @@ export default function AdminSubscriptionsScreen() {
               </TouchableOpacity>
             </View>
           </View>
-        </Modal>
+        </KeyboardAvoidingView>
+      </Modal>
       </View>
     </ScreenWrapper>
   );

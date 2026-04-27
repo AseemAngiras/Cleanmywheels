@@ -11,10 +11,11 @@ import {
   Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { Colors } from "@/constants/Colors";
 import { useAlert } from "@/components/providers/AlertProvider";
+import { BackHandler } from "react-native";
 import {
   useGetAddonsQuery,
   useCreateAddonMutation,
@@ -35,6 +36,18 @@ const PRICE_KEYS = [
 export default function ServiceManagementScreen() {
   const insets = useSafeAreaInsets();
   const { showAlert } = useAlert();
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        router.replace("/(tabs)/dashboard");
+        return true;
+      };
+
+      const subscription = BackHandler.addEventListener("hardwareBackPress", onBackPress);
+      return () => subscription.remove();
+    }, [])
+  );
 
   const { data: addons, isLoading } = useGetAddonsQuery();
   const [createAddon, { isLoading: isCreating }] = useCreateAddonMutation();
@@ -176,7 +189,7 @@ export default function ServiceManagementScreen() {
     <ScreenWrapper backgroundColor={Colors.background}>
       <View className="flex-row items-center px-5 py-4 bg-background border-b border-border/50">
         <TouchableOpacity
-          onPress={() => router.back()}
+          onPress={() => router.replace("/(tabs)/dashboard")}
           className="w-10 h-10 rounded-full bg-card items-center justify-center border border-border/50"
         >
           <Ionicons name="chevron-back" size={24} color={Colors.text} />

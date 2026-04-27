@@ -10,10 +10,11 @@ import {
   Image,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { Colors } from "@/constants/Colors";
 import { useAlert } from "@/components/providers/AlertProvider";
+import { BackHandler } from "react-native";
 import {
   useGetSubscriptionPlansQuery,
   useUpdateSubscriptionPlanMutation,
@@ -34,6 +35,18 @@ const VEHICLE_TYPE_TO_PRICE_KEY: Record<string, string> = {
 export default function AdminSubscriptionPlansScreen() {
   const insets = useSafeAreaInsets();
   const { showAlert } = useAlert();
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        router.replace("/(tabs)/dashboard");
+        return true;
+      };
+
+      const subscription = BackHandler.addEventListener("hardwareBackPress", onBackPress);
+      return () => subscription.remove();
+    }, [])
+  );
 
   const { data: response, isLoading } = useGetSubscriptionPlansQuery({
     page: 1,
@@ -321,7 +334,7 @@ export default function AdminSubscriptionPlansScreen() {
     >
       <View className="flex-row items-center px-5 pt-4 pb-6 bg-card border-b border-border/50">
         <TouchableOpacity
-          onPress={() => router.back()}
+          onPress={() => router.replace("/(tabs)/dashboard")}
           className="w-10 h-10 rounded-full bg-background items-center justify-center border border-border"
         >
           <Ionicons name="arrow-back" size={20} color={Colors.text} />

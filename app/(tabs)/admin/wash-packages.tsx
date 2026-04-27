@@ -9,10 +9,11 @@ import {
   TextInput,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { Colors } from "@/constants/Colors";
 import { useAlert } from "@/components/providers/AlertProvider";
+import { BackHandler } from "react-native";
 import {
   useGetWashPackagesQuery,
   useUpdateWashPackageMutation,
@@ -32,6 +33,18 @@ const VEHICLE_TYPE_TO_PRICE_KEY: Record<string, string> = {
 export default function AdminWashPackagesScreen() {
   const insets = useSafeAreaInsets();
   const { showAlert } = useAlert();
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        router.replace("/(tabs)/dashboard");
+        return true;
+      };
+
+      const subscription = BackHandler.addEventListener("hardwareBackPress", onBackPress);
+      return () => subscription.remove();
+    }, [])
+  );
 
   const { data: response, isLoading } = useGetWashPackagesQuery({
     page: 1,
@@ -208,7 +221,7 @@ export default function AdminWashPackagesScreen() {
       {/* Header */}
       <View className="flex-row items-center px-5 py-4 bg-background border-b border-border/50">
         <TouchableOpacity
-          onPress={() => router.back()}
+          onPress={() => router.replace("/(tabs)/dashboard")}
           className="w-10 h-10 rounded-full bg-card items-center justify-center border border-border/50"
         >
           <Ionicons name="chevron-back" size={24} color={Colors.text} />

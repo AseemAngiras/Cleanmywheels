@@ -13,6 +13,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  BackHandler,
 } from "react-native";
 import { useFocusEffect } from "expo-router";
 import { Colors } from "@/constants/Colors";
@@ -33,6 +34,18 @@ export default function AdminSubscriptionsScreen() {
   const [workerModalVisible, setWorkerModalVisible] = useState(false);
   const [selectedSub, setSelectedSub] = useState<any>(null);
   const { showAlert } = useAlert();
+
+  useFocusEffect(
+    useCallback(() => {
+      const onBackPress = () => {
+        router.replace("/(tabs)/dashboard");
+        return true;
+      };
+
+      const subscription = BackHandler.addEventListener("hardwareBackPress", onBackPress);
+      return () => subscription.remove();
+    }, [router])
+  );
 
   const { data: workersData } = useGetWorkersQuery({});
   const workers = workersData?.workers || [];
@@ -388,7 +401,7 @@ export default function AdminSubscriptionsScreen() {
         {/* Header */}
         <View className="flex-row items-center justify-between px-5 pt-4 pb-6 bg-card border-b border-border/50">
           <TouchableOpacity
-            onPress={() => router.back()}
+            onPress={() => router.replace("/(tabs)/dashboard")}
             className="w-10 h-10 rounded-full bg-background items-center justify-center border border-border"
           >
             <Ionicons name="arrow-back" size={20} color={Colors.text} />

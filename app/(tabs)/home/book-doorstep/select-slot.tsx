@@ -80,6 +80,10 @@ export default function SelectSlotScreen() {
   const [selectedDate, setSelectedDate] = useState<number>(0);
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
 
+  useEffect(() => {
+    setSelectedSlot(null);
+  }, [selectedDate]);
+
   const [register, { isLoading: isRegistering }] = useRegisterMutation();
   const [requestOtp, { isLoading: isRequestingOtp }] = useRequestOtpMutation();
   const [verifyLoginOtp, { isLoading: isVerifyingLoginOtp }] =

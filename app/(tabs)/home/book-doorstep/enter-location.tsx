@@ -189,7 +189,7 @@ export default function EnterLocationScreen() {
   const handleInputChange =
     (setter: (val: string) => void) => (value: string) => {
       // Only allow letters, numbers, spaces, and hyphens
-      const filteredValue = value.replace(/[^a-zA-Z0-9\s-]/g, "");
+      const filteredValue = value.replace(/[^a-zA-Z0-9\s-#]/g, "");
       setter(filteredValue);
       if (selectedSavedAddressId) setSelectedSavedAddressId(null);
       if (errorMsg) setErrorMsg("");

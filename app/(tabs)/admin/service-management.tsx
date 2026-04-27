@@ -312,7 +312,11 @@ export default function ServiceManagementScreen() {
                   value={editData.name}
                   onChangeText={(val) => setEditData((p: any) => ({ ...p, name: val.replace(/[<>'"%;()&+]/g, "") }))}
                   placeholder="e.g. Interior Cleaning"
+                  maxLength={30}
                 />
+                <Text className={`text-[10px] font-[700] text-right mt-1 px-1 ${editData.name.length >= 25 ? 'text-primary' : 'text-textSecondary'}`}>
+                  {editData.name.length} / 30
+                </Text>
               </View>
 
               <View className="mb-4">

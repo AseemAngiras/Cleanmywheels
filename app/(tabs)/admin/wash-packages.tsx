@@ -380,8 +380,12 @@ export default function AdminWashPackagesScreen() {
                     onChangeText={(val) =>
                       setEditData((prev) => ({ ...prev, name: val.replace(/[<>'"%;()&+]/g, "") }))
                     }
+                    maxLength={30}
                   />
                 </View>
+                <Text className={`text-[10px] font-[700] text-right mt-1 px-1 ${editData.name.length >= 25 ? 'text-primary' : 'text-textSecondary'}`}>
+                  {editData.name.length} / 30
+                </Text>
               </View>
 
               <View className="mb-4">

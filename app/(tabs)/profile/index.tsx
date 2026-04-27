@@ -774,11 +774,18 @@ export default function ProfileHome() {
                 placeholder="Enter your name"
                 placeholderTextColor={Colors.textSecondary}
               />
-              {isNameWarningVisible && (
-                <Text className="text-error text-[12px] mt-1.5 ml-1">
-                  Only letters and spaces are allowed
+              <View className="flex-row justify-between mt-1.5 px-1">
+                <View className="flex-1">
+                  {isNameWarningVisible && (
+                    <Text className="text-error text-[11px] font-[600]">
+                      Only letters and spaces are allowed
+                    </Text>
+                  )}
+                </View>
+                <Text className={`text-[11px] font-[700] ${tempName.length >= 35 ? 'text-primary' : 'text-textSecondary'}`}>
+                  {tempName.length} / 40
                 </Text>
-              )}
+              </View>
             </View>
 
             {/* Read-only Mobile Number */}

@@ -575,11 +575,18 @@ export default function SelectSlotScreen() {
                         maxLength={30}
                       />
                     </View>
-                    {isNameWarningVisible && (
-                      <Text className="text-[10px] color-red-500 font-[700] mt-1 ml-2">
-                        Only alphabets allowed
+                    <View className="flex-row justify-between items-center mt-1.5 px-1">
+                      <View className="flex-1">
+                        {isNameWarningVisible && (
+                          <Text className="text-[10px] color-red-500 font-[700]">
+                            Only alphabets allowed
+                          </Text>
+                        )}
+                      </View>
+                      <Text className={`text-[11px] font-[800] ${name.length >= 25 ? 'text-primary' : 'text-gray-500'}`}>
+                        {name.length} / 30
                       </Text>
-                    )}
+                    </View>
                   </View>
 
                   <View className="mb-10">

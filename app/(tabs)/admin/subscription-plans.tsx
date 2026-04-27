@@ -526,8 +526,12 @@ export default function AdminSubscriptionPlansScreen() {
                     onChangeText={(text) =>
                       setEditData((prev) => ({ ...prev, name: text.replace(/[<>'"%;()&+]/g, "") }))
                     }
+                    maxLength={40}
                   />
                 </View>
+                <Text className={`text-[10px] font-[700] text-right mt-1 px-1 ${editData.name.length >= 35 ? 'text-primary' : 'text-textSecondary'}`}>
+                  {editData.name.length} / 40
+                </Text>
               </View>
 
               <View className="mb-4">

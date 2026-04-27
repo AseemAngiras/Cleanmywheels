@@ -114,15 +114,15 @@ export default function UpcomingServices() {
   const bookingList = bookingsResponse?.data?.bookingList || [];
   const bookings = bookingList
     .filter((b: any) => {
-      const bUserId = b.user?._id || b.user || b.userId;
-      const currentUserId = user?._id;
+      const bUserId = (b.user?._id || b.user || b.userId)?.toString();
+      const currentUserId = user?._id?.toString();
 
       // If not admin, only show own bookings
-      if (!isAdmin && bUserId !== currentUserId) {
+      if (!isAdmin && bUserId && currentUserId && bUserId !== currentUserId) {
         return false;
       }
 
-      const status = (b.status || "").toLowerCase();
+      const status = (b.status || "").toLowerCase().trim();
 
       // Always show confirmed or upcoming bookings to their owners
       if (status === "confirmed" || status === "upcoming") {
@@ -675,6 +675,26 @@ export default function UpcomingServices() {
           );
         }}
         ListEmptyComponent={() => {
+          if (isFetching && !bookings.length) {
+            return (
+              <View className="items-center mt-20">
+                <Text className="text-textSecondary">Loading bookings...</Text>
+              </View>
+            );
+          }
+          if (error) {
+            return (
+              <View className="items-center mt-20 px-5">
+                <Ionicons name="alert-circle-outline" size={60} color={Colors.error} />
+                <Text className="text-lg font-[600] mt-4 text-text">Failed to load bookings</Text>
+                <Text className="text-textSecondary mt-[6px] text-center">
+                  {typeof error === 'object' && 'data' in error 
+                    ? (error.data as any)?.message 
+                    : "Please check your internet connection"}
+                </Text>
+              </View>
+            );
+          }
           if (activeSubs.length > 0) return null;
           return (
             <View className="items-center mt-20">

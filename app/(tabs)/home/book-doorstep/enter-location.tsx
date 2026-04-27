@@ -113,6 +113,23 @@ export default function EnterLocationScreen() {
     );
   }, [mapVisible, selectedCoord?.lat, selectedCoord?.long]);
 
+  const hasPrefilled = React.useRef(false);
+
+  React.useEffect(() => {
+    if (
+      !hasPrefilled.current &&
+      savedAddresses.length > 0 &&
+      defaultAddressId
+    ) {
+      const defaultAddr = savedAddresses.find((a) => a.id === defaultAddressId);
+      if (defaultAddr) {
+        fillAddressInputs(defaultAddr);
+        setSelectedSavedAddressId(defaultAddr.id);
+        hasPrefilled.current = true;
+      }
+    }
+  }, [savedAddresses, defaultAddressId]);
+
   React.useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
       if (searchQuery.length > 2) searchPlaces(searchQuery);

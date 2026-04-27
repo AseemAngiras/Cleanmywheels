@@ -21,6 +21,8 @@ import {
 import { useGetProfileQuery } from "@/store/api/authApi";
 import { useGetVehiclesQuery } from "@/store/api/vehicleApi";
 import { useGetAddressesQuery } from "@/store/api/addressApi";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
 
 const APP_NAME = "CleanMyWheels";
 const RAZORPAY_KEY = process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID || "";
@@ -75,10 +77,23 @@ export default function SubscriptionSummaryScreen() {
   const selectedPlan = plans?.find((p) => p._id === planId);
   const selectedVehicle = vehicles?.find((v: any) => v._id === vehicleId);
 
+  const defaultAddressId = useSelector(
+    (state: RootState) => state.profile.defaultAddressId,
+  );
+
   const addressList =
     addressesResponse?.data?.addressList || addressesResponse?.data || [];
+
   const defaultAddress =
-    addressList.find((a: any) => a.isDefault) || addressList[0];
+    addressList.find(
+      (a: any) =>
+        a._id === defaultAddressId || a.id === defaultAddressId || a.isDefault,
+    ) || addressList[0];
+
+  const defaultAddressStr = defaultAddress
+    ? defaultAddress.fullAddress ||
+      `${defaultAddress.houseOrFlatNo}, ${defaultAddress.locality}, ${defaultAddress.city} - ${defaultAddress.postalCode}`
+    : "Your Registered Address";
 
   if (!selectedPlan || !selectedVehicle) {
     return (
@@ -149,11 +164,7 @@ export default function SubscriptionSummaryScreen() {
           vehicleNumber: selectedVehicle.vehicleNo,
           serviceDate: startDate as string,
           serviceName: selectedPlan.name,
-          address:
-            defaultAddress?.fullAddress ||
-            (defaultAddress
-              ? `${defaultAddress.houseOrFlatNo}, ${defaultAddress.locality}, ${defaultAddress.city}`
-              : "Your Registered Address"),
+                  address: defaultAddressStr,
           timeSlot: timeSlot as string,
         };
 
@@ -421,9 +432,7 @@ export default function SubscriptionSummaryScreen() {
                       Current Default Address
                     </Text>
                     <Text className="text-[14px] color-text leading-5 font-[500]">
-                      {defaultAddress
-                        ? `${defaultAddress.houseOrFlatNo}, ${defaultAddress.locality}, ${defaultAddress.city} - ${defaultAddress.postalCode}`
-                        : "No default address found. Service will be provided at your registered location."}
+                      {defaultAddress ? defaultAddressStr : "No default address found. Service will be provided at your registered location."}
                     </Text>
                   </View>
                 </View>

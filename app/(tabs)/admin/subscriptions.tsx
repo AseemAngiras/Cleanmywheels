@@ -178,7 +178,12 @@ export default function AdminSubscriptionsScreen() {
     const startDate = new Date(item.startDate);
     const completed = item.servicesCompleted || 0;
     const nextServiceDate = new Date(startDate);
-    nextServiceDate.setDate(startDate.getDate() + completed);
+    const freq = item.frequencyType || "TWICE_MONTHLY";
+    if (freq === "TWICE_MONTHLY") {
+      nextServiceDate.setDate(startDate.getDate() + completed * 15);
+    } else {
+      nextServiceDate.setDate(startDate.getDate() + completed);
+    }
 
     const dateStr = nextServiceDate.toDateString();
 
@@ -195,7 +200,7 @@ export default function AdminSubscriptionsScreen() {
         ? `\n\n*⭐ Add-ons for Today:*\n${formattedAddons.join("\n")}`
         : "";
 
-    const message = `🚗 *Daily Service Alert*\n\nDate: ${dateStr}\n\nCustomer: ${item.user?.name}\nPhone: ${item.user?.phone}\nAddress: ${item.vehicle?.address?.locality || "As per record"}\nVehicle: ${item.vehicle?.type} (${item.vehicle?.number})${addonText}\n\nPlease proceed with the service.`;
+    const message = `🚗 *Service Alert*\n\nDate: ${dateStr}\n\nCustomer: ${item.user?.name}\nPhone: ${item.user?.phone}\nAddress: ${item.vehicle?.address?.locality || "As per record"}\nVehicle: ${item.vehicle?.type} (${item.vehicle?.number})${addonText}\n\nPlease proceed with the service.`;
 
     const url = `whatsapp://send?phone=${workerPhone}&text=${encodeURIComponent(message)}`;
 
@@ -217,7 +222,12 @@ export default function AdminSubscriptionsScreen() {
     const startDate = new Date(item.startDate);
     const completed = item.servicesCompleted || 0;
     const nextServiceDate = new Date(startDate);
-    nextServiceDate.setDate(startDate.getDate() + completed);
+    const freq = item.frequencyType || "TWICE_MONTHLY";
+    if (freq === "TWICE_MONTHLY") {
+      nextServiceDate.setDate(startDate.getDate() + completed * 15);
+    } else {
+      nextServiceDate.setDate(startDate.getDate() + completed);
+    }
 
     return (
       <View className="bg-card rounded-[32px] p-5 mb-4 border border-border shadow-sm">

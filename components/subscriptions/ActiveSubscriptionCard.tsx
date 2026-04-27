@@ -45,11 +45,12 @@ export const ActiveSubscriptionCard = ({
 
   const frequencyLabel =
     {
-      DAILY: "Daily",
+      DAILY: "2 Times a Month",
+      TWICE_MONTHLY: "2 Times a Month",
       WEEKLY: "Weekly",
       BIWEEKLY: "Bi-weekly",
       ALTERNATE_DAY: "Alternate Day",
-    }[subscription.frequencyType as string] || "Daily";
+    }[subscription.frequencyType as string] || "2 Times a Month";
 
   return (
     <InteractivePressable

@@ -99,7 +99,7 @@ export default function OrderConfirmationScreen() {
                 />
               </View>
               <Text className="text-[10px] color-textSecondary text-center font-[700] uppercase tracking-tighter leading-3">
-                Daily Service
+                Active Service
               </Text>
             </View>
           </View>
@@ -152,7 +152,7 @@ export default function OrderConfirmationScreen() {
 
           <View className="flex-row justify-between py-4 border-b border-border/50">
             <Text className="text-sm color-textSecondary font-[500]">
-              Daily Slot
+              Preferred Slot
             </Text>
             <Text className="text-sm font-[700] color-text">
               {selectedTime || "Anytime"}

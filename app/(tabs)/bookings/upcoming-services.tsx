@@ -164,7 +164,7 @@ export default function UpcomingServices() {
       ? booking.plan.name
       : booking.serviceName;
     const id = isSubscription ? booking._id : booking.id;
-    const time = isSubscription ? "Daily Service" : booking.timeSlot;
+    const time = isSubscription ? "Wash Service" : booking.timeSlot;
 
     const message = `Hello, your ${
       isSubscription ? "subscription" : "booking"
@@ -481,9 +481,13 @@ export default function UpcomingServices() {
                               );
                               const completed = sub.servicesCompleted || 0;
                               const nextServiceDate = new Date(startDate);
-                              nextServiceDate.setDate(
-                                startDate.getDate() + completed,
-                              );
+                              const freq = sub.frequencyType || 'TWICE_MONTHLY';
+                              
+                              if (freq === 'TWICE_MONTHLY') {
+                                nextServiceDate.setDate(startDate.getDate() + completed * 15);
+                              } else {
+                                nextServiceDate.setDate(startDate.getDate() + completed);
+                              }
 
                               return nextServiceDate.toLocaleDateString(
                                 "en-US",

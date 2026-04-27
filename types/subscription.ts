@@ -10,17 +10,17 @@ export interface SubscriptionPlan {
   tag?: string;
   price?: number;
   prices: {
-    hatchback: { DAILY: number; WEEKLY: number; BIWEEKLY: number; ALTERNATE_DAY: number; ONE_TIME: number };
-    sedan: { DAILY: number; WEEKLY: number; BIWEEKLY: number; ALTERNATE_DAY: number; ONE_TIME: number };
-    suv: { DAILY: number; WEEKLY: number; BIWEEKLY: number; ALTERNATE_DAY: number; ONE_TIME: number };
-    twoWheeler: { DAILY: number; WEEKLY: number; BIWEEKLY: number; ALTERNATE_DAY: number; ONE_TIME: number };
+    hatchback: { DAILY: number; WEEKLY: number; BIWEEKLY: number; ALTERNATE_DAY: number; TWICE_MONTHLY: number; ONE_TIME: number };
+    sedan: { DAILY: number; WEEKLY: number; BIWEEKLY: number; ALTERNATE_DAY: number; TWICE_MONTHLY: number; ONE_TIME: number };
+    suv: { DAILY: number; WEEKLY: number; BIWEEKLY: number; ALTERNATE_DAY: number; TWICE_MONTHLY: number; ONE_TIME: number };
+    twoWheeler: { DAILY: number; WEEKLY: number; BIWEEKLY: number; ALTERNATE_DAY: number; TWICE_MONTHLY: number; ONE_TIME: number };
   };
   features: string[]; // Keep for compatibility
   includedServiceIds?: string[]; // New ID-based linking
   status: "Active" | "Inactive" | "Archived";
   razorpayPlanId?: string;
   frequencies?: {
-    type: "DAILY" | "WEEKLY" | "BIWEEKLY" | "ALTERNATE_DAY";
+    type: "DAILY" | "WEEKLY" | "BIWEEKLY" | "ALTERNATE_DAY" | "TWICE_MONTHLY";
     label: string;
     description: string;
     multiplier: number;
@@ -39,6 +39,7 @@ export interface Addon {
     WEEKLY?: number;
     BIWEEKLY?: number;
     ALTERNATE_DAY?: number;
+    TWICE_MONTHLY?: number;
   };
   icon?: string;
   durationMinutes: number;
@@ -66,7 +67,7 @@ export interface UserSubscription {
   paymentMethod?: string;
   servicesTotal: number;
   servicesCompleted: number;
-  frequencyType?: "DAILY" | "WEEKLY" | "BIWEEKLY" | "ALTERNATE_DAY";
+  frequencyType?: "DAILY" | "WEEKLY" | "BIWEEKLY" | "ALTERNATE_DAY" | "TWICE_MONTHLY";
   totalServicesPlanned?: number;
   serviceDates?: {
     date: string;

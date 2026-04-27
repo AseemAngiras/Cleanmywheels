@@ -84,7 +84,7 @@ export default function SubscriptionConfigureScreen() {
     null,
   );
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string | null>(null);
-  const [selectedFrequency, setSelectedFrequency] = useState<string>("DAILY");
+  const [selectedFrequency, setSelectedFrequency] = useState<string>("TWICE_MONTHLY");
   const [selectedAddons, setSelectedAddons] = useState<any[]>([]);
   const [startDate] = useState(new Date());
 
@@ -154,13 +154,15 @@ export default function SubscriptionConfigureScreen() {
   ) || {
     multiplier: 1,
     services:
-      selectedFrequency === "DAILY"
-        ? 30
-        : selectedFrequency === "WEEKLY"
-          ? 4
-          : selectedFrequency === "BIWEEKLY"
-            ? 8
-            : 15,
+      selectedFrequency === "TWICE_MONTHLY"
+        ? 2
+        : selectedFrequency === "DAILY"
+          ? 30
+          : selectedFrequency === "WEEKLY"
+            ? 4
+            : selectedFrequency === "BIWEEKLY"
+              ? 8
+              : 15,
   };
 
   const totalAddonsCost = selectedAddons.reduce((sum, a) => {
@@ -393,34 +395,47 @@ export default function SubscriptionConfigureScreen() {
             Select Frequency
           </Text>
           <View className="flex-row flex-wrap justify-between gap-y-3">
-            {selectedPlan.frequencies?.map((freq) => (
-              <InteractivePressable
-                key={freq.type}
-                className={`w-[48%] py-4 px-2 rounded-[18px] items-center border ${
-                  selectedFrequency === freq.type
-                    ? "bg-primary border-primary"
-                    : "bg-card border-border"
-                }`}
-                onPress={() => setSelectedFrequency(freq.type)}
-              >
-                <Text
-                  className={`text-[13px] font-[800] ${
-                    selectedFrequency === freq.type ? "text-black" : "text-text"
-                  }`}
-                >
-                  {freq.label}
-                </Text>
-                <Text
-                  className={`text-[15px] font-[600] mb-2 ${
-                    selectedFrequency === freq.type
-                      ? "text-black/60"
-                      : "text-textSecondary"
-                  }`}
-                >
-                  {freq.services} services/month
-                </Text>
-              </InteractivePressable>
-            ))}
+            {(() => {
+              const freqs = [...(selectedPlan.frequencies || [])];
+              if (!freqs.find((f) => f.type === "TWICE_MONTHLY")) {
+                freqs.unshift({
+                  type: "TWICE_MONTHLY",
+                  label: "2 Times a Month",
+                  services: 2,
+                  price: basePrice,
+                });
+              }
+              return freqs
+                .filter((f) => f.type !== "DAILY")
+                .map((freq) => (
+                  <InteractivePressable
+                    key={freq.type}
+                    className={`w-[48%] py-4 px-2 rounded-[18px] items-center border ${
+                      selectedFrequency === freq.type
+                        ? "bg-primary border-primary"
+                        : "bg-card border-border"
+                    }`}
+                    onPress={() => setSelectedFrequency(freq.type)}
+                  >
+                    <Text
+                      className={`text-[13px] font-[800] ${
+                        selectedFrequency === freq.type ? "text-black" : "text-text"
+                      }`}
+                    >
+                      {freq.label}
+                    </Text>
+                    <Text
+                      className={`text-[15px] font-[600] mb-2 ${
+                        selectedFrequency === freq.type
+                          ? "text-black/60"
+                          : "text-textSecondary"
+                      }`}
+                    >
+                      {freq.services} services/month
+                    </Text>
+                  </InteractivePressable>
+                ));
+            })()}
           </View>
           {selectedPlan?.includedServiceIds &&
             selectedPlan.includedServiceIds.length > 0 && (

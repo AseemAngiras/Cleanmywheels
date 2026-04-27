@@ -54,7 +54,7 @@ export default function SubscriptionSummaryScreen() {
     timeSlot,
     startDate,
     isAutoPay,
-    frequencyType = "DAILY",
+    frequencyType = "TWICE_MONTHLY",
     addons: addonsStr,
   } = useLocalSearchParams();
 
@@ -447,7 +447,7 @@ export default function SubscriptionSummaryScreen() {
               <Text className="text-[15px] font-[600] color-textSecondary">
                 Frequency (
                 {selectedPlan.frequencies?.find((f) => f.type === frequencyType)
-                  ?.label || "Daily"}
+                  ?.label || "2 Times a Month"}
                 )
               </Text>
               <Text className="text-[16px] font-[700] color-text">

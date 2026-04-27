@@ -431,7 +431,7 @@ export default function HomeScreen() {
         {/* Next Service (For Subscribers) */}
         {isLoggedIn &&
           activeSubs.map((sub: any) => {
-            const frequencyType = sub.frequencyType || 'DAILY';
+            const frequencyType = sub.frequencyType || 'TWICE_MONTHLY';
             const completed = sub.servicesCompleted || 0;
             const total = sub.servicesTotal || 30;
             
@@ -447,7 +447,9 @@ export default function HomeScreen() {
               const startDate = new Date(sub.startDate || new Date());
               nextDate = new Date(startDate);
               
-              if (frequencyType === 'DAILY') {
+              if (frequencyType === 'TWICE_MONTHLY') {
+                nextDate.setDate(startDate.getDate() + (completed * 15));
+              } else if (frequencyType === 'DAILY') {
                 nextDate.setDate(startDate.getDate() + completed);
               } else if (frequencyType === 'WEEKLY') {
                 nextDate.setDate(startDate.getDate() + (completed * 7));

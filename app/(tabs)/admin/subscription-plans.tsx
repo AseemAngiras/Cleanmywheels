@@ -71,10 +71,10 @@ export default function AdminSubscriptionPlansScreen() {
     features: [] as string[],
     includedServiceIds: [] as string[],
     prices: {
-      hatchback: { DAILY: 0, WEEKLY: 0, BIWEEKLY: 0, ALTERNATE_DAY: 0, ONE_TIME: 0 },
-      sedan: { DAILY: 0, WEEKLY: 0, BIWEEKLY: 0, ALTERNATE_DAY: 0, ONE_TIME: 0 },
-      suv: { DAILY: 0, WEEKLY: 0, BIWEEKLY: 0, ALTERNATE_DAY: 0, ONE_TIME: 0 },
-      twoWheeler: { DAILY: 0, WEEKLY: 0, BIWEEKLY: 0, ALTERNATE_DAY: 0, ONE_TIME: 0 },
+      hatchback: { DAILY: 0, WEEKLY: 0, BIWEEKLY: 0, ALTERNATE_DAY: 0, TWICE_MONTHLY: 0, ONE_TIME: 0 },
+      sedan: { DAILY: 0, WEEKLY: 0, BIWEEKLY: 0, ALTERNATE_DAY: 0, TWICE_MONTHLY: 0, ONE_TIME: 0 },
+      suv: { DAILY: 0, WEEKLY: 0, BIWEEKLY: 0, ALTERNATE_DAY: 0, TWICE_MONTHLY: 0, ONE_TIME: 0 },
+      twoWheeler: { DAILY: 0, WEEKLY: 0, BIWEEKLY: 0, ALTERNATE_DAY: 0, TWICE_MONTHLY: 0, ONE_TIME: 0 },
     },
   });
 
@@ -91,6 +91,7 @@ export default function AdminSubscriptionPlansScreen() {
           WEEKLY: pkg.prices?.hatchback?.WEEKLY || 0,
           BIWEEKLY: pkg.prices?.hatchback?.BIWEEKLY || 0,
           ALTERNATE_DAY: pkg.prices?.hatchback?.ALTERNATE_DAY || 0,
+          TWICE_MONTHLY: pkg.prices?.hatchback?.TWICE_MONTHLY || 0,
           ONE_TIME: pkg.prices?.hatchback?.ONE_TIME || 0,
         },
         sedan: {
@@ -98,6 +99,7 @@ export default function AdminSubscriptionPlansScreen() {
           WEEKLY: pkg.prices?.sedan?.WEEKLY || 0,
           BIWEEKLY: pkg.prices?.sedan?.BIWEEKLY || 0,
           ALTERNATE_DAY: pkg.prices?.sedan?.ALTERNATE_DAY || 0,
+          TWICE_MONTHLY: pkg.prices?.sedan?.TWICE_MONTHLY || 0,
           ONE_TIME: pkg.prices?.sedan?.ONE_TIME || 0,
         },
         suv: {
@@ -105,6 +107,7 @@ export default function AdminSubscriptionPlansScreen() {
           WEEKLY: pkg.prices?.suv?.WEEKLY || 0,
           BIWEEKLY: pkg.prices?.suv?.BIWEEKLY || 0,
           ALTERNATE_DAY: pkg.prices?.suv?.ALTERNATE_DAY || 0,
+          TWICE_MONTHLY: pkg.prices?.suv?.TWICE_MONTHLY || 0,
           ONE_TIME: pkg.prices?.suv?.ONE_TIME || 0,
         },
         twoWheeler: {
@@ -112,6 +115,7 @@ export default function AdminSubscriptionPlansScreen() {
           WEEKLY: pkg.prices?.twoWheeler?.WEEKLY || 0,
           BIWEEKLY: pkg.prices?.twoWheeler?.BIWEEKLY || 0,
           ALTERNATE_DAY: pkg.prices?.twoWheeler?.ALTERNATE_DAY || 0,
+          TWICE_MONTHLY: pkg.prices?.twoWheeler?.TWICE_MONTHLY || 0,
           ONE_TIME: pkg.prices?.twoWheeler?.ONE_TIME || 0,
         },
       },
@@ -195,10 +199,10 @@ export default function AdminSubscriptionPlansScreen() {
       features: [],
       includedServiceIds: [],
       prices: {
-        hatchback: { DAILY: 0, WEEKLY: 0, BIWEEKLY: 0, ALTERNATE_DAY: 0, ONE_TIME: 0 },
-        sedan: { DAILY: 0, WEEKLY: 0, BIWEEKLY: 0, ALTERNATE_DAY: 0, ONE_TIME: 0 },
-        suv: { DAILY: 0, WEEKLY: 0, BIWEEKLY: 0, ALTERNATE_DAY: 0, ONE_TIME: 0 },
-        twoWheeler: { DAILY: 0, WEEKLY: 0, BIWEEKLY: 0, ALTERNATE_DAY: 0, ONE_TIME: 0 },
+        hatchback: { DAILY: 0, WEEKLY: 0, BIWEEKLY: 0, ALTERNATE_DAY: 0, TWICE_MONTHLY: 0, ONE_TIME: 0 },
+        sedan: { DAILY: 0, WEEKLY: 0, BIWEEKLY: 0, ALTERNATE_DAY: 0, TWICE_MONTHLY: 0, ONE_TIME: 0 },
+        suv: { DAILY: 0, WEEKLY: 0, BIWEEKLY: 0, ALTERNATE_DAY: 0, TWICE_MONTHLY: 0, ONE_TIME: 0 },
+        twoWheeler: { DAILY: 0, WEEKLY: 0, BIWEEKLY: 0, ALTERNATE_DAY: 0, TWICE_MONTHLY: 0, ONE_TIME: 0 },
       },
     });
     setEditModalVisible(true);
@@ -269,7 +273,7 @@ export default function AdminSubscriptionPlansScreen() {
           features: editData.features.filter((f) => f.trim() !== ""),
           includedServiceIds: editData.includedServiceIds,
           prices: editData.prices,
-          price: editData.prices.hatchback.DAILY || 0,
+          price: editData.prices.hatchback.TWICE_MONTHLY || 0,
           status: "Active" as const,
         };
 
@@ -404,7 +408,7 @@ export default function AdminSubscriptionPlansScreen() {
                   </View>
                   <View className="bg-primary/10 px-3 py-1.5 rounded-full border border-primary/20">
                     <Text className="text-primary font-[800] text-[13px]">
-                      ₹{pkg.prices?.hatchback?.DAILY || pkg.price || 0}
+                      ₹{pkg.prices?.hatchback?.TWICE_MONTHLY || pkg.price || 0}
                     </Text>
                   </View>
                 </View>
@@ -439,7 +443,7 @@ export default function AdminSubscriptionPlansScreen() {
                         className="bg-background px-2 py-1 rounded-lg border border-border/50"
                       >
                         <Text className="text-[9px] color-textSecondary uppercase font-[800]">
-                          {type.charAt(0)}: ₹{price.DAILY || 0}
+                          {type.charAt(0)}: ₹{price.TWICE_MONTHLY || 0}
                         </Text>
                       </View>
                     ))}
@@ -553,7 +557,7 @@ export default function AdminSubscriptionPlansScreen() {
                       <Text className="text-primary font-[800] text-[12px] uppercase mb-3 tracking-widest">{type}</Text>
                       <View className="flex-row flex-wrap justify-between gap-3">
                         {[
-                          { label: "Daily", key: "DAILY" },
+                          { label: "Twice Monthly", key: "TWICE_MONTHLY" },
                           { label: "Weekly", key: "WEEKLY" },
                           { label: "Bi-Weekly", key: "BIWEEKLY" },
                           { label: "Alt Day", key: "ALTERNATE_DAY" },

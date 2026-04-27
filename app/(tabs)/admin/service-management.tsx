@@ -28,7 +28,7 @@ import { Addon } from "@/types/subscription";
 
 const PRICE_KEYS = [
   { key: "ONE_TIME", label: "One-Time" },
-  { key: "DAILY", label: "Daily (30)" },
+  { key: "TWICE_MONTHLY", label: "Twice Monthly (2)" },
   { key: "WEEKLY", label: "Weekly (4)" },
   { key: "BIWEEKLY", label: "Bi-Weekly (8)" },
   { key: "ALTERNATE_DAY", label: "Alt Day (15)" },
@@ -64,6 +64,7 @@ export default function ServiceManagementScreen() {
     priceMatrix: {
       ONE_TIME: "0",
       DAILY: "0",
+      TWICE_MONTHLY: "0",
       WEEKLY: "0",
       BIWEEKLY: "0",
       ALTERNATE_DAY: "0",
@@ -80,6 +81,7 @@ export default function ServiceManagementScreen() {
       priceMatrix: {
         ONE_TIME: (addon.priceMatrix?.ONE_TIME || addon.price || 0).toString(),
         DAILY: (addon.priceMatrix?.DAILY || 0).toString(),
+        TWICE_MONTHLY: (addon.priceMatrix?.TWICE_MONTHLY || 0).toString(),
         WEEKLY: (addon.priceMatrix?.WEEKLY || 0).toString(),
         BIWEEKLY: (addon.priceMatrix?.BIWEEKLY || 0).toString(),
         ALTERNATE_DAY: (addon.priceMatrix?.ALTERNATE_DAY || 0).toString(),
@@ -97,6 +99,7 @@ export default function ServiceManagementScreen() {
       priceMatrix: {
         ONE_TIME: "0",
         DAILY: "0",
+        TWICE_MONTHLY: "0",
         WEEKLY: "0",
         BIWEEKLY: "0",
         ALTERNATE_DAY: "0",
@@ -153,7 +156,8 @@ export default function ServiceManagementScreen() {
       isActive: true,
       priceMatrix: {
         ONE_TIME: Number(editData.priceMatrix.ONE_TIME),
-        DAILY: Number(editData.priceMatrix.DAILY),
+        DAILY: Number(editData.priceMatrix.DAILY || 0),
+        TWICE_MONTHLY: Number(editData.priceMatrix.TWICE_MONTHLY),
         WEEKLY: Number(editData.priceMatrix.WEEKLY),
         BIWEEKLY: Number(editData.priceMatrix.BIWEEKLY),
         ALTERNATE_DAY: Number(editData.priceMatrix.ALTERNATE_DAY),

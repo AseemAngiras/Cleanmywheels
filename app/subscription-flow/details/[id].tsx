@@ -33,7 +33,7 @@ export default function SubscriptionDetailsScreen() {
     const history = (subscription as any).serviceHistory || [];
     const serviceDates = (subscription as any).serviceDates || [];
     const addons = subscription.nextServiceAddons || [];
-    const frequencyType = subscription.frequencyType || "DAILY";
+    const frequencyType = subscription.frequencyType || "TWICE_MONTHLY";
     const totalServices = subscription.servicesTotal || 30;
     const logs: any[] = [];
 
@@ -58,7 +58,9 @@ export default function SubscriptionDetailsScreen() {
       for (let i = 0; i < totalServices; i++) {
         const date = new Date(startDate);
 
-        if (frequencyType === "DAILY") {
+        if (frequencyType === "TWICE_MONTHLY") {
+          date.setDate(startDate.getDate() + i * 15);
+        } else if (frequencyType === "DAILY") {
           date.setDate(startDate.getDate() + i);
         } else if (frequencyType === "WEEKLY") {
           date.setDate(startDate.getDate() + i * 7);
@@ -154,7 +156,7 @@ export default function SubscriptionDetailsScreen() {
           </View>
         </View>
         <Text className="text-[15px] color-text font-[600]">
-          Daily Wash Service
+          Premium Wash Service
         </Text>
 
         {/* {item.addons && item.addons.length > 0 && (
@@ -306,7 +308,7 @@ export default function SubscriptionDetailsScreen() {
                 {subscription.plan?.name || "Monthly"}
               </Text>
               <Text className="text-[12px] color-primary font-[800] uppercase mt-0.5">
-                {subscription.frequencyType || "Daily"}
+                {subscription.frequencyType === "TWICE_MONTHLY" ? "2 Times a Month" : (subscription.frequencyType || "Twice Monthly")}
               </Text>
             </View>
             <View className="items-end flex-1">

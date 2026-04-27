@@ -13,7 +13,9 @@ import {
   View,
   Pressable,
   Animated as RNAnimated,
+  BackHandler,
 } from "react-native";
+import { useFocusEffect } from "expo-router";
 import { useAlert } from "@/components/providers/AlertProvider";
 import { useSelector } from "react-redux";
 import Animated, { 
@@ -110,6 +112,22 @@ export default function ProfileHome() {
   const defaultAddress =
     savedAddresses.find((a: any) => a.id === profileState.defaultAddressId) ||
     savedAddresses[0];
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        if (isAdmin) {
+          router.replace("/(tabs)/dashboard");
+          return true;
+        }
+        return false;
+      };
+
+      const subscription = BackHandler.addEventListener("hardwareBackPress", onBackPress);
+
+      return () => subscription.remove();
+    }, [isAdmin]),
+  );
 
   useEffect(() => {
     if (showLogout) {

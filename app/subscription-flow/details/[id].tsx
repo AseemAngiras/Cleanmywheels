@@ -49,7 +49,7 @@ export default function SubscriptionDetailsScreen() {
               : sd.status === "skipped"
                 ? "Skipped"
                 : "Scheduled",
-          addons: sd.addons || [],
+          addons: sd.addons ? [...sd.addons] : [],
         });
       });
     } else {
@@ -108,7 +108,7 @@ export default function SubscriptionDetailsScreen() {
       }
     });
 
-    const sortedLogs = logs.sort((a, b) => a.date.getTime() - b.date.getTime());
+    const sortedLogs = [...logs].sort((a, b) => a.date.getTime() - b.date.getTime());
     const nextService = sortedLogs.find((l) => l.status === "Scheduled");
 
     if (nextService) {

@@ -48,8 +48,7 @@ export default function AddonsScreen() {
     useVerifyAddonPaymentMutation();
   const [selectedAddons, setSelectedAddons] = useState<any[]>([]);
   const [selectedSubId, setSelectedSubId] = useState<string | null>(null);
-  const [serviceDate, setServiceDate] = useState<Date>(new Date());
-  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [selectedDates, setSelectedDates] = useState<Date[]>([]);
 
   useEffect(() => {
     if (activeSubscriptions.length > 0 && !selectedSubId) {
@@ -57,9 +56,50 @@ export default function AddonsScreen() {
     }
   }, [activeSubscriptions, selectedSubId]);
 
+  useEffect(() => {
+    if (selectedSubId) {
+      setSelectedAddons([]);
+      setSelectedDates([]);
+    }
+  }, [selectedSubId]);
+
   const activeSubscription = activeSubscriptions.find(
     (s: any) => s._id === selectedSubId,
   );
+
+  const availableDates = useMemo(() => {
+    if (!activeSubscription?.serviceDates) return [];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    return activeSubscription.serviceDates
+      .filter((sd: any) => {
+        const d = new Date(sd.date);
+        return sd.status === "pending" && d >= today;
+      })
+      .map((sd: any) => new Date(sd.date))
+      .slice()
+      .sort((a: Date, b: Date) => a.getTime() - b.getTime());
+  }, [activeSubscription]);
+
+  useEffect(() => {
+    if (availableDates.length > 0 && selectedDates.length === 0) {
+      setSelectedDates([availableDates[0]]);
+    }
+  }, [availableDates]);
+
+  const toggleDate = (date: Date) => {
+    setSelectedDates((prev) => {
+      const isSelected = prev.some((d) => d.toDateString() === date.toDateString());
+      if (isSelected) {
+        if (prev.length === 1) return prev; // Keep at least one date selected
+        return prev.filter((d) => d.toDateString() !== date.toDateString());
+      } else {
+        const nextDates = [...prev, date];
+        return nextDates.sort((a, b) => a.getTime() - b.getTime());
+      }
+    });
+  };
 
   const toggleAddon = (addon: any) => {
     setSelectedAddons((prev) => {
@@ -72,10 +112,9 @@ export default function AddonsScreen() {
     });
   };
 
-  const totalAmount = selectedAddons.reduce(
-    (sum, item) => sum + (item.price || 0),
-    0,
-  );
+  const totalAmount =
+    selectedAddons.reduce((sum, item) => sum + (item.price || 0), 0) *
+    selectedDates.length;
 
   const handlePayment = async () => {
     if (!activeSubscription) {
@@ -95,7 +134,18 @@ export default function AddonsScreen() {
     }
 
     const now = new Date();
-    if (serviceDate < new Date(now.setHours(0, 0, 0, 0))) {
+    now.setHours(0, 0, 0, 0);
+
+    if (selectedDates.length === 0) {
+      showAlert({
+        title: "Select Date",
+        message: "Please select at least one service date.",
+        type: "error",
+      });
+      return;
+    }
+
+    if (selectedDates[0] < now) {
       showAlert({
         title: "Invalid Date",
         message: "Please select a future date or today.",
@@ -103,8 +153,9 @@ export default function AddonsScreen() {
       });
       return;
     }
+
     const subEnd = new Date(activeSubscription.endDate);
-    if (serviceDate > subEnd) {
+    if (selectedDates[selectedDates.length - 1] > subEnd) {
       showAlert({
         title: "Invalid Date",
         message: "Date cannot be after subscription expiry.",
@@ -118,7 +169,8 @@ export default function AddonsScreen() {
         amount: totalAmount,
         subscriptionId: activeSubscription._id,
         addons: selectedAddons,
-        serviceDate: serviceDate.toISOString(),
+        serviceDate: selectedDates[0].toISOString(),
+        serviceDates: JSON.stringify(selectedDates.map(d => d.toISOString())),
       };
 
       const response = await createAddonOrder(orderPayload).unwrap();
@@ -137,7 +189,8 @@ export default function AddonsScreen() {
             grandTotal: totalAmount,
             vehicleType: activeSubscription.vehicle?.brand || "Vehicle",
             vehicleNumber: activeSubscription.vehicle?.vehicleNo || "",
-            serviceDate: serviceDate.toISOString(),
+            serviceDate: selectedDates[0].toISOString(),
+            serviceDates: JSON.stringify(selectedDates.map(d => d.toISOString())),
             serviceName: "Add-on Services",
             address: "Your Location",
           },
@@ -277,76 +330,91 @@ export default function AddonsScreen() {
           {/* Date Selection */}
           {activeSubscription && (
             <View className="mt-8">
-              <View className="flex-row items-center justify-between">
-                <View>
-                  <Text className="text-[18px] font-[700] color-text">
-                    Select Date
-                  </Text>
-                  <Text className="text-[14px] color-textSecondary mt-1">
-                    When do you want this service?
+              <Text className="text-[18px] font-[700] color-text">
+                Select Service Date
+              </Text>
+              <Text className="text-[14px] color-textSecondary mt-1 mb-4">
+                Choose from your scheduled subscription dates
+              </Text>
+
+              {availableDates.length === 0 ? (
+                <View className="p-6 bg-card rounded-[24px] border border-border/50 items-center">
+                  <Ionicons
+                    name="calendar-clear-outline"
+                    size={32}
+                    color={Colors.textSecondary}
+                  />
+                  <Text className="mt-2 color-textSecondary text-center font-[600]">
+                    No upcoming scheduled services found for this vehicle.
                   </Text>
                 </View>
-                <InteractivePressable
-                  onPress={() => setShowDatePicker(true)}
-                  className="bg-card px-5 py-3.5 rounded-[20px] border border-border flex-row items-center"
+              ) : (
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{ paddingHorizontal: 4, gap: 12 }}
+                  className="py-2"
                 >
-                  <Ionicons
-                    name="calendar-outline"
-                    size={18}
-                    color={Colors.primary}
-                    className="mr-3"
-                  />
-                  <Text className="color-text font-[600] ml-2">
-                    {serviceDate.toLocaleDateString("en-IN", {
-                      day: "numeric",
-                      month: "short",
-                    })}
-                  </Text>
-                  <Ionicons
-                    name="chevron-down"
-                    size={16}
-                    color={Colors.textSecondary}
-                    className="ml-3"
-                  />
-                </InteractivePressable>
-              </View>
-
-              {showDatePicker && (
-                <DateTimePicker
-                  value={serviceDate}
-                  mode="date"
-                  display="default"
-                  minimumDate={new Date()}
-                  maximumDate={new Date(activeSubscription.endDate)}
-                  onChange={(event, date) => {
-                    setShowDatePicker(false);
-                    if (date) {
-                      const isDone = activeSubscription.serviceHistory?.some(
-                        (h: any) =>
-                          new Date(h.date).toDateString() ===
-                            date.toDateString() && h.status === "completed",
-                      );
-
-                      if (isDone) {
-                        showAlert({
-                          title: "Service Completed",
-                          message: "Service for this date is already marked as done.",
-                        });
-                        return;
-                      }
-                      setServiceDate(date);
-                    }
-                  }}
-                />
+                  {availableDates.map((date: Date, index: number) => {
+                    const isSelected = selectedDates.some(
+                      (d) => d.toDateString() === date.toDateString(),
+                    );
+                    return (
+                      <InteractivePressable
+                        key={index}
+                        onPress={() => toggleDate(date)}
+                        className={`px-5 py-5 rounded-[28px] border items-center justify-center shadow-sm ${
+                          isSelected
+                            ? "bg-primary border-primary shadow-primary/20"
+                            : "bg-card border-border shadow-black/5"
+                        }`}
+                        style={{ minWidth: 95 }}
+                      >
+                        {isSelected && (
+                          <View className="absolute -top-1.5 -right-1.5 bg-black w-6 h-6 rounded-full items-center justify-center border-2 border-primary">
+                            <Ionicons name="checkmark" size={14} color={Colors.primary} />
+                          </View>
+                        )}
+                        <Text
+                          className={`text-[11px] font-[800] uppercase tracking-widest ${
+                            isSelected ? "text-black" : "text-textSecondary"
+                          }`}
+                        >
+                          {date.toLocaleDateString("en-IN", {
+                            weekday: "short",
+                          })}
+                        </Text>
+                        <Text
+                          className={`text-[24px] font-[900] mt-1 mb-1 ${
+                            isSelected ? "text-black" : "text-text"
+                          }`}
+                        >
+                          {date.getDate()}
+                        </Text>
+                        <Text
+                          className={`text-[11px] font-[700] ${
+                            isSelected ? "text-black/60" : "text-textSecondary"
+                          }`}
+                        >
+                          {date.toLocaleDateString("en-IN", {
+                            month: "short",
+                          })}
+                        </Text>
+                      </InteractivePressable>
+                    );
+                  })}
+                </ScrollView>
               )}
+
+
             </View>
           )}
 
           {/* Add-ons List */}
           {activeSubscription && (
             <View className="mt-10">
-              <Text className="text-[18px] font-[700] color-text">
-                Select Services
+              <Text className="text-[25px] font-[700] color-text">
+                Select Extra Services
               </Text>
               <Text className="text-[14px] color-textSecondary mb-6 mt-1">
                 For {activeSubscription.vehicle?.brand || "your vehicle"}
@@ -367,17 +435,17 @@ export default function AddonsScreen() {
                       }`}
                       onPress={() => toggleAddon(addon)}
                     >
-                      <Image
+                      {/* <Image
                         source={{
                           uri:
                             addon.icon ||
                             "https://cdn-icons-png.flaticon.com/512/2099/2099192.png",
                         }}
                         className="w-14 h-14 rounded-2xl bg-background border border-border/50"
-                      />
+                      /> */}
                       <View className="flex-1 ml-4">
                         <Text
-                          className={`text-[16px] font-[700] ${
+                          className={`text-[16px] text-white font-[700] ${
                             isSelected ? "text-text" : "text-textSemi"
                           }`}
                         >

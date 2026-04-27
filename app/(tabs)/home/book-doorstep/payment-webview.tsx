@@ -75,8 +75,8 @@ export default function PaymentWebViewScreen() {
             const razorpay_signature = params.get("razorpay_signature");
 
             // Verify with Backend
-            if (addons) {
-              const parsedAddons = JSON.parse(addons as string);
+            if (params.addons) {
+              const parsedAddons = JSON.parse(params.addons as string);
               await verifyAddonPayment({
                 razorpay_payment_id:
                   (razorpay_payment_id as string) || "demo_id",
@@ -89,9 +89,10 @@ export default function PaymentWebViewScreen() {
                   (razorpay_signature as string) || "demo_sig",
                 subscriptionId: subscriptionId as string,
                 addons: parsedAddons,
-                serviceDate: serviceDate
-                  ? String(serviceDate)
+                serviceDate: params.serviceDate
+                  ? String(params.serviceDate)
                   : new Date().toISOString(),
+                serviceDates: (params.serviceDates as string) || "[]",
               }).unwrap();
             }
           } else if (type === "SUBSCRIPTION") {
@@ -135,16 +136,16 @@ export default function PaymentWebViewScreen() {
             params: {
               bookingId: bookingId,
               status: "success",
-              addons: addons || "[]",
-              grandTotal,
-              vehicleType,
-              vehicleNumber,
-              serviceDate,
-              serviceName,
-              address,
+              addons: params.addons || "[]",
+              grandTotal: params.grandTotal,
+              vehicleType: params.vehicleType,
+              vehicleNumber: params.vehicleNumber,
+              serviceDate: params.serviceDate,
+              serviceName: params.serviceName,
+              address: params.address,
               paymentMethod: "Online",
-              selectedDate: serviceDate,
-              selectedTime: (timeSlot as string) || "Anytime",
+              selectedDate: params.serviceDate,
+              selectedTime: (params.timeSlot as string) || "Anytime",
               shopName: "CleanMyWheels",
             },
           } as any);
@@ -230,17 +231,34 @@ export default function PaymentWebViewScreen() {
           <TouchableOpacity
             onPress={async () => {
               try {
-                await verifySubscription({
-                  razorpay_payment_id: "dev_mock_payment_" + Date.now(),
-                  razorpay_order_id: (bookingId as string) || "dev_mock_order",
-                  razorpay_payment_link_id: "dev_mock_link_" + Date.now(),
-                  razorpay_payment_link_status: "paid",
-                  razorpay_signature: "mock_signature_dev_bypass",
-                  subscriptionId: bookingId as string,
-                }).unwrap();
-                const isSubscription = type === "SUBSCRIPTION" || type === "ADDON";
+                const isAddon = type === "ADDON";
+                const isSubscription = type === "SUBSCRIPTION" || isAddon;
+
+                if (isAddon) {
+                  await verifyAddonPayment({
+                    razorpay_payment_id: "dev_mock_payment_" + Date.now(),
+                    razorpay_order_id: (bookingId as string) || "dev_mock_order",
+                    razorpay_payment_link_id: "dev_mock_link_" + Date.now(),
+                    razorpay_payment_link_status: "paid",
+                    razorpay_signature: "mock_signature_dev_bypass",
+                    subscriptionId: subscriptionId as string,
+                    addons: JSON.parse((addons as string) || "[]"),
+                    serviceDate: (serviceDate as string) || new Date().toISOString(),
+                    serviceDates: (params.serviceDates as string) || "[]",
+                  }).unwrap();
+                } else {
+                  await verifySubscription({
+                    razorpay_payment_id: "dev_mock_payment_" + Date.now(),
+                    razorpay_order_id: (bookingId as string) || "dev_mock_order",
+                    razorpay_payment_link_id: "dev_mock_link_" + Date.now(),
+                    razorpay_payment_link_status: "paid",
+                    razorpay_signature: "mock_signature_dev_bypass",
+                    subscriptionId: bookingId as string,
+                  }).unwrap();
+                }
+
                 router.replace({
-                  pathname: isSubscription 
+                  pathname: isSubscription
                     ? "/subscription-flow/order-confirmation"
                     : "/(tabs)/home/book-doorstep/order-confirmation",
                   params: { ...params, bookingId },
@@ -251,7 +269,9 @@ export default function PaymentWebViewScreen() {
             }}
             className="px-3 py-1.5 bg-primary/20 border border-primary/30 rounded-lg"
           >
-            <Text className="text-[12px] font-[800] color-primary">Skip (Dev)</Text>
+            <Text className="text-[12px] font-[800] color-primary">
+              Skip (Dev)
+            </Text>
           </TouchableOpacity>
         ) : (
           <View className="w-10" />

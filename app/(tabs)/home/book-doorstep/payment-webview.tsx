@@ -18,6 +18,7 @@ import { Colors } from "@/constants/Colors";
 
 export default function PaymentWebViewScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams();
   const {
     url,
     bookingId, // This is subscriptionId for subscriptions
@@ -31,7 +32,7 @@ export default function PaymentWebViewScreen() {
     serviceName,
     address,
     timeSlot,
-  } = useLocalSearchParams();
+  } = params;
 
   const [verifyAddonPayment] = useVerifyAddonPaymentMutation();
   const [verifySubscription] = useVerifySubscriptionMutation();
@@ -158,6 +159,23 @@ export default function PaymentWebViewScreen() {
         setIsLoading(false);
         setVerifying(false);
       }
+    } else if (
+      url.includes("status=failed") ||
+      url.includes("status=cancelled") ||
+      url.includes("razorpay_payment_link_status=cancelled") ||
+      url.includes("razorpay_payment_link_status=expired")
+    ) {
+      const isSubscription = type === "SUBSCRIPTION" || type === "ADDON";
+      router.replace({
+        pathname: isSubscription
+          ? "/subscription-flow/payment-failed"
+          : "/(tabs)/home/book-doorstep/payment-failed",
+        params: {
+          bookingId,
+          grandTotal,
+          serviceName,
+        },
+      } as any);
     }
   };
 
@@ -188,7 +206,15 @@ export default function PaymentWebViewScreen() {
       {/* Header */}
       <View className="flex-row items-center justify-between px-5 py-4 bg-background border-b border-border/50">
         <TouchableOpacity
-          onPress={() => router.back()}
+          onPress={() => {
+            const isSubscription = type === "SUBSCRIPTION" || type === "ADDON";
+            router.replace({
+              pathname: isSubscription
+                ? "/subscription-flow/payment-failed"
+                : "/(tabs)/home/book-doorstep/payment-failed",
+              params: { ...params, bookingId },
+            } as any);
+          }}
           className="w-10 h-10 items-center justify-center rounded-full bg-card border border-border/50"
           activeOpacity={0.8}
         >
@@ -212,9 +238,12 @@ export default function PaymentWebViewScreen() {
                   razorpay_signature: "mock_signature_dev_bypass",
                   subscriptionId: bookingId as string,
                 }).unwrap();
+                const isSubscription = type === "SUBSCRIPTION" || type === "ADDON";
                 router.replace({
-                  pathname: "/(tabs)/home/book-doorstep/order-confirmation",
-                  params: { bookingId },
+                  pathname: isSubscription 
+                    ? "/subscription-flow/order-confirmation"
+                    : "/(tabs)/home/book-doorstep/order-confirmation",
+                  params: { ...params, bookingId },
                 } as any);
               } catch (err) {
                 console.error("Bypass failed:", err);

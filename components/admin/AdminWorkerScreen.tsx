@@ -5,6 +5,8 @@ import {
   FlatList,
   ActivityIndicator,
   Modal,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { InteractivePressable } from "../ui/InteractivePressable";
 import { Ionicons } from "@expo/vector-icons";
@@ -267,12 +269,15 @@ export default function AdminWorkerScreen() {
           transparent={true}
           onRequestClose={() => setModalVisible(false)}
         >
-          <View className="flex-1 justify-end">
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
+            className="flex-1 justify-end"
+          >
             <InteractivePressable
               className="absolute inset-0 bg-black/70"
               onPress={() => setModalVisible(false)}
             />
-            <View className="bg-card mb-10 rounded-t-[40px] shadow-2xl border-t border-border max-h-[90%]">
+            <View className="bg-card rounded-t-[40px] shadow-2xl border-t border-border h-[85%] overflow-hidden">
               <View className="w-12 h-1.5 bg-border/50 rounded-full self-center my-4" />
               <View className="flex-row justify-between items-center px-6 mb-6">
                 <Text className="text-[22px] font-[800] color-text">
@@ -306,7 +311,7 @@ export default function AdminWorkerScreen() {
                 }
               />
             </View>
-          </View>
+          </KeyboardAvoidingView>
         </Modal>
       </View>
     </ScreenWrapper>

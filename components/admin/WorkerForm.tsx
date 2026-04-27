@@ -55,10 +55,11 @@ export const WorkerForm: React.FC<WorkerFormProps> = ({
   };
 
   return (
-    <View className="bg-card px-6">
+    <View className="flex-1 bg-card px-6">
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 60 }}
+        contentContainerStyle={{ paddingBottom: 400 }}
+        keyboardShouldPersistTaps="handled"
       >
         {/* Name Input */}
         <View className="mb-6 mt-2">

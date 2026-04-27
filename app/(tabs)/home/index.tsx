@@ -38,13 +38,13 @@ import { ServiceActionGrid } from "../../../components/home/ServiceActionGrid";
 import { NextServiceWidget } from "../../../components/home/NextServiceWidget";
 import { CoreProtocols } from "../../../components/home/CoreProtocols";
 import { toast } from "@/utils/toast";
+import { useAlert } from "@/components/providers/AlertProvider";
 
 export default function HomeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const { showAlert } = useAlert();
-  const bookings = useSelector((state: RootState) => state.bookings.bookings);
   const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
 
 
@@ -81,7 +81,7 @@ export default function HomeScreen() {
     skip: !isLoggedIn,
   });
 
-  const { data: bookingsData } = useGetBookingsQuery(undefined, {
+  const { data: bookingsData, refetch: refetchBookings } = useGetBookingsQuery(undefined, {
     skip: !isLoggedIn,
   });
 
@@ -197,9 +197,9 @@ export default function HomeScreen() {
       console.log("✅ Auth verified successfully:", response);
 
       const token =
-        response?.data?.token ||
-        response?.token ||
-        (typeof response?.data === "string" ? response?.data : null);
+          response?.data?.token ||
+          response?.token ||
+          (typeof response?.data === "string" ? response?.data : null);
 
       if (token) {
         console.log("🎟 [HomeScreen] New token received and stored");
@@ -228,8 +228,8 @@ export default function HomeScreen() {
     } catch (err: any) {
       console.error("Login Verification Failed", err);
       toast.error(
-        "Login Failed",
-        err?.data?.message || "Invalid OTP or Server Error",
+          "Login Failed",
+          err?.data?.message || "Invalid OTP or Server Error",
       );
     } finally {
       setIsLoading(false);
@@ -248,7 +248,7 @@ export default function HomeScreen() {
     }
   };
 
-  const allBookings = [...(bookingsData?.data?.bookingList || []), ...bookings];
+  const allBookings = bookingsData?.data?.bookingList || [];
   const uniqueBookingsMap = new Map();
 
   allBookings.forEach((booking) => {
@@ -256,10 +256,10 @@ export default function HomeScreen() {
     const serviceName = booking.serviceName || booking.washPackage?.name;
     const address = booking.address?.fullAddress || booking.address || "";
     const car =
-      booking.car ||
-      (booking.vehicle
-        ? `${booking.vehicle.vehicleType} - ${booking.vehicle.vehicleNo}`
-        : "");
+        booking.car ||
+        (booking.vehicle
+            ? `${booking.vehicle.vehicleType} - ${booking.vehicle.vehicleNo}`
+            : "");
     const price = booking.price || booking.washPackage?.price || 0;
     const date = booking.date || booking.bookingDate;
     const serviceId = booking.serviceId || booking.washPackage?._id;
@@ -283,21 +283,24 @@ export default function HomeScreen() {
   const pastBookings = Array.from(uniqueBookingsMap.values()).reverse();
 
   const activeSubs =
-    subscriptions?.filter((s: any) =>
-      ["active", "ongoing"].includes(s.status),
-    ) || [];
+      subscriptions?.filter((s: any) =>
+          ["active", "ongoing"].includes(s.status),
+      ) || [];
 
   useFocusEffect(
-    useCallback(() => {
-      const homeStack = navigation.getParent();
-      const tabs = homeStack?.getParent();
+      useCallback(() => {
+        if (isLoggedIn) {
+          refetchBookings();
+        }
+        const homeStack = navigation.getParent();
+        const tabs = homeStack?.getParent();
 
-      if (tabs) {
-        tabs.setOptions({
-          tabBarStyle: { display: "flex" },
-        });
-      }
-    }, [navigation]),
+        if (tabs) {
+          tabs.setOptions({
+            tabBarStyle: { display: "flex" },
+          });
+        }
+      }, [navigation, refetchBookings, isLoggedIn]),
   );
 
   const handleRecentServicePress = (booking: any) => {

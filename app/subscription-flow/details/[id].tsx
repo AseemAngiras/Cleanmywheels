@@ -159,34 +159,32 @@ export default function SubscriptionDetailsScreen() {
           Premium Wash Service
         </Text>
 
-        {/* {item.addons && item.addons.length > 0 && (
+        {item.addons && item.addons.length > 0 && (
           <View className="mt-3 pt-3 border-t border-border/50">
-            <Text className="text-[11px] font-[700] color-textSecondary mb-2 tracking-widest uppercase">
-              Add-ons Purchased
+            <Text className="text-[10px] font-[800] color-textSecondary mb-2.5 tracking-[1px] uppercase">
+              Purchased Add-ons
             </Text>
-            {(() => {
-              const uniqueAddonsMap = new Map();
-              item.addons.forEach((addon: any) => {
-                uniqueAddonsMap.set(addon.name, addon);
-              });
-              const uniqueAddons = Array.from(uniqueAddonsMap.values());
-
-              return (uniqueAddons as any[]).map((addon: any, idx: number) => (
-                <React.Fragment key={addon?._id || `addon-${idx}`}>
-                  <View className="flex-row items-center gap-2 mb-1">
-                    <Ionicons name="sparkles" size={12} color={Colors.primary} />
-                    <Text className="text-[13px] color-text font-[500]">
-                      {addon.name} -{" "}
-                      <Text className="color-primary font-[700]">
-                        ₹{addon.price}
-                      </Text>
+            {item.addons.map((addon: any, idx: number) => {
+              const addonInfo = addon.addOn || addon;
+              return (
+                <View 
+                  key={addonInfo?._id || `addon-${idx}`}
+                  className="flex-row items-center justify-between mb-1.5 bg-background/50 px-3 py-2 rounded-xl border border-border/30"
+                >
+                  <View className="flex-row items-center flex-1 mr-2">
+                    <Ionicons name="sparkles" size={14} color={Colors.primary} />
+                    <Text className="text-[13px] color-text font-[600] ml-2" numberOfLines={1}>
+                      {addonInfo.name || "Extra Service"}
                     </Text>
                   </View>
-                </React.Fragment>
-              ));
-            })()}
+                  <Text className="text-[13px] color-primary font-[800]">
+                    ₹{addon.price || addonInfo.price}
+                  </Text>
+                </View>
+              );
+            })}
           </View>
-        )} */}
+        )}
       </View>
     </View>
   );

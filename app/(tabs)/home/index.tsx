@@ -152,12 +152,11 @@ export default function HomeScreen() {
       toast.success("OTP Sent", "Please check your messages.");
       setModalStep("otp");
     } catch (err: any) {
-      console.error("Auth Request Failed", err);
-      toast.error(
-        "Error",
-        err?.data?.message ||
-          "Failed to proceed. Try entering your name to register.",
-      );
+      showAlert({
+        title: "Auth Request Failed",
+        message: err?.data?.message || "User not found with this phone. Try entering your name to register.",
+        type: "error",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -226,11 +225,11 @@ export default function HomeScreen() {
         toast.error("Login Failed", "No access token received.");
       }
     } catch (err: any) {
-      console.error("Login Verification Failed", err);
-      toast.error(
-          "Login Failed",
-          err?.data?.message || "Invalid OTP or Server Error",
-      );
+      showAlert({
+        title: "Verification Failed",
+        message: err?.data?.message || "Invalid OTP or Server Error",
+        type: "error",
+      });
     } finally {
       setIsLoading(false);
     }

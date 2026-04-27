@@ -196,7 +196,7 @@ export default function SelectSlotScreen() {
       setModalStep("otp");
     } catch (err: any) {
       showAlert({
-        title: "Error",
+        title: "Registration Failed",
         message: err?.data?.message || "Something went wrong.",
         type: "error",
       });
@@ -260,7 +260,7 @@ export default function SelectSlotScreen() {
       }
     } catch (err: any) {
       showAlert({
-        title: "Error",
+        title: "Verification Failed",
         message: err?.data?.message || "Invalid OTP",
         type: "error",
       });

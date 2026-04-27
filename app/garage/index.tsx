@@ -171,7 +171,7 @@ export default function MyCarsScreen() {
       );
       closeModal();
     } catch (err: any) {
-      console.error("Failed to save vehicle:", err);
+      console.log("Failed to save vehicle:", err);
       toast.error("Error", err?.data?.message || "Failed to save vehicle");
     }
   };

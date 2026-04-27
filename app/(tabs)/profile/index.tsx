@@ -352,13 +352,8 @@ export default function ProfileHome() {
             <Row
               icon="people-outline"
               title="Manage Professionals"
-              subtitle="View registered users"
-              onPress={() =>
-                toast.info(
-                  "Coming Soon",
-                  "User management is under development.",
-                )
-              }
+              subtitle="Manage all the workers"
+              onPress={() => router.push("/(tabs)/dashboard")}
             />
             <Row
               icon="stats-chart-outline"

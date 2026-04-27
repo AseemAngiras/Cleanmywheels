@@ -49,7 +49,7 @@ export default function PaymentSuccessBridge() {
           setError("Booking not found.");
         }
       } catch (err: any) {
-        console.error("Bridge Error:", err);
+        console.log("Bridge Error:", err);
         setError("Failed to verify booking status.");
       }
     };

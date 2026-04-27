@@ -149,7 +149,7 @@ export default function PaymentWebViewScreen() {
           } as any);
         }, 5000);
       } catch (error) {
-        console.error("Verification failed", error);
+        console.log("Verification failed", error);
         showAlert({
           title: "Verification Failed",
           message: "Payment successful but verification failed.",

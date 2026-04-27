@@ -84,7 +84,7 @@ export default function BookingSummaryScreen() {
         setSelectedAddons(JSON.parse(addons as string));
       }
     } catch (e) {
-      console.error("Error parsing addons", e);
+      console.log("Error parsing addons", e);
     }
   }, [addons]);
 
@@ -237,7 +237,7 @@ export default function BookingSummaryScreen() {
         }
         return false; // Continue
       } catch (err) {
-        console.error("Poll err", err);
+        console.log("Poll err", err);
         return false;
       }
     };

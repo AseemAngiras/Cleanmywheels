@@ -183,6 +183,7 @@ export default function PaymentWebViewScreen() {
     <ScreenWrapper
       className="flex-1 bg-background"
       statusBarStyle="dark-content"
+      useSafeAreaBottom={true}
     >
       {/* Header */}
       <View className="flex-row items-center justify-between px-5 py-4 bg-background border-b border-border/50">
@@ -199,7 +200,33 @@ export default function PaymentWebViewScreen() {
             Secure Payment
           </Text>
         </View>
-        <View className="w-10" />
+        {process.env.EXPO_PUBLIC_ALLOW_PAYMENT_BYPASS === "true" || __DEV__ ? (
+          <TouchableOpacity
+            onPress={async () => {
+              try {
+                await verifySubscription({
+                  razorpay_payment_id: "dev_mock_payment_" + Date.now(),
+                  razorpay_order_id: (bookingId as string) || "dev_mock_order",
+                  razorpay_payment_link_id: "dev_mock_link_" + Date.now(),
+                  razorpay_payment_link_status: "paid",
+                  razorpay_signature: "mock_signature_dev_bypass",
+                  subscriptionId: bookingId as string,
+                }).unwrap();
+                router.replace({
+                  pathname: "/(tabs)/home/book-doorstep/order-confirmation",
+                  params: { bookingId },
+                } as any);
+              } catch (err) {
+                console.error("Bypass failed:", err);
+              }
+            }}
+            className="px-3 py-1.5 bg-primary/20 border border-primary/30 rounded-lg"
+          >
+            <Text className="text-[12px] font-[800] color-primary">Skip (Dev)</Text>
+          </TouchableOpacity>
+        ) : (
+          <View className="w-10" />
+        )}
       </View>
 
       {/* WebView Container */}

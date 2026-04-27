@@ -596,7 +596,10 @@ export default function BookingSummaryScreen() {
 
       {/* Webview Modal */}
       <Modal visible={showGateway} transparent animationType="slide">
-        <View className="flex-1 bg-background pt-10">
+        <View 
+          className="flex-1 bg-background pt-10"
+          style={{ paddingBottom: insets.bottom }}
+        >
           <View className="flex-row justify-between items-center px-6 py-4 border-b border-border/30">
             <Text className="text-[18px] font-[800] color-text">
               Secure Checkout

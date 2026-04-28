@@ -89,11 +89,9 @@ export const WorkerForm: React.FC<WorkerFormProps> = ({
             placeholder="e.g. Rahul Sharma"
             placeholderTextColor="#64748B"
           />
-          {isNameWarningVisible && (
-            <Text className="text-[11px] color-red-500 font-[600] mt-1.5 ml-1">
-              Only alphabets are allowed
-            </Text>
-          )}
+          <Text className="text-[11px] font-[600] color-textSecondary mt-1.5 ml-1">
+            * Only letters and spaces allowed
+          </Text>
         </View>
 
         {/* Phone Input */}
@@ -128,11 +126,9 @@ export const WorkerForm: React.FC<WorkerFormProps> = ({
               maxLength={10}
             />
           </View>
-          {isPhoneWarningVisible && (
-            <Text className="text-[11px] color-red-500 font-[600] mt-1.5 ml-1">
-              Only numbers are allowed
-            </Text>
-          )}
+          <Text className="text-[11px] font-[600] color-textSecondary mt-1.5 ml-1">
+            * Only 10-digit mobile numbers allowed
+          </Text>
         </View>
 
         {/* Job Role Input */}
@@ -180,7 +176,7 @@ export const WorkerForm: React.FC<WorkerFormProps> = ({
         </View>
 
         {/* Status Picker */}
-        <View className="mb-8">
+        <View className="mb-5">
           <View className="flex-row items-center gap-2 mb-2.5 px-1">
             <Ionicons
               name="shield-checkmark-outline"
@@ -214,9 +210,9 @@ export const WorkerForm: React.FC<WorkerFormProps> = ({
         </View>
 
         {/* Actions */}
-        <View className="flex-row gap-4 mt-4">
+        <View className="flex-row gap">
           <InteractivePressable
-            className="flex-1 h-14 bg-background border border-border rounded-2xl items-center justify-center shadow-sm"
+            className="flex-1 h-14 mr-5 bg-background border border-border rounded-2xl items-center justify-center shadow-sm"
             onPress={onCancel}
             disabled={isLoading}
           >

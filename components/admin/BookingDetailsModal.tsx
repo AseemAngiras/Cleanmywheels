@@ -325,15 +325,15 @@ export default function BookingDetailsModal({
               <Text
                 className={`font-[800] ml-2 text-[13px] ${booking.workerName ? "color-primary" : "color-textSecondary"}`}
               >
-                Notify Pro
+                Notify Worker
               </Text>
             </TouchableOpacity>
           </View>
 
           {/* Status & Price */}
-          <View className="flex-row gap-4 pt-6 border-t border-border/50 bg-card">
+          <View className="flex-row gap-4 pt-6 mb-5 border-t border-border/50 bg-card">
             <View className="flex-1 bg-background/50 rounded-2xl p-4 border border-border/50 items-center">
-              <Text className="text-[11px] font-[700] color-textSecondary uppercase tracking-widest mb-1.5">
+              <Text className="text-[11px] font-[700] color-textSecondary uppercase tracking-widest">
                 Status
               </Text>
               <Text
@@ -343,7 +343,7 @@ export default function BookingDetailsModal({
               </Text>
             </View>
             <View className="flex-1 bg-primary rounded-2xl p-4 items-center shadow-lg shadow-primary/20">
-              <Text className="text-[11px] font-[800] color-black/60 uppercase tracking-widest mb-1.5">
+              <Text className="text-[11px] font-[800] color-black/60 uppercase tracking-widest">
                 Amount
               </Text>
               <Text className="text-[18px] font-[900] color-black">

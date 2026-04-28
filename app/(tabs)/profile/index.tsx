@@ -776,11 +776,9 @@ export default function ProfileHome() {
               />
               <View className="flex-row justify-between mt-1.5 px-1">
                 <View className="flex-1">
-                  {isNameWarningVisible && (
-                    <Text className="text-error text-[11px] font-[600]">
-                      Only letters and spaces are allowed
-                    </Text>
-                  )}
+                  <Text className="text-[11px] font-[600] color-textSecondary">
+                    * Only letters and spaces allowed
+                  </Text>
                 </View>
                 <Text className={`text-[11px] font-[700] ${tempName.length >= 35 ? 'text-primary' : 'text-textSecondary'}`}>
                   {tempName.length} / 40

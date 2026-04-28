@@ -580,10 +580,10 @@ export default function AdminBookingsScreen() {
                 )}
               />
               <TouchableOpacity
-                className="mt-8 py-4.5 bg-background border border-border rounded-2xl items-center"
+                className="mt-8 py-4.5 bg-background border border-border rounded-2xl items-center mb-4"
                 onPress={() => setWorkerModalVisible(false)}
               >
-                <Text className="text-[16px] font-[800] color-text">
+                <Text className="text-[16px] font-[800] color-text mb-5 mt-5">
                   Cancel
                 </Text>
               </TouchableOpacity>

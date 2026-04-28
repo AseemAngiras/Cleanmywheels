@@ -375,7 +375,7 @@ export default function EnterLocationScreen() {
           showsVerticalScrollIndicator={false}
         >
           <TouchableOpacity
-            className={`flex-row items-center bg-card p-5 rounded-[28px] mt-6 mb-8 border border-border/50 shadow-sm ${isLocating ? "opacity-70" : ""}`}
+            className={`flex-row items-center bg-card p-5 rounded-[28px] mb-4 border border-border/50 shadow-sm ${isLocating ? "opacity-70" : ""}`}
             onPress={getCurrentLocation}
             disabled={isLocating}
           >

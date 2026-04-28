@@ -553,12 +553,12 @@ export default function AdminSubscriptionsScreen() {
               showsVerticalScrollIndicator={false}
             />
 
-            <View className="px-6 pb-10">
+            <View className="px-6 pb-20">
               <TouchableOpacity
                 className="mt-4 py-4 bg-background border border-border rounded-2xl items-center"
                 onPress={() => setWorkerModalVisible(false)}
               >
-                <Text className="text-[16px] font-[800] color-text">
+                <Text className="text-[16px] font-[800] color-text ">
                   Cancel
                 </Text>
               </TouchableOpacity>

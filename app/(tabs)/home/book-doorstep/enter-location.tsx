@@ -731,7 +731,10 @@ export default function EnterLocationScreen() {
             }}
           />
 
-          <View className="absolute bottom-10 left-6 right-6 flex-row gap-4">
+          <View 
+            className="absolute left-6 right-6 flex-row gap-4"
+            style={{ bottom: Math.max(insets.bottom + 20, 40) }}
+          >
             <TouchableOpacity
               className="flex-1 bg-card h-14 rounded-2xl items-center justify-center border border-border"
               onPress={() => setMapVisible(false)}

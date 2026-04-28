@@ -625,46 +625,41 @@ export default function SelectSlotScreen() {
                 </View>
               ) : (
                 <View>
-                  <View className="flex-row justify-between mb-10">
-                    {otp.map((digit, i) => (
-                      <View key={i} className="w-[14%] aspect-square">
-                        <TextInput
-                          ref={(ref: any) => {
-                            inputRefs.current[i] = ref;
-                          }}
-                          className="w-full h-full bg-[#1A1A1A] rounded-xl text-center text-[24px] font-[900] text-white border-[2px] border-white/10"
-                          keyboardType="number-pad"
-                          maxLength={6}
-                          autoFocus={i === 0}
-                          value={digit}
-                          onChangeText={(val) => {
-                            const text = val.replace(/[^0-9]/g, "");
-                            if (text.length >= 6) {
-                              const pasted = text.slice(-6).split("");
-                              setOtp(pasted);
-                              inputRefs.current[5]?.focus();
-                            } else if (text.length > 0) {
-                              const newOtp = [...otp];
-                              newOtp[i] = text.slice(-1);
-                              setOtp(newOtp);
-                              if (i < 5) inputRefs.current[i + 1]?.focus();
-                            } else {
-                              const newOtp = [...otp];
-                              newOtp[i] = "";
-                              setOtp(newOtp);
-                            }
-                          }}
-                          onKeyPress={({ nativeEvent }) => {
-                            if (
-                              nativeEvent.key === "Backspace" &&
-                              !otp[i] &&
-                              i > 0
-                            )
-                              inputRefs.current[i - 1]?.focus();
-                          }}
-                        />
-                      </View>
-                    ))}
+                  <View className="mb-10 relative w-full">
+                    <TextInput
+                      style={{ position: 'absolute', width: '100%', height: '100%', opacity: 0, zIndex: 10 }}
+                      keyboardType="number-pad"
+                      textContentType="oneTimeCode"
+                      maxLength={6}
+                      autoFocus={true}
+                      value={otp.join("")}
+                      onChangeText={(val) => {
+                        const text = val.replace(/[^0-9]/g, "").slice(0, 6);
+                        const newOtp = ["", "", "", "", "", ""];
+                        for (let j = 0; j < text.length; j++) {
+                          newOtp[j] = text[j];
+                        }
+                        setOtp(newOtp);
+                      }}
+                    />
+                    <View className="flex-row justify-between w-full" pointerEvents="none">
+                      {otp.map((digit, i) => {
+                        const currentLength = otp.join("").length;
+                        const isFocused = currentLength === i || (currentLength === 6 && i === 5);
+                        return (
+                          <View
+                            key={i}
+                            className={`w-[14%] aspect-square bg-[#1A1A1A] rounded-xl border-[2px] items-center justify-center ${
+                              isFocused ? "border-primary" : "border-white/10"
+                            }`}
+                          >
+                            <Text className="text-[24px] font-[900] text-white">
+                              {digit}
+                            </Text>
+                          </View>
+                        );
+                      })}
+                    </View>
                   </View>
 
                   <TouchableOpacity

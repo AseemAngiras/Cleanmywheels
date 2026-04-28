@@ -618,60 +618,45 @@ export default function HomeScreen() {
                 </View>
               ) : (
                 <View>
-                  <View className="flex-row justify-between mb-10">
-                    {otp.map((digit, i) => (
-                      <View key={i}>
-                        <TextInput
-                          ref={(ref: any) => {
-                            inputRefs.current[i] = ref;
-                          }}
-                          className={`w-[52px] h-[64px] rounded-[16px] border-[2px] text-center text-2xl font-[800] text-white ${
-                            digit
-                              ? "border-primary bg-[#1A1A1A]"
-                              : "border-white/10 bg-[#1A1A1A]"
-                          }`}
-                          keyboardType="number-pad"
-                          maxLength={6}
-                          contextMenuHidden={false}
-                          selectTextOnFocus
-                          autoFocus={i === 0}
-                          value={digit}
-                          onChangeText={(text) => {
-                            if (/[^0-9]/.test(text)) {
-                              setIsOtpWarningVisible(true);
-                              setTimeout(() => setIsOtpWarningVisible(false), 3000);
-                            }
-                            const val = text.replace(/[^0-9]/g, "");
-                            
-                            if (val.length >= 6) {
-                              const pasted = val.slice(-6).split("");
-                              setOtp(pasted);
-                              inputRefs.current[5]?.focus();
-                            } else if (val.length > 0) {
-                              const newOtp = [...otp];
-                              newOtp[i] = val.slice(-1);
-                              setOtp(newOtp);
-                              if (i < 5) {
-                                inputRefs.current[i + 1]?.focus();
-                              }
-                            } else {
-                              const newOtp = [...otp];
-                              newOtp[i] = "";
-                              setOtp(newOtp);
-                            }
-                          }}
-                          onKeyPress={({ nativeEvent }) => {
-                            if (
-                              nativeEvent.key === "Backspace" &&
-                              !otp[i] &&
-                              i > 0
-                            ) {
-                              inputRefs.current[i - 1]?.focus();
-                            }
-                          }}
-                        />
-                      </View>
-                    ))}
+                  <View className="mb-10 relative w-full">
+                    <TextInput
+                      style={{ position: 'absolute', width: '100%', height: '100%', opacity: 0, zIndex: 10 }}
+                      keyboardType="number-pad"
+                      textContentType="oneTimeCode"
+                      maxLength={6}
+                      autoFocus={true}
+                      value={otp.join("")}
+                      onChangeText={(text) => {
+                        if (/[^0-9]/.test(text)) {
+                          setIsOtpWarningVisible(true);
+                          setTimeout(() => setIsOtpWarningVisible(false), 3000);
+                        }
+                        const val = text.replace(/[^0-9]/g, "").slice(0, 6);
+                        const newOtp = ["", "", "", "", "", ""];
+                        for (let j = 0; j < val.length; j++) {
+                          newOtp[j] = val[j];
+                        }
+                        setOtp(newOtp);
+                      }}
+                    />
+                    <View className="flex-row justify-between w-full" pointerEvents="none">
+                      {otp.map((digit, i) => {
+                        const currentLength = otp.join("").length;
+                        const isFocused = currentLength === i || (currentLength === 6 && i === 5);
+                        return (
+                          <View
+                            key={i}
+                            className={`w-[52px] h-[64px] rounded-[16px] border-[2px] items-center justify-center bg-[#1A1A1A] ${
+                              digit ? "border-primary" : isFocused ? "border-primary/50" : "border-white/10"
+                            }`}
+                          >
+                            <Text className="text-[24px] font-[900] text-white">
+                              {digit}
+                            </Text>
+                          </View>
+                        );
+                      })}
+                    </View>
                   </View>
 
                   {isOtpWarningVisible && (

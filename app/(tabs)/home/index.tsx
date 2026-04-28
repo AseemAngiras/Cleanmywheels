@@ -94,11 +94,12 @@ export default function HomeScreen() {
   const [name, setName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
-  const [timer, setTimer] = useState(60);
+  const [timer, setTimer] = useState(45);
   const [isOtpWarningVisible, setIsOtpWarningVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const inputRefs = useRef<(TextInput | null)[]>([]);
   const isNavigating = useRef(false);
+  const [isExistingUser, setIsExistingUser] = useState(false);
 
   const [requestOtp] = useRequestOtpMutation();
   const [verifyLoginOtp] = useVerifyLoginOtpMutation();
@@ -119,7 +120,8 @@ export default function HomeScreen() {
 
   const handleSendOtp = async () => {
     const cleanedPhone = phoneNumber.trim();
-    setTimer(60);
+    setTimer(45);
+    setIsExistingUser(false);
     try {
       if (name.trim()) {
         const trimmedName = name.trim();
@@ -152,11 +154,31 @@ export default function HomeScreen() {
       toast.success("OTP Sent", "Please check your messages.");
       setModalStep("otp");
     } catch (err: any) {
-      showAlert({
-        title: "Auth Request Failed",
-        message: err?.data?.message || "User not found with this phone. Try entering your name to register.",
-        type: "error",
-      });
+      if (err?.data?.message?.includes("already exists") || err?.data?.message?.includes("already found")) {
+        setIsExistingUser(true);
+        try {
+          await requestOtp({
+            phone: cleanedPhone,
+            countryCode: "+91",
+            verifyType: "PHONE",
+            otpType: "LOGIN",
+          }).unwrap();
+          toast.success("OTP Sent", "Please check your messages.");
+          setModalStep("otp");
+        } catch (loginErr: any) {
+          showAlert({
+            title: "Auth Request Failed",
+            message: loginErr?.data?.message || "Could not send OTP.",
+            type: "error",
+          });
+        }
+      } else {
+        showAlert({
+          title: "Auth Request Failed",
+          message: err?.data?.message || "User not found with this phone. Try entering your name to register.",
+          type: "error",
+        });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -179,7 +201,7 @@ export default function HomeScreen() {
       };
 
       let response;
-      if (name.trim()) {
+      if (name.trim() && !isExistingUser) {
         response = await verifyRegisterOtp({
           ...payload,
           otpType: "REGISTER",

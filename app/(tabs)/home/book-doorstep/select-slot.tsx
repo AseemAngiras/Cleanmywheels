@@ -146,7 +146,8 @@ export default function SelectSlotScreen() {
   const [registrationToken, setRegistrationToken] = useState<string | null>(
     null,
   );
-  const [timer, setTimer] = useState(60);
+  const [timer, setTimer] = useState(45);
+  const [isExistingUser, setIsExistingUser] = useState(false);
 
   useEffect(() => {
     let interval: any;
@@ -178,10 +179,11 @@ export default function SelectSlotScreen() {
       return;
     }
 
-    setTimer(60);
+    setTimer(45);
     const trimmedPhone = phoneNumber.trim();
     const trimmedName = name.trim();
 
+    setIsExistingUser(false);
     try {
       const result = await register({
         name: trimmedName,
@@ -199,11 +201,30 @@ export default function SelectSlotScreen() {
       }).unwrap();
       setModalStep("otp");
     } catch (err: any) {
-      showAlert({
-        title: "Registration Failed",
-        message: err?.data?.message || "Something went wrong.",
-        type: "error",
-      });
+      if (err?.data?.message?.includes("already exists") || err?.data?.message?.includes("already found")) {
+        setIsExistingUser(true);
+        try {
+          await requestOtp({
+            phone: trimmedPhone,
+            countryCode: "+91",
+            verifyType: "PHONE",
+            otpType: "LOGIN",
+          }).unwrap();
+          setModalStep("otp");
+        } catch (loginErr: any) {
+          showAlert({
+            title: "OTP Request Failed",
+            message: loginErr?.data?.message || "Could not send OTP.",
+            type: "error",
+          });
+        }
+      } else {
+        showAlert({
+          title: "Registration Failed",
+          message: err?.data?.message || "Something went wrong.",
+          type: "error",
+        });
+      }
     }
   };
 
@@ -226,7 +247,7 @@ export default function SelectSlotScreen() {
         phoneToken: otpValue,
       };
       let response;
-      if (name.trim()) {
+      if (name.trim() && !isExistingUser) {
         response = await verifyRegisterOtp({
           body: { ...payload, otpType: "REGISTER" },
         }).unwrap();

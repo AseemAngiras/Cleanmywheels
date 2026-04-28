@@ -99,7 +99,7 @@ export default function FAQPage() {
           })}
 
           {/* Contact Support Section */}
-          <View className="mt-6 mb-10 p-6 bg-card rounded-[32px] border border-border items-center">
+          {/* <View className="mt-6 mb-10 p-6 bg-card rounded-[32px] border border-border items-center">
             <View className="w-12 h-12 rounded-full bg-primary/10 items-center justify-center mb-4">
               <Ionicons
                 name="chatbubbles-outline"
@@ -122,7 +122,7 @@ export default function FAQPage() {
                 Chat with Support
               </Text>
             </TouchableOpacity>
-          </View>
+          </View> */}
         </ScrollView>
       </View>
     </ScreenWrapper>

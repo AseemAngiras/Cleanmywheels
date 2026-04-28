@@ -125,11 +125,13 @@ export default function PaymentWebViewScreen() {
             }).unwrap();
           }
 
-          // Redirect to Order Confirmation
-          const targetPath =
-            type === "ADDON" || type === "SUBSCRIPTION"
-              ? "/subscription-flow/order-confirmation"
-              : "/(tabs)/home/book-doorstep/order-confirmation";
+          // Redirect to Order Confirmation or Addon Success
+          let targetPath = "/(tabs)/home/book-doorstep/order-confirmation";
+          if (type === "ADDON") {
+            targetPath = "/subscription-flow/addon-success";
+          } else if (type === "SUBSCRIPTION") {
+            targetPath = "/subscription-flow/order-confirmation";
+          }
 
           router.replace({
             pathname: targetPath,
@@ -257,10 +259,15 @@ export default function PaymentWebViewScreen() {
                   }).unwrap();
                 }
 
+                let devTargetPath = "/(tabs)/home/book-doorstep/order-confirmation";
+                if (type === "ADDON") {
+                  devTargetPath = "/subscription-flow/addon-success";
+                } else if (isSubscription) {
+                  devTargetPath = "/subscription-flow/order-confirmation";
+                }
+
                 router.replace({
-                  pathname: isSubscription
-                    ? "/subscription-flow/order-confirmation"
-                    : "/(tabs)/home/book-doorstep/order-confirmation",
+                  pathname: devTargetPath,
                   params: { ...params, bookingId },
                 } as any);
               } catch (err) {

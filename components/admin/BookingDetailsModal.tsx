@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/constants/Colors";
+import { formatPrice } from "@/utils/formatPrice";
 import { useAlert } from "@/components/providers/AlertProvider";
 
 interface BookingDetailsModalProps {
@@ -228,14 +229,14 @@ export default function BookingDetailsModal({
                         </Text>
                       </View>
                       <Text className="text-[15px] font-[800] color-primary ml-2">
-                        ₹{addon.price}
+                        ₹{formatPrice(addon.price)}
                       </Text>
                     </View>
                   ))}
                   <View className="h-[1px] bg-border/50 my-2" />
                   <View className="flex-row justify-between items-center px-2">
                     <Text className="text-[14px] font-[700] color-textSecondary">Add-ons Total</Text>
-                    <Text className="text-[16px] font-[900] color-text">₹{booking.addonsTotal || 0}</Text>
+                    <Text className="text-[16px] font-[900] color-text">₹{formatPrice(booking.addonsTotal || 0)}</Text>
                   </View>
                 </View>
               </View>
@@ -346,7 +347,7 @@ export default function BookingDetailsModal({
                 Amount
               </Text>
               <Text className="text-[18px] font-[900] color-black">
-                ₹{booking.price}
+                ₹{formatPrice(booking.price)}
               </Text>
             </View>
           </View>

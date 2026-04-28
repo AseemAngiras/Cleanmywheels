@@ -7,12 +7,13 @@ import { useDispatch } from "react-redux";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { addBooking } from "@/store/slices/bookingSlice";
+import { formatPrice } from "@/utils/formatPrice";
 
 export default function OrderConfirmationScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const params = useLocalSearchParams();
-  const { selectedDate, selectedTime, paymentMethod, grandTotal } = params;
+  const { selectedDate, selectedTime, timeSlot, paymentMethod, grandTotal } = params;
 
   const dispatch = useDispatch();
 
@@ -21,7 +22,7 @@ export default function OrderConfirmationScreen() {
       addBooking({
         center: (params.shopName as string) || "CleanMyWheels",
         date: (params.selectedDate as string) || new Date().toISOString(),
-        timeSlot: (params.selectedTime as string) || "Anytime",
+        timeSlot: (params.selectedTime as string) || (params.timeSlot as string) || "Anytime",
         car: params.vehicleType
           ? `${params.vehicleType} - ${params.vehicleNumber}`
           : "Vehicle",
@@ -155,7 +156,7 @@ export default function OrderConfirmationScreen() {
               Preferred Slot
             </Text>
             <Text className="text-sm font-[700] color-text">
-              {selectedTime || "Anytime"}
+              {selectedTime || timeSlot || "Anytime"}
             </Text>
           </View>
 
@@ -180,7 +181,7 @@ export default function OrderConfirmationScreen() {
           <View className="flex-row justify-between pt-6 items-center">
             <Text className="text-base font-[800] color-text">Total Paid</Text>
             <Text className="text-[20px] font-[900] color-primary">
-              ₹{grandTotal || "0"}
+              ₹{formatPrice(grandTotal || "0")}
             </Text>
           </View>
         </View>

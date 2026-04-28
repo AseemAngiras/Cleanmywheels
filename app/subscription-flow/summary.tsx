@@ -24,6 +24,7 @@ import { useGetAddressesQuery } from "@/store/api/addressApi";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { formatPrice } from "@/utils/formatPrice";
 
 const APP_NAME = "CleanMyWheels";
 const RAZORPAY_KEY = process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID || "";
@@ -308,7 +309,7 @@ export default function SubscriptionSummaryScreen() {
                 {selectedPlan.name}
               </Text>
               <Text className="text-[14px] font-[700] color-primary">
-                ₹{basePrice}
+                ₹{formatPrice(basePrice)}
               </Text>
             </View>
             <View className="flex-1.2 bg-card rounded-[24px] p-5 border border-border shadow-sm">
@@ -382,8 +383,8 @@ export default function SubscriptionSummaryScreen() {
                     +₹
                     {addon.priceMatrix?.[frequencyType as string] &&
                     addon.priceMatrix[frequencyType as string] > 0
-                      ? addon.priceMatrix[frequencyType as string]
-                      : addon.subscriptionPrice || addon.price || 0}
+                      ? formatPrice(addon.priceMatrix[frequencyType as string])
+                      : formatPrice(addon.subscriptionPrice || addon.price || 0)}
                   </Text>
                 </View>
               ))}
@@ -392,7 +393,7 @@ export default function SubscriptionSummaryScreen() {
                   Total Add-on Cost (Monthly)
                 </Text>
                 <Text className="text-[14px] font-[800] color-primary">
-                  ₹{totalAddonsCost}
+                  ₹{formatPrice(totalAddonsCost)}
                 </Text>
               </View>
             </View>
@@ -451,7 +452,7 @@ export default function SubscriptionSummaryScreen() {
                 )
               </Text>
               <Text className="text-[16px] font-[700] color-text">
-                ₹{finalPrice}
+                ₹{formatPrice(finalPrice)}
               </Text>
             </View>
             <View className="h-[1px] bg-border/50 w-full my-4" />
@@ -460,7 +461,7 @@ export default function SubscriptionSummaryScreen() {
                 Grand Total
               </Text>
               <Text className="text-[22px] font-[900] color-primary">
-                ₹{finalPrice}
+                ₹{formatPrice(finalPrice)}
               </Text>
             </View>
           </View>
@@ -481,7 +482,7 @@ export default function SubscriptionSummaryScreen() {
               <ActivityIndicator color="#000" />
             ) : (
               <Text className="color-black text-[16px] font-[800]">
-                Pay ₹{finalPrice}
+                Pay ₹{formatPrice(finalPrice)}
               </Text>
             )}
           </InteractivePressable>

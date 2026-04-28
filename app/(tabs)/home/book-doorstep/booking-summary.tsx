@@ -29,6 +29,7 @@ import BookingStepper from "../../../../components/BookingStepper";
 import PulseLoader from "../../../../components/PulseLoader";
 import socketService from "@/services/socketService";
 import { InteractivePressable } from "@/components/ui/InteractivePressable";
+import { formatPrice } from "@/utils/formatPrice";
 
 const VEHICLE_TYPE_MAP: Record<string, string> = {
   sedan: "Sedan",
@@ -458,7 +459,7 @@ export default function BookingSummaryScreen() {
               {serviceName}
             </Text>
             <Text className="text-[14px] font-[800] color-text">
-              ₹{displayServicePrice}
+              ₹{formatPrice(displayServicePrice)}
             </Text>
           </View>
 
@@ -479,7 +480,7 @@ export default function BookingSummaryScreen() {
                 </InteractivePressable>
               </View>
               <Text className="text-[14px] font-[800] color-text">
-                +₹{addon.price}
+                +₹{formatPrice(addon.price)}
               </Text>
             </View>
           ))}
@@ -491,7 +492,7 @@ export default function BookingSummaryScreen() {
               Amount to Pay
             </Text>
             <Text className="text-[24px] font-[900] color-primary">
-              ₹{displayGrandTotal}
+              ₹{formatPrice(displayGrandTotal)}
             </Text>
           </View>
         </View>
@@ -500,7 +501,7 @@ export default function BookingSummaryScreen() {
         {(() => {
           if (!addonsList) return null;
           const availableAddons = addonsList.filter(
-            (a: any) => !selectedAddons.find((sa: any) => (sa.id || sa._id) === a._id)
+            (a: any) => !selectedAddons.find((sa: any) => String(sa.id || sa._id) === String(a.id || a._id))
           );
 
           if (availableAddons.length === 0) return null;
@@ -516,39 +517,40 @@ export default function BookingSummaryScreen() {
               <View className="gap-3">
                 {displayedAddons.map((addon: any) => (
                   <View
-                    key={addon._id}
-                    className="bg-card border border-border/50 p-4 rounded-[24px] shadow-sm relative"
+                    key={addon._id || addon.id}
+                    className="bg-card border border-border/50 p-4 rounded-[24px] shadow-sm"
                   >
-                    {/* Info Icon */}
-                    <TouchableOpacity
-                      className="absolute top-4 right-4 z-10"
-                      onPress={() => {
-                        showAlert({
-                          title: addon.name,
-                          message: addon.description || "No details available.",
-                          type: "info",
-                        });
-                      }}
-                      hitSlop={{ top: 10, right: 10, bottom: 10, left: 10 }}
-                    >
-                      <Ionicons name="information-circle-outline" size={22} color={Colors.textSecondary} />
-                    </TouchableOpacity>
-
-                    <View className="pr-8">
-                      <Text
-                        className="text-[15px] font-[800] color-text mb-1"
-                        numberOfLines={1}
+                    <View className="flex-row justify-between items-start mb-2">
+                      <View className="flex-1 pr-3">
+                        <Text
+                          className="text-[15px] font-[800] color-text mb-1"
+                          numberOfLines={1}
+                        >
+                          {addon.name}
+                        </Text>
+                        <Text className="text-[12px] color-textSecondary font-[500]" numberOfLines={2}>
+                          {addon.description}
+                        </Text>
+                      </View>
+                      
+                      {/* Info Icon */}
+                      <TouchableOpacity
+                        onPress={() => {
+                          showAlert({
+                            title: addon.name,
+                            message: addon.description || "No details available.",
+                            type: "info",
+                          });
+                        }}
+                        hitSlop={{ top: 10, right: 10, bottom: 10, left: 10 }}
                       >
-                        {addon.name}
-                      </Text>
-                      <Text className="text-[12px] color-textSecondary mb-3 font-[500]" numberOfLines={2}>
-                        {addon.description}
-                      </Text>
+                        <Ionicons name="information-circle-outline" size={22} color={Colors.textSecondary} />
+                      </TouchableOpacity>
                     </View>
 
                     <View className="flex-row items-center justify-between mt-1">
                       <Text className="text-[16px] font-[900] color-primary">
-                        ₹{addon.price}
+                        ₹{formatPrice(addon.price)}
                       </Text>
                       <InteractivePressable
                         onPress={() => toggleAddon(addon)}
@@ -602,7 +604,7 @@ export default function BookingSummaryScreen() {
         >
           <View className="flex-row items-center">
             <Text className="text-[20px] font-[900] color-black">
-              ₹{displayGrandTotal}
+              ₹{formatPrice(displayGrandTotal)}
             </Text>
             <View className="w-[1px] h-6 bg-black/20 mx-4" />
             <Text className="text-[14px] font-[900] color-black/70">

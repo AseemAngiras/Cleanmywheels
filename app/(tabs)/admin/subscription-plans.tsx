@@ -13,6 +13,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { router, useFocusEffect } from "expo-router";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { Colors } from "@/constants/Colors";
+import { formatPrice } from "@/utils/formatPrice";
 import { useAlert } from "@/components/providers/AlertProvider";
 import { BackHandler, KeyboardAvoidingView, Platform } from "react-native";
 import { InteractivePressable } from "@/components/ui/InteractivePressable";
@@ -408,7 +409,7 @@ export default function AdminSubscriptionPlansScreen() {
                   </View>
                   <View className="bg-primary/10 px-3 py-1.5 rounded-full border border-primary/20">
                     <Text className="text-primary font-[800] text-[13px]">
-                      ₹{pkg.prices?.hatchback?.TWICE_MONTHLY || pkg.price || 0}
+                      ₹{formatPrice(pkg.prices?.hatchback?.TWICE_MONTHLY || pkg.price || 0)}
                     </Text>
                   </View>
                 </View>
@@ -443,7 +444,7 @@ export default function AdminSubscriptionPlansScreen() {
                         className="bg-background px-2 py-1 rounded-lg border border-border/50"
                       >
                         <Text className="text-[9px] color-textSecondary uppercase font-[800]">
-                          {type.charAt(0)}: ₹{price.TWICE_MONTHLY || 0}
+                          {type.charAt(0)}: ₹{formatPrice(price.TWICE_MONTHLY || 0)}
                         </Text>
                       </View>
                     ))}

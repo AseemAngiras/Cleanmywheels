@@ -20,6 +20,7 @@ import {
   useGetMySubscriptionQuery,
 } from "@/store/api/subscriptionApi";
 import { useAlert } from "@/components/providers/AlertProvider";
+import { formatPrice } from "@/utils/formatPrice";
 
 export default function AddonsScreen() {
   const router = useRouter();
@@ -464,7 +465,7 @@ export default function AddonsScreen() {
                             isSelected ? "text-primary" : "text-text"
                           }`}
                         >
-                          ₹{addon.price}
+                          ₹{formatPrice(addon.price)}
                         </Text>
                         {isSelected && (
                           <Ionicons
@@ -496,7 +497,7 @@ export default function AddonsScreen() {
                 TOTAL
               </Text>
               <Text className="text-[28px] font-[800] color-text">
-                ₹{totalAmount}
+                ₹{formatPrice(totalAmount)}
               </Text>
             </View>
             <InteractivePressable

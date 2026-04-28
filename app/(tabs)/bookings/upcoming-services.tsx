@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Colors } from "../../../constants/Colors";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { InteractivePressable } from "../../../components/ui/InteractivePressable";
+import { formatPrice } from "@/utils/formatPrice";
 
 import { useFocusEffect, useRouter } from "expo-router";
 import { useAlert } from "@/components/providers/AlertProvider";
@@ -794,7 +795,7 @@ export default function UpcomingServices() {
                           {activeBooking.serviceName}
                         </Text>
                         <Text className="text-xl font-[800] text-black tracking-[-0.5px]">
-                          ₹{activeBooking.price}
+                          ₹{formatPrice(activeBooking.price)}
                         </Text>
                       </View>
                     </View>
@@ -925,7 +926,7 @@ export default function UpcomingServices() {
                                 {addon.addOn?.name || "Extra Service"}
                               </Text>
                               <Text className="text-[14px] font-[700] color-primary">
-                                ₹{addon.price}
+                                ₹{formatPrice(addon.price)}
                               </Text>
                             </View>
                           ),
@@ -936,7 +937,7 @@ export default function UpcomingServices() {
                             Add-ons Total
                           </Text>
                           <Text className="text-[15px] font-[800] color-text">
-                            ₹{activeBooking.addonsTotal || 0}
+                            ₹{formatPrice(activeBooking.addonsTotal || 0)}
                           </Text>
                         </View>
                       </View>

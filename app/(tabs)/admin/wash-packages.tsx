@@ -12,6 +12,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { router, useFocusEffect } from "expo-router";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { Colors } from "@/constants/Colors";
+import { formatPrice } from "@/utils/formatPrice";
 import { useAlert } from "@/components/providers/AlertProvider";
 import { BackHandler, KeyboardAvoidingView, Platform } from "react-native";
 import { InteractivePressable } from "@/components/ui/InteractivePressable";
@@ -320,7 +321,7 @@ export default function AdminWashPackagesScreen() {
                           {type}
                         </Text>
                         <Text className="text-[16px] font-[800] color-text mt-0.5">
-                          ₹{price}
+                          ₹{formatPrice(price)}
                         </Text>
                       </View>
                     );

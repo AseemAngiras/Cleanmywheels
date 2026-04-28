@@ -4,6 +4,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { Text, TouchableOpacity, View, ScrollView } from "react-native";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { formatPrice } from "@/utils/formatPrice";
 
 export default function PaymentFailedScreen() {
   const router = useRouter();
@@ -85,7 +86,7 @@ export default function PaymentFailedScreen() {
                 Amount
               </Text>
               <Text className="text-[18px] font-[900] color-text">
-                ₹{grandTotal}
+              ₹{formatPrice(grandTotal || "0")}
               </Text>
             </View>
 

@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { useGetMySubscriptionQuery } from "@/store/api/subscriptionApi";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
+import { formatPrice } from "@/utils/formatPrice";
 
 export default function SubscriptionDetailsScreen() {
   const router = useRouter();
@@ -178,7 +179,7 @@ export default function SubscriptionDetailsScreen() {
                     </Text>
                   </View>
                   <Text className="text-[13px] color-primary font-[800]">
-                    ₹{addon.price || addonInfo.price}
+                    ₹{formatPrice(addon.price || addonInfo.price)}
                   </Text>
                 </View>
               );

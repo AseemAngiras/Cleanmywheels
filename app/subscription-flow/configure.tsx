@@ -24,6 +24,7 @@ import {
 } from "@/store/api/subscriptionApi";
 import { useAlert } from "@/components/providers/AlertProvider";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { formatPrice } from "@/utils/formatPrice";
 
 const TIME_SLOTS = [
   "6 AM - 7 AM",
@@ -327,7 +328,7 @@ export default function SubscriptionConfigureScreen() {
             </Text>
             <View className="flex-row items-baseline">
               <Text className="text-[22px] font-[900] color-primary">
-                ₹{currentTotalPrice}
+                ₹{formatPrice(currentTotalPrice)}
               </Text>
               <Text className="text-[14px] font-[700] color-primary/60 ml-2 uppercase">
                 / {frequencyData.services} Services
@@ -541,7 +542,7 @@ export default function SubscriptionConfigureScreen() {
                           isSelected ? "text-black" : "text-primary"
                         }`}
                       >
-                        ₹{displayPrice}
+                        ₹{formatPrice(displayPrice)}
                       </Text>
                     </InteractivePressable>
                   );
@@ -605,7 +606,7 @@ export default function SubscriptionConfigureScreen() {
               {selectedPlan.name}
             </Text>
             <Text className="text-[20px] font-[900] color-primary">
-              ₹{currentTotalPrice}
+              ₹{formatPrice(currentTotalPrice)}
             </Text>
           </View>
           <InteractivePressable

@@ -19,6 +19,7 @@ import {
   View,
 } from "react-native";
 import { InteractivePressable } from "@/components/ui/InteractivePressable";
+import { formatPrice } from "@/utils/formatPrice";
 
 import { useFocusEffect } from "expo-router";
 import { useAlert } from "@/components/providers/AlertProvider";
@@ -369,7 +370,7 @@ export default function PastServices() {
                           {activeBooking.serviceName}
                         </Text>
                         <Text className="text-xl font-[800] text-black tracking-[-0.5px]">
-                          ₹{activeBooking.price}
+                          ₹{formatPrice(activeBooking.price)}
                         </Text>
                       </View>
                     </View>
@@ -468,14 +469,14 @@ export default function PastServices() {
                               {addon.addOn?.name || "Extra Service"}
                             </Text>
                             <Text className="text-[14px] font-[700] color-primary">
-                              ₹{addon.price}
+                              ₹{formatPrice(addon.price)}
                             </Text>
                           </View>
                         ))}
                         <View className="h-[1px] bg-border/50 my-1" />
                         <View className="flex-row justify-between items-center px-1">
                           <Text className="text-[13px] font-[600] color-textSecondary">Add-ons Total</Text>
-                          <Text className="text-[15px] font-[800] color-text">₹{activeBooking.addonsTotal || 0}</Text>
+                          <Text className="text-[15px] font-[800] color-text">₹{formatPrice(activeBooking.addonsTotal || 0)}</Text>
                         </View>
                       </View>
                     </View>

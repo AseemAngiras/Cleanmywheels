@@ -45,111 +45,106 @@ export const ActiveSubscriptionCard = ({
 
   const frequencyLabel =
     {
-      DAILY: "2 Times a Month",
-      TWICE_MONTHLY: "2 Times a Month",
+      DAILY: "Daily",
+      TWICE_MONTHLY: "2x / Month",
       WEEKLY: "Weekly",
       BIWEEKLY: "Bi-weekly",
       ALTERNATE_DAY: "Alternate Day",
-    }[subscription.frequencyType as string] || "2 Times a Month";
+    }[subscription.frequencyType as string] || "2x / Month";
+
+  const statusColor = isExpired || isPast
+    ? { bg: "bg-red-500/8", border: "border-red-500/15", dot: "bg-red-400", text: "color-red-400" }
+    : { bg: "bg-green-500/10", border: "border-green-500/20", dot: "bg-green-500", text: "color-green-500" };
 
   return (
     <InteractivePressable
       onPress={() =>
         router.push(`/subscription-flow/details/${subscription._id}` as any)
       }
-      className={`mb-3 rounded-[20px] border overflow-hidden shadow-sm ${
+      className={`mb-4 rounded-[24px] border overflow-hidden shadow-sm ${
         isPast
-          ? "bg-card/40 border-border/20 opacity-90"
+          ? "bg-card/50 border-border/20"
           : isExpired
-            ? "bg-card/50 border-border/30 opacity-80"
-            : "bg-card border-border"
+            ? "bg-card/60 border-border/30"
+            : "bg-card border-border/50"
       }`}
     >
+      {/* Active Accent Bar */}
+      {!isPast && !isExpired && (
+        <View className="h-1 bg-primary" />
+      )}
+
       <View className={isPast ? "p-4" : "p-5"}>
-        <View className="flex-row justify-between items-center">
+        {/* Header Row */}
+        <View className="flex-row justify-between items-start">
           <View className="flex-1 mr-4">
             <Text
-              className={`text-[16px] font-[700] mb-0.5 ${isExpired || isPast ? "color-textSecondary" : "text-text"}`}
+              className={`text-[18px] font-[800] tracking-tight ${isExpired || isPast ? "color-textSecondary" : "text-text"}`}
               numberOfLines={1}
             >
               {subscription.plan?.name || "Premium Plan"}
             </Text>
-            <View className="flex-row items-center">
-              <Text className="text-[10px] color-textSecondary font-mono opacity-60">
+            <View className="flex-row items-center mt-1.5 gap-2">
+              <Text className="text-[10px] color-textSecondary font-mono opacity-50">
                 #{subscription._id.slice(-6).toUpperCase()}
               </Text>
-              {isPast && (
-                <>
-                  <View className="w-1 h-1 rounded-full bg-border mx-2" />
-                  <Text className="text-[10px] color-textSecondary font-[600]">
-                    Completed {formatDate(subscription.endDate)}
+              {!isPast && (
+                <View className="bg-primary/10 px-2 py-0.5 rounded-md border border-primary/15">
+                  <Text className="text-[9px] font-[800] color-primary uppercase tracking-wider">
+                    {frequencyLabel}
                   </Text>
-                </>
+                </View>
               )}
             </View>
           </View>
 
-          <View className="items-end">
-            <View
-              className={`flex-row items-center px-2 py-1 rounded-full border ${
-                isExpired || isPast
-                  ? "bg-red-500/5 border-red-500/10"
-                  : "bg-green-500/10 border-green-500/20"
-              }`}
-            >
-              <View
-                className={`w-1.5 h-1.5 rounded-full mr-1.5 ${isExpired || isPast ? "bg-red-400" : "bg-green-500"}`}
-              />
-              <Text
-                className={`text-[9px] font-[800] tracking-wider uppercase ${
-                  isExpired || isPast ? "color-red-500" : "color-green-500"
-                }`}
-              >
-                {subscription.status?.toUpperCase() || "ACTIVE"}
-              </Text>
-            </View>
+          {/* Status Badge */}
+          <View
+            className={`flex-row items-center px-2.5 py-1 rounded-full border ${statusColor.bg} ${statusColor.border}`}
+          >
+            <View className={`w-1.5 h-1.5 rounded-full mr-1.5 ${statusColor.dot}`} />
+            <Text className={`text-[9px] font-[800] tracking-wider uppercase ${statusColor.text}`}>
+              {subscription.status?.toUpperCase() || "ACTIVE"}
+            </Text>
           </View>
         </View>
 
         {!isPast && (
           <>
-            <View className="h-[1px] bg-border/50 my-4" />
-
-            <View className="flex-row justify-between">
-              <View className="flex-1">
-                <Text className="text-[10px] color-textSecondary font-[700] mb-1.5 tracking-widest uppercase">
-                  VEHICLE
+            {/* Info Row */}
+            <View className="flex-row mt-5 bg-background rounded-2xl border border-border/30 overflow-hidden">
+              <View className="flex-1 p-3.5 items-center border-r border-border/30">
+                <Text className="text-[9px] color-textSecondary font-[700] tracking-widest uppercase mb-1">
+                  Vehicle
                 </Text>
                 <Text
-                  className={`text-[15px] font-[700] mb-0.5 ${isExpired ? "color-textSecondary" : "text-text"}`}
+                  className={`text-[14px] font-[800] ${isExpired ? "color-textSecondary" : "text-text"}`}
                   numberOfLines={1}
                 >
                   {subscription.vehicle?.vehicleType || "-"}
                 </Text>
-                <Text className="text-[12px] color-textSecondary font-[500]">
-                  {subscription.vehicle?.vehicleNo ||
-                    subscription.vehicle?.number ||
-                    "-"}
+                <Text className="text-[11px] color-textSecondary font-[500] mt-0.5">
+                  {subscription.vehicle?.vehicleNo || subscription.vehicle?.number || "-"}
                 </Text>
               </View>
 
-              <View className="flex-1 items-end">
-                <Text className="text-[10px] color-textSecondary font-[700] mb-1.5 tracking-widest uppercase">
-                  {isExpired ? "COMPLETED" : "EXPIRES"}
+              <View className="flex-1 p-3.5 items-center">
+                <Text className="text-[9px] color-textSecondary font-[700] tracking-widest uppercase mb-1">
+                  {isExpired ? "Ended" : "Expires"}
                 </Text>
                 <Text
-                  className={`text-[15px] font-[700] mb-0.5 ${isExpired ? "color-textSecondary" : "text-text"}`}
+                  className={`text-[14px] font-[800] ${isExpired ? "color-textSecondary" : "text-text"}`}
                 >
                   {formatDate(subscription.endDate)}
                 </Text>
                 {isExpired ? (
-                  <Text className="text-[12px] font-[600] color-red-500">
-                    Service limit reached
+                  <Text className="text-[11px] font-[600] color-red-400 mt-0.5">
+                    Limit reached
                   </Text>
                 ) : (
                   <Text
-                    className={`text-[12px] font-[600] ${
-                      daysLeft < 5 ? "color-red-500" : "color-textSecondary"
+                    className={`text-[11px] font-[600] mt-0.5 ${
+                      daysLeft < 5 ? "color-red-400" : "color-textSecondary"
                     }`}
                   >
                     {daysLeft} days left
@@ -158,38 +153,51 @@ export const ActiveSubscriptionCard = ({
               </View>
             </View>
 
-            <View className="mt-6 mb-2">
+            {/* Progress Bar */}
+            <View className="mt-5">
               <View className="flex-row justify-between items-center mb-2">
                 <Text className="text-[10px] color-textSecondary font-[700] tracking-widest uppercase">
-                  SERVICE PROGRESS
+                  Progress
                 </Text>
-                <Text className="text-[11px] font-[800] color-text">
-                  {subscription.servicesCompleted} / {totalServices} WASHES
+                <Text className="text-[12px] font-[800] color-text">
+                  {subscription.servicesCompleted}/{totalServices}
+                  <Text className="text-[10px] font-[600] color-textSecondary"> washes</Text>
                 </Text>
               </View>
-              <View className="h-2 bg-background rounded-full overflow-hidden border border-border/30">
+              <View className="h-2.5 bg-background rounded-full overflow-hidden border border-border/30">
                 <View
-                  className="h-full bg-primary rounded-full"
+                  className={`h-full rounded-full ${isExpired ? "bg-red-400" : "bg-primary"}`}
                   style={{ width: `${progress}%` }}
                 />
               </View>
             </View>
 
-            <View className="flex-row items-center justify-center mt-5 bg-background py-3.5 rounded-2xl border border-border/50">
+            {/* View Details CTA */}
+            <InteractivePressable
+              onPress={() =>
+                router.push(`/subscription-flow/details/${subscription._id}` as any)
+              }
+              className="flex-row items-center justify-center mt-5 bg-background py-3.5 rounded-2xl border border-border/40"
+            >
               <Text className="text-[13px] font-[700] text-text mr-2">
                 View Details
               </Text>
               <Ionicons name="arrow-forward" size={14} color={Colors.text} />
-            </View>
+            </InteractivePressable>
           </>
         )}
 
         {isPast && (
-          <View className="flex-row items-center justify-end mt-2">
-            <Text className="text-[11px] font-[700] color-primary mr-1">
-              View Log
+          <View className="flex-row items-center justify-between mt-3">
+            <Text className="text-[11px] color-textSecondary font-[500]">
+              Completed {formatDate(subscription.endDate)}
             </Text>
-            <Ionicons name="chevron-forward" size={12} color={Colors.primary} />
+            <View className="flex-row items-center">
+              <Text className="text-[11px] font-[700] color-primary mr-1">
+                View Log
+              </Text>
+              <Ionicons name="chevron-forward" size={12} color={Colors.primary} />
+            </View>
           </View>
         )}
       </View>

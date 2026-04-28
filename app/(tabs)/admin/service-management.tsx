@@ -14,6 +14,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { router, useFocusEffect } from "expo-router";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { Colors } from "@/constants/Colors";
+import { formatPrice } from "@/utils/formatPrice";
 import { useAlert } from "@/components/providers/AlertProvider";
 import { BackHandler } from "react-native";
 import { InteractivePressable } from "@/components/ui/InteractivePressable";
@@ -245,7 +246,7 @@ export default function ServiceManagementScreen() {
                   </Text>
                 </View>
                 <View className="bg-primary/10 px-3 py-1 rounded-full border border-primary/20">
-                  <Text className="color-primary font-[800] text-[12px]">₹{addon.price}</Text>
+                  <Text className="color-primary font-[800] text-[12px]">₹{formatPrice(addon.price)}</Text>
                 </View>
               </View>
               
@@ -256,7 +257,7 @@ export default function ServiceManagementScreen() {
                   return (
                     <View key={key} className="bg-background px-3 py-1.5 rounded-xl border border-border/30">
                       <Text className="text-[10px] color-textSecondary font-[700] uppercase">{label}</Text>
-                      <Text className="text-[13px] font-[800] color-text">₹{price}</Text>
+                      <Text className="text-[13px] font-[800] color-text">₹{formatPrice(price)}</Text>
                     </View>
                   );
                 })}

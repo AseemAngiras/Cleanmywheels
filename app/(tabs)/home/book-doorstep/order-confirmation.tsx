@@ -8,6 +8,7 @@ import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useDispatch } from "react-redux";
 import { addBooking } from "../../../../store/slices/bookingSlice";
+import { formatPrice } from "@/utils/formatPrice";
 
 export default function OrderConfirmationScreen() {
   const router = useRouter();
@@ -44,7 +45,7 @@ export default function OrderConfirmationScreen() {
         contentContainerStyle={{ paddingBottom: 150 + insets.bottom }}
       >
         {/* Status Header */}
-        <View className="bg-card rounded-b-[44px] items-center pt-16 pb-12 px-6 shadow-xl border-b border-border/30">
+        <View className="bg-card rounded-b-[44px] items-center pb-12 px-6 shadow-xl border-b border-border/30">
           <View className="w-48 h-48 items-center justify-center -mb-2">
             <LottieView
               source={require("../../../../assets/animations/success.json")}
@@ -213,7 +214,7 @@ export default function OrderConfirmationScreen() {
                   Total Paid
                 </Text>
                 <Text className="text-[24px] font-[900] color-primary">
-                  ₹{grandTotal}
+                  ₹{formatPrice(grandTotal || "0")}
                 </Text>
               </View>
             </View>

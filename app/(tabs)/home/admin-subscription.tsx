@@ -13,6 +13,7 @@ import { Colors } from "@/constants/Colors";
 import { useGetAllSubscriptionsQuery } from "@/store/api/subscriptionApi";
 import { UserSubscription } from "@/types/subscription";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
+import { formatPrice } from "@/utils/formatPrice";
 
 export default function AdminSubscriptionScreen() {
   const [filterStatus, setFilterStatus] = useState<string | undefined>(
@@ -331,7 +332,7 @@ export default function AdminSubscriptionScreen() {
                         {selectedSub.plan?.name}
                       </Text>
                       <Text className="text-[14px] font-[900] color-primary">
-                        ₹{selectedSub.plan?.price}
+                        ₹{formatPrice(selectedSub.plan?.price)}
                       </Text>
                     </View>
                     <View className="flex-row justify-between">

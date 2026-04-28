@@ -22,6 +22,7 @@ import {
   ScrollView,
   Text,
   TextInput,
+  TouchableOpacity,
   View,
 } from "react-native";
 import Animated, {
@@ -41,6 +42,7 @@ import {
   useGetAddonsQuery,
 } from "@/store/api/subscriptionApi";
 import { useAlert } from "@/components/providers/AlertProvider";
+import { formatPrice } from "@/utils/formatPrice";
 
 const VEHICLE_TYPE_TO_PRICE_KEY: Record<string, string> = {
   Hatchback: "hatchback",
@@ -428,9 +430,10 @@ export default function SelectServiceScreen() {
                                     const pData = (service.prices as any)?.[
                                       priceKey
                                     ];
-                                    return typeof pData === "object"
+                                    const val = typeof pData === "object"
                                       ? pData.ONE_TIME || 0
                                       : pData || service.price;
+                                    return formatPrice(val);
                                   })()}
                                 </Text>
                                 {service.isBestseller && (
@@ -570,7 +573,7 @@ export default function SelectServiceScreen() {
                               </Text>
                               <View className="flex-row items-center mt-1">
                                 <Text className="text-[14px] font-[900] color-primary">
-                                  +₹{addon.normalPrice || addon.price}
+                                  +₹{formatPrice(addon.normalPrice || addon.price)}
                                 </Text>
                                 {isSelected && (
                                   <Text className="ml-2 text-[10px] font-[800] color-success uppercase tracking-widest">
@@ -579,6 +582,22 @@ export default function SelectServiceScreen() {
                                 )}
                               </View>
                             </View>
+
+                            {/* Info Icon */}
+                            <TouchableOpacity
+                              onPress={(e) => {
+                                e.stopPropagation();
+                                showAlert({
+                                  title: addon.name,
+                                  message: addon.description || "No details available.",
+                                  type: "info",
+                                });
+                              }}
+                              hitSlop={{ top: 10, right: 10, bottom: 10, left: 10 }}
+                              className="mr-3"
+                            >
+                              <Ionicons name="information-circle-outline" size={22} color={Colors.textSecondary} />
+                            </TouchableOpacity>
 
                             <View
                               className={`w-7 h-7 rounded-full items-center justify-center border-2 ${
@@ -785,7 +804,7 @@ export default function SelectServiceScreen() {
               Total Amount
             </Text>
             <Text className="text-[28px] font-[900] color-primary">
-              ₹{totalPrice}
+              ₹{formatPrice(totalPrice)}
             </Text>
           </View>
           <View className="bg-primary/10 px-4 py-2 rounded-full border border-primary/20">

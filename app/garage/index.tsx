@@ -213,7 +213,7 @@ export default function MyCarsScreen() {
     });
   };
 
-  const VEHICLE_TYPES = ["Sedan", "SUV", "Hatchback", "Two Wheeler"];
+  const VEHICLE_TYPES = ["Sedan", "SUV", "Hatchback"];
 
   const getVehicleIconName = (typeValue: string) => {
     switch (typeValue?.toLowerCase()) {
@@ -223,9 +223,7 @@ export default function MyCarsScreen() {
         return "car-side";
       case "suv":
         return "car-estate";
-      case "two wheeler":
-      case "bike":
-        return "motorbike";
+
       default:
         return "car";
     }

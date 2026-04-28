@@ -195,7 +195,7 @@ export default function ServiceManagementScreen() {
     <ScreenWrapper backgroundColor={Colors.background}>
       <View className="flex-row items-center px-5 py-4 bg-background border-b border-border/50">
         <TouchableOpacity
-          onPress={() => router.replace("/(tabs)/dashboard")}
+          onPress={() => router.replace("/(tabs)/profile")}
           className="w-10 h-10 rounded-full bg-card items-center justify-center border border-border/50"
         >
           <Ionicons name="chevron-back" size={24} color={Colors.text} />

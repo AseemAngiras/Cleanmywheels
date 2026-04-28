@@ -13,7 +13,6 @@ export interface SubscriptionPlan {
     hatchback: { DAILY: number; WEEKLY: number; BIWEEKLY: number; ALTERNATE_DAY: number; TWICE_MONTHLY: number; ONE_TIME: number };
     sedan: { DAILY: number; WEEKLY: number; BIWEEKLY: number; ALTERNATE_DAY: number; TWICE_MONTHLY: number; ONE_TIME: number };
     suv: { DAILY: number; WEEKLY: number; BIWEEKLY: number; ALTERNATE_DAY: number; TWICE_MONTHLY: number; ONE_TIME: number };
-    twoWheeler: { DAILY: number; WEEKLY: number; BIWEEKLY: number; ALTERNATE_DAY: number; TWICE_MONTHLY: number; ONE_TIME: number };
   };
   features: string[]; // Keep for compatibility
   includedServiceIds?: string[]; // New ID-based linking

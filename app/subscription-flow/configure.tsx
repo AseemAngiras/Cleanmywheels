@@ -37,7 +37,7 @@ const TIME_SLOTS = [
   "7 PM - 8 PM",
 ];
 
-const VEHICLE_TYPES = ["Sedan", "SUV", "Hatchback", "Two Wheeler"];
+const VEHICLE_TYPES = ["Sedan", "SUV", "Hatchback"];
 
 const getPriceKey = (type: string) => {
   switch (type?.toLowerCase()?.replace(/\s+/g, "")) {
@@ -47,9 +47,7 @@ const getPriceKey = (type: string) => {
       return "sedan";
     case "suv":
       return "suv";
-    case "twowheeler":
-    case "bike":
-      return "twoWheeler";
+
     default:
       return "sedan";
   }
@@ -63,9 +61,7 @@ const getVehicleIconName = (type: string) => {
       return "car-side";
     case "suv":
       return "car-estate";
-    case "two wheeler":
-    case "bike":
-      return "motorbike";
+
     default:
       return "car";
   }
@@ -141,8 +137,7 @@ export default function SubscriptionConfigureScreen() {
   const priceKey = getPriceKey(selectedVehicle?.vehicleType || "Sedan") as
     | "hatchback"
     | "sedan"
-    | "suv"
-    | "twoWheeler";
+    | "suv";
 
   const basePrice =
     selectedPlan?.prices?.[priceKey as keyof typeof selectedPlan.prices]?.[

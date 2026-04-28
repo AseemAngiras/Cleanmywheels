@@ -48,7 +48,6 @@ const VEHICLE_TYPE_TO_PRICE_KEY: Record<string, string> = {
   Hatchback: "hatchback",
   Sedan: "sedan",
   SUV: "suv",
-  "Two Wheeler": "twoWheeler",
 };
 
 const getVehicleIconName = (type: string) => {
@@ -59,8 +58,7 @@ const getVehicleIconName = (type: string) => {
       return "car-side";
     case "suv":
       return "car-estate";
-    case "two wheeler":
-      return "motorbike";
+
     default:
       return "car";
   }
@@ -150,14 +148,12 @@ export default function SelectServiceScreen() {
       hatchback: number;
       sedan: number;
       suv: number;
-      twoWheeler: number;
     };
   } | null>(null);
   const [newPrices, setNewPrices] = useState({
     hatchback: "",
     sedan: "",
     suv: "",
-    twoWheeler: "",
   });
 
   const handleUpdatePrice = async () => {
@@ -170,7 +166,6 @@ export default function SelectServiceScreen() {
             hatchback: Number(newPrices.hatchback),
             sedan: Number(newPrices.sedan),
             suv: Number(newPrices.suv),
-            twoWheeler: Number(newPrices.twoWheeler),
           },
         },
       }).unwrap();
@@ -200,7 +195,6 @@ export default function SelectServiceScreen() {
       { id: "Hatchback", name: "Hatchback", icon: "car-hatchback" },
       { id: "Sedan", name: "Sedan", icon: "car-side" },
       { id: "SUV", name: "SUV", icon: "car-estate" },
-      { id: "Two Wheeler", name: "Two Wheeler", icon: "motorbike" },
     ],
     [],
   );
@@ -390,7 +384,6 @@ export default function SelectServiceScreen() {
                             hatchback: 0,
                             sedan: 0,
                             suv: 0,
-                            twoWheeler: 0,
                           },
                         });
                         setNewPrices({
@@ -399,9 +392,6 @@ export default function SelectServiceScreen() {
                           ).toString(),
                           sedan: (service.prices?.sedan || 0).toString(),
                           suv: (service.prices?.suv || 0).toString(),
-                          twoWheeler: (
-                            service.prices?.twoWheeler || 0
-                          ).toString(),
                         });
                       }}
                       className="mb-4 overflow-hidden rounded-[28px]"

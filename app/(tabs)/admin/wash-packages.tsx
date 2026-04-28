@@ -29,7 +29,6 @@ const VEHICLE_TYPE_TO_PRICE_KEY: Record<string, string> = {
   Hatchback: "hatchback",
   Sedan: "sedan",
   SUV: "suv",
-  "Two Wheeler": "twoWheeler",
 };
 
 export default function AdminWashPackagesScreen() {
@@ -72,7 +71,6 @@ export default function AdminWashPackagesScreen() {
     hatchback: "",
     sedan: "",
     suv: "",
-    twoWheeler: "",
   });
 
   const handleEdit = (pkg: WashPackage) => {
@@ -83,7 +81,6 @@ export default function AdminWashPackagesScreen() {
       hatchback: (typeof pkg.prices?.hatchback === 'object' ? pkg.prices.hatchback.ONE_TIME : (pkg.prices?.hatchback || pkg.price || 0)).toString(),
       sedan: (typeof pkg.prices?.sedan === 'object' ? pkg.prices.sedan.ONE_TIME : (pkg.prices?.sedan || pkg.price || 0)).toString(),
       suv: (typeof pkg.prices?.suv === 'object' ? pkg.prices.suv.ONE_TIME : (pkg.prices?.suv || pkg.price || 0)).toString(),
-      twoWheeler: (typeof pkg.prices?.twoWheeler === 'object' ? pkg.prices.twoWheeler.ONE_TIME : (pkg.prices?.twoWheeler || pkg.price || 0)).toString(),
     });
   };
 
@@ -113,7 +110,6 @@ export default function AdminWashPackagesScreen() {
                     hatchback: Number(editData.hatchback),
                     sedan: Number(editData.sedan),
                     suv: Number(editData.suv),
-                    twoWheeler: Number(editData.twoWheeler),
                   },
                 },
               }).unwrap();
@@ -144,7 +140,6 @@ export default function AdminWashPackagesScreen() {
       hatchback: "0",
       sedan: "0",
       suv: "0",
-      twoWheeler: "0",
     });
   };
 
@@ -193,7 +188,6 @@ export default function AdminWashPackagesScreen() {
             hatchback: Number(editData.hatchback),
             sedan: Number(editData.sedan),
             suv: Number(editData.suv),
-            twoWheeler: Number(editData.twoWheeler),
           },
           price: Number(editData.hatchback),
           status: "Active",
@@ -223,7 +217,7 @@ export default function AdminWashPackagesScreen() {
       {/* Header */}
       <View className="flex-row items-center px-5 py-4 bg-background border-b border-border/50">
         <TouchableOpacity
-          onPress={() => router.replace("/(tabs)/dashboard")}
+          onPress={() => router.replace("/(tabs)/profile")}
           className="w-10 h-10 rounded-full bg-card items-center justify-center border border-border/50"
         >
           <Ionicons name="chevron-back" size={24} color={Colors.text} />

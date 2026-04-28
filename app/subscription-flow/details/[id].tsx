@@ -169,7 +169,7 @@ export default function SubscriptionDetailsScreen() {
               const addonInfo = addon.addOn || addon;
               return (
                 <View 
-                  key={addonInfo?._id || `addon-${idx}`}
+                  key={`${addonInfo?._id || 'addon'}-${idx}`}
                   className="flex-row items-center justify-between mb-1.5 bg-background/50 px-3 py-2 rounded-xl border border-border/30"
                 >
                   <View className="flex-row items-center flex-1 mr-2">

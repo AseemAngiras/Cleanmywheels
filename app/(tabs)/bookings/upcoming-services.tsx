@@ -624,7 +624,7 @@ export default function UpcomingServices() {
                         color={item.workerName ? "#10B981" : "#F59E0B"}
                       />
                       <Text
-                        className={`text-[11px] font-[700] ml-1 uppercase ${
+                        className={`text-[11px] font-[700] ml-1 uppercase text-white ${
                           item.workerName ? "text-success" : "text-warning"
                         }`}
                       >

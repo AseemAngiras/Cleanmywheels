@@ -37,9 +37,7 @@ const getPriceKey = (type: string) => {
       return "sedan";
     case "suv":
       return "suv";
-    case "twowheeler":
-    case "bike":
-      return "twoWheeler";
+
     default:
       return "sedan";
   }
@@ -109,8 +107,7 @@ export default function SubscriptionSummaryScreen() {
   const priceKey = getPriceKey(selectedVehicle?.vehicleType || "Sedan") as
     | "hatchback"
     | "sedan"
-    | "suv"
-    | "twoWheeler";
+    | "suv";
 
   const basePrice =
     (selectedPlan.prices as any)?.[priceKey]?.[frequencyType as any] ||

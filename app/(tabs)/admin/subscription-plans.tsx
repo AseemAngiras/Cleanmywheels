@@ -31,7 +31,6 @@ const VEHICLE_TYPE_TO_PRICE_KEY: Record<string, string> = {
   Hatchback: "hatchback",
   Sedan: "sedan",
   SUV: "suv",
-  "Two Wheeler": "twoWheeler",
 };
 
 export default function AdminSubscriptionPlansScreen() {
@@ -75,7 +74,6 @@ export default function AdminSubscriptionPlansScreen() {
       hatchback: { DAILY: 0, WEEKLY: 0, BIWEEKLY: 0, ALTERNATE_DAY: 0, TWICE_MONTHLY: 0, ONE_TIME: 0 },
       sedan: { DAILY: 0, WEEKLY: 0, BIWEEKLY: 0, ALTERNATE_DAY: 0, TWICE_MONTHLY: 0, ONE_TIME: 0 },
       suv: { DAILY: 0, WEEKLY: 0, BIWEEKLY: 0, ALTERNATE_DAY: 0, TWICE_MONTHLY: 0, ONE_TIME: 0 },
-      twoWheeler: { DAILY: 0, WEEKLY: 0, BIWEEKLY: 0, ALTERNATE_DAY: 0, TWICE_MONTHLY: 0, ONE_TIME: 0 },
     },
   });
 
@@ -110,14 +108,6 @@ export default function AdminSubscriptionPlansScreen() {
           ALTERNATE_DAY: pkg.prices?.suv?.ALTERNATE_DAY || 0,
           TWICE_MONTHLY: pkg.prices?.suv?.TWICE_MONTHLY || 0,
           ONE_TIME: pkg.prices?.suv?.ONE_TIME || 0,
-        },
-        twoWheeler: {
-          DAILY: pkg.prices?.twoWheeler?.DAILY || 0,
-          WEEKLY: pkg.prices?.twoWheeler?.WEEKLY || 0,
-          BIWEEKLY: pkg.prices?.twoWheeler?.BIWEEKLY || 0,
-          ALTERNATE_DAY: pkg.prices?.twoWheeler?.ALTERNATE_DAY || 0,
-          TWICE_MONTHLY: pkg.prices?.twoWheeler?.TWICE_MONTHLY || 0,
-          ONE_TIME: pkg.prices?.twoWheeler?.ONE_TIME || 0,
         },
       },
     });
@@ -203,7 +193,6 @@ export default function AdminSubscriptionPlansScreen() {
         hatchback: { DAILY: 0, WEEKLY: 0, BIWEEKLY: 0, ALTERNATE_DAY: 0, TWICE_MONTHLY: 0, ONE_TIME: 0 },
         sedan: { DAILY: 0, WEEKLY: 0, BIWEEKLY: 0, ALTERNATE_DAY: 0, TWICE_MONTHLY: 0, ONE_TIME: 0 },
         suv: { DAILY: 0, WEEKLY: 0, BIWEEKLY: 0, ALTERNATE_DAY: 0, TWICE_MONTHLY: 0, ONE_TIME: 0 },
-        twoWheeler: { DAILY: 0, WEEKLY: 0, BIWEEKLY: 0, ALTERNATE_DAY: 0, TWICE_MONTHLY: 0, ONE_TIME: 0 },
       },
     });
     setEditModalVisible(true);
@@ -340,7 +329,7 @@ export default function AdminSubscriptionPlansScreen() {
     >
       <View className="flex-row items-center px-5 pt-4 pb-6 bg-card border-b border-border/50">
         <TouchableOpacity
-          onPress={() => router.replace("/(tabs)/dashboard")}
+          onPress={() => router.replace("/(tabs)/profile")}
           className="w-10 h-10 rounded-full bg-background items-center justify-center border border-border"
         >
           <Ionicons name="arrow-back" size={20} color={Colors.text} />
@@ -385,8 +374,8 @@ export default function AdminSubscriptionPlansScreen() {
           </View>
         ) : (
           <View className="px-5 pt-6">
-            {packages.map((pkg: SubscriptionPlan) => (
-              <View key={pkg._id}>
+            {packages.map((pkg: SubscriptionPlan, index: number) => (
+              <View key={`${pkg._id}-${index}`}>
                 <TouchableOpacity
                   onPress={() => handleEdit(pkg)}
                   className="bg-card rounded-[32px] p-5 mb-5 border border-border shadow-sm"
@@ -630,10 +619,10 @@ export default function AdminSubscriptionPlansScreen() {
                   Included Services (Direct Link)
                 </Text>
                 <View className="flex-row flex-wrap gap-2">
-                  {addons?.map((addon: any) => {
+                  {addons?.map((addon: any, index: number) => {
                     const isIncluded = editData.includedServiceIds?.includes(addon._id);
                     return (
-                      <View key={addon._id}>
+                      <View key={`${addon._id}-${index}`}>
                         <TouchableOpacity
                           onPress={() => {
                             const newIds = isIncluded
@@ -683,3 +672,7 @@ export default function AdminSubscriptionPlansScreen() {
     </ScreenWrapper>
   );
 }
+function showAlert(arg0: { title: string; message: string; type: string; }) {
+  throw new Error("Function not implemented.");
+}
+

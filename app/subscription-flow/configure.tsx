@@ -9,6 +9,7 @@ import {
   TextInput,
   View,
   Modal,
+  TouchableOpacity,
 } from "react-native";
 import { InteractivePressable } from "@/components/ui/InteractivePressable";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
@@ -439,7 +440,7 @@ export default function SubscriptionConfigureScreen() {
           </View>
           {selectedPlan?.includedServiceIds &&
             selectedPlan.includedServiceIds.length > 0 && (
-              <View className="mb-6">
+              <View className="mb-6 mt-5">
                 <Text className="text-[18px] font-[700] color-text mb-4">
                   Included in your Plan
                 </Text>
@@ -450,19 +451,22 @@ export default function SubscriptionConfigureScreen() {
                     );
                     if (!addon) return null;
                     return (
-                      <View
+                      <TouchableOpacity
                         key={`included-${id}`}
                         className="bg-primary/10 border border-primary/20 px-3 py-2 rounded-full flex-row items-center"
+                        onPress={() => {
+                          showAlert({
+                            title: addon.name,
+                            message: addon.description || "No details available.",
+                            type: "info",
+                          });
+                        }}
                       >
-                        <MaterialCommunityIcons
-                          name={(addon.icon as any) || "check-circle"}
-                          size={14}
-                          color={Colors.primary}
-                        />
-                        <Text className="text-primary text-[12px] font-[700] ml-1">
+                        <Text className="text-primary text-[12px] font-[700] mr-1.5">
                           {addon.name}
                         </Text>
-                      </View>
+                        <Ionicons name="information-circle-outline" size={14} color={Colors.primary} />
+                      </TouchableOpacity>
                     );
                   })}
                 </View>
@@ -492,7 +496,7 @@ export default function SubscriptionConfigureScreen() {
                   return (
                     <InteractivePressable
                       key={addon._id}
-                      className={`w-40 p-4 rounded-[24px] border ${
+                      className={`w-40 p-4 rounded-[24px] border relative ${
                         isSelected
                           ? "bg-primary border-primary"
                           : "bg-card border-border"
@@ -507,19 +511,25 @@ export default function SubscriptionConfigureScreen() {
                         }
                       }}
                     >
-                      {/* <View
-                        className={`w-10 h-10 rounded-full items-center justify-center mb-3 ${
-                          isSelected ? "bg-black/10" : "bg-primary/10"
-                        }`}
+                      <TouchableOpacity
+                        className="absolute top-3 right-3 z-10"
+                        onPress={() => {
+                          showAlert({
+                            title: addon.name,
+                            message: addon.description || "No details available.",
+                            type: "info",
+                          });
+                        }}
+                        hitSlop={{ top: 10, right: 10, bottom: 10, left: 10 }}
                       >
-                        <MaterialCommunityIcons
-                          name={(addon.icon as any) || "sparkles"}
-                          size={20}
-                          color={isSelected ? "#000" : Colors.primary}
+                        <Ionicons 
+                          name="information-circle-outline" 
+                          size={20} 
+                          color={isSelected ? "rgba(0,0,0,0.5)" : Colors.textSecondary} 
                         />
-                      </View> */}
+                      </TouchableOpacity>
                       <Text
-                        className={`text-[13px] font-[800] mb-1 ${
+                        className={`text-[13px] font-[800] mb-1 mt-6 ${
                           isSelected ? "text-black" : "text-text"
                         }`}
                         numberOfLines={1}

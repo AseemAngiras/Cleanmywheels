@@ -77,6 +77,7 @@ export default function BookingSummaryScreen() {
 
   const { data: addonsList } = useGetAddonsQuery(undefined);
   const [selectedAddons, setSelectedAddons] = useState<any[]>([]);
+  const [showAllAddons, setShowAllAddons] = useState(false);
 
   useEffect(() => {
     try {
@@ -496,59 +497,97 @@ export default function BookingSummaryScreen() {
         </View>
 
         {/* Enhance Your Wash Section */}
-        {addonsList &&
-          addonsList.some(
-            (a) => !selectedAddons.find((sa) => (sa.id || sa._id) === a._id),
-          ) && (
+        {(() => {
+          if (!addonsList) return null;
+          const availableAddons = addonsList.filter(
+            (a: any) => !selectedAddons.find((sa: any) => (sa.id || sa._id) === a._id)
+          );
+
+          if (availableAddons.length === 0) return null;
+
+          const displayedAddons = showAllAddons ? availableAddons : availableAddons.slice(0, 3);
+          const hiddenCount = availableAddons.length - 3;
+
+          return (
             <View className="mt-8">
               <Text className="text-[11px] font-[800] color-textSecondary uppercase tracking-[2px] mb-4 px-1">
                 Enhance Your Wash
               </Text>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{ gap: 12 }}
-              >
-                {addonsList
-                  .filter(
-                    (a) =>
-                      !selectedAddons.find((sa) => (sa.id || sa._id) === a._id),
-                  )
-                  .map((addon: any) => (
-                    <InteractivePressable
-                      key={addon._id}
-                      onPress={() => toggleAddon(addon)}
-                      className="bg-card border border-border/50 p-4 rounded-[24px] w-[160px] shadow-sm"
+              <View className="gap-3">
+                {displayedAddons.map((addon: any) => (
+                  <View
+                    key={addon._id}
+                    className="bg-card border border-border/50 p-4 rounded-[24px] shadow-sm relative"
+                  >
+                    {/* Info Icon */}
+                    <TouchableOpacity
+                      className="absolute top-4 right-4 z-10"
+                      onPress={() => {
+                        showAlert({
+                          title: addon.name,
+                          message: addon.description || "No details available.",
+                          type: "info",
+                        });
+                      }}
+                      hitSlop={{ top: 10, right: 10, bottom: 10, left: 10 }}
                     >
-                      {/* <View className="w-10 h-10 rounded-xl bg-primary/10 items-center justify-center mb-3">
-                        <MaterialCommunityIcons
-                          name={(addon.icon as any) || "sparkles"}
-                          size={20}
-                          color={Colors.primary}
-                        />
-                      </View> */}
+                      <Ionicons name="information-circle-outline" size={22} color={Colors.textSecondary} />
+                    </TouchableOpacity>
+
+                    <View className="pr-8">
                       <Text
-                        className="text-[13px] font-[800] color-text mb-1"
+                        className="text-[15px] font-[800] color-text mb-1"
                         numberOfLines={1}
                       >
                         {addon.name}
                       </Text>
-                      <Text className="text-[11px] color-textSecondary mb-3 h-8 leading-4 font-[500]">
-                        {addon.description?.substring(0, 40)}...
+                      <Text className="text-[12px] color-textSecondary mb-3 font-[500]" numberOfLines={2}>
+                        {addon.description}
                       </Text>
-                      <View className="flex-row items-center justify-between">
-                        <Text className="text-[14px] font-[900] color-primary">
-                          ₹{addon.price}
-                        </Text>
-                        <View className="w-7 h-7 rounded-full bg-primary items-center justify-center">
-                          <Ionicons name="add" size={18} color="#000" />
-                        </View>
-                      </View>
-                    </InteractivePressable>
-                  ))}
-              </ScrollView>
+                    </View>
+
+                    <View className="flex-row items-center justify-between mt-1">
+                      <Text className="text-[16px] font-[900] color-primary">
+                        ₹{addon.price}
+                      </Text>
+                      <InteractivePressable
+                        onPress={() => toggleAddon(addon)}
+                        className="bg-primary/20 px-4 py-2 rounded-xl flex-row items-center"
+                      >
+                        <Ionicons name="add" size={16} color={Colors.primary} />
+                        <Text className="text-[12px] font-[800] color-primary ml-1">ADD</Text>
+                      </InteractivePressable>
+                    </View>
+                  </View>
+                ))}
+              </View>
+
+              {/* Accordion Toggle */}
+              {hiddenCount > 0 && !showAllAddons && (
+                <TouchableOpacity
+                  onPress={() => setShowAllAddons(true)}
+                  className="mt-4 flex-row justify-center items-center py-2"
+                >
+                  <Text className="text-[13px] font-[800] color-primary mr-1">
+                    Show {hiddenCount} more addon{hiddenCount > 1 ? "s" : ""}
+                  </Text>
+                  <Ionicons name="chevron-down" size={16} color={Colors.primary} />
+                </TouchableOpacity>
+              )}
+              {showAllAddons && availableAddons.length > 3 && (
+                <TouchableOpacity
+                  onPress={() => setShowAllAddons(false)}
+                  className="mt-4 flex-row justify-center items-center py-2"
+                >
+                  <Text className="text-[13px] font-[800] color-primary mr-1">
+                    Show less
+                  </Text>
+                  <Ionicons name="chevron-up" size={16} color={Colors.primary} />
+                </TouchableOpacity>
+              )}
             </View>
-          )}
+          );
+        })()}
       </ScrollView>
 
       {/* Footer */}

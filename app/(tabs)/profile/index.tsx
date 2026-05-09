@@ -14,6 +14,7 @@ import {
   Pressable,
   Animated as RNAnimated,
   BackHandler,
+  RefreshControl,
 } from "react-native";
 import { useFocusEffect } from "expo-router";
 import { useAlert } from "@/components/providers/AlertProvider";
@@ -32,6 +33,7 @@ import { RootState } from "@/store";
 import {
   useDeleteAccountMutation,
   useUpdateProfileMutation,
+  useGetProfileQuery,
 } from "@/store/api/authApi";
 import {
   useDeleteAddressMutation,
@@ -49,12 +51,31 @@ import { updateUser } from "@/store/slices/userSlice";
 
 const { height } = Dimensions.get("window");
 
-
 export default function ProfileHome() {
   const dispatch = useAppDispatch();
   const { showAlert } = useAlert();
   const insets = useSafeAreaInsets();
-  const { data: subscriptions } = useGetMySubscriptionQuery(undefined);
+  
+  const { data: userProfile, refetch: refetchProfile } = useGetProfileQuery(undefined);
+  const { data: subscriptions, refetch: refetchSubscriptions } = useGetMySubscriptionQuery(undefined);
+  const { data: addressesData, refetch: refetchAddresses } = useGetAddressesQuery(undefined);
+
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([
+        refetchProfile(),
+        refetchSubscriptions(),
+        refetchAddresses(),
+      ]);
+    } catch (error) {
+      console.error("Refresh failed:", error);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refetchProfile, refetchSubscriptions, refetchAddresses]);
 
   const activeSub = Array.isArray(subscriptions)
     ? subscriptions.find((s: any) => s.status === "active")
@@ -81,7 +102,6 @@ export default function ProfileHome() {
   const userData = userState.user;
   const isAdmin = userData?.accountType === "Super Admin";
 
-  const { data: addressesData } = useGetAddressesQuery(undefined);
   const [deleteAddress] = useDeleteAddressMutation();
   const profileState = useSelector((state: RootState) => state.profile);
 
@@ -256,6 +276,14 @@ export default function ProfileHome() {
       <ScrollView
         contentContainerStyle={{ paddingBottom: 120 + insets.bottom }}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={Colors.primary}
+            colors={[Colors.primary]}
+          />
+        }
       >
         {/* HEADER */}
         <Animated.View 

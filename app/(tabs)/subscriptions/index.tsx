@@ -5,6 +5,7 @@ import React, { useState } from "react";
 import {
   ActivityIndicator,
   LayoutAnimation,
+  RefreshControl,
   ScrollView,
   Text,
   TouchableOpacity,
@@ -40,9 +41,26 @@ export default function SubscriptionPlansScreen() {
     data: plans,
     isLoading: isPlansLoading,
     error: plansError,
+    refetch: refetchPlans,
   } = useGetPlansQuery();
-  const { data: subscriptions, isLoading: isSubLoading } =
+  const { data: subscriptions, isLoading: isSubLoading, refetch: refetchSubscriptions } =
     useGetMySubscriptionQuery();
+
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([
+        refetchPlans(),
+        refetchSubscriptions(),
+      ]);
+    } catch (error) {
+      console.error("Refresh failed:", error);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refetchPlans, refetchSubscriptions]);
 
   if (isAdmin) return <AdminSubscriptionScreen />;
 
@@ -143,6 +161,14 @@ export default function SubscriptionPlansScreen() {
       <ScrollView
         contentContainerStyle={{ padding: 20, paddingBottom: 120 + insets.bottom }}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={Colors.primary}
+            colors={[Colors.primary]}
+          />
+        }
       >
         {/* ========== MY SUBSCRIPTIONS VIEW ========== */}
         {!arePlansVisible && (

@@ -7,6 +7,7 @@ import {
   Modal,
   KeyboardAvoidingView,
   Platform,
+  RefreshControl,
 } from "react-native";
 import { InteractivePressable } from "../ui/InteractivePressable";
 import { Ionicons } from "@expo/vector-icons";
@@ -28,7 +29,7 @@ export default function AdminWorkerScreen() {
   const [editingWorker, setEditingWorker] = useState<Worker | null>(null);
   const [selectedWorkerId, setSelectedWorkerId] = useState<string | null>(null);
 
-  const { data, isLoading } = useGetWorkersQuery({
+  const { data, isLoading, refetch, isFetching } = useGetWorkersQuery({
     page: 1,
     limit: 10,
   });
@@ -248,6 +249,14 @@ export default function AdminWorkerScreen() {
             keyExtractor={(item) => item._id}
             contentContainerStyle={{ padding: 20, paddingBottom: 120 }}
             showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl
+                refreshing={isFetching}
+                onRefresh={refetch}
+                tintColor={Colors.primary}
+                colors={[Colors.primary]}
+              />
+            }
             ListEmptyComponent={
               <View className="items-center py-20 bg-card rounded-[32px] mx-5 border border-border border-dashed">
                 <Ionicons

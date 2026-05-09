@@ -105,6 +105,19 @@ export default function UpcomingServices() {
   const { data: subscription, refetch: refetchSubscription } =
     useGetMySubscriptionQuery();
 
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([refetch(), refetchSubscription()]);
+    } catch (error) {
+      console.error("Refresh failed:", error);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refetch, refetchSubscription]);
+
   useFocusEffect(
     useCallback(() => {
       refetch();
@@ -345,6 +358,14 @@ export default function UpcomingServices() {
         data={bookings}
         keyExtractor={(item) => item.id}
         contentContainerStyle={{ paddingBottom: 120 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={Colors.primary}
+            colors={[Colors.primary]}
+          />
+        }
         ListHeaderComponent={() => {
           return (
             <>

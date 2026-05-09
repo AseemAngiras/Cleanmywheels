@@ -16,6 +16,7 @@ import { setUser } from "@/store/slices/userSlice";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import { Colors } from "@/constants/Colors";
 import { useFocusEffect, useNavigation, useRouter } from "expo-router";
 import { InteractivePressable } from "@/components/ui/InteractivePressable";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -24,6 +25,7 @@ import {
   KeyboardAvoidingView,
   Modal,
   Platform,
+  RefreshControl,
   ScrollView,
   Text,
   TextInput,
@@ -66,7 +68,7 @@ export default function HomeScreen() {
     }
   }, [token, dispatch]);
 
-  const { data: userProfile } = useGetProfileQuery(undefined, {
+  const { data: userProfile, refetch: refetchProfile } = useGetProfileQuery(undefined, {
     skip: !token || token === "dummy-token",
   });
 
@@ -77,7 +79,7 @@ export default function HomeScreen() {
     }
   }, [userProfile, dispatch]);
 
-  const { data: subscriptions } = useGetMySubscriptionQuery(undefined, {
+  const { data: subscriptions, refetch: refetchSubscriptions } = useGetMySubscriptionQuery(undefined, {
     skip: !isLoggedIn,
   });
 
@@ -105,6 +107,24 @@ export default function HomeScreen() {
   const [verifyLoginOtp] = useVerifyLoginOtpMutation();
   const [register] = useRegisterMutation();
   const [verifyRegisterOtp] = useVerifyRegisterOtpMutation();
+
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = useCallback(async () => {
+    if (!isLoggedIn) return;
+    setRefreshing(true);
+    try {
+      await Promise.all([
+        refetchProfile(),
+        refetchSubscriptions(),
+        refetchBookings(),
+      ]);
+    } catch (error) {
+      console.error("Refresh failed:", error);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [isLoggedIn, refetchProfile, refetchSubscriptions, refetchBookings]);
 
   useEffect(() => {
     let interval: any;
@@ -407,6 +427,14 @@ export default function HomeScreen() {
       <ScrollView
         contentContainerStyle={{ paddingBottom: 100 }}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={Colors.primary}
+            colors={[Colors.primary]}
+          />
+        }
       >
         {/* Header */}
         <View className="flex-row justify-between items-start px-5 pt-[10px] mb-5">

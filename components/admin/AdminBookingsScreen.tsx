@@ -101,6 +101,7 @@ export default function AdminBookingsScreen() {
   const {
     data: bookingsResponse,
     isLoading,
+    isFetching,
     error,
     refetch,
   } = useGetBookingsQuery({ page: 1, perPage: 100 });
@@ -490,9 +491,10 @@ export default function AdminBookingsScreen() {
             showsVerticalScrollIndicator={false}
             refreshControl={
               <RefreshControl
-                refreshing={isLoading}
+                refreshing={isFetching}
                 onRefresh={refetch}
                 tintColor={Colors.primary}
+                colors={[Colors.primary]}
               />
             }
             ListEmptyComponent={

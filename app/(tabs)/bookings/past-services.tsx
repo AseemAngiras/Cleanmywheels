@@ -12,6 +12,7 @@ import {
   KeyboardAvoidingView,
   Modal,
   Platform,
+  RefreshControl,
   ScrollView,
   Switch,
   Text,
@@ -285,8 +286,14 @@ export default function PastServices() {
         renderItem={renderItem}
         contentContainerStyle={{ paddingVertical: 16, paddingBottom: 100 }}
         showsVerticalScrollIndicator={false}
-        onRefresh={refetch}
-        refreshing={isFetching}
+        refreshControl={
+          <RefreshControl
+            refreshing={isFetching}
+            onRefresh={refetch}
+            tintColor={Colors.primary}
+            colors={[Colors.primary]}
+          />
+        }
         ListEmptyComponent={
           <View className="mt-20 items-center">
             <Ionicons

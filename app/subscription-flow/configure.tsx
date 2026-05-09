@@ -13,6 +13,7 @@ import {
 } from "react-native";
 import { InteractivePressable } from "@/components/ui/InteractivePressable";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import {
   useGetVehiclesQuery,
   useCreateVehicleMutation,
@@ -84,7 +85,18 @@ export default function SubscriptionConfigureScreen() {
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string | null>(null);
   const [selectedFrequency, setSelectedFrequency] = useState<string>("TWICE_MONTHLY");
   const [selectedAddons, setSelectedAddons] = useState<any[]>([]);
-  const [startDate] = useState(new Date());
+  const [startDate, setStartDate] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
+
+  const maxDate = new Date();
+  maxDate.setDate(maxDate.getDate() + 14);
+
+  const onDateChange = (event: any, selectedDate?: Date) => {
+    setShowDatePicker(false);
+    if (selectedDate) {
+      setStartDate(selectedDate);
+    }
+  };
 
   const {showAlert} = useAlert();
   const { data: addonsData } = useGetAddonsQuery();
@@ -576,7 +588,10 @@ export default function SubscriptionConfigureScreen() {
           <Text className="text-[18px] font-[700] color-text mb-4">
             Duration
           </Text>
-          <View className="flex-row items-center bg-card p-5 rounded-[24px] border border-border mb-10">
+          <InteractivePressable 
+            className="flex-row items-center bg-card p-5 rounded-[24px] border border-border mb-10"
+            onPress={() => setShowDatePicker(true)}
+          >
             <View className="w-10 h-10 rounded-full bg-background items-center justify-center mr-4">
               <Ionicons
                 name="calendar-outline"
@@ -584,13 +599,31 @@ export default function SubscriptionConfigureScreen() {
                 color={Colors.primary}
               />
             </View>
-            <Text className="text-[14px] color-textSecondary font-[500] flex-1">
-              Valid for 30 days starting{" "}
-              <Text className="color-text font-[700]">
-                {new Date().toLocaleDateString("en-IN")}
+            <View className="flex-1">
+              <Text className="text-[14px] color-textSecondary font-[500]">
+                Valid for 30 days starting{" "}
               </Text>
-            </Text>
-          </View>
+              <Text className="color-text font-[700] text-[16px]">
+                {startDate.toLocaleDateString("en-IN", {
+                   day: 'numeric',
+                   month: 'long',
+                   year: 'numeric'
+                })}
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={Colors.textSecondary} />
+          </InteractivePressable>
+
+          {showDatePicker && (
+            <DateTimePicker
+              value={startDate}
+              mode="date"
+              display="default"
+              onChange={onDateChange}
+              minimumDate={new Date()}
+              maximumDate={maxDate}
+            />
+          )}
           <View className="h-10" />
         </ScrollView>
 

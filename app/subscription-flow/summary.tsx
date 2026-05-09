@@ -138,6 +138,15 @@ export default function SubscriptionSummaryScreen() {
       return;
     }
 
+    if (!defaultAddress) {
+      showAlert({
+        title: "Missing Address",
+        message: "Please add a service address in your profile before proceeding.",
+        type: "warning",
+      });
+      return;
+    }
+
     try {
       const response = await createSubscription({
         planId: selectedPlan._id,
@@ -234,11 +243,7 @@ export default function SubscriptionSummaryScreen() {
                 vehicleNumber: selectedVehicle.vehicleNo,
                 serviceDate: startDate as string,
                 serviceName: selectedPlan.name,
-                address:
-                  defaultAddress?.fullAddress ||
-                  (defaultAddress
-                    ? `${defaultAddress.houseOrFlatNo}, ${defaultAddress.locality}, ${defaultAddress.city}`
-                    : "Your Registered Address"),
+                address: defaultAddressStr,
                 paymentMethod: "Online",
                 selectedDate: startDate as string,
                 selectedTime: timeSlot as string,
@@ -364,11 +369,11 @@ export default function SubscriptionSummaryScreen() {
                   className={`flex-row justify-between items-center ${index !== 0 ? "mt-3 pt-3 border-t border-border/30" : ""}`}
                 >
                   <View className="flex-row items-center flex-1">
-                    <MaterialCommunityIcons
+                    {/* <MaterialCommunityIcons
                       name={(addon.icon as any) || "sparkles"}
                       size={18}
                       color={Colors.primary}
-                    />
+                    /> */}
                     <Text
                       className="text-[14px] font-[600] color-text ml-2 flex-1"
                       numberOfLines={1}

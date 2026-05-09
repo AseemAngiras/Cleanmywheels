@@ -13,7 +13,8 @@ export default function OrderConfirmationScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const params = useLocalSearchParams();
-  const { selectedDate, selectedTime, timeSlot, paymentMethod, grandTotal } = params;
+  const { selectedDate, serviceDate, selectedTime, timeSlot, paymentMethod, grandTotal, address } = params;
+  const displayDate = selectedDate || serviceDate;
 
   const dispatch = useDispatch();
 
@@ -21,7 +22,7 @@ export default function OrderConfirmationScreen() {
     dispatch(
       addBooking({
         center: (params.shopName as string) || "CleanMyWheels",
-        date: (params.selectedDate as string) || new Date().toISOString(),
+        date: (displayDate as string) || new Date().toISOString(),
         timeSlot: (params.selectedTime as string) || (params.timeSlot as string) || "Anytime",
         car: params.vehicleType
           ? `${params.vehicleType} - ${params.vehicleNumber}`
@@ -141,8 +142,8 @@ export default function OrderConfirmationScreen() {
               Start Date
             </Text>
             <Text className="text-sm font-[700] color-text">
-              {selectedDate
-                ? new Date(selectedDate as string).toLocaleDateString("en-IN", {
+              {displayDate
+                ? new Date(displayDate as string).toLocaleDateString("en-IN", {
                     day: "numeric",
                     month: "long",
                     year: "numeric",
@@ -165,18 +166,18 @@ export default function OrderConfirmationScreen() {
               Address
             </Text>
             <Text className="text-sm font-[700] color-text flex-1 text-right ml-4 leading-5">
-              {params.address || "Your Registered Address"}
+              {address || "Your Registered Address"}
             </Text>
           </View>
 
-          <View className="flex-row justify-between py-4 border-b border-border/50">
+          {/* <View className="flex-row justify-between py-4 border-b border-border/50">
             <Text className="text-sm color-textSecondary font-[500]">
               Payment
             </Text>
             <Text className="text-sm font-[700] color-text">
               {paymentMethod as string}
             </Text>
-          </View>
+          </View> */}
 
           <View className="flex-row justify-between pt-6 items-center">
             <Text className="text-base font-[800] color-text">Total Paid</Text>

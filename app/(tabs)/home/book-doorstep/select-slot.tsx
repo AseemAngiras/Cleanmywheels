@@ -51,7 +51,7 @@ export default function SelectSlotScreen() {
   const userPhone = userState?.phone;
 
   const router = useRouter();
-  const { showAlert } = useAlert();
+  const { showAlert, hideAlert } = useAlert();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const params = useLocalSearchParams();
@@ -202,22 +202,17 @@ export default function SelectSlotScreen() {
       setModalStep("otp");
     } catch (err: any) {
       if (err?.data?.message?.includes("already exists") || err?.data?.message?.includes("already found")) {
-        setIsExistingUser(true);
-        try {
-          await requestOtp({
-            phone: trimmedPhone,
-            countryCode: "+91",
-            verifyType: "PHONE",
-            otpType: "LOGIN",
-          }).unwrap();
-          setModalStep("otp");
-        } catch (loginErr: any) {
-          showAlert({
-            title: "OTP Request Failed",
-            message: loginErr?.data?.message || "Could not send OTP.",
-            type: "error",
-          });
-        }
+        showAlert({
+          title: "Account Already Exists",
+          message: "Please login from homepage to continue.",
+          type: "info",
+          buttons: [
+            {
+              text: "Ok",
+              onPress: () => hideAlert(),
+            },
+          ],
+        });
       } else {
         showAlert({
           title: "Registration Failed",

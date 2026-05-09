@@ -46,7 +46,7 @@ export default function HomeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
-  const { showAlert } = useAlert();
+  const { showAlert, hideAlert } = useAlert();
   const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
 
 
@@ -179,27 +179,45 @@ export default function HomeScreen() {
       setModalStep("otp");
     } catch (err: any) {
       if (err?.data?.message?.includes("already exists") || err?.data?.message?.includes("already found")) {
-        setIsExistingUser(true);
-        try {
-          await requestOtp({
-            phone: cleanedPhone,
-            countryCode: "+91",
-            verifyType: "PHONE",
-            otpType: "LOGIN",
-          }).unwrap();
-          showAlert({
-            title: "OTP Sent",
-            message: "Please check your messages.",
-            type: "success",
-          });
-          setModalStep("otp");
-        } catch (loginErr: any) {
-          showAlert({
-            title: "Auth Request Failed",
-            message: loginErr?.data?.message || "Could not send OTP.",
-            type: "error",
-          });
-        }
+        showAlert({
+          title: "Account Exists",
+          message: "An account with this phone number already exists. Please log in to continue.",
+          type: "info",
+          buttons: [
+            {
+              text: "Cancel",
+              onPress: () => hideAlert(),
+              style: "cancel",
+            },
+            {
+              text: "Log In",
+              onPress: async () => {
+                hideAlert();
+                setIsExistingUser(true);
+                try {
+                  await requestOtp({
+                    phone: cleanedPhone,
+                    countryCode: "+91",
+                    verifyType: "PHONE",
+                    otpType: "LOGIN",
+                  }).unwrap();
+                  showAlert({
+                    title: "OTP Sent",
+                    message: "Please check your messages.",
+                    type: "success",
+                  });
+                  setModalStep("otp");
+                } catch (loginErr: any) {
+                  showAlert({
+                    title: "Auth Request Failed",
+                    message: loginErr?.data?.message || "Could not send OTP.",
+                    type: "error",
+                  });
+                }
+              },
+            },
+          ],
+        });
       } else {
         showAlert({
           title: "Auth Request Failed",

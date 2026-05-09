@@ -246,11 +246,13 @@ export default function SubscriptionConfigureScreen() {
       if (createdVehicle?._id) {
         setSelectedVehicleId(createdVehicle._id);
       }
-      showAlert({
-        title: "Success",
-        message: "Vehicle added successfully!",
-        type: "success",
-      });
+      setTimeout(() => {
+        showAlert({
+          title: "Success",
+          message: "Vehicle added successfully!",
+          type: "success",
+        });
+      }, 500);
     } catch (e: any) {
       showAlert({
         title: "Error",

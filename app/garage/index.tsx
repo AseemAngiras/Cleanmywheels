@@ -97,7 +97,7 @@ export default function MyCarsScreen() {
     ]).start();
   };
 
-  const closeModal = () => {
+  const closeModal = (callback?: () => void) => {
     Keyboard.dismiss();
     Animated.parallel([
       Animated.timing(slideAnim, {
@@ -111,7 +111,10 @@ export default function MyCarsScreen() {
         duration: 300,
         useNativeDriver: true,
       }),
-    ]).start(() => setModalVisible(false));
+    ]).start(() => {
+      setModalVisible(false);
+      if (typeof callback === "function") callback();
+    });
   };
 
   const handleNumberChange = (value: string) => {
@@ -121,7 +124,11 @@ export default function MyCarsScreen() {
 
   const handleSaveCar = async () => {
     if (!type || !number) {
-      toast.error("Error", "Vehicle type and number are required");
+      showAlert({
+        title: "Error",
+        message: "Vehicle type and number are required",
+        type: "warning",
+      });
       return;
     }
     const cleanedNumber = number.trim().replace(/\s+/g, " ").toUpperCase();
@@ -130,7 +137,11 @@ export default function MyCarsScreen() {
     const bhRegex = /^[0-9]{2}\s?BH\s?[0-9]{4}\s?[A-Z]{2}$/;
 
     if (!standardRegex.test(cleanedNumber.replace(/\s+/g, "")) && !bhRegex.test(cleanedNumber)) {
-      toast.error("Invalid Number", "Please enter a valid format (e.g. MH01AB1234 or 22 BH 1234 AA)");
+      showAlert({
+        title: "Invalid Number",
+        message: "Please enter a valid format (e.g. MH01AB1234 or 22 BH 1234 AA)",
+        type: "warning",
+      });
       return;
     }
 
@@ -148,10 +159,11 @@ export default function MyCarsScreen() {
     });
 
     if (isDuplicate) {
-      toast.error(
-        "Duplicate Vehicle",
-        `A ${type} with number ${cleanedNumber} is already in your garage.`,
-      );
+      showAlert({
+        title: "Duplicate Vehicle",
+        message: `A ${type} with number ${cleanedNumber} is already in your garage.`,
+        type: "info",
+      });
       return;
     }
 
@@ -165,14 +177,19 @@ export default function MyCarsScreen() {
         await updateVehicle({ id: editingCarId, data: payload }).unwrap();
       else await createVehicle(payload).unwrap();
 
-      toast.success(
-        "Success",
-        `Vehicle ${editingCarId ? "updated" : "added"} successfully`,
-      );
-      closeModal();
+      closeModal(() => {
+        toast.success(
+          "Success",
+          `Vehicle ${editingCarId ? "updated" : "added"} successfully`,
+        );
+      });
     } catch (err: any) {
       console.log("Failed to save vehicle:", err);
-      toast.error("Error", err?.data?.message || "Failed to save vehicle");
+      showAlert({
+        title: "Error",
+        message: err?.data?.message || "Failed to save vehicle",
+        type: "error",
+      });
     }
   };
 
@@ -203,9 +220,13 @@ export default function MyCarsScreen() {
           onPress: async () => {
             try {
               await deleteVehicle(id).unwrap();
-              toast.success("Success", "Vehicle removed successfully");
+              setTimeout(() => {
+                toast.success("Success", "Vehicle removed successfully");
+              }, 500);
             } catch {
-              toast.error("Error", "Failed to remove");
+              setTimeout(() => {
+                toast.error("Error", "Failed to remove");
+              }, 500);
             }
           },
         },

@@ -196,10 +196,16 @@ export default function ProfileHome() {
       dispatch(updateProfile({ key: "name", value: tempName }));
       // dispatch(updateProfile({ key: "email", value: tempEmail }));
 
-      toast.success("Success", "Profile updated successfully");
       setShowEditProfileModal(false);
+      setTimeout(() => {
+        toast.success("Success", "Profile updated successfully");
+      }, 500);
     } catch (error: any) {
-      toast.error("Error", error?.data?.message || "Failed to update profile");
+      showAlert({
+        title: "Error",
+        message: error?.data?.message || "Failed to update profile",
+        type: "error",
+      });
     }
   };
 
@@ -228,10 +234,12 @@ export default function ProfileHome() {
               toast.success("Success", "Your account has been deleted.");
               handleLogout();
             } catch (error: any) {
-              toast.error(
-                "Error",
-                error?.data?.message || "Failed to delete account",
-              );
+              setTimeout(() => {
+                toast.error(
+                  "Error",
+                  error?.data?.message || "Failed to delete account",
+                );
+              }, 500);
             }
           },
         },
@@ -547,10 +555,12 @@ export default function ProfileHome() {
                                                 removeAddresses(addr.id),
                                               );
                                               setExpandedAddressId(null);
-                                              toast.success(
-                                                "Success",
-                                                "Address deleted successfully",
-                                              );
+                                              setTimeout(() => {
+                                                toast.success(
+                                                  "Success",
+                                                  "Address deleted successfully",
+                                                );
+                                              }, 500);
                                             } catch (error: any) {
                                               if (
                                                 error?.status === 404 ||

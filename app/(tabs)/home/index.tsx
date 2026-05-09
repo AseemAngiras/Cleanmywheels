@@ -151,7 +151,11 @@ export default function HomeScreen() {
         }).unwrap();
       }
 
-      toast.success("OTP Sent", "Please check your messages.");
+      showAlert({
+        title: "OTP Sent",
+        message: "Please check your messages.",
+        type: "success",
+      });
       setModalStep("otp");
     } catch (err: any) {
       if (err?.data?.message?.includes("already exists") || err?.data?.message?.includes("already found")) {
@@ -163,7 +167,11 @@ export default function HomeScreen() {
             verifyType: "PHONE",
             otpType: "LOGIN",
           }).unwrap();
-          toast.success("OTP Sent", "Please check your messages.");
+          showAlert({
+            title: "OTP Sent",
+            message: "Please check your messages.",
+            type: "success",
+          });
           setModalStep("otp");
         } catch (loginErr: any) {
           showAlert({
@@ -187,7 +195,11 @@ export default function HomeScreen() {
   const handleVerifyOtp = async () => {
     const otpValue = otp.join("");
     if (otpValue.length < 6) {
-      toast.error("Invalid OTP", "Please enter the complete 6-digit OTP.");
+      showAlert({
+        title: "Invalid OTP",
+        message: "Please enter the complete 6-digit OTP.",
+        type: "warning",
+      });
       return;
     }
 
@@ -244,7 +256,11 @@ export default function HomeScreen() {
           }, 100);
         }
       } else {
-        toast.error("Login Failed", "No access token received.");
+        showAlert({
+          title: "Login Failed",
+          message: "No access token received.",
+          type: "error",
+        });
       }
     } catch (err: any) {
       showAlert({

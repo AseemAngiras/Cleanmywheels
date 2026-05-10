@@ -42,6 +42,8 @@ import { CoreProtocols } from "../../../components/home/CoreProtocols";
 import { TransformationSection } from "../../../components/home/TransformationSection";
 import { ProtocolSection } from "../../../components/home/ProtocolSection";
 import { MembershipPerks } from "../../../components/home/MembershipPerks";
+import { OnboardingTour } from "../../../components/home/OnboardingTour";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { toast } from "@/utils/toast";
 import { useAlert } from "@/components/providers/AlertProvider";
 
@@ -95,6 +97,22 @@ export default function HomeScreen() {
   });
 
   const [isLoginModalVisible, setIsLoginModalVisible] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  useEffect(() => {
+    const checkOnboarding = async () => {
+      if (!isLoggedIn) {
+        // const hasSeen = await AsyncStorage.getItem("hasSeenOnboarding");
+        // if (!hasSeen) {
+          // Delay to let the app settle
+          setTimeout(() => {
+            setShowOnboarding(true);
+          }, 1500);
+        // }
+      }
+    };
+    checkOnboarding();
+  }, [isLoggedIn]);
   const [modalStep, setModalStep] = useState<"details" | "otp">("details");
   const [name, setName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -827,6 +845,12 @@ export default function HomeScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* Onboarding Tour for Guest */}
+      <OnboardingTour 
+        isVisible={showOnboarding} 
+        onClose={() => setShowOnboarding(false)} 
+      />
     </ScreenWrapper>
   );
 }

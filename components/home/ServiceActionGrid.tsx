@@ -3,7 +3,7 @@ import { useRouter } from "expo-router";
 import React, { useRef } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import Animated, { FadeInLeft, FadeInRight } from "react-native-reanimated";
+import Animated, { FadeInLeft, FadeInRight, FadeInUp } from "react-native-reanimated";
 import { InteractivePressable } from "../ui/InteractivePressable";
 
 interface ServiceActionGridProps {
@@ -41,73 +41,52 @@ export const ServiceActionGrid = ({
   };
 
   return (
-    <View className="px-4 mb-5 flex-row gap-3">
-      {/* Primary: Book Wash */}
+    <View className="px-5 mb-8">
+      {/* Primary: Instant Wash */}
       <Animated.View
-        entering={FadeInLeft.delay(200).duration(500)}
-        className="flex-[1.2]"
+        entering={FadeInUp.delay(200).duration(500)}
+        className="w-full"
       >
         <InteractivePressable
-          className="rounded-[24px] border border-[#333] shadow-lg elevation-5 h-[140px] overflow-hidden"
+          className="rounded-[24px] bg-[#1A1A1A] border border-white/5 shadow-lg flex-row items-center justify-between p-5 h-[100px]"
           onPress={handleBookPress}
         >
-          <LinearGradient
-            colors={["#1A1A1A", "#111111"]}
-            className="flex-1 p-4 justify-between"
-          >
-            <View>
-              <Text className="text-primary text-[10px] font-[700] tracking-[1px] mb-1 uppercase">
-                DISPATCH
-              </Text>
-              <Text className="text-white text-xl font-[800] italic tracking-[0.5px] leading-[22px]">
-                BOOK A{"\n"}WASH
-              </Text>
-            </View>
+          <View>
+            <Text className="text-primary text-[10px] font-[700] tracking-[1px] mb-1 uppercase">
+              INSTANT CARE
+            </Text>
+            <Text className="text-white text-2xl font-[900] italic tracking-[0.5px]">
+              BOOK A <Text className="text-primary">WASH</Text>
+            </Text>
+          </View>
 
-            <View className="w-11 h-11 rounded-[14px] bg-primary items-center justify-center self-end shadow-md shadow-primary">
-              <Ionicons name="flash" size={24} color="#000" />
-            </View>
-          </LinearGradient>
+          <View className="w-12 h-12 rounded-full bg-primary items-center justify-center shadow-lg shadow-primary/20">
+            <Ionicons name="flash" size={24} color="#000" />
+          </View>
         </InteractivePressable>
       </Animated.View>
 
-      {/* Secondary: Subscription - Only if logged in */}
+      {/* Secondary: Membership - Only for logged in */}
       {isLoggedIn && (
         <Animated.View
           entering={FadeInRight.delay(300).duration(500)}
-          className="flex-[0.8]"
+          className="mt-4"
         >
           <InteractivePressable
-            className="rounded-[24px] border border-[#333] shadow-lg elevation-5 h-[140px] overflow-hidden"
+            className="rounded-[20px] bg-[#141414] border border-white/5 p-4 flex-row items-center justify-between"
             onPress={handleSubPress}
           >
-            <LinearGradient
-              colors={["#1A1A1A", "#111111"]}
-              className="flex-1 p-4 justify-between"
-            >
+            <View className="flex-row items-center">
+              <View className="w-10 h-10 rounded-full bg-white/5 items-center justify-center mr-3">
+                <Ionicons name={hasActiveSubscription ? "add" : "star"} size={18} color="#C8F000" />
+              </View>
               <View>
-                <Text className="text-primary text-[10px] font-[700] tracking-[1px] mb-1 uppercase">
-                  {hasActiveSubscription ? "UPGRADE" : "MEMBERSHIP"}
-                </Text>
-                <Text className="text-white text-lg font-[800] italic tracking-[0.5px] leading-[20px]">
-                  {hasActiveSubscription ? "ADD-ONS" : "BUY PLAN"}
+                <Text className="text-white text-base font-[700]">
+                  {hasActiveSubscription ? "Manage Plan" : "Elite Membership"}
                 </Text>
               </View>
-
-              <View
-                className={`w-11 h-11 rounded-[14px] items-center justify-center self-end shadow-md ${
-                  hasActiveSubscription
-                    ? "bg-white shadow-white"
-                    : "bg-white shadow-white"
-                }`}
-              >
-                <Ionicons
-                  name={hasActiveSubscription ? "add" : "star"}
-                  size={20}
-                  color="#000"
-                />
-              </View>
-            </LinearGradient>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color="#333" />
           </InteractivePressable>
         </Animated.View>
       )}

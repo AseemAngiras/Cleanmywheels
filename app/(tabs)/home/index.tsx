@@ -39,6 +39,9 @@ import { HeroSection } from "../../../components/home/HeroSection";
 import { ServiceActionGrid } from "../../../components/home/ServiceActionGrid";
 import { NextServiceWidget } from "../../../components/home/NextServiceWidget";
 import { CoreProtocols } from "../../../components/home/CoreProtocols";
+import { TransformationSection } from "../../../components/home/TransformationSection";
+import { ProtocolSection } from "../../../components/home/ProtocolSection";
+import { MembershipPerks } from "../../../components/home/MembershipPerks";
 import { toast } from "@/utils/toast";
 import { useAlert } from "@/components/providers/AlertProvider";
 
@@ -455,39 +458,58 @@ export default function HomeScreen() {
         }
       >
         {/* Header */}
-        <View className="flex-row justify-between items-start px-5 pt-[10px] mb-5">
-          <View>
-            <Text className="text-[10px] text-primary font-[700] tracking-[1px] mb-1 uppercase">
-              ON-DEMAND CARE
-            </Text>
-            <Text className="text-2xl font-[800] text-white italic tracking-[-1px]">
-              CLEANMY<Text className="text-primary">WHEELS</Text>
-            </Text>
+        <View className="px-5 pt-[10px] mb-6">
+          <View className="flex-row justify-between items-start mb-6">
+            <View>
+              <Text className="text-[10px] text-primary font-[700] tracking-[1px] mb-1 uppercase">
+                ON-DEMAND CARE
+              </Text>
+              <Text className="text-2xl font-[800] text-white italic tracking-[-1px]">
+                CLEANMY<Text className="text-primary">WHEELS</Text>
+              </Text>
+            </View>
+
+            <View className="mt-2">
+              {!isLoggedIn ? (
+                <InteractivePressable
+                  className="bg-primary px-4 py-2 rounded-md shadow-md shadow-primary"
+                  onPress={() => setIsLoginModalVisible(true)}
+                >
+                  <Text className="font-[900] text-black italic text-[12px]">
+                    LOG IN
+                  </Text>
+                </InteractivePressable>
+              ) : (
+                <InteractivePressable
+                  className="w-12 h-12 rounded-full overflow-hidden border-2 border-[#333] elevation-4 shadow-lg shadow-black"
+                  onPress={() => router.push("/(tabs)/profile")}
+                >
+                  <View className="w-full h-full bg-[#1A1A1A] items-center justify-center">
+                    <Text className="text-primary font-[900] text-[18px]">
+                      {(userProfile?.user?.name || user?.name || "U").charAt(0).toUpperCase()}
+                    </Text>
+                  </View>
+                </InteractivePressable>
+              )}
+            </View>
           </View>
 
-          <View className="mt-2">
-            {!isLoggedIn ? (
-              <InteractivePressable
-                className="bg-primary px-4 py-2 rounded-md shadow-md shadow-primary"
-                onPress={() => setIsLoginModalVisible(true)}
-              >
-                <Text className="font-[900] text-black italic text-[12px]">
-                  LOG IN
-                </Text>
-              </InteractivePressable>
-            ) : (
-              <InteractivePressable
-                className="w-12 h-12 rounded-full overflow-hidden border-2 border-[#333] elevation-4 shadow-lg shadow-black"
-                onPress={() => router.push("/(tabs)/profile")}
-              >
-                <View className="w-full h-full bg-[#1A1A1A] items-center justify-center">
-                  <Text className="text-primary font-[900] text-[18px]">
-                    {(userProfile?.user?.name || user?.name || "U").charAt(0).toUpperCase()}
-                  </Text>
-                </View>
-              </InteractivePressable>
-            )}
-          </View>
+          {/* Location Bar (Professional Touch)
+          <Animated.View 
+            entering={FadeInUp.delay(100).duration(500)}
+            className="flex-row items-center bg-[#1A1A1A] border border-white/5 rounded-[18px] px-4 py-3 shadow-2xl"
+          >
+            <View className="w-8 h-8 rounded-full bg-primary/10 items-center justify-center mr-3 border border-primary/20">
+              <Ionicons name="location" size={16} color="#C8F000" />
+            </View>
+            <View className="flex-1">
+              <Text className="text-[#666] text-[10px] font-[700] uppercase tracking-wider">Service Location</Text>
+              <Text className="text-white text-sm font-[600]" numberOfLines={1}>
+                {isLoggedIn ? (userProfile?.user?.address || "Detecting address...") : "Select your area"}
+              </Text>
+            </View>
+            <Ionicons name="chevron-down" size={18} color="#444" />
+          </Animated.View> */}
         </View>
 
         {/* Hero Section */}
@@ -497,11 +519,20 @@ export default function HomeScreen() {
           <HeroSection isLoggedIn={isLoggedIn} />
         </Animated.View>
 
+        {/* Transformation Section (Intrigue Guest) */}
+        {/* {!isLoggedIn && <TransformationSection />} */}
+
         {/* Action Grid (Book / Add-ons) */}
         <ServiceActionGrid
           isLoggedIn={isLoggedIn}
           hasActiveSubscription={activeSubs.length > 0}
         />
+
+        {/* The Protocol (Intrigue Guest) */}
+        {!isLoggedIn && <ProtocolSection />}
+
+        {/* Membership Perks (Intrigue Guest) */}
+        {!isLoggedIn && <MembershipPerks />}
 
         {/* Core Protocols (Replaces WhyChooseUs) */}
         {!isLoggedIn && (

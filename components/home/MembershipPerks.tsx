@@ -48,10 +48,11 @@ export const MembershipPerks = () => {
           <Animated.View 
             key={i}
             entering={FadeInUp.delay(600 + i * 100).duration(500)}
+            className="w-[140px] rounded-[16px] border border-white/5 overflow-hidden"
           >
             <LinearGradient
-              colors={["#222", "#111"]}
-              className="w-[140px] p-4 rounded-[24px] border border-white/10 items-center"
+              colors={["#1A1A1A", "#111111"]}
+              className="p-4 items-center"
             >
               <View className="w-10 h-10 rounded-full bg-white/5 items-center justify-center mb-3">
                 <Ionicons name={perk.icon as any} size={20} color="#C8F000" />

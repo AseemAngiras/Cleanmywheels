@@ -22,6 +22,7 @@ export default function TabsLayout() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: hideTabs ? { display: "none" } : undefined,
+        sceneContainerStyle: { backgroundColor: "#111111" },
       }}
       tabBar={(props) =>
         hideTabs ? null : isAdmin ? (

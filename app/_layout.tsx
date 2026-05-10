@@ -15,9 +15,22 @@ import { Ionicons } from "@expo/vector-icons";
 import NotificationManager from "../components/NotificationManager";
 import { Colors } from "../constants/Colors";
 
+import { DarkTheme, ThemeProvider } from "@react-navigation/native";
 import { AlertProvider } from "../components/providers/AlertProvider";
 
 SplashScreen.preventAutoHideAsync();
+
+const customDarkTheme = {
+  ...DarkTheme,
+  colors: {
+    ...DarkTheme.colors,
+    background: Colors.background,
+    card: Colors.card,
+    text: Colors.text,
+    border: Colors.border,
+    primary: Colors.primary,
+  },
+};
 
 const toastConfig = {
   success: ({ text1, text2 }: any) => (
@@ -100,21 +113,23 @@ export default function RootLayout() {
       <PersistGate loading={<LoadingView />} persistor={persistor}>
         <SafeAreaProvider>
           <AlertProvider>
-            <View className="flex-1 bg-background">
-              <SocketManager />
-              <NotificationManager />
-              <View className="flex-1">
-                <Stack 
-                  screenOptions={{ 
-                    headerShown: false,
-                    contentStyle: { backgroundColor: Colors.background }
-                  }}
-                >
-                  <Stack.Screen name="index" />
-                  <Stack.Screen name="(tabs)" />
-                </Stack>
+            <ThemeProvider value={customDarkTheme}>
+              <View className="flex-1 bg-background">
+                <SocketManager />
+                <NotificationManager />
+                <View className="flex-1">
+                  <Stack 
+                    screenOptions={{ 
+                      headerShown: false,
+                      contentStyle: { backgroundColor: Colors.background }
+                    }}
+                  >
+                    <Stack.Screen name="index" />
+                    <Stack.Screen name="(tabs)" />
+                  </Stack>
+                </View>
               </View>
-            </View>
+            </ThemeProvider>
             <Toast config={toastConfig} />
           </AlertProvider>
         </SafeAreaProvider>

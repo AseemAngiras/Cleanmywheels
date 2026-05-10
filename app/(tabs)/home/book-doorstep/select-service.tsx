@@ -43,6 +43,7 @@ import {
 } from "@/store/api/subscriptionApi";
 import { useAlert } from "@/components/providers/AlertProvider";
 import { formatPrice } from "@/utils/formatPrice";
+import { AddonsModal } from "@/components/booking/AddonsModal";
 
 const VEHICLE_TYPE_TO_PRICE_KEY: Record<string, string> = {
   Hatchback: "hatchback",
@@ -91,6 +92,15 @@ export default function SelectServiceScreen() {
     useLocalSearchParams();
   const [selectedService, setSelectedService] = useState<string | null>(null);
   const [addons, setAddons] = useState<Record<string, boolean>>({});
+  const [isAddonsModalVisible, setIsAddonsModalVisible] = useState(false);
+
+  const toggleAddon = useCallback((id: string) => {
+    if (!id) return;
+    setAddons((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
+  }, []);
 
   const {
     data: washPackagesData,
@@ -231,24 +241,27 @@ export default function SelectServiceScreen() {
 
   const totalPrice = useMemo(() => {
     const service = services.find((s) => s.id === selectedService);
+    if (!service) return 0;
 
     const priceKey = VEHICLE_TYPE_TO_PRICE_KEY[vehicleType] || "sedan";
     const priceData = (service?.prices as any)?.[priceKey];
-    let basePrice =
-      typeof priceData === "object"
-        ? priceData.ONE_TIME || 0
-        : priceData || service?.price || 0;
-    let total = basePrice;
+    
+    // Force numeric values to prevent string concatenation loops
+    let total = 0;
+    if (typeof priceData === "object") {
+      total = Number(priceData.ONE_TIME || 0);
+    } else {
+      total = Number(priceData || service?.price || 0);
+    }
 
-    const addonMap = new Map(
-      (addonsList as any[]).map((a) => [a._id || a.id, a]),
-    );
-    Object.entries(addons).forEach(([id, selected]) => {
-      if (selected) {
-        const addon = addonMap.get(id) as any;
-        total += addon?.normalPrice || addon?.price || 0;
-      }
-    });
+    if (Array.isArray(addonsList)) {
+      addonsList.forEach((addon: any) => {
+        const aid = addon._id || addon.id;
+        if (aid && addons[aid]) {
+          total += Number(addon.normalPrice || addon.price || 0);
+        }
+      });
+    }
 
     return total;
   }, [services, selectedService, addons, addonsList, vehicleType]);
@@ -514,100 +527,112 @@ export default function SelectServiceScreen() {
                     </Text>
                   </View>
                 ) : (
-                  <View className="gap-3">
-                    {addonsList.map((addon: any, idx: number) => {
-                      const aid = addon._id || addon.id;
-                      const isSelected = !!addons[aid];
-                      return (
-                        <InteractivePressable
-                          key={(aid || `addon-${idx}`) as any}
-                          onPress={() => {
-                            setAddons((prev) => ({
-                              ...prev,
-                              [aid]: !prev[aid],
-                            }));
-                          }}
-                          className="mb-3"
-                        >
-                          <Animated.View
-                            entering={FadeInLeft.delay(100 + idx * 50).duration(
-                              400,
-                            )}
-                            className={`flex-row items-center p-5 rounded-[28px] border ${
-                              isSelected
-                                ? "bg-primary/10 border-primary"
-                                : "bg-card border-border/50"
-                            }`}
+                  <View>
+                    <View className="gap-3">
+                      {(addonsList as any[]).slice(0, 3).map((addon: any, idx: number) => {
+                        const aid = addon._id || addon.id;
+                        const isSelected = !!addons[aid];
+                        return (
+                          <InteractivePressable
+                            key={(aid || `addon-${idx}`) as any}
+                            onPress={() => toggleAddon(aid)}
+                            className="mb-3"
                           >
-                            <View
-                              className={`w-14 h-14 rounded-2xl items-center justify-center mr-4 ${
-                                isSelected ? "bg-primary/20" : "bg-background"
+                            <Animated.View
+                              entering={FadeInLeft.delay(100 + idx * 50).duration(400)}
+                              className={`flex-row items-center p-5 rounded-[28px] border ${
+                                isSelected
+                                  ? "bg-primary/10 border-primary"
+                                  : "bg-card border-border/50"
                               }`}
                             >
-                              <Ionicons
-                                name={
-                                  isSelected ? "sparkles" : "add-circle-outline"
-                                }
-                                size={28}
-                                color={
-                                  isSelected
-                                    ? Colors.primary
-                                    : Colors.textSecondary
-                                }
-                              />
-                            </View>
+                              <View
+                                className={`w-14 h-14 rounded-2xl items-center justify-center mr-4 ${
+                                  isSelected ? "bg-primary/20" : "bg-background"
+                                }`}
+                              >
+                                <Ionicons
+                                  name={
+                                    isSelected ? "sparkles" : "add-circle-outline"
+                                  }
+                                  size={28}
+                                  color={
+                                    isSelected
+                                      ? Colors.primary
+                                      : Colors.textSecondary
+                                  }
+                                />
+                              </View>
 
-                            <View className="flex-1">
-                              <Text className="text-[16px] font-[800] color-text">
-                                {addon.name}
-                              </Text>
-                              <View className="flex-row items-center mt-1">
-                                <Text className="text-[14px] font-[900] color-primary">
-                                  +₹{formatPrice(addon.normalPrice || addon.price)}
+                              <View className="flex-1">
+                                <Text className="text-[16px] font-[800] color-text">
+                                  {addon.name}
                                 </Text>
-                                {isSelected && (
-                                  <Text className="ml-2 text-[10px] font-[800] color-success uppercase tracking-widest">
-                                    Selected
+                                <View className="flex-row items-center mt-1">
+                                  <Text className="text-[14px] font-[900] color-primary">
+                                    +₹{formatPrice(addon.normalPrice || addon.price)}
                                   </Text>
+                                  {isSelected && (
+                                    <Text className="ml-2 text-[10px] font-[800] color-success uppercase tracking-widest">
+                                      Selected
+                                    </Text>
+                                  )}
+                                </View>
+                              </View>
+
+                              {/* Info Icon */}
+                              <TouchableOpacity
+                                onPress={(e) => {
+                                  e.stopPropagation();
+                                  showAlert({
+                                    title: addon.name,
+                                    message: addon.description || "No details available.",
+                                    type: "info",
+                                  });
+                                }}
+                                hitSlop={{ top: 10, right: 10, bottom: 10, left: 10 }}
+                                className="mr-3"
+                              >
+                                <Ionicons name="information-circle-outline" size={22} color={Colors.textSecondary} />
+                              </TouchableOpacity>
+
+                              <View
+                                className={`w-7 h-7 rounded-full items-center justify-center border-2 ${
+                                  isSelected
+                                    ? "bg-primary border-primary"
+                                    : "border-border/50"
+                                }`}
+                              >
+                                {isSelected && (
+                                  <Ionicons
+                                    name="checkmark"
+                                    size={16}
+                                    color="#000"
+                                  />
                                 )}
                               </View>
-                            </View>
+                            </Animated.View>
+                          </InteractivePressable>
+                        );
+                      })}
+                    </View>
 
-                            {/* Info Icon */}
-                            <TouchableOpacity
-                              onPress={(e) => {
-                                e.stopPropagation();
-                                showAlert({
-                                  title: addon.name,
-                                  message: addon.description || "No details available.",
-                                  type: "info",
-                                });
-                              }}
-                              hitSlop={{ top: 10, right: 10, bottom: 10, left: 10 }}
-                              className="mr-3"
-                            >
-                              <Ionicons name="information-circle-outline" size={22} color={Colors.textSecondary} />
-                            </TouchableOpacity>
-
-                            <View
-                              className={`w-7 h-7 rounded-full items-center justify-center border-2 ${
-                                isSelected
-                                  ? "bg-primary border-primary"
-                                  : "border-border/50"
-                              }`}
-                            >
-                              {isSelected && (
-                                <Ionicons
-                                  name="checkmark"
-                                  size={16}
-                                  color="#000"
-                                />
-                              )}
-                            </View>
-                          </Animated.View>
-                        </InteractivePressable>
-                      );
-                    })}
+                    {addonsList.length > 3 && (
+                      <InteractivePressable
+                        onPress={() => setIsAddonsModalVisible(true)}
+                        className="mt-4 bg-card border border-border/50 p-5 rounded-[28px] flex-row items-center justify-center shadow-sm"
+                      >
+                        <Ionicons name="apps-outline" size={20} color={Colors.primary} style={{ marginRight: 8 }} />
+                        <Text className="text-[14px] font-[800] color-primary uppercase tracking-widest">
+                          View {addonsList.length - 3} More
+                        </Text>
+                        <View className="ml-2 bg-primary/10 px-2 py-0.5 rounded-full">
+                          <Text className="text-[10px] font-[900] color-primary">
+                            {Object.values(addons).filter(v => v).length} SELECTED
+                          </Text>
+                        </View>
+                      </InteractivePressable>
+                    )}
                   </View>
                 )}
               </View>
@@ -819,6 +844,14 @@ export default function SelectServiceScreen() {
           </Animated.View>
         </InteractivePressable>
       </View>
+
+      <AddonsModal
+        visible={isAddonsModalVisible}
+        onClose={() => setIsAddonsModalVisible(false)}
+        addonsList={addonsList as any[]}
+        addons={addons}
+        onToggleAddon={toggleAddon}
+      />
 
       {/* Admin Edit Modal */}
       <Modal visible={editingService !== null} transparent animationType="fade">

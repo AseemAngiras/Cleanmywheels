@@ -197,6 +197,13 @@ export const subscriptionApi = createApi({
       }),
       invalidatesTags: ["Subscription"],
     }),
+    cancelSubscription: builder.mutation<any, string>({
+      query: (id) => ({
+        url: `/cancel/${id}`,
+        method: "PUT",
+      }),
+      invalidatesTags: ["Subscription"],
+    }),
   }),
 });
 
@@ -207,6 +214,7 @@ export const {
   useVerifySubscriptionMutation,
   useAssignSubscriptionWorkerMutation,
   useMarkSubscriptionDailyDoneMutation,
+  useCancelSubscriptionMutation,
   useGetAddonsQuery,
   useCreateAddonMutation,
   useUpdateAddonMutation,

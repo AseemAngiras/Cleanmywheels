@@ -9,8 +9,9 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useGetMySubscriptionQuery } from "@/store/api/subscriptionApi";
+import { useGetMySubscriptionQuery, useCancelSubscriptionMutation } from "@/store/api/subscriptionApi";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
+import { useAlert } from "@/components/providers/AlertProvider";
 import { formatPrice } from "@/utils/formatPrice";
 
 export default function SubscriptionDetailsScreen() {
@@ -18,6 +19,40 @@ export default function SubscriptionDetailsScreen() {
   const { id } = useLocalSearchParams();
   const { data: subscriptions, isLoading } =
     useGetMySubscriptionQuery(undefined);
+  const { showAlert } = useAlert();
+
+  const [cancelSubscription, { isLoading: isCancelling }] = useCancelSubscriptionMutation();
+
+  const handleCancel = () => {
+    showAlert({
+      title: "Cancel Subscription",
+      message: "Are you sure you want to cancel? This will stop all future services for this plan immediately.",
+      type: "warning",
+      buttons: [
+        { text: "No, Keep It", style: "cancel" },
+        {
+          text: "Yes, Cancel",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await cancelSubscription(id as string).unwrap();
+              showAlert({
+                title: "Cancelled",
+                message: "Your subscription has been cancelled successfully.",
+                type: "success",
+              });
+            } catch (err: any) {
+              showAlert({
+                title: "Error",
+                message: err?.data?.message || "Failed to cancel subscription.",
+                type: "error",
+              });
+            }
+          },
+        },
+      ],
+    });
+  };
 
   const subscription = useMemo(() => {
     if (!subscriptions) return null;
@@ -213,14 +248,14 @@ export default function SubscriptionDetailsScreen() {
           </View>
           <View
             className={`px-3 py-1.5 rounded-full border ${
-              subscription.status === "expired"
+              subscription.status === "expired" || subscription.status === "cancelled"
                 ? "bg-red-500/10 border-red-500/20"
                 : "bg-green-500/10 border-green-500/20"
             }`}
           >
             <Text
               className={`text-[10px] font-[800] uppercase ${
-                subscription.status === "expired"
+                subscription.status === "expired" || subscription.status === "cancelled"
                   ? "color-red-500"
                   : "color-green-500"
               }`}
@@ -230,25 +265,39 @@ export default function SubscriptionDetailsScreen() {
           </View>
         </View>
 
-        <View className="m-5 bg-card rounded-[32px] p-6 shadow-sm border border-border">
+        <View className="m-5 bg-card rounded-[32px] p-6 shadow-sm border border-border relative">
           <View className="flex-row items-center mb-6">
-            <View className="w-12 h-12 rounded-full bg-primary items-center justify-center mr-4">
-              <Ionicons name="car-sport" size={24} color="#000" />
-            </View>
-            <View className="flex-1">
-              <Text className="text-[18px] font-[800] color-text">
-                {subscription.vehicle?.brand || "Vehicle"}
-              </Text>
-              <View className="flex-row items-center">
-                <Text className="text-[14px] font-[600] color-textSecondary">
-                  {subscription.vehicle?.vehicleNo || "No Number"}
+            <View className="flex-row items-center flex-1">
+              <View className="w-12 h-12 rounded-full bg-primary items-center justify-center mr-4">
+                <Ionicons name="car-sport" size={24} color="#000" />
+              </View>
+              <View className="flex-1">
+                <Text className="text-[18px] font-[800] color-text">
+                  {subscription.vehicle?.brand || "Vehicle"}
                 </Text>
-                <View className="w-1 h-1 rounded-full bg-border mx-2" />
-                <Text className="text-[12px] color-textSecondary font-[500]">
-                  {subscription.vehicle?.vehicleType || "Sedan"}
-                </Text>
+                <View className="flex-row items-center">
+                  <Text className="text-[14px] font-[600] color-textSecondary">
+                    {subscription.vehicle?.vehicleNo || "No Number"}
+                  </Text>
+                  <View className="w-1 h-1 rounded-full bg-border mx-2" />
+                  <Text className="text-[12px] color-textSecondary font-[500]">
+                    {subscription.vehicle?.vehicleType || "Sedan"}
+                  </Text>
+                </View>
               </View>
             </View>
+
+            {subscription.status !== "expired" && subscription.status !== "cancelled" && (
+              <TouchableOpacity
+                onPress={handleCancel}
+                disabled={isCancelling}
+                className="absolute top-4 right-4 bg-red-500/10 px-3 py-1.5 rounded-xl border border-red-500/20"
+              >
+                <Text className="text-red-500 font-[800] text-[10px] uppercase">
+                  {isCancelling ? "..." : "Cancel"}
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
 
           <View className="h-[1px] bg-border/50 mb-6" />

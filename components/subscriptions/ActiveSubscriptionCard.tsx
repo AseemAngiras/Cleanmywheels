@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/constants/Colors";
 import { useRouter } from "expo-router";
 import React from "react";
-import { Text, View } from "react-native";
+import { Text, View, Alert, TouchableOpacity } from "react-native";
 import Animated, {
   FadeInUp,
   useSharedValue,
@@ -12,6 +12,8 @@ import Animated, {
 } from "react-native-reanimated";
 import { InteractivePressable } from "@/components/ui/InteractivePressable";
 import { CircularProgress } from "./CircularProgress";
+import { useCancelSubscriptionMutation } from "@/store/api/subscriptionApi";
+import { useAlert } from "@/components/providers/AlertProvider";
 
 interface ActiveSubscriptionCardProps {
   subscription: any;
@@ -67,8 +69,43 @@ export const ActiveSubscriptionCard: React.FC<ActiveSubscriptionCardProps> = ({
   subscription,
   variant = "active",
 }) => {
-  const router = useRouter();
+   const router = useRouter();
   const isPast = variant === "past";
+  const { showAlert } = useAlert();
+
+  const [cancelSubscription, { isLoading: isCancelling }] =
+    useCancelSubscriptionMutation();
+
+  const handleCancel = () => {
+    showAlert({
+      title: "Cancel Subscription",
+      message: "Are you sure you want to cancel? This will stop all future services for this plan immediately.",
+      type: "warning",
+      buttons: [
+        { text: "No, Keep It", style: "cancel" },
+        {
+          text: "Yes, Cancel",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await cancelSubscription(subscription._id).unwrap();
+              showAlert({
+                title: "Cancelled",
+                message: "Your subscription has been cancelled successfully.",
+                type: "success",
+              });
+            } catch (err: any) {
+              showAlert({
+                title: "Error",
+                message: err?.data?.message || "Failed to cancel subscription. Please try again.",
+                type: "error",
+              });
+            }
+          },
+        },
+      ],
+    });
+  };
 
   const formatDate = (dateString: string) => {
     if (!dateString) return "";
@@ -94,22 +131,16 @@ export const ActiveSubscriptionCard: React.FC<ActiveSubscriptionCardProps> = ({
     100,
   );
 
+  const isCancelled = subscription.status === "cancelled";
   const isExpired = subscription.status === "expired" || progress >= 100;
 
-  const frequencyLabel =
-    {
-      DAILY: "Daily",
-      TWICE_MONTHLY: "2x / Month",
-      WEEKLY: "Weekly",
-      BIWEEKLY: "Bi-weekly",
-      ALTERNATE_DAY: "Alt. Day",
-    }[subscription.frequencyType as string] || "2x / Month";
+  const statusConfig = isCancelled
+    ? { color: "#EF4444", label: "Cancelled", dotColor: "#F87171" }
+    : isExpired || isPast
+      ? { color: "#EF4444", label: "Expired", dotColor: "#F87171" }
+      : { color: "#4ADE80", label: "Active", dotColor: "#4ADE80" };
 
-  const statusConfig = isExpired || isPast
-    ? { color: "#EF4444", label: "Expired", dotColor: "#F87171" }
-    : { color: "#4ADE80", label: "Active", dotColor: "#4ADE80" };
-
-  const cardBorderColor = isExpired || isPast
+  const cardBorderColor = isCancelled || isExpired || isPast
     ? "rgba(239, 68, 68, 0.12)"
     : `${Colors.primary}15`;
 
@@ -123,6 +154,14 @@ export const ActiveSubscriptionCard: React.FC<ActiveSubscriptionCardProps> = ({
   const daysUntilNextWash = nextServiceDate
     ? Math.ceil((nextServiceDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
     : null;
+  const frequencyLabel =
+    {
+      DAILY: "Daily",
+      TWICE_MONTHLY: "2x / Month",
+      WEEKLY: "Weekly",
+      BIWEEKLY: "Bi-weekly",
+      ALTERNATE_DAY: "Alt. Day",
+    }[subscription.frequencyType as string] || "2x / Month";
 
   return (
     <InteractivePressable
@@ -442,6 +481,30 @@ export const ActiveSubscriptionCard: React.FC<ActiveSubscriptionCardProps> = ({
               </Text>
               <Ionicons name="arrow-forward" size={14} color={Colors.text} />
             </InteractivePressable>
+{/* 
+            {!isCancelling && subscription.status !== "cancelled" && (
+              <TouchableOpacity
+                onPress={handleCancel}
+                style={{
+                  marginTop: 10,
+                  alignItems: "center",
+                  paddingVertical: 4,
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 11,
+                    fontWeight: "700",
+                    color: "#EF4444",
+                    opacity: 0.8,
+                    textTransform: "uppercase",
+                    letterSpacing: 0.5,
+                  }}
+                >
+                  Cancel Subscription
+                </Text>
+              </TouchableOpacity>
+            )} */}
           </>
         )}
 
@@ -461,7 +524,8 @@ export const ActiveSubscriptionCard: React.FC<ActiveSubscriptionCardProps> = ({
                 fontWeight: "500",
               }}
             >
-              Completed {formatDate(subscription.endDate)}
+              {isCancelled ? "Cancelled on" : "Completed"}{" "}
+              {formatDate(subscription.endDate)}
             </Text>
             <View style={{ flexDirection: "row", alignItems: "center" }}>
               <Text

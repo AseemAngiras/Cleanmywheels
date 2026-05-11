@@ -185,8 +185,8 @@ export default function SubscriptionPlansScreen() {
       ? [subscriptions]
       : [];
 
-  const actuallyActive = allSubs.filter((sub: any) => sub.status !== "expired");
-  const pastSubs = allSubs.filter((sub: any) => sub.status === "expired");
+  const actuallyActive = allSubs.filter((sub: any) => sub.status !== "expired" && sub.status !== "cancelled");
+  const pastSubs = allSubs.filter((sub: any) => sub.status === "expired" || sub.status === "cancelled");
   const hasAnySubs = actuallyActive.length > 0 || pastSubs.length > 0;
 
   return (

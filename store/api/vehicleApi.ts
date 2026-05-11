@@ -15,14 +15,8 @@ export const vehicleApi = createApi({
       const token = state.auth?.token;
 
       if (token) {
-        console.log(
-          "🔒 [vehicleApi] Attaching token:",
-          token.substring(0, 10) + "...",
-        );
         headers.set("Authorization", `${token}`);
         headers.set("x-auth-token", `${token}`);
-      } else {
-        console.warn("⚠️ [vehicleApi] No token found in state.auth.token");
       }
 
       headers.set("x-platform", Platform.OS === "ios" ? "ios" : "android");

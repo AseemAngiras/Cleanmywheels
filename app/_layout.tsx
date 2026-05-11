@@ -18,6 +18,7 @@ import { Colors } from "../constants/Colors";
 import { DarkTheme, ThemeProvider } from "@react-navigation/native";
 import { AlertProvider } from "../components/providers/AlertProvider";
 import { NetworkBanner } from "../components/NetworkBanner";
+import { ErrorBoundary } from "../components/ErrorBoundary";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -119,15 +120,17 @@ export default function RootLayout() {
                 <SocketManager />
                 <NotificationManager />
                 <View className="flex-1">
-                  <Stack 
-                    screenOptions={{ 
-                      headerShown: false,
-                      contentStyle: { backgroundColor: Colors.background }
-                    }}
-                  >
-                    <Stack.Screen name="index" />
-                    <Stack.Screen name="(tabs)" />
-                  </Stack>
+                  <ErrorBoundary>
+                    <Stack 
+                      screenOptions={{ 
+                        headerShown: false,
+                        contentStyle: { backgroundColor: Colors.background }
+                      }}
+                    >
+                      <Stack.Screen name="index" />
+                      <Stack.Screen name="(tabs)" />
+                    </Stack>
+                  </ErrorBoundary>
                 </View>
               </View>
             </ThemeProvider>

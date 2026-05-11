@@ -16,13 +16,9 @@ export const addressApi = createApi({
       const state = getState() as any;
       const token = state.auth?.token;
 
-      console.log(" [AddressApi] PrepareHeaders - Token present:", !!token);
       if (token) {
-        console.log(" [AddressApi] Adding Authorization header (Raw)");
         headers.set("Authorization", `${token}`);
         headers.set("x-auth-token", `${token}`);
-      } else {
-        console.warn(" [AddressApi] No token found in state.auth.token");
       }
 
       headers.set("x-platform", Platform.OS === "ios" ? "ios" : "android");

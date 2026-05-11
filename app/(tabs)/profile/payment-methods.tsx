@@ -45,7 +45,7 @@ export default function PaymentMethods() {
             colors={["#1A1A1A", "#0A0A0A"]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
-            className="rounded-[32px] p-6 mb-8 border border-border shadow-2xl"
+            className="rounded-[32px] p-6 mb-8"
           >
             <View className="flex-row justify-between items-center mb-6">
               <Text className="text-2xl font-[800] text-text tracking-wider">

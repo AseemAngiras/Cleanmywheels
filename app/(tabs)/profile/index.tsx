@@ -404,6 +404,12 @@ export default function ProfileHome() {
               onPress={() => router.push("/(tabs)/admin/worker-tracking")}
             />
             <Row
+              icon="newspaper-outline"
+              title="Manage Blogs & Updates"
+              subtitle="Create and edit articles"
+              onPress={() => router.push("/admin/blogs" as any)}
+            />
+            <Row
               icon="stats-chart-outline"
               title="Analytics"
               subtitle="View platform performance"
@@ -668,12 +674,12 @@ export default function ProfileHome() {
                 subtitle="Manage your vehicles"
                 onPress={() => router.push("/garage")}
               />
-              <Row
+              {/* <Row
                 icon="notifications-outline"
                 title="Notifications"
                 subtitle="Manage your alerts and updates"
                 onPress={() => router.push("/profile/notifications")}
-              />
+              /> */}
             </Animated.View>
 
             {/* SUPPORT CARD */}
@@ -704,10 +710,16 @@ export default function ProfileHome() {
                 }
               />
               <Row
+                icon="newspaper-outline"
+                title="Blogs & Updates"
+                subtitle="Stay updated with our latest news"
+                onPress={() => router.push("/profile/blogs" as any)}
+              />
+              <Row
                 icon="information-circle-outline"
                 title="Privacy Policy"
                 subtitle="Read our privacy policy"
-                onPress={() => router.push("/profile/privacy-policy")}
+                onPress={() => router.push("/profile/privacy-policy" as any)}
               />
             </Animated.View>
           </>

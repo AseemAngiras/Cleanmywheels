@@ -19,6 +19,7 @@ import { washPackageApi } from "./api/washPackageApi";
 import { subscriptionApi } from "./api/subscriptionApi";
 import { subscriptionPlanApi } from "./api/subscriptionPlanApi";
 import { workerApi } from "./api/workerApi";
+import { blogApi } from "./api/blogApi";
 import authReducer, { logout } from "./slices/authSlice";
 import bookingReducer from "./slices/bookingSlice";
 import profileReducer from "./slices/profileSlice";
@@ -55,6 +56,7 @@ const appReducer = combineReducers({
   [subscriptionApi.reducerPath]: subscriptionApi.reducer,
   [subscriptionPlanApi.reducerPath]: subscriptionPlanApi.reducer,
   [workerApi.reducerPath]: workerApi.reducer,
+  [blogApi.reducerPath]: blogApi.reducer,
 });
 
 const rootReducer = (state: any, action: any) => {
@@ -85,6 +87,7 @@ export const store = configureStore({
       subscriptionApi.middleware,
       subscriptionPlanApi.middleware,
       workerApi.middleware,
+      blogApi.middleware,
     ),
 });
 

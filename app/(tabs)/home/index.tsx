@@ -679,6 +679,42 @@ export default function HomeScreen() {
             </ScrollView>
           </View>
         )}
+
+        {/* Newsroom Section */}
+        <Animated.View
+          entering={FadeInUp.delay(600).duration(600)}
+          className="px-5 mb-10"
+        >
+          <InteractivePressable
+            onPress={() => router.push("/profile/blogs" as any)}
+            className="bg-card border border-primary/20 rounded-[32px] overflow-hidden shadow-2xl"
+          >
+            <View className="flex-row items-center p-6">
+              <View className="flex-1 pr-4">
+                <View className="flex-row items-center mb-2">
+                  <View className="bg-primary/20 px-2 py-1 rounded-md border border-primary/10">
+                    <Text className="text-[12px] text-primary font-[800] uppercase tracking-wider">NEWSROOM</Text>
+                  </View>
+                </View>
+                <Text className="text-xl font-[800] text-white mb-2 italic">
+                  TIPS & <Text className="text-primary">UPDATES</Text>
+                </Text>
+                <Text className="text-textSecondary text-[13px] leading-5 font-medium">
+                  Stay ahead with expert car care tips and the latest platform news.
+                </Text>
+                
+                <View className="flex-row items-center mt-4">
+                  <Text className="text-primary font-bold text-sm">Read More</Text>
+                  <Ionicons name="arrow-forward" size={14} color={Colors.primary} style={{ marginLeft: 6 }} />
+                </View>
+              </View>
+              
+              <View className="w-20 h-20 bg-primary/10 rounded-full items-center justify-center border border-primary/20">
+                <Ionicons name="newspaper-outline" size={40} color={Colors.primary} />
+              </View>
+            </View>
+          </InteractivePressable>
+        </Animated.View>
       </ScrollView>
 
       {/* Login Modal */}

@@ -63,7 +63,6 @@ export const PlanCard: React.FC<PlanCardProps> = ({
   index = 0,
 }) => {
   const sedanPrice =
-    plan.prices?.sedan?.DAILY ||
     plan.prices?.sedan?.TWICE_MONTHLY ||
     plan.prices?.sedan?.WEEKLY ||
     plan.prices?.sedan?.BIWEEKLY ||

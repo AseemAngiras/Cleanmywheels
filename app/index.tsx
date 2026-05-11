@@ -7,7 +7,7 @@ export default function Index() {
     const isAdmin = user?.accountType === 'Super Admin';
 
     if (isAdmin) {
-        return <Redirect href={"/(tabs)/dashboard"} />
+        return <Redirect href={"/dashboard"} />
     }
 
     return <Redirect href={"/home"} />

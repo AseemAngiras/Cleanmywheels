@@ -9,7 +9,10 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useGetMySubscriptionQuery, useCancelSubscriptionMutation } from "@/store/api/subscriptionApi";
+import {
+  useGetMySubscriptionQuery,
+  useCancelSubscriptionMutation,
+} from "@/store/api/subscriptionApi";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { useAlert } from "@/components/providers/AlertProvider";
 import { formatPrice } from "@/utils/formatPrice";
@@ -21,12 +24,14 @@ export default function SubscriptionDetailsScreen() {
     useGetMySubscriptionQuery(undefined);
   const { showAlert } = useAlert();
 
-  const [cancelSubscription, { isLoading: isCancelling }] = useCancelSubscriptionMutation();
+  const [cancelSubscription, { isLoading: isCancelling }] =
+    useCancelSubscriptionMutation();
 
   const handleCancel = () => {
     showAlert({
       title: "Cancel Subscription",
-      message: "Are you sure you want to cancel? This will stop all future services for this plan immediately.",
+      message:
+        "Are you sure you want to cancel? This will stop all future services for this plan immediately.",
       type: "warning",
       buttons: [
         { text: "No, Keep It", style: "cancel" },
@@ -62,15 +67,28 @@ export default function SubscriptionDetailsScreen() {
         ? subscriptions
         : null;
   }, [subscriptions, id]);
+  const getServicesTotal = (sub: any) => {
+    if (!sub) return 30;
+    if (sub.servicesTotal) return sub.servicesTotal;
+    
+    // Fallback based on frequency
+    switch (sub.frequencyType) {
+      case 'TWICE_MONTHLY': return 2;
+      case 'WEEKLY': return 4;
+      case 'BIWEEKLY': return 8;
+      case 'ALTERNATE_DAY': return 15;
+      default: return 30;
+    }
+  };
 
-  const dailyLogs = useMemo(() => {
+  const totalServices = useMemo(() => getServicesTotal(subscription), [subscription]);
+
+  const serviceLogs = useMemo(() => {
     if (!subscription) return [];
 
     const history = (subscription as any).serviceHistory || [];
     const serviceDates = (subscription as any).serviceDates || [];
     const addons = subscription.nextServiceAddons || [];
-    const frequencyType = subscription.frequencyType || "TWICE_MONTHLY";
-    const totalServices = subscription.servicesTotal || 30;
     const logs: any[] = [];
 
     if (serviceDates.length > 0) {
@@ -96,8 +114,6 @@ export default function SubscriptionDetailsScreen() {
 
         if (frequencyType === "TWICE_MONTHLY") {
           date.setDate(startDate.getDate() + i * 15);
-        } else if (frequencyType === "DAILY") {
-          date.setDate(startDate.getDate() + i);
         } else if (frequencyType === "WEEKLY") {
           date.setDate(startDate.getDate() + i * 7);
         } else if (frequencyType === "BIWEEKLY") {
@@ -144,14 +160,16 @@ export default function SubscriptionDetailsScreen() {
       }
     });
 
-    const sortedLogs = [...logs].sort((a, b) => a.date.getTime() - b.date.getTime());
+    const sortedLogs = [...logs].sort(
+      (a, b) => a.date.getTime() - b.date.getTime(),
+    );
     const nextService = sortedLogs.find((l) => l.status === "Scheduled");
 
     if (nextService) {
       nextService.isNext = true;
     }
 
-    return sortedLogs;
+    return sortedLogs.reverse();
   }, [subscription]);
 
   if (isLoading || !subscription) {
@@ -203,13 +221,20 @@ export default function SubscriptionDetailsScreen() {
             {item.addons.map((addon: any, idx: number) => {
               const addonInfo = addon.addOn || addon;
               return (
-                <View 
-                  key={`${addonInfo?._id || 'addon'}-${idx}`}
+                <View
+                  key={`${addonInfo?._id || "addon"}-${idx}`}
                   className="flex-row items-center justify-between mb-1.5 bg-background/50 px-3 py-2 rounded-xl border border-border/30"
                 >
                   <View className="flex-row items-center flex-1 mr-2">
-                    <Ionicons name="sparkles" size={14} color={Colors.primary} />
-                    <Text className="text-[13px] color-text font-[600] ml-2" numberOfLines={1}>
+                    <Ionicons
+                      name="sparkles"
+                      size={14}
+                      color={Colors.primary}
+                    />
+                    <Text
+                      className="text-[13px] color-text font-[600] ml-2"
+                      numberOfLines={1}
+                    >
                       {addonInfo.name || "Extra Service"}
                     </Text>
                   </View>
@@ -248,14 +273,16 @@ export default function SubscriptionDetailsScreen() {
           </View>
           <View
             className={`px-3 py-1.5 rounded-full border ${
-              subscription.status === "expired" || subscription.status === "cancelled"
+              subscription.status === "expired" ||
+              subscription.status === "cancelled"
                 ? "bg-red-500/10 border-red-500/20"
                 : "bg-green-500/10 border-green-500/20"
             }`}
           >
             <Text
               className={`text-[10px] font-[800] uppercase ${
-                subscription.status === "expired" || subscription.status === "cancelled"
+                subscription.status === "expired" ||
+                subscription.status === "cancelled"
                   ? "color-red-500"
                   : "color-green-500"
               }`}
@@ -287,17 +314,18 @@ export default function SubscriptionDetailsScreen() {
               </View>
             </View>
 
-            {subscription.status !== "expired" && subscription.status !== "cancelled" && (
-              <TouchableOpacity
-                onPress={handleCancel}
-                disabled={isCancelling}
-                className="absolute top-4 right-4 bg-red-500/10 px-3 py-1.5 rounded-xl border border-red-500/20"
-              >
-                <Text className="text-red-500 font-[800] text-[10px] uppercase">
-                  {isCancelling ? "..." : "Cancel"}
-                </Text>
-              </TouchableOpacity>
-            )}
+            {subscription.status !== "expired" &&
+              subscription.status !== "cancelled" && (
+                <TouchableOpacity
+                  onPress={handleCancel}
+                  disabled={isCancelling}
+                  className="absolute top-4 right-4 bg-red-500/10 px-3 py-1.5 rounded-xl border border-red-500/20"
+                >
+                  <Text className="text-red-500 font-[800] text-[10px] uppercase">
+                    {isCancelling ? "..." : "Cancel"}
+                  </Text>
+                </TouchableOpacity>
+              )}
           </View>
 
           <View className="h-[1px] bg-border/50 mb-6" />
@@ -318,7 +346,8 @@ export default function SubscriptionDetailsScreen() {
                       "CleanMyWheels Expert"}
                   </Text>
                   {subscription.status !== "expired" &&
-                    (subscription.workerPhone || subscription.worker?.phone) && (
+                    (subscription.workerPhone ||
+                      subscription.worker?.phone) && (
                       <Text className="text-[12px] color-primary font-[600] mt-0.5">
                         {subscription.workerPhone || subscription.worker?.phone}
                       </Text>
@@ -356,12 +385,16 @@ export default function SubscriptionDetailsScreen() {
                 {subscription.plan?.name || "Monthly"}
               </Text>
               <Text className="text-[12px] color-primary font-[800] uppercase mt-0.5">
-                {subscription.frequencyType === "TWICE_MONTHLY" ? "2 Times a Month" : (subscription.frequencyType || "Twice Monthly")}
+                {subscription.frequencyType === "TWICE_MONTHLY"
+                  ? "2 Times a Month"
+                  : subscription.frequencyType || "Twice Monthly"}
               </Text>
             </View>
             <View className="items-end flex-1">
               <Text className="text-[10px] font-[700] color-textSecondary mb-1.5 tracking-widest uppercase">
-                {subscription.status === "expired" ? "Completed On" : "Expiring On"}
+                {subscription.status === "expired"
+                  ? "Completed On"
+                  : "Expiring On"}
               </Text>
               <Text className="text-[15px] font-[700] color-text">
                 {new Date(subscription.endDate).toLocaleDateString("en-IN", {
@@ -380,7 +413,7 @@ export default function SubscriptionDetailsScreen() {
               </Text>
               <Text className="text-[11px] font-[800] color-text">
                 {subscription.servicesCompleted || 0} /{" "}
-                {subscription.servicesTotal || 30} WASHES
+                {totalServices} WASHES
               </Text>
             </View>
             <View className="h-2 bg-background rounded-full overflow-hidden border border-border/30">
@@ -389,7 +422,7 @@ export default function SubscriptionDetailsScreen() {
                 style={{
                   width: `${Math.min(
                     ((subscription.servicesCompleted || 0) /
-                      (subscription.servicesTotal || 30)) *
+                      totalServices) *
                       100,
                     100,
                   )}%`,
@@ -404,7 +437,7 @@ export default function SubscriptionDetailsScreen() {
         </Text>
 
         <FlatList
-          data={dailyLogs}
+          data={serviceLogs}
           renderItem={renderLogItem}
           keyExtractor={(item) => item.id}
           contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }}

@@ -38,7 +38,7 @@ export default function AdminWashPackagesScreen() {
   useFocusEffect(
     React.useCallback(() => {
       const onBackPress = () => {
-        router.replace("/(tabs)/dashboard");
+        router.replace("/dashboard");
         return true;
       };
 

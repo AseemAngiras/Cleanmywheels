@@ -25,8 +25,8 @@ import { useAlert } from "@/components/providers/AlertProvider";
 import {
   useAssignSubscriptionWorkerMutation,
   useGetAllSubscriptionsQuery,
-  useMarkSubscriptionDailyDoneMutation,
-} from "../../../store/api/subscriptionApi";
+  useMarkSubscriptionServiceDoneMutation,
+} from "@/store/api/subscriptionApi";
 
 import { useGetWorkersQuery } from "@/store/api/workerApi";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
@@ -41,7 +41,7 @@ export default function AdminSubscriptionsScreen() {
   useFocusEffect(
     useCallback(() => {
       const onBackPress = () => {
-        router.replace("/(tabs)/dashboard");
+        router.replace("/dashboard");
         return true;
       };
 
@@ -134,7 +134,7 @@ export default function AdminSubscriptionsScreen() {
     return days > 0 ? days : 0;
   };
 
-  const [markDailyDone] = useMarkSubscriptionDailyDoneMutation();
+  const [markServiceDone] = useMarkSubscriptionServiceDoneMutation();
 
   const handleMarkDone = async (id: string) => {
     showAlert({
@@ -147,7 +147,7 @@ export default function AdminSubscriptionsScreen() {
           text: "Confirm",
           onPress: async () => {
             try {
-              await markDailyDone({ subscriptionId: id }).unwrap();
+              await markServiceDone({ subscriptionId: id }).unwrap();
               showAlert({
                 title: "Success",
                 message: "Service marked as done for today!",
@@ -414,7 +414,7 @@ export default function AdminSubscriptionsScreen() {
         {/* Header */}
         <View className="flex-row items-center justify-between px-5 pt-4 pb-6 bg-card border-b border-border/50">
           <TouchableOpacity
-            onPress={() => router.replace("/(tabs)/dashboard")}
+            onPress={() => router.replace("/dashboard")}
             className="w-10 h-10 rounded-full bg-background items-center justify-center border border-border"
           >
             <Ionicons name="arrow-back" size={20} color={Colors.text} />

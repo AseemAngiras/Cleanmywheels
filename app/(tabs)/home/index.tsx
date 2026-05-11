@@ -63,7 +63,7 @@ export default function HomeScreen() {
 
   useEffect(() => {
     if (isLoggedIn && isAdmin) {
-      router.replace("/(tabs)/dashboard");
+      router.replace("/dashboard");
     }
   }, [isLoggedIn, isAdmin, router]);
 
@@ -311,7 +311,7 @@ export default function HomeScreen() {
 
         if (isAdminUser) {
           setTimeout(() => {
-            router.replace("/(tabs)/dashboard");
+            router.replace("/dashboard");
           }, 100);
         }
       } else {
@@ -376,7 +376,9 @@ export default function HomeScreen() {
       });
     }
   });
-  const pastBookings = Array.from(uniqueBookingsMap.values()).reverse();
+  const pastBookings = Array.from(uniqueBookingsMap.values())
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      .reverse();
 
   const activeSubs =
       subscriptions?.filter((s: any) =>
@@ -582,8 +584,6 @@ export default function HomeScreen() {
               
               if (frequencyType === 'TWICE_MONTHLY') {
                 nextDate.setDate(startDate.getDate() + (completed * 15));
-              } else if (frequencyType === 'DAILY') {
-                nextDate.setDate(startDate.getDate() + completed);
               } else if (frequencyType === 'WEEKLY') {
                 nextDate.setDate(startDate.getDate() + (completed * 7));
               } else if (frequencyType === 'BIWEEKLY') {

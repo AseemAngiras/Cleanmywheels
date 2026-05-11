@@ -21,7 +21,7 @@ const benefits: BenefitItem[] = [
     gradientColors: ["rgba(56, 189, 248, 0.12)", "rgba(56, 189, 248, 0.03)"],
     title: "Regular Wash",
     desc: "Expert cleaning at your scheduled time, every time",
-    stat: "Daily",
+    stat: "Regular",
   },
   {
     icon: "sparkles",

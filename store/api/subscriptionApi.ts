@@ -116,12 +116,12 @@ export const subscriptionApi = createApi({
       invalidatesTags: ["Subscription"],
     }),
 
-    markSubscriptionDailyDone: builder.mutation<
+    markSubscriptionServiceDone: builder.mutation<
       any,
       { subscriptionId: string }
     >({
       query: (body) => ({
-        url: "/mark-daily-done",
+        url: "/mark-service-done",
         method: "PUT",
         body,
       }),
@@ -213,7 +213,7 @@ export const {
   useCreateSubscriptionMutation,
   useVerifySubscriptionMutation,
   useAssignSubscriptionWorkerMutation,
-  useMarkSubscriptionDailyDoneMutation,
+  useMarkSubscriptionServiceDoneMutation,
   useCancelSubscriptionMutation,
   useGetAddonsQuery,
   useCreateAddonMutation,

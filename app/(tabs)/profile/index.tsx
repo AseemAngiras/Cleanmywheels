@@ -140,7 +140,7 @@ export default function ProfileHome() {
     React.useCallback(() => {
       const onBackPress = () => {
         if (isAdmin) {
-          router.replace("/(tabs)/dashboard");
+          router.replace("/dashboard");
           return true;
         }
         return false;
@@ -296,7 +296,7 @@ export default function ProfileHome() {
             className="w-10 h-10 rounded-full bg-card items-center justify-center border border-border"
             onPress={() => {
               if (isAdmin) {
-                router.replace("/(tabs)/dashboard");
+                router.replace("/dashboard");
               } else {
                 router.back();
               }
@@ -395,7 +395,7 @@ export default function ProfileHome() {
               icon="people-outline"
               title="Manage Professionals"
               subtitle="Manage all the workers"
-              onPress={() => router.push("/(tabs)/dashboard")}
+              onPress={() => router.push("/dashboard")}
             />
             <Row
               icon="map-outline"

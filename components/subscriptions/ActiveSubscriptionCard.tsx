@@ -24,11 +24,7 @@ const PulsingDot = ({ color }: { color: string }) => {
   const opacity = useSharedValue(1);
 
   React.useEffect(() => {
-    opacity.value = withRepeat(
-      withTiming(0.3, { duration: 1500 }),
-      -1,
-      true,
-    );
+    opacity.value = withRepeat(withTiming(0.3, { duration: 1500 }), -1, true);
   }, []);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -69,7 +65,7 @@ export const ActiveSubscriptionCard: React.FC<ActiveSubscriptionCardProps> = ({
   subscription,
   variant = "active",
 }) => {
-   const router = useRouter();
+  const router = useRouter();
   const isPast = variant === "past";
   const { showAlert } = useAlert();
 
@@ -79,7 +75,8 @@ export const ActiveSubscriptionCard: React.FC<ActiveSubscriptionCardProps> = ({
   const handleCancel = () => {
     showAlert({
       title: "Cancel Subscription",
-      message: "Are you sure you want to cancel? This will stop all future services for this plan immediately.",
+      message:
+        "Are you sure you want to cancel? This will stop all future services for this plan immediately.",
       type: "warning",
       buttons: [
         { text: "No, Keep It", style: "cancel" },
@@ -97,7 +94,9 @@ export const ActiveSubscriptionCard: React.FC<ActiveSubscriptionCardProps> = ({
             } catch (err: any) {
               showAlert({
                 title: "Error",
-                message: err?.data?.message || "Failed to cancel subscription. Please try again.",
+                message:
+                  err?.data?.message ||
+                  "Failed to cancel subscription. Please try again.",
                 type: "error",
               });
             }
@@ -124,15 +123,30 @@ export const ActiveSubscriptionCard: React.FC<ActiveSubscriptionCardProps> = ({
       )
     : 0;
 
-  const totalServices =
-    subscription.totalServicesPlanned || subscription.servicesTotal || 30;
+  const getServicesTotal = (sub: any) => {
+    if (sub.totalServicesPlanned) return sub.totalServicesPlanned;
+    if (sub.servicesTotal) return sub.servicesTotal;
+    
+    // Fallback based on frequency
+    switch (sub.frequencyType) {
+      case 'TWICE_MONTHLY': return 2;
+      case 'WEEKLY': return 4;
+      case 'BIWEEKLY': return 8;
+      case 'ALTERNATE_DAY': return 15;
+      default: return 30;
+    }
+  };
+
+  const totalServices = getServicesTotal(subscription);
   const progress = Math.min(
     (subscription.servicesCompleted / totalServices) * 100,
     100,
   );
 
   const isCancelled = subscription.status === "cancelled";
-  const isExpired = subscription.status === "expired" || progress >= 100;
+  const isExpired = subscription.status === "expired";
+  const isActive =
+    subscription.status === "active" || subscription.status === "ongoing";
 
   const statusConfig = isCancelled
     ? { color: "#EF4444", label: "Cancelled", dotColor: "#F87171" }
@@ -140,23 +154,23 @@ export const ActiveSubscriptionCard: React.FC<ActiveSubscriptionCardProps> = ({
       ? { color: "#EF4444", label: "Expired", dotColor: "#F87171" }
       : { color: "#4ADE80", label: "Active", dotColor: "#4ADE80" };
 
-  const cardBorderColor = isCancelled || isExpired || isPast
-    ? "rgba(239, 68, 68, 0.12)"
-    : `${Colors.primary}15`;
+  const cardBorderColor =
+    isCancelled || isExpired || isPast
+      ? "rgba(239, 68, 68, 0.12)"
+      : `${Colors.primary}15`;
 
   // Find next scheduled service
   const nextService = subscription.serviceDates?.find(
     (s: any) => s.status === "pending",
   );
-  const nextServiceDate = nextService
-    ? new Date(nextService.date)
-    : null;
+  const nextServiceDate = nextService ? new Date(nextService.date) : null;
   const daysUntilNextWash = nextServiceDate
-    ? Math.ceil((nextServiceDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+    ? Math.ceil(
+        (nextServiceDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24),
+      )
     : null;
   const frequencyLabel =
     {
-      DAILY: "Daily",
       TWICE_MONTHLY: "2x / Month",
       WEEKLY: "Weekly",
       BIWEEKLY: "Bi-weekly",
@@ -182,7 +196,7 @@ export const ActiveSubscriptionCard: React.FC<ActiveSubscriptionCardProps> = ({
       }}
     >
       {/* Active glow bar */}
-      {!isPast && !isExpired && (
+      {isActive && (
         <View
           style={{
             height: 2,
@@ -217,7 +231,14 @@ export const ActiveSubscriptionCard: React.FC<ActiveSubscriptionCardProps> = ({
             >
               {subscription.plan?.name || "Premium Plan"}
             </Text>
-            <View style={{ flexDirection: "row", alignItems: "center", marginTop: 6, gap: 8 }}>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                marginTop: 6,
+                gap: 8,
+              }}
+            >
               <Text
                 style={{
                   fontSize: 10,
@@ -290,7 +311,8 @@ export const ActiveSubscriptionCard: React.FC<ActiveSubscriptionCardProps> = ({
                 textTransform: "uppercase",
               }}
             >
-              {subscription.status?.toUpperCase() || statusConfig.label.toUpperCase()}
+              {subscription.status?.toUpperCase() ||
+                statusConfig.label.toUpperCase()}
             </Text>
           </View>
         </View>
@@ -412,43 +434,45 @@ export const ActiveSubscriptionCard: React.FC<ActiveSubscriptionCardProps> = ({
             </View>
 
             {/* Next Wash Chip */}
-            {daysUntilNextWash !== null && daysUntilNextWash >= 0 && !isExpired && (
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  marginTop: 14,
-                  backgroundColor: `${Colors.primary}08`,
-                  paddingVertical: 8,
-                  paddingHorizontal: 14,
-                  borderRadius: 12,
-                  borderWidth: 1,
-                  borderColor: `${Colors.primary}15`,
-                }}
-              >
-                <Ionicons
-                  name="water"
-                  size={14}
-                  color={Colors.primary}
-                  style={{ marginRight: 6 }}
-                />
-                <Text
+            {daysUntilNextWash !== null &&
+              daysUntilNextWash >= 0 &&
+              !isExpired && (
+                <View
                   style={{
-                    fontSize: 12,
-                    fontWeight: "700",
-                    color: Colors.primary,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginTop: 14,
+                    backgroundColor: `${Colors.primary}08`,
+                    paddingVertical: 8,
+                    paddingHorizontal: 14,
+                    borderRadius: 12,
+                    borderWidth: 1,
+                    borderColor: `${Colors.primary}15`,
                   }}
                 >
-                  Next wash{" "}
-                  {daysUntilNextWash === 0
-                    ? "today"
-                    : daysUntilNextWash === 1
-                      ? "tomorrow"
-                      : `in ${daysUntilNextWash} days`}
-                </Text>
-              </View>
-            )}
+                  <Ionicons
+                    name="water"
+                    size={14}
+                    color={Colors.primary}
+                    style={{ marginRight: 6 }}
+                  />
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      fontWeight: "700",
+                      color: Colors.primary,
+                    }}
+                  >
+                    Next wash{" "}
+                    {daysUntilNextWash === 0
+                      ? "today"
+                      : daysUntilNextWash === 1
+                        ? "tomorrow"
+                        : `in ${daysUntilNextWash} days`}
+                  </Text>
+                </View>
+              )}
 
             {/* View Details CTA */}
             <InteractivePressable
@@ -481,7 +505,7 @@ export const ActiveSubscriptionCard: React.FC<ActiveSubscriptionCardProps> = ({
               </Text>
               <Ionicons name="arrow-forward" size={14} color={Colors.text} />
             </InteractivePressable>
-{/* 
+            {/* 
             {!isCancelling && subscription.status !== "cancelled" && (
               <TouchableOpacity
                 onPress={handleCancel}

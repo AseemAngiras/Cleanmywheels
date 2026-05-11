@@ -42,7 +42,7 @@ export default function ServiceManagementScreen() {
   useFocusEffect(
     React.useCallback(() => {
       const onBackPress = () => {
-        router.replace("/(tabs)/dashboard");
+        router.replace("/dashboard");
         return true;
       };
 
@@ -64,7 +64,6 @@ export default function ServiceManagementScreen() {
     durationMinutes: "30",
     priceMatrix: {
       ONE_TIME: "0",
-      DAILY: "0",
       TWICE_MONTHLY: "0",
       WEEKLY: "0",
       BIWEEKLY: "0",
@@ -81,7 +80,6 @@ export default function ServiceManagementScreen() {
       durationMinutes: (addon.durationMinutes || 30).toString(),
       priceMatrix: {
         ONE_TIME: (addon.priceMatrix?.ONE_TIME || addon.price || 0).toString(),
-        DAILY: (addon.priceMatrix?.DAILY || 0).toString(),
         TWICE_MONTHLY: (addon.priceMatrix?.TWICE_MONTHLY || 0).toString(),
         WEEKLY: (addon.priceMatrix?.WEEKLY || 0).toString(),
         BIWEEKLY: (addon.priceMatrix?.BIWEEKLY || 0).toString(),
@@ -99,7 +97,6 @@ export default function ServiceManagementScreen() {
       durationMinutes: "30",
       priceMatrix: {
         ONE_TIME: "0",
-        DAILY: "0",
         TWICE_MONTHLY: "0",
         WEEKLY: "0",
         BIWEEKLY: "0",
@@ -157,7 +154,6 @@ export default function ServiceManagementScreen() {
       isActive: true,
       priceMatrix: {
         ONE_TIME: Number(editData.priceMatrix.ONE_TIME),
-        DAILY: Number(editData.priceMatrix.DAILY || 0),
         TWICE_MONTHLY: Number(editData.priceMatrix.TWICE_MONTHLY),
         WEEKLY: Number(editData.priceMatrix.WEEKLY),
         BIWEEKLY: Number(editData.priceMatrix.BIWEEKLY),

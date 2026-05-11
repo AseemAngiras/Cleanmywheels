@@ -10,16 +10,16 @@ export interface SubscriptionPlan {
   tag?: string;
   price?: number;
   prices: {
-    hatchback: { DAILY: number; WEEKLY: number; BIWEEKLY: number; ALTERNATE_DAY: number; TWICE_MONTHLY: number; ONE_TIME: number };
-    sedan: { DAILY: number; WEEKLY: number; BIWEEKLY: number; ALTERNATE_DAY: number; TWICE_MONTHLY: number; ONE_TIME: number };
-    suv: { DAILY: number; WEEKLY: number; BIWEEKLY: number; ALTERNATE_DAY: number; TWICE_MONTHLY: number; ONE_TIME: number };
+    hatchback: { WEEKLY: number; BIWEEKLY: number; ALTERNATE_DAY: number; TWICE_MONTHLY: number; ONE_TIME: number };
+    sedan: { WEEKLY: number; BIWEEKLY: number; ALTERNATE_DAY: number; TWICE_MONTHLY: number; ONE_TIME: number };
+    suv: { WEEKLY: number; BIWEEKLY: number; ALTERNATE_DAY: number; TWICE_MONTHLY: number; ONE_TIME: number };
   };
   features: string[]; // Keep for compatibility
   includedServiceIds?: string[]; // New ID-based linking
   status: "Active" | "Inactive" | "Archived";
   razorpayPlanId?: string;
   frequencies?: {
-    type: "DAILY" | "WEEKLY" | "BIWEEKLY" | "ALTERNATE_DAY" | "TWICE_MONTHLY";
+    type: "WEEKLY" | "BIWEEKLY" | "ALTERNATE_DAY" | "TWICE_MONTHLY";
     label: string;
     description: string;
     multiplier: number;
@@ -34,7 +34,6 @@ export interface Addon {
   price: number; // Base/Fallback price
   priceMatrix?: {
     ONE_TIME?: number;
-    DAILY?: number;
     WEEKLY?: number;
     BIWEEKLY?: number;
     ALTERNATE_DAY?: number;
@@ -66,7 +65,7 @@ export interface UserSubscription {
   paymentMethod?: string;
   servicesTotal: number;
   servicesCompleted: number;
-  frequencyType?: "DAILY" | "WEEKLY" | "BIWEEKLY" | "ALTERNATE_DAY" | "TWICE_MONTHLY";
+  frequencyType?: "WEEKLY" | "BIWEEKLY" | "ALTERNATE_DAY" | "TWICE_MONTHLY";
   totalServicesPlanned?: number;
   serviceDates?: {
     date: string;

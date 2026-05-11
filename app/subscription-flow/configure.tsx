@@ -165,13 +165,11 @@ export default function SubscriptionConfigureScreen() {
     services:
       selectedFrequency === "TWICE_MONTHLY"
         ? 2
-        : selectedFrequency === "DAILY"
-          ? 30
-          : selectedFrequency === "WEEKLY"
-            ? 4
-            : selectedFrequency === "BIWEEKLY"
-              ? 8
-              : 15,
+        : selectedFrequency === "WEEKLY"
+          ? 4
+          : selectedFrequency === "BIWEEKLY"
+            ? 8
+            : 15,
   };
 
   const totalAddonsCost = selectedAddons.reduce((sum, a) => {

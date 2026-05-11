@@ -40,7 +40,7 @@ export default function AdminSubscriptionPlansScreen() {
   useFocusEffect(
     React.useCallback(() => {
       const onBackPress = () => {
-        router.replace("/(tabs)/dashboard");
+        router.replace("/dashboard");
         return true;
       };
 
@@ -71,9 +71,9 @@ export default function AdminSubscriptionPlansScreen() {
     features: [] as string[],
     includedServiceIds: [] as string[],
     prices: {
-      hatchback: { DAILY: 0, WEEKLY: 0, BIWEEKLY: 0, ALTERNATE_DAY: 0, TWICE_MONTHLY: 0, ONE_TIME: 0 },
-      sedan: { DAILY: 0, WEEKLY: 0, BIWEEKLY: 0, ALTERNATE_DAY: 0, TWICE_MONTHLY: 0, ONE_TIME: 0 },
-      suv: { DAILY: 0, WEEKLY: 0, BIWEEKLY: 0, ALTERNATE_DAY: 0, TWICE_MONTHLY: 0, ONE_TIME: 0 },
+      hatchback: { WEEKLY: 0, BIWEEKLY: 0, ALTERNATE_DAY: 0, TWICE_MONTHLY: 0, ONE_TIME: 0 },
+      sedan: { WEEKLY: 0, BIWEEKLY: 0, ALTERNATE_DAY: 0, TWICE_MONTHLY: 0, ONE_TIME: 0 },
+      suv: { WEEKLY: 0, BIWEEKLY: 0, ALTERNATE_DAY: 0, TWICE_MONTHLY: 0, ONE_TIME: 0 },
     },
   });
 
@@ -86,7 +86,6 @@ export default function AdminSubscriptionPlansScreen() {
       includedServiceIds: pkg.includedServiceIds || [],
       prices: {
         hatchback: {
-          DAILY: pkg.prices?.hatchback?.DAILY || 0,
           WEEKLY: pkg.prices?.hatchback?.WEEKLY || 0,
           BIWEEKLY: pkg.prices?.hatchback?.BIWEEKLY || 0,
           ALTERNATE_DAY: pkg.prices?.hatchback?.ALTERNATE_DAY || 0,
@@ -94,7 +93,6 @@ export default function AdminSubscriptionPlansScreen() {
           ONE_TIME: pkg.prices?.hatchback?.ONE_TIME || 0,
         },
         sedan: {
-          DAILY: pkg.prices?.sedan?.DAILY || 0,
           WEEKLY: pkg.prices?.sedan?.WEEKLY || 0,
           BIWEEKLY: pkg.prices?.sedan?.BIWEEKLY || 0,
           ALTERNATE_DAY: pkg.prices?.sedan?.ALTERNATE_DAY || 0,
@@ -102,7 +100,6 @@ export default function AdminSubscriptionPlansScreen() {
           ONE_TIME: pkg.prices?.sedan?.ONE_TIME || 0,
         },
         suv: {
-          DAILY: pkg.prices?.suv?.DAILY || 0,
           WEEKLY: pkg.prices?.suv?.WEEKLY || 0,
           BIWEEKLY: pkg.prices?.suv?.BIWEEKLY || 0,
           ALTERNATE_DAY: pkg.prices?.suv?.ALTERNATE_DAY || 0,
@@ -184,9 +181,9 @@ export default function AdminSubscriptionPlansScreen() {
       features: [],
       includedServiceIds: [],
       prices: {
-        hatchback: { DAILY: 0, WEEKLY: 0, BIWEEKLY: 0, ALTERNATE_DAY: 0, TWICE_MONTHLY: 0, ONE_TIME: 0 },
-        sedan: { DAILY: 0, WEEKLY: 0, BIWEEKLY: 0, ALTERNATE_DAY: 0, TWICE_MONTHLY: 0, ONE_TIME: 0 },
-        suv: { DAILY: 0, WEEKLY: 0, BIWEEKLY: 0, ALTERNATE_DAY: 0, TWICE_MONTHLY: 0, ONE_TIME: 0 },
+        hatchback: { WEEKLY: 0, BIWEEKLY: 0, ALTERNATE_DAY: 0, TWICE_MONTHLY: 0, ONE_TIME: 0 },
+        sedan: { WEEKLY: 0, BIWEEKLY: 0, ALTERNATE_DAY: 0, TWICE_MONTHLY: 0, ONE_TIME: 0 },
+        suv: { WEEKLY: 0, BIWEEKLY: 0, ALTERNATE_DAY: 0, TWICE_MONTHLY: 0, ONE_TIME: 0 },
       },
     });
     setEditModalVisible(true);

@@ -308,10 +308,13 @@ export default function WorkerTrackingScreen() {
                    </Text>
                    <View className="bg-background rounded-3xl p-4 border border-border">
                       {selectedTask.serviceDates?.length > 0 ? (
-                        selectedTask.serviceDates.map((date: any, i: number) => (
-                          <View key={i} className={`flex-row items-center justify-between py-3 ${i !== selectedTask.serviceDates.length - 1 ? 'border-b border-border/50' : ''}`}>
+                        [...selectedTask.serviceDates]
+                          .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime())
+                          .reverse()
+                          .map((date: any, i: number, arr: any[]) => (
+                          <View key={i} className={`flex-row items-center justify-between py-3 ${i !== arr.length - 1 ? 'border-b border-border/50' : ''}`}>
                              <View className="flex-row items-center">
-                                <View className={`w-2 h-2 rounded-full mr-3 ${new Date(date.date) < new Date() ? 'bg-green-500' : 'bg-blue-500'}`} />
+                                <View className={`w-2 h-2 rounded-full mr-3 ${new Date(date.date) < new Date() || date.status === 'completed' ? 'bg-green-500' : 'bg-blue-500'}`} />
                                 <Text className="text-text text-[13px] font-[500]">
                                    {new Date(date.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                                 </Text>

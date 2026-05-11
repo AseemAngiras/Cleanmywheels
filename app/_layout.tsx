@@ -132,6 +132,7 @@ export default function RootLayout() {
                     </Stack>
                   </ErrorBoundary>
                 </View>
+                <NetworkBanner />
               </View>
             </ThemeProvider>
             <Toast config={toastConfig} />

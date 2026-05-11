@@ -15,6 +15,7 @@ import {
 } from "@/store/api/subscriptionApi";
 import { useAlert } from "@/components/providers/AlertProvider";
 import { Colors } from "@/constants/Colors";
+import { useEffect } from "react";
 
 export default function PaymentWebViewScreen() {
   const router = useRouter();
@@ -40,6 +41,25 @@ export default function PaymentWebViewScreen() {
 
   const [isLoading, setIsLoading] = useState(true);
   const [verifying, setVerifying] = useState(false);
+  const [isOffline, setIsOffline] = useState(false);
+
+  useEffect(() => {
+    const checkConn = async () => {
+      try {
+        const response = await fetch("https://www.google.com", { 
+          method: "HEAD",
+          mode: 'no-cors',
+          cache: 'no-store'
+        });
+        setIsOffline(false);
+      } catch (e) {
+        setIsOffline(true);
+      }
+    };
+    checkConn();
+    const interval = setInterval(checkConn, 10000);
+    return () => clearInterval(interval);
+  }, []);
 
   const paymentUrl = url as string;
 
@@ -199,6 +219,34 @@ export default function PaymentWebViewScreen() {
     }
     return true;
   };
+
+  if (isOffline) {
+    return (
+      <ScreenWrapper
+        className="flex-1 bg-background"
+        statusBarStyle="dark-content"
+        useSafeAreaBottom={true}
+      >
+        <View className="flex-1 items-center justify-center p-5">
+          <Ionicons name="cloud-offline-outline" size={80} color={Colors.textSecondary} />
+          <Text className="text-[20px] font-[800] color-text text-center mt-5">
+            No Internet Connection
+          </Text>
+          <Text className="text-[14px] color-textSecondary text-center mt-2 px-5 leading-5">
+            Payment processing requires an active internet connection. Please connect to a network and try again.
+          </Text>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            className="mt-10 bg-primary px-8 py-4 rounded-2xl shadow-lg shadow-primary/30"
+          >
+            <Text className="text-[15px] font-[900] color-black uppercase tracking-tight">
+              Go Back
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </ScreenWrapper>
+    );
+  }
 
   return (
     <ScreenWrapper

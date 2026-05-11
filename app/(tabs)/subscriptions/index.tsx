@@ -1,10 +1,13 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { Colors } from "@/constants/Colors";
-import React, { useState } from "react";
+import React, { useState, useCallback, useRef } from "react";
 import {
   ActivityIndicator,
+  Dimensions,
   LayoutAnimation,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
   RefreshControl,
   ScrollView,
   Text,
@@ -12,15 +15,17 @@ import {
   View,
 } from "react-native";
 import Animated, { FadeInUp, FadeInDown } from "react-native-reanimated";
+import { LinearGradient } from "expo-linear-gradient";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import {
   useGetPlansQuery,
   useGetMySubscriptionQuery,
 } from "../../../store/api/subscriptionApi";
 import { ActiveSubscriptionCard } from "../../../components/subscriptions/ActiveSubscriptionCard";
-import { PlanCard } from "../../../components/subscriptions/PlanCard";
+import { PlanCard, PLAN_CARD_SNAP } from "../../../components/subscriptions/PlanCard";
 import { BenefitsCard } from "../../../components/subscriptions/BenefitsCard";
 import { SavingsCard } from "../../../components/subscriptions/SavingsCard";
+import { SegmentedControl } from "../../../components/subscriptions/SegmentedControl";
 import { InteractivePressable } from "@/components/ui/InteractivePressable";
 
 import { useSelector } from "react-redux";
@@ -28,14 +33,26 @@ import { RootState } from "@/store";
 import AdminSubscriptionScreen from "../admin/subscriptions";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+
 export default function SubscriptionPlansScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const user = useSelector((state: RootState) => state.user.user);
   const isAdmin = user?.accountType === "Super Admin";
 
-  const [arePlansVisible, setArePlansVisible] = useState(false);
+  const [activeSegment, setActiveSegment] = useState(0); // 0 = My Plans, 1 = Browse
   const [showPastSubs, setShowPastSubs] = useState(false);
+  const [activePlanIndex, setActivePlanIndex] = useState(0);
+
+  const onCarouselScroll = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const offsetX = event.nativeEvent.contentOffset.x;
+      const index = Math.round(offsetX / PLAN_CARD_SNAP);
+      setActivePlanIndex(index);
+    },
+    [],
+  );
 
   const {
     data: plans,
@@ -43,18 +60,18 @@ export default function SubscriptionPlansScreen() {
     error: plansError,
     refetch: refetchPlans,
   } = useGetPlansQuery();
-  const { data: subscriptions, isLoading: isSubLoading, refetch: refetchSubscriptions } =
-    useGetMySubscriptionQuery();
+  const {
+    data: subscriptions,
+    isLoading: isSubLoading,
+    refetch: refetchSubscriptions,
+  } = useGetMySubscriptionQuery();
 
   const [refreshing, setRefreshing] = useState(false);
 
-  const onRefresh = React.useCallback(async () => {
+  const onRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      await Promise.all([
-        refetchPlans(),
-        refetchSubscriptions(),
-      ]);
+      await Promise.all([refetchPlans(), refetchSubscriptions()]);
     } catch (error) {
       console.error("Refresh failed:", error);
     } finally {
@@ -71,16 +88,18 @@ export default function SubscriptionPlansScreen() {
     });
   };
 
-  const togglePlans = () => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setArePlansVisible(!arePlansVisible);
-  };
-
   const isLoading = isPlansLoading || isSubLoading;
 
   if (isLoading) {
     return (
-      <View className="flex-1 items-center justify-center bg-background">
+      <View
+        style={{
+          flex: 1,
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: Colors.background,
+        }}
+      >
         <ActivityIndicator size="large" color={Colors.primary} />
       </View>
     );
@@ -88,25 +107,73 @@ export default function SubscriptionPlansScreen() {
 
   if (plansError) {
     return (
-      <View className="flex-1 items-center justify-center bg-background px-10">
-        <View className="w-20 h-20 rounded-full bg-red-500/10 items-center justify-center mb-6">
+      <View
+        style={{
+          flex: 1,
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: Colors.background,
+          paddingHorizontal: 40,
+        }}
+      >
+        <View
+          style={{
+            width: 72,
+            height: 72,
+            borderRadius: 36,
+            backgroundColor: "rgba(239, 68, 68, 0.1)",
+            alignItems: "center",
+            justifyContent: "center",
+            marginBottom: 24,
+          }}
+        >
           <Ionicons
             name="alert-circle-outline"
-            size={40}
+            size={36}
             color={Colors.error}
           />
         </View>
-        <Text className="text-[18px] font-[800] color-text text-center">
+        <Text
+          style={{
+            fontSize: 18,
+            fontWeight: "800",
+            color: Colors.text,
+            textAlign: "center",
+          }}
+        >
           Failed to load plans
         </Text>
-        <Text className="text-[14px] color-textSecondary text-center mt-2 mb-8">
+        <Text
+          style={{
+            fontSize: 14,
+            color: Colors.textSecondary,
+            textAlign: "center",
+            marginTop: 8,
+            marginBottom: 28,
+          }}
+        >
           Please check your internet connection and try again.
         </Text>
         <TouchableOpacity
           onPress={() => router.back()}
-          className="bg-card px-8 py-3 rounded-full border border-border/50"
+          style={{
+            backgroundColor: Colors.card,
+            paddingHorizontal: 28,
+            paddingVertical: 12,
+            borderRadius: 20,
+            borderWidth: 1,
+            borderColor: "rgba(255,255,255,0.06)",
+          }}
         >
-          <Text className="text-[14px] font-[800] color-text">Go Back</Text>
+          <Text
+            style={{
+              fontSize: 14,
+              fontWeight: "800",
+              color: Colors.text,
+            }}
+          >
+            Go Back
+          </Text>
         </TouchableOpacity>
       </View>
     );
@@ -124,42 +191,94 @@ export default function SubscriptionPlansScreen() {
 
   return (
     <ScreenWrapper backgroundColor={Colors.background}>
-      {/* Header */}
-      <View className="flex-row justify-between items-center px-6 py-5 bg-background">
-        <View className="flex-row items-center">
-          {arePlansVisible && (
-            <TouchableOpacity
-              onPress={togglePlans}
-              className="mr-3 w-10 h-10 rounded-full bg-card items-center justify-center border border-border/50"
-            >
-              <Ionicons name="chevron-back" size={20} color={Colors.text} />
-            </TouchableOpacity>
-          )}
+      {/* ============ GRADIENT HEADER ============ */}
+      <LinearGradient
+        colors={
+          activeSegment === 1
+            ? [`${Colors.primary}12`, Colors.background]
+            : ["rgba(255,255,255,0.03)", Colors.background]
+        }
+        style={{
+          paddingHorizontal: 20,
+          paddingTop: 12,
+          paddingBottom: 16,
+        }}
+      >
+        {/* Title Row */}
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 16,
+          }}
+        >
           <View>
-            <Text className="text-[24px] font-[900] color-text tracking-tighter">
-              {arePlansVisible ? "Choose a Plan" : "Subscriptions"}
+            <Text
+              style={{
+                fontSize: 26,
+                fontWeight: "900",
+                color: Colors.text,
+                letterSpacing: -0.5,
+              }}
+            >
+              Subscriptions
             </Text>
-            {!arePlansVisible && (
-              <Text className="text-[12px] color-textSecondary font-[600] mt-0.5">
-                Keep your ride spotless
-              </Text>
-            )}
+            <Text
+              style={{
+                fontSize: 12,
+                fontWeight: "600",
+                color: Colors.textSecondary,
+                marginTop: 2,
+              }}
+            >
+              Premium car care, always
+            </Text>
           </View>
+
+          {/* Quick action for subscribers */}
+          {actuallyActive.length > 0 && activeSegment === 0 && (
+            <InteractivePressable
+              onPress={() => setActiveSegment(1)}
+              style={{
+                backgroundColor: Colors.primary,
+                paddingHorizontal: 14,
+                paddingVertical: 10,
+                borderRadius: 14,
+                shadowColor: Colors.primary,
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.3,
+                shadowRadius: 8,
+                elevation: 4,
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 11,
+                  fontWeight: "900",
+                  color: "#000",
+                  letterSpacing: 0.5,
+                  textTransform: "uppercase",
+                }}
+              >
+                + Add Plan
+              </Text>
+            </InteractivePressable>
+          )}
         </View>
-        {!arePlansVisible && actuallyActive.length > 0 && (
-          <InteractivePressable
-            onPress={togglePlans}
-            className="bg-primary px-4 py-2.5 rounded-xl shadow-sm shadow-primary/20"
-          >
-            <Text className="text-[11px] font-[900] color-black uppercase tracking-wider">
-              + Add Plan
-            </Text>
-          </InteractivePressable>
-        )}
-      </View>
+
+        {/* Segmented Control */}
+        <SegmentedControl
+          segments={["My Plans", "Browse"]}
+          activeIndex={activeSegment}
+          onChange={setActiveSegment}
+        />
+      </LinearGradient>
 
       <ScrollView
-        contentContainerStyle={{ padding: 20, paddingBottom: 120 + insets.bottom }}
+        contentContainerStyle={{
+          paddingBottom: 120 + insets.bottom,
+        }}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
@@ -170,43 +289,131 @@ export default function SubscriptionPlansScreen() {
           />
         }
       >
-        {/* ========== MY SUBSCRIPTIONS VIEW ========== */}
-        {!arePlansVisible && (
-          <>
-            {/* Hero Section (only when no active subs) */}
+        {/* ============ MY PLANS VIEW ============ */}
+        {activeSegment === 0 && (
+          <View style={{ paddingHorizontal: 20, paddingTop: 8 }}>
+            {/* Empty State Hero */}
             {!hasAnySubs && (
               <Animated.View
                 entering={FadeInUp.duration(600)}
-                className="mb-8 rounded-[32px] overflow-hidden border border-primary/20"
+                style={{
+                  marginBottom: 28,
+                  borderRadius: 28,
+                  overflow: "hidden",
+                  borderWidth: 1,
+                  borderColor: `${Colors.primary}20`,
+                }}
               >
-                <View className="bg-primary/5 p-7 items-center">
-                  <View className="w-20 h-20 rounded-full bg-primary/15 items-center justify-center mb-5 border border-primary/20">
-                    <Ionicons name="sparkles" size={36} color={Colors.primary} />
+                <LinearGradient
+                  colors={[`${Colors.primary}08`, `${Colors.primary}03`, Colors.card]}
+                  style={{
+                    padding: 32,
+                    alignItems: "center",
+                  }}
+                >
+                  {/* Animated sparkle icon */}
+                  <View
+                    style={{
+                      width: 80,
+                      height: 80,
+                      borderRadius: 40,
+                      backgroundColor: `${Colors.primary}12`,
+                      alignItems: "center",
+                      justifyContent: "center",
+                      marginBottom: 20,
+                      borderWidth: 2,
+                      borderColor: `${Colors.primary}20`,
+                    }}
+                  >
+                    <Ionicons
+                      name="sparkles"
+                      size={36}
+                      color={Colors.primary}
+                    />
                   </View>
-                  <Text className="text-[24px] font-[900] color-text text-center tracking-tight mb-2">
+
+                  <Text
+                    style={{
+                      fontSize: 26,
+                      fontWeight: "900",
+                      color: Colors.text,
+                      textAlign: "center",
+                      letterSpacing: -0.5,
+                      marginBottom: 8,
+                    }}
+                  >
                     Elevate Your Ride
                   </Text>
-                  <Text className="text-[14px] color-textSecondary text-center leading-5 font-[500] mb-6 px-4">
-                    Subscribe and enjoy hassle-free car care delivered to your doorstep. Save time and money every month.
-                  </Text>
-                  <InteractivePressable
-                    onPress={togglePlans}
-                    className="bg-primary px-8 py-4 rounded-2xl shadow-lg shadow-primary/30 flex-row items-center"
+                  <Text
+                    style={{
+                      fontSize: 14,
+                      color: Colors.textSecondary,
+                      textAlign: "center",
+                      lineHeight: 20,
+                      fontWeight: "500",
+                      paddingHorizontal: 16,
+                      marginBottom: 24,
+                    }}
                   >
-                    <Text className="text-black text-[15px] font-[800]">
-                      Browse Plans
-                    </Text>
-                    <Ionicons name="arrow-forward" size={16} color="#000" style={{ marginLeft: 6 }} />
-                  </InteractivePressable>
-                </View>
+                    Subscribe and enjoy hassle-free car care delivered to your
+                    doorstep. Save time and money every month.
+                  </Text>
+
+                  {/* CTA */}
+                  <LinearGradient
+                    colors={[Colors.primary, "#A8D000"]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={{ borderRadius: 16, overflow: "hidden" }}
+                  >
+                    <InteractivePressable
+                      onPress={() => setActiveSegment(1)}
+                      style={{
+                        paddingHorizontal: 32,
+                        paddingVertical: 16,
+                        flexDirection: "row",
+                        alignItems: "center",
+                      }}
+                    >
+                      <Text
+                        style={{
+                          color: "#000",
+                          fontSize: 15,
+                          fontWeight: "800",
+                        }}
+                      >
+                        Browse Plans
+                      </Text>
+                      <Ionicons
+                        name="arrow-forward"
+                        size={16}
+                        color="#000"
+                        style={{ marginLeft: 6 }}
+                      />
+                    </InteractivePressable>
+                  </LinearGradient>
+                </LinearGradient>
               </Animated.View>
             )}
 
             {/* Active Subscriptions */}
             {actuallyActive.length > 0 && (
-              <Animated.View entering={FadeInUp.delay(100).duration(500)} className="mb-6">
-                <Text className="text-[11px] font-[800] color-textSecondary uppercase tracking-[2px] mb-4 px-1">
-                  Active Plans
+              <Animated.View
+                entering={FadeInUp.delay(100).duration(500)}
+                style={{ marginBottom: 20 }}
+              >
+                <Text
+                  style={{
+                    fontSize: 27,
+                    fontWeight: "800",
+                    color: Colors.text,
+                    // letterSpacing: 2,
+                    // textTransform: "uppercase",
+                    marginBottom: 14,
+                    paddingHorizontal: 2,
+                  }}
+                >
+                  Your Active Plans
                 </Text>
                 {actuallyActive.map((sub: any) => (
                   <ActiveSubscriptionCard key={sub._id} subscription={sub} />
@@ -216,17 +423,51 @@ export default function SubscriptionPlansScreen() {
 
             {/* Past Subscriptions (Collapsible) */}
             {pastSubs.length > 0 && (
-              <Animated.View entering={FadeInUp.delay(200).duration(500)} className="mb-6">
+              <Animated.View
+                entering={FadeInUp.delay(200).duration(500)}
+                style={{ marginBottom: 20 }}
+              >
                 <InteractivePressable
                   onPress={() => {
-                    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+                    LayoutAnimation.configureNext(
+                      LayoutAnimation.Presets.easeInEaseOut,
+                    );
                     setShowPastSubs(!showPastSubs);
                   }}
-                  className="flex-row items-center justify-between mb-4 px-1"
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    marginBottom: 14,
+                    paddingHorizontal: 2,
+                    paddingVertical: 6,
+                    backgroundColor: "rgba(255,255,255,0.02)",
+                    borderRadius: 12,
+                    paddingLeft: 12,
+                    paddingRight: 12,
+                    borderWidth: 1,
+                    borderColor: "rgba(255,255,255,0.04)",
+                  }}
                 >
-                  <Text className="text-[11px] font-[800] color-textSecondary uppercase tracking-[2px]">
-                    Past Services ({pastSubs.length})
-                  </Text>
+                  <View style={{ flexDirection: "row", alignItems: "center" }}>
+                    <Ionicons
+                      name="time-outline"
+                      size={14}
+                      color={Colors.textSecondary}
+                      style={{ marginRight: 6 }}
+                    />
+                    <Text
+                      style={{
+                        fontSize: 11,
+                        fontWeight: "800",
+                        color: Colors.textSecondary,
+                        letterSpacing: 1.5,
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      Past Services ({pastSubs.length})
+                    </Text>
+                  </View>
                   <Ionicons
                     name={showPastSubs ? "chevron-up" : "chevron-down"}
                     size={16}
@@ -244,45 +485,315 @@ export default function SubscriptionPlansScreen() {
               </Animated.View>
             )}
 
-            {/* Savings + Benefits (always visible) */}
+            {/* Stats + Benefits */}
             <Animated.View entering={FadeInUp.delay(300).duration(500)}>
-              {hasAnySubs && (
-                <Text className="text-[11px] font-[800] color-textSecondary uppercase tracking-[2px] mb-4 px-1">
-                  Why Subscribe?
-                </Text>
-              )}
               <SavingsCard />
-              <BenefitsCard onExplore={togglePlans} />
+              <BenefitsCard />
             </Animated.View>
-          </>
+          </View>
         )}
 
-        {/* ========== PLAN SELECTION VIEW ========== */}
-        {arePlansVisible && (
+        {/* ============ BROWSE PLANS VIEW ============ */}
+        {activeSegment === 1 && (
           <Animated.View entering={FadeInDown.duration(400)}>
-            <View className="mb-2">
+            {/* Header Row */}
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                paddingHorizontal: 24,
+                marginTop: 8,
+                marginBottom: 6,
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 11,
+                  fontWeight: "800",
+                  color: Colors.textSecondary,
+                  letterSpacing: 2,
+                  textTransform: "uppercase",
+                }}
+              >
+                Choose Your Plan
+              </Text>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  backgroundColor: "rgba(255,255,255,0.03)",
+                  paddingHorizontal: 8,
+                  paddingVertical: 4,
+                  borderRadius: 8,
+                  borderWidth: 1,
+                  borderColor: "rgba(255,255,255,0.05)",
+                }}
+              >
+                <Ionicons
+                  name="swap-horizontal"
+                  size={12}
+                  color={Colors.textSecondary}
+                  style={{ marginRight: 4 }}
+                />
+                <Text
+                  style={{
+                    fontSize: 9,
+                    fontWeight: "700",
+                    color: Colors.textSecondary,
+                    letterSpacing: 0.5,
+                  }}
+                >
+                  Swipe to compare
+                </Text>
+              </View>
+            </View>
+
+            {/* Quick comparison strip */}
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{
+                paddingHorizontal: 24,
+                paddingVertical: 10,
+                gap: 8,
+              }}
+            >
+              {plans?.map((plan: any, index: number) => {
+                const isActive = index === activePlanIndex;
+                const isHighlighted = !!plan.tag;
+                const planColor = isHighlighted ? Colors.primary : "#A78BFA";
+                return (
+                  <InteractivePressable
+                    key={`chip-${plan._id}`}
+                    onPress={() => {
+                      setActivePlanIndex(index);
+                    }}
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      paddingHorizontal: 14,
+                      paddingVertical: 8,
+                      borderRadius: 12,
+                      backgroundColor: isActive
+                        ? `${planColor}15`
+                        : "rgba(255,255,255,0.03)",
+                      borderWidth: 1,
+                      borderColor: isActive
+                        ? `${planColor}30`
+                        : "rgba(255,255,255,0.05)",
+                    }}
+                  >
+                    {isHighlighted && (
+                      <Ionicons
+                        name="star"
+                        size={10}
+                        color={Colors.primary}
+                        style={{ marginRight: 4 }}
+                      />
+                    )}
+                    <Text
+                      style={{
+                        fontSize: 11,
+                        fontWeight: isActive ? "800" : "600",
+                        color: isActive ? planColor : Colors.textSecondary,
+                      }}
+                    >
+                      {plan.name}
+                    </Text>
+                  </InteractivePressable>
+                );
+              })}
+            </ScrollView>
+
+            {/* Horizontal Plan Carousel */}
+            <ScrollView
+              horizontal
+              pagingEnabled={false}
+              showsHorizontalScrollIndicator={false}
+              snapToInterval={PLAN_CARD_SNAP}
+              decelerationRate="fast"
+              onScroll={onCarouselScroll}
+              scrollEventThrottle={16}
+              contentContainerStyle={{
+                paddingHorizontal: 24,
+                paddingBottom: 8,
+              }}
+            >
               {plans?.map((plan: any, index: number) => (
                 <PlanCard
                   key={plan._id}
                   plan={plan}
                   onSubscribe={handleSubscribe}
-                  isPopular={index === 1}
+                  isPopular={!!plan.tag}
+                  index={index}
                 />
               ))}
-            </View>
+            </ScrollView>
 
-            {/* Bottom CTA */}
-            <View className="bg-card p-6 rounded-[28px] border border-border/50 items-center shadow-sm">
-              <View className="w-12 h-12 rounded-2xl bg-primary/10 items-center justify-center mb-4 border border-primary/15">
-                <Ionicons name="shield-checkmark" size={24} color={Colors.primary} />
+            {/* Page indicator dots */}
+            {plans && plans.length > 1 && (
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  paddingVertical: 14,
+                  gap: 6,
+                }}
+              >
+                {plans.map((_: any, index: number) => (
+                  <View
+                    key={`dot-${index}`}
+                    style={{
+                      width: activePlanIndex === index ? 20 : 6,
+                      height: 6,
+                      borderRadius: 3,
+                      backgroundColor:
+                        activePlanIndex === index
+                          ? Colors.primary
+                          : "rgba(255,255,255,0.12)",
+                      transition: "all 0.3s",
+                    }}
+                  />
+                ))}
               </View>
-              <Text className="text-[16px] font-[800] color-text text-center">
-                Subscribe & Save
-              </Text>
-              <Text className="text-[13px] color-textSecondary text-center mt-1 leading-[18px] px-4">
-                Enjoy priority scheduling and significant savings on every wash
-                with our premium plans.
-              </Text>
+            )}
+
+            {/* ===== Trust & Guarantee Section ===== */}
+            <View style={{ paddingHorizontal: 20, marginTop: 4 }}>
+              <Animated.View
+                entering={FadeInUp.delay(300).duration(500)}
+                style={{
+                  borderRadius: 24,
+                  overflow: "hidden",
+                  borderWidth: 1,
+                  borderColor: "rgba(255,255,255,0.06)",
+                  marginBottom: 16,
+                }}
+              >
+                <LinearGradient
+                  colors={[Colors.card, "rgba(24, 24, 24, 0.5)"]}
+                  style={{ padding: 22 }}
+                >
+                  {/* Trust items */}
+                  {[
+                    {
+                      icon: "shield-checkmark",
+                      color: "#4ADE80",
+                      title: "Satisfaction Guarantee",
+                      desc: "Not happy? Get a free re-wash within 24 hours",
+                    },
+                    {
+                      icon: "card-outline",
+                      color: "#38BDF8",
+                      title: "Flexible Payments",
+                      desc: "Pay securely via UPI, cards, or net banking",
+                    },
+                    {
+                      icon: "close-circle-outline",
+                      color: "#FB923C",
+                      title: "Cancel Anytime",
+                      desc: "No lock-in period. Cancel with one tap",
+                    },
+                  ].map((item, idx) => (
+                    <View
+                      key={item.title}
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        paddingVertical: 12,
+                        borderBottomWidth: idx < 2 ? 1 : 0,
+                        borderBottomColor: "rgba(255,255,255,0.04)",
+                      }}
+                    >
+                      <View
+                        style={{
+                          width: 40,
+                          height: 40,
+                          borderRadius: 12,
+                          backgroundColor: `${item.color}10`,
+                          alignItems: "center",
+                          justifyContent: "center",
+                          marginRight: 14,
+                          borderWidth: 1,
+                          borderColor: `${item.color}18`,
+                        }}
+                      >
+                        <Ionicons
+                          name={item.icon as any}
+                          size={18}
+                          color={item.color}
+                        />
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text
+                          style={{
+                            fontSize: 14,
+                            fontWeight: "800",
+                            color: Colors.text,
+                            marginBottom: 2,
+                          }}
+                        >
+                          {item.title}
+                        </Text>
+                        <Text
+                          style={{
+                            fontSize: 11,
+                            fontWeight: "500",
+                            color: Colors.textSecondary,
+                            lineHeight: 15,
+                          }}
+                        >
+                          {item.desc}
+                        </Text>
+                      </View>
+                    </View>
+                  ))}
+                </LinearGradient>
+              </Animated.View>
+
+              {/* Need help choosing? */}
+              {/* <Animated.View
+                entering={FadeInUp.delay(400).duration(500)}
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  paddingVertical: 14,
+                  paddingHorizontal: 18,
+                  backgroundColor: "rgba(255,255,255,0.02)",
+                  borderRadius: 16,
+                  borderWidth: 1,
+                  borderColor: "rgba(255,255,255,0.04)",
+                  marginBottom: 16,
+                }}
+              >
+                <Ionicons
+                  name="chatbubble-ellipses-outline"
+                  size={16}
+                  color={Colors.primary}
+                  style={{ marginRight: 8 }}
+                />
+                <Text
+                  style={{
+                    fontSize: 12,
+                    fontWeight: "700",
+                    color: Colors.textSecondary,
+                    flex: 1,
+                  }}
+                >
+                  Need help choosing?{" "}
+                  <Text style={{ color: Colors.primary, fontWeight: "800" }}>
+                    Chat with us
+                  </Text>
+                </Text>
+                <Ionicons
+                  name="chevron-forward"
+                  size={14}
+                  color={Colors.primary}
+                />
+              </Animated.View> */}
             </View>
           </Animated.View>
         )}

@@ -82,7 +82,7 @@ export const ServiceActionGrid = ({
               </View>
               <View>
                 <Text className="text-white text-base font-[700]">
-                  {hasActiveSubscription ? "Manage Plan" : "Elite Membership"}
+                  {hasActiveSubscription ? "Add Add-ons on your subscriptions" : "Elite Membership"}
                 </Text>
               </View>
             </View>

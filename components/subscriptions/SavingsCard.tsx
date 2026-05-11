@@ -2,44 +2,279 @@ import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/constants/Colors";
 import React from "react";
 import { Text, View } from "react-native";
+import Animated, { FadeInUp } from "react-native-reanimated";
+import { LinearGradient } from "expo-linear-gradient";
+import Svg, { Circle } from "react-native-svg";
+
+interface MiniRingProps {
+  progress: number;
+  size: number;
+  color: string;
+  trackColor?: string;
+}
+
+const MiniRing = ({
+  progress,
+  size,
+  color,
+  trackColor = "rgba(255,255,255,0.04)",
+}: MiniRingProps) => {
+  const strokeWidth = 3;
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference - (circumference * Math.min(progress, 100)) / 100;
+
+  return (
+    <Svg width={size} height={size} style={{ transform: [{ rotate: "-90deg" }] }}>
+      <Circle
+        cx={size / 2}
+        cy={size / 2}
+        r={radius}
+        stroke={trackColor}
+        strokeWidth={strokeWidth}
+        fill="none"
+      />
+      <Circle
+        cx={size / 2}
+        cy={size / 2}
+        r={radius}
+        stroke={color}
+        strokeWidth={strokeWidth}
+        fill="none"
+        strokeDasharray={circumference}
+        strokeDashoffset={strokeDashoffset}
+        strokeLinecap="round"
+      />
+    </Svg>
+  );
+};
+
+interface StatItemProps {
+  icon: string;
+  iconColor: string;
+  ringProgress: number;
+  value: string;
+  label: string;
+  delay: number;
+}
+
+const StatItem: React.FC<StatItemProps> = ({
+  icon,
+  iconColor,
+  ringProgress,
+  value,
+  label,
+  delay,
+}) => (
+  <Animated.View
+    entering={FadeInUp.delay(delay).duration(600).springify()}
+    style={{
+      flex: 1,
+      alignItems: "center",
+    }}
+  >
+    {/* Ring with icon inside */}
+    <View style={{ width: 52, height: 52, alignItems: "center", justifyContent: "center", marginBottom: 10 }}>
+      <MiniRing progress={ringProgress} size={52} color={iconColor} />
+      <View style={{ position: "absolute" }}>
+        <Ionicons name={icon as any} size={20} color={iconColor} />
+      </View>
+    </View>
+
+    <Text
+      style={{
+        fontSize: 20,
+        fontWeight: "900",
+        color: Colors.text,
+        letterSpacing: -0.5,
+        lineHeight: 24,
+      }}
+    >
+      {value}
+    </Text>
+    <Text
+      style={{
+        fontSize: 9,
+        fontWeight: "700",
+        color: Colors.textSecondary,
+        letterSpacing: 1.2,
+        textTransform: "uppercase",
+        marginTop: 3,
+      }}
+    >
+      {label}
+    </Text>
+  </Animated.View>
+);
 
 export const SavingsCard = () => {
   return (
-    <View className="bg-card rounded-[28px] p-6 mb-5 border border-border/50 shadow-sm overflow-hidden">
-      {/* Subtle accent line at top */}
-      <View className="absolute top-0 left-0 right-0 h-1 bg-primary/30" />
+    <Animated.View
+      entering={FadeInUp.duration(500)}
+      style={{
+        borderRadius: 24,
+        overflow: "hidden",
+        marginBottom: 20,
+        borderWidth: 1,
+        borderColor: `${Colors.primary}15`,
+      }}
+    >
+      {/* Gradient Header */}
+      <LinearGradient
+        colors={[`${Colors.primary}15`, `${Colors.primary}05`, Colors.card]}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
+        style={{
+          paddingTop: 22,
+          paddingBottom: 24,
+          paddingHorizontal: 16,
+        }}
+      >
+        {/* Glowing top edge */}
+        <LinearGradient
+          colors={[Colors.primary, `${Colors.primary}00`]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 2,
+          }}
+        />
 
-      <Text className="text-[13px] font-[700] color-textSecondary mb-5 text-center tracking-wide">
-        Monthly savings with subscription
-      </Text>
-
-      <View className="flex-row items-center justify-evenly">
-        <View className="items-center flex-1">
-          <View className="w-14 h-14 rounded-2xl bg-green-500/10 items-center justify-center mb-3 border border-green-500/15">
-            <Ionicons name="time-outline" size={26} color="#4ADE80" />
+        {/* Title with icon */}
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+            marginBottom: 20,
+          }}
+        >
+          <View
+            style={{
+              width: 28,
+              height: 28,
+              borderRadius: 8,
+              backgroundColor: `${Colors.primary}15`,
+              alignItems: "center",
+              justifyContent: "center",
+              marginRight: 8,
+              borderWidth: 1,
+              borderColor: `${Colors.primary}25`,
+            }}
+          >
+            <Ionicons name="trending-up" size={14} color={Colors.primary} />
           </View>
-          <Text className="text-[24px] font-[900] text-text tracking-tight">
-            4 hrs
-          </Text>
-          <Text className="text-[11px] font-[700] color-textSecondary uppercase tracking-widest mt-1">
-            Time Saved
+          <Text
+            style={{
+              fontSize: 14,
+              fontWeight: "800",
+              color: Colors.text,
+              letterSpacing: 0.5,
+            }}
+          >
+            Your Savings
           </Text>
         </View>
 
-        <View className="w-[1.5px] h-16 bg-border/40 rounded-full" />
+        {/* Stats Row */}
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "flex-start",
+          }}
+        >
+          <StatItem
+            icon="time-outline"
+            iconColor="#4ADE80"
+            ringProgress={80}
+            value="4 hrs"
+            label="Time Saved"
+            delay={100}
+          />
 
-        <View className="items-center flex-1">
-          <View className="w-14 h-14 rounded-2xl bg-yellow-500/10 items-center justify-center mb-3 border border-yellow-500/15">
-            <Ionicons name="wallet-outline" size={26} color="#FACC15" />
+          {/* Divider */}
+          <View
+            style={{
+              width: 1,
+              height: 60,
+              marginTop: 6,
+              borderRadius: 1,
+              overflow: "hidden",
+            }}
+          >
+            <LinearGradient
+              colors={["rgba(255,255,255,0)", "rgba(255,255,255,0.08)", "rgba(255,255,255,0)"]}
+              style={{ flex: 1 }}
+            />
           </View>
-          <Text className="text-[24px] font-[900] text-text tracking-tight">
-            ₹1,200
-          </Text>
-          <Text className="text-[11px] font-[700] color-textSecondary uppercase tracking-widest mt-1">
-            Money Saved
+
+          <StatItem
+            icon="wallet-outline"
+            iconColor="#FACC15"
+            ringProgress={65}
+            value="₹1,200"
+            label="Money Saved"
+            delay={200}
+          />
+
+          {/* Divider */}
+          <View
+            style={{
+              width: 1,
+              height: 60,
+              marginTop: 6,
+              borderRadius: 1,
+              overflow: "hidden",
+            }}
+          >
+            <LinearGradient
+              colors={["rgba(255,255,255,0)", "rgba(255,255,255,0.08)", "rgba(255,255,255,0)"]}
+              style={{ flex: 1 }}
+            />
+          </View>
+
+          <StatItem
+            icon="car-sport-outline"
+            iconColor="#38BDF8"
+            ringProgress={75}
+            value="24"
+            label="Washes"
+            delay={300}
+          />
+        </View>
+
+        {/* Bottom tag line */}
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+            marginTop: 18,
+            paddingVertical: 8,
+            paddingHorizontal: 14,
+            backgroundColor: "rgba(255,255,255,0.03)",
+            borderRadius: 10,
+            borderWidth: 1,
+            borderColor: "rgba(255,255,255,0.04)",
+          }}
+        >
+          <Ionicons name="leaf-outline" size={12} color="#4ADE80" style={{ marginRight: 6 }} />
+          <Text
+            style={{
+              fontSize: 11,
+              fontWeight: "600",
+              color: Colors.textSecondary,
+              letterSpacing: 0.3,
+            }}
+          >
+            You're saving ₹40 per wash on average
           </Text>
         </View>
-      </View>
-    </View>
+      </LinearGradient>
+    </Animated.View>
   );
 };

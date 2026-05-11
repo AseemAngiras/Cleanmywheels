@@ -125,14 +125,8 @@ export default function AdminSubscriptionPlansScreen() {
       });
       return;
     }
-    if (!editData.tag.trim()) {
-      showAlert({
-        title: "Error",
-        message: "Plan tag is required",
-        type: "error",
-      });
-      return;
-    }
+    // Tag is now optional (only for popular plans)
+
     if (editData.features.filter((f) => f.trim() !== "").length === 0) {
       showAlert({
         title: "Error",
@@ -240,14 +234,8 @@ export default function AdminSubscriptionPlansScreen() {
           });
           return;
         }
-        if (!editData.tag.trim()) {
-          showAlert({
-            title: "Error",
-            message: "Plan tag is required",
-            type: "error",
-          });
-          return;
-        }
+        // Tag is now optional (only for popular plans)
+
         if (editData.features.filter((f) => f.trim() !== "").length === 0) {
           showAlert({
             title: "Error",
@@ -394,6 +382,11 @@ export default function AdminSubscriptionPlansScreen() {
                       <Text className="text-[12px] font-[700] color-primary uppercase tracking-widest ml-1.5">
                         Subscription Plan
                       </Text>
+                      {pkg.tag && (
+                        <View className="ml-3 bg-primary/20 px-2 py-0.5 rounded-md border border-primary/30">
+                          <Text className="text-primary text-[9px] font-[800] uppercase">{pkg.tag}</Text>
+                        </View>
+                      )}
                     </View>
                   </View>
                   <View className="bg-primary/10 px-3 py-1.5 rounded-full border border-primary/20">
@@ -524,21 +517,37 @@ export default function AdminSubscriptionPlansScreen() {
                 </Text>
               </View>
 
-              <View className="mb-4">
-                <Text className="text-[12px] font-[800] color-textSecondary uppercase mb-2 px-1">
-                  Tag (e.g. Most Popular)
-                </Text>
-                <View className="bg-background border border-border rounded-2xl px-4 h-14 flex-row items-center">
-                  <TextInput
-                    className="flex-1 text-text font-[600]"
-                    value={editData.tag}
-                    placeholder="Enter tag"
-                    placeholderTextColor={Colors.textSecondary}
-                    onChangeText={(text) =>
-                      setEditData((prev) => ({ ...prev, tag: text.replace(/[<>'"%;()&+]/g, "") }))
-                    }
-                  />
-                </View>
+              <View className="mb-6">
+                <TouchableOpacity 
+                  onPress={() => setEditData(prev => ({ ...prev, tag: prev.tag ? "" : "Most Popular" }))}
+                  className="flex-row items-center justify-between bg-background border border-border rounded-2xl px-5 h-16"
+                  activeOpacity={0.7}
+                >
+                  <View className="flex-row items-center">
+                    <View className={`w-10 h-10 rounded-full items-center justify-center mr-3 ${editData.tag ? 'bg-primary/20' : 'bg-border/30'}`}>
+                      <Ionicons 
+                        name={editData.tag ? "star" : "star-outline"} 
+                        size={20} 
+                        color={editData.tag ? Colors.primary : Colors.textSecondary} 
+                      />
+                    </View>
+                    <View>
+                      <Text className="text-[15px] font-[700] color-text">Popular Plan</Text>
+                      <Text className="text-[10px] font-[600] color-textSecondary">Highlight this plan as "Most Popular"</Text>
+                    </View>
+                  </View>
+                  <View className={`w-12 h-6 rounded-full px-1 justify-center ${editData.tag ? 'bg-primary' : 'bg-border/50'}`}>
+                    <View 
+                      style={{ 
+                        width: 18, 
+                        height: 18, 
+                        borderRadius: 9, 
+                        backgroundColor: '#fff',
+                        alignSelf: editData.tag ? 'flex-end' : 'flex-start'
+                      }} 
+                    />
+                  </View>
+                </TouchableOpacity>
               </View>
 
               <View className="mb-6">

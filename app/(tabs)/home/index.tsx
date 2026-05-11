@@ -102,17 +102,26 @@ export default function HomeScreen() {
   useEffect(() => {
     const checkOnboarding = async () => {
       if (!isLoggedIn) {
-        // const hasSeen = await AsyncStorage.getItem("hasSeenOnboarding");
-        // if (!hasSeen) {
+        const hasSeen = await AsyncStorage.getItem("hasSeenOnboarding");
+        if (!hasSeen) {
           // Delay to let the app settle
           setTimeout(() => {
             setShowOnboarding(true);
           }, 1500);
-        // }
+        }
       }
     };
     checkOnboarding();
   }, [isLoggedIn]);
+
+  const handleCloseOnboarding = async () => {
+    setShowOnboarding(false);
+    try {
+      await AsyncStorage.setItem("hasSeenOnboarding", "true");
+    } catch (error) {
+      console.error("Error saving onboarding state:", error);
+    }
+  };
   const [modalStep, setModalStep] = useState<"details" | "otp">("details");
   const [name, setName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -849,7 +858,7 @@ export default function HomeScreen() {
       {/* Onboarding Tour for Guest */}
       <OnboardingTour 
         isVisible={showOnboarding} 
-        onClose={() => setShowOnboarding(false)} 
+        onClose={handleCloseOnboarding} 
       />
     </ScreenWrapper>
   );

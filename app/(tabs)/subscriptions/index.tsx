@@ -44,6 +44,7 @@ export default function SubscriptionPlansScreen() {
   const [activeSegment, setActiveSegment] = useState(0); // 0 = My Plans, 1 = Browse
   const [showPastSubs, setShowPastSubs] = useState(false);
   const [activePlanIndex, setActivePlanIndex] = useState(0);
+  const carouselRef = useRef<ScrollView>(null);
 
   const onCarouselScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -568,6 +569,10 @@ export default function SubscriptionPlansScreen() {
                     key={`chip-${plan._id}`}
                     onPress={() => {
                       setActivePlanIndex(index);
+                      carouselRef.current?.scrollTo({
+                        x: index * PLAN_CARD_SNAP,
+                        animated: true,
+                      });
                     }}
                     style={{
                       flexDirection: "row",
@@ -608,6 +613,7 @@ export default function SubscriptionPlansScreen() {
 
             {/* Horizontal Plan Carousel */}
             <ScrollView
+              ref={carouselRef}
               horizontal
               pagingEnabled={false}
               showsHorizontalScrollIndicator={false}

@@ -133,7 +133,8 @@ export default function SubscriptionConfigureScreen() {
 
   if (subscriptions) {
     subscriptions.forEach((sub: any) => {
-      if (sub.status === "active") {
+      // Block vehicle if it has any subscription that isn't finished or cancelled
+      if (sub.status !== "expired" && sub.status !== "cancelled") {
         const vId = sub.vehicle?._id || sub.vehicle;
         if (vId) activeVehicleIds.add(String(vId));
       }
@@ -184,9 +185,16 @@ export default function SubscriptionConfigureScreen() {
   const currentTotalPrice = Math.round(basePrice + totalAddonsCost);
 
   useEffect(() => {
-    if (availableCars.length > 0 && !selectedVehicleId) {
+    if (availableCars.length > 0) {
+      // If no vehicle is selected or the selected one is no longer available, select the first one
+      if (!selectedVehicleId || !availableCars.some((c: any) => c._id === selectedVehicleId)) {
+        setSelectedVehicleId(availableCars[0]._id);
+      }
+    } else if (selectedVehicleId) {
+      // If no cars are available, clear the selection
+      setSelectedVehicleId(null);
     }
-  }, [availableCars.length, selectedVehicleId]);
+  }, [availableCars, selectedVehicleId]);
 
   useEffect(() => {
     if (selectedAddons.length > 0) {

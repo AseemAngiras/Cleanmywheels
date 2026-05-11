@@ -34,7 +34,7 @@ export default function TabsLayout() {
     >
       <Tabs.Screen name="home" />
       <Tabs.Screen
-        name="dashboard/index"
+        name="dashboard"
         options={{
           title: "Dashboard",
         }}

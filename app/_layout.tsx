@@ -17,6 +17,7 @@ import { Colors } from "../constants/Colors";
 
 import { DarkTheme, ThemeProvider } from "@react-navigation/native";
 import { AlertProvider } from "../components/providers/AlertProvider";
+import { NetworkBanner } from "../components/NetworkBanner";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -115,6 +116,7 @@ export default function RootLayout() {
           <AlertProvider>
             <ThemeProvider value={customDarkTheme}>
               <View className="flex-1 bg-background">
+                <NetworkBanner />
                 <SocketManager />
                 <NotificationManager />
                 <View className="flex-1">

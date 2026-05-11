@@ -28,7 +28,16 @@ import userReducer from "./slices/userSlice";
 const persistConfig = {
   key: "root",
   storage: AsyncStorage,
-  whitelist: ["auth", "profile", "user", "bookings", "subscription"],
+  whitelist: [
+    "auth",
+    "profile",
+    "user",
+    "bookings",
+    "subscription",
+    "bookingApi",
+    "subscriptionApi",
+    "washPackageApi",
+  ],
 };
 
 const appReducer = combineReducers({
@@ -79,7 +88,11 @@ export const store = configureStore({
     ),
 });
 
+import { setupListeners } from "@reduxjs/toolkit/query";
+
 export const persistor = persistStore(store);
+
+setupListeners(store.dispatch);
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;

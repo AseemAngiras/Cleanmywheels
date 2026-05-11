@@ -1,7 +1,6 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import Constants from "expo-constants";
 import { Platform } from "react-native";
-import { RootState } from "..";
 
 export interface Worker {
   _id: string;
@@ -21,7 +20,7 @@ export const workerApi = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.EXPO_PUBLIC_API_URL + "/worker",
     prepareHeaders: (headers, { getState }) => {
-      const token = (getState() as RootState).auth.token;
+      const token = (getState() as any).auth.token;
       if (token && token !== "dummy-token") {
         headers.set("authorization", `Bearer ${token}`);
       }
@@ -85,6 +84,14 @@ export const workerApi = createApi({
       transformResponse: (response: { data: any }) => response.data,
       invalidatesTags: ["Worker"],
     }),
+    getWorkerSchedule: builder.query<
+      { worker: Worker; bookings: any[]; subscriptions: any[] },
+      string
+    >({
+      query: (id) => `/${id}/schedule`,
+      transformResponse: (response: { data: any }) => response.data,
+      providesTags: (result, error, id) => [{ type: "Worker", id }, "Worker"],
+    }),
   }),
 });
 
@@ -94,4 +101,5 @@ export const {
   useCreateWorkerMutation,
   useUpdateWorkerMutation,
   useDeleteWorkerMutation,
+  useGetWorkerScheduleQuery,
 } = workerApi;

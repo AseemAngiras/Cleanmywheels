@@ -116,7 +116,6 @@ export default function RootLayout() {
           <AlertProvider>
             <ThemeProvider value={customDarkTheme}>
               <View className="flex-1 bg-background">
-                <NetworkBanner />
                 <SocketManager />
                 <NotificationManager />
                 <View className="flex-1">

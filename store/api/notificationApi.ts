@@ -1,6 +1,5 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { Platform } from "react-native";
-import { RootState } from "../index";
 import { API_BASE_URL, APP_VERSION } from "./authApi";
 
 export interface Notification {
@@ -9,7 +8,13 @@ export interface Notification {
   receiver: string;
   title: string;
   message: string;
-  type: "Info" | "Alert" | "Reminder" | "System" | "Document upload" | "Document Status Update";
+  type:
+    | "Info"
+    | "Alert"
+    | "Reminder"
+    | "System"
+    | "Document upload"
+    | "Document Status Update";
   isSeen: boolean;
   metadata?: {
     bookingId?: string;
@@ -40,25 +45,28 @@ export const notificationApi = createApi({
   reducerPath: "notificationApi",
   baseQuery: fetchBaseQuery({
     baseUrl: API_BASE_URL,
-      prepareHeaders: (headers, { getState }) => {
-        headers.set("Content-Type", "application/json");
-        headers.set("Accept", "application/json");
+    prepareHeaders: (headers, { getState }) => {
+      headers.set("Content-Type", "application/json");
+      headers.set("Accept", "application/json");
 
-        const token = (getState() as RootState).auth.token;
-        if (token) {
-          headers.set("Authorization", token);
-          headers.set("x-auth-token", token);
-        }
-        headers.set("x-platform", Platform.OS === "ios" ? "ios" : "android");
-        headers.set("x-version", APP_VERSION);
-        headers.set("x-time-zone", "330");
-        headers.set("Accept-Language", "en");
-        return headers;
-      },
+      const token = (getState() as any).auth.token;
+      if (token) {
+        headers.set("Authorization", token);
+        headers.set("x-auth-token", token);
+      }
+      headers.set("x-platform", Platform.OS === "ios" ? "ios" : "android");
+      headers.set("x-version", APP_VERSION);
+      headers.set("x-time-zone", "330");
+      headers.set("Accept-Language", "en");
+      return headers;
+    },
   }),
   tagTypes: ["Notification"],
   endpoints: (builder) => ({
-    getNotifications: builder.query<NotificationResponse, GetNotificationsParams>({
+    getNotifications: builder.query<
+      NotificationResponse,
+      GetNotificationsParams
+    >({
       query: ({ page, perPage, sort }) => {
         let url = `/notification?page=${page}&perPage=${perPage}`;
         if (sort) {
@@ -68,14 +76,18 @@ export const notificationApi = createApi({
       },
       providesTags: ["Notification"],
     }),
-    
+
     getUnseenCount: builder.query<number, void>({
       query: () => `/notification?page=1&perPage=1`,
-      transformResponse: (response: NotificationResponse) => response.data.unSeenCount,
+      transformResponse: (response: NotificationResponse) =>
+        response.data.unSeenCount,
       providesTags: ["Notification"],
     }),
 
-    updatePushToken: builder.mutation<{ success: boolean; message: string }, { pushToken: string }>({
+    updatePushToken: builder.mutation<
+      { success: boolean; message: string },
+      { pushToken: string }
+    >({
       query: (body) => ({
         url: "/notification/update-push-token",
         method: "PUT",
@@ -85,9 +97,9 @@ export const notificationApi = createApi({
   }),
 });
 
-export const { 
-  useGetNotificationsQuery, 
+export const {
+  useGetNotificationsQuery,
   useGetUnseenCountQuery,
   useLazyGetNotificationsQuery,
-  useUpdatePushTokenMutation
+  useUpdatePushTokenMutation,
 } = notificationApi;

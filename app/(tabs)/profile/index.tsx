@@ -19,10 +19,10 @@ import {
 import { useFocusEffect } from "expo-router";
 import { useAlert } from "@/components/providers/AlertProvider";
 import { useSelector } from "react-redux";
-import Animated, { 
-  FadeInUp, 
-  useAnimatedStyle, 
-  useSharedValue, 
+import Animated, {
+  FadeInUp,
+  useAnimatedStyle,
+  useSharedValue,
   withSpring,
 } from "react-native-reanimated";
 
@@ -55,10 +55,13 @@ export default function ProfileHome() {
   const dispatch = useAppDispatch();
   const { showAlert } = useAlert();
   const insets = useSafeAreaInsets();
-  
-  const { data: userProfile, refetch: refetchProfile } = useGetProfileQuery(undefined);
-  const { data: subscriptions, refetch: refetchSubscriptions } = useGetMySubscriptionQuery(undefined);
-  const { data: addressesData, refetch: refetchAddresses } = useGetAddressesQuery(undefined);
+
+  const { data: userProfile, refetch: refetchProfile } =
+    useGetProfileQuery(undefined);
+  const { data: subscriptions, refetch: refetchSubscriptions } =
+    useGetMySubscriptionQuery(undefined);
+  const { data: addressesData, refetch: refetchAddresses } =
+    useGetAddressesQuery(undefined);
 
   const [refreshing, setRefreshing] = useState(false);
 
@@ -143,7 +146,10 @@ export default function ProfileHome() {
         return false;
       };
 
-      const subscription = BackHandler.addEventListener("hardwareBackPress", onBackPress);
+      const subscription = BackHandler.addEventListener(
+        "hardwareBackPress",
+        onBackPress,
+      );
 
       return () => subscription.remove();
     }, [isAdmin]),
@@ -199,11 +205,7 @@ export default function ProfileHome() {
     if (showEditProfileModal) {
       setTempName(profileState.name || userData?.name || "");
     }
-  }, [
-    showEditProfileModal,
-    profileState.name,
-    userData?.name,
-  ]);
+  }, [showEditProfileModal, profileState.name, userData?.name]);
 
   const handleSaveProfile = async () => {
     try {
@@ -229,7 +231,6 @@ export default function ProfileHome() {
     }
   };
 
-
   const handleLogout = () => {
     setShowLogout(false);
     setTimeout(() => {
@@ -241,7 +242,8 @@ export default function ProfileHome() {
   const handleDeleteAccount = () => {
     showAlert({
       title: "Delete Account",
-      message: "Are you sure you want to delete your account? This action is permanent and cannot be undone.",
+      message:
+        "Are you sure you want to delete your account? This action is permanent and cannot be undone.",
       type: "error",
       buttons: [
         { text: "Cancel", style: "cancel" },
@@ -286,7 +288,7 @@ export default function ProfileHome() {
         }
       >
         {/* HEADER */}
-        <Animated.View 
+        <Animated.View
           entering={FadeInUp.delay(100).duration(600)}
           className="flex-row items-center justify-between px-5 mb-5 mt-[10px]"
         >
@@ -307,18 +309,22 @@ export default function ProfileHome() {
         </Animated.View>
 
         {/* PROFILE CARD */}
-        <Animated.View 
+        <Animated.View
           entering={FadeInUp.delay(200).duration(600)}
           className="mx-5 mb-6 p-5 rounded-[24px] bg-card flex-row items-center justify-between border border-border shadow-lg elevation-4"
         >
           <View className="flex-row items-center gap-4">
             <View className="w-16 h-16 rounded-full border-2 border-border bg-[#1A1A1A] items-center justify-center">
               <Text className="text-primary font-[900] text-2xl">
-                {(profileState?.name || userData?.name || "U").charAt(0).toUpperCase()}
+                {(profileState?.name || userData?.name || "U")
+                  .charAt(0)
+                  .toUpperCase()}
               </Text>
             </View>
             <View>
-              <InteractivePressable onPress={() => setShowEditProfileModal(true)}>
+              <InteractivePressable
+                onPress={() => setShowEditProfileModal(true)}
+              >
                 <View className="flex-row items-center">
                   <Text className="text-[18px] font-[700] text-text mb-1">
                     {profileState?.name || userData?.name || "Your Name"}
@@ -355,7 +361,7 @@ export default function ProfileHome() {
 
         {/* ADMIN ACTIONS */}
         {isAdmin && (
-          <Animated.View 
+          <Animated.View
             entering={FadeInUp.delay(300).duration(600)}
             className="mx-5 mb-5 py-3 rounded-[24px] bg-card border border-border overflow-hidden"
           >
@@ -392,6 +398,12 @@ export default function ProfileHome() {
               onPress={() => router.push("/(tabs)/dashboard")}
             />
             <Row
+              icon="map-outline"
+              title="Worker Tracking"
+              subtitle="Track live deployments and schedules"
+              onPress={() => router.push("/(tabs)/admin/worker-tracking")}
+            />
+            <Row
               icon="stats-chart-outline"
               title="Analytics"
               subtitle="View platform performance"
@@ -406,7 +418,7 @@ export default function ProfileHome() {
         {!isAdmin && (
           <>
             {/* SAVED ADDRESSES */}
-            <Animated.View 
+            <Animated.View
               entering={FadeInUp.delay(300).duration(600)}
               className="mx-5 mb-5 py-3 rounded-[24px] bg-card border border-border overflow-hidden"
             >
@@ -567,7 +579,8 @@ export default function ProfileHome() {
                                   onPress={() => {
                                     showAlert({
                                       title: "Delete Address",
-                                      message: "Are you sure you want to remove this address?",
+                                      message:
+                                        "Are you sure you want to remove this address?",
                                       type: "error",
                                       buttons: [
                                         { text: "Cancel", style: "cancel" },
@@ -636,7 +649,7 @@ export default function ProfileHome() {
             </Animated.View>
 
             {/* ACCOUNT CARD */}
-            <Animated.View 
+            <Animated.View
               entering={FadeInUp.delay(400).duration(600)}
               className="mx-5 mb-5 py-3 rounded-[24px] bg-card border border-border overflow-hidden"
             >
@@ -664,7 +677,7 @@ export default function ProfileHome() {
             </Animated.View>
 
             {/* SUPPORT CARD */}
-            <Animated.View 
+            <Animated.View
               entering={FadeInUp.delay(500).duration(600)}
               className="mx-5 mb-5 py-3 rounded-[24px] bg-card border border-border overflow-hidden"
             >
@@ -684,7 +697,8 @@ export default function ProfileHome() {
                 onPress={() =>
                   showAlert({
                     title: "Contact Support",
-                    message: "Email: support@cleanmywheels.com\nPhone: +91 99999 88888",
+                    message:
+                      "Email: support@cleanmywheels.com\nPhone: +91 99999 88888",
                     type: "info",
                   })
                 }
@@ -700,7 +714,7 @@ export default function ProfileHome() {
         )}
 
         {/* LOGOUT ROW (always visible at bottom) */}
-        <Animated.View 
+        <Animated.View
           entering={FadeInUp.delay(600).duration(600)}
           className="mx-5 mb-5 py-3 rounded-[24px] bg-card border border-border overflow-hidden"
         >
@@ -739,8 +753,8 @@ export default function ProfileHome() {
               Logout
             </Text>
             <Text className="text-[15px] color-textSecondary text-center mb-6">
-              Are you sure you want to logout? You&apos;ll need to sign in again to
-              manage your bookings.
+              Are you sure you want to logout? You&apos;ll need to sign in again
+              to manage your bookings.
             </Text>
             <View className="flex-row gap-3">
               <InteractivePressable
@@ -758,7 +772,6 @@ export default function ProfileHome() {
             </View>
           </RNAnimated.View>
         </Modal>
-
 
         {/* EDIT PROFILE MODAL */}
         <Modal
@@ -818,7 +831,9 @@ export default function ProfileHome() {
                     * Only letters and spaces allowed
                   </Text>
                 </View>
-                <Text className={`text-[11px] font-[700] ${tempName.length >= 35 ? 'text-primary' : 'text-textSecondary'}`}>
+                <Text
+                  className={`text-[11px] font-[700] ${tempName.length >= 35 ? "text-primary" : "text-textSecondary"}`}
+                >
                   {tempName.length} / 40
                 </Text>
               </View>
@@ -929,7 +944,11 @@ const Row = ({
             </Text>
           )}
         </View>
-        <Ionicons name="chevron-forward" size={20} color={Colors.textSecondary} />
+        <Ionicons
+          name="chevron-forward"
+          size={20}
+          color={Colors.textSecondary}
+        />
       </Animated.View>
     </Pressable>
   );

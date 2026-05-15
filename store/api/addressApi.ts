@@ -56,6 +56,13 @@ export const addressApi = createApi({
       }),
       invalidatesTags: ["Address"],
     }),
+    setDefaultAddress: builder.mutation<any, string>({
+      query: (id) => ({
+        url: `/address/${id}/default`,
+        method: "PATCH",
+      }),
+      invalidatesTags: ["Address"],
+    }),
   }),
 });
 
@@ -64,4 +71,5 @@ export const {
   useCreateAddressMutation,
   useLazyGetAddressesQuery,
   useDeleteAddressMutation,
+  useSetDefaultAddressMutation,
 } = addressApi;

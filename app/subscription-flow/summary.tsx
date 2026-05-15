@@ -82,14 +82,25 @@ export default function SubscriptionSummaryScreen() {
     (state: RootState) => state.profile.defaultAddressId,
   );
 
-  const addressList =
-    addressesResponse?.data?.addressList || addressesResponse?.data || [];
+  const addressList = React.useMemo(() => {
+    const list = addressesResponse?.data?.addressList || addressesResponse?.data || [];
+    return Array.isArray(list) ? list : [];
+  }, [addressesResponse]);
 
-  const defaultAddress =
-    addressList.find(
-      (a: any) =>
-        a._id === defaultAddressId || a.id === defaultAddressId || a.isDefault,
-    ) || addressList[0];
+  const defaultAddress = React.useMemo(() => {
+    // 1. Priority: Address marked as isDefault on backend
+    const apiDefault = addressList.find((a: any) => a.isDefault);
+    if (apiDefault) return apiDefault;
+
+    // 2. Fallback: Address matching local defaultAddressId
+    const localDefault = addressList.find(
+      (a: any) => a._id === defaultAddressId || a.id === defaultAddressId,
+    );
+    if (localDefault) return localDefault;
+
+    // 3. Last Resort: First address in list
+    return addressList[0];
+  }, [addressList, defaultAddressId]);
 
   const defaultAddressStr = defaultAddress
     ? defaultAddress.fullAddress ||

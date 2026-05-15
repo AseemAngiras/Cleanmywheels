@@ -9,9 +9,9 @@ export interface WashPackage {
   tag: string;
   price: number;
   prices: {
-    hatchback: number | { WEEKLY: number; BIWEEKLY: number; ALTERNATE_DAY: number; ONE_TIME: number };
-    sedan: number | { WEEKLY: number; BIWEEKLY: number; ALTERNATE_DAY: number; ONE_TIME: number };
-    suv: number | { WEEKLY: number; BIWEEKLY: number; ALTERNATE_DAY: number; ONE_TIME: number };
+    hatchback: number | { WEEKLY?: number; BIWEEKLY?: number; ALTERNATE_DAY?: number; ONE_TIME?: number };
+    sedan: number | { WEEKLY?: number; BIWEEKLY?: number; ALTERNATE_DAY?: number; ONE_TIME?: number };
+    suv: number | { WEEKLY?: number; BIWEEKLY?: number; ALTERNATE_DAY?: number; ONE_TIME?: number };
   };
   features: string[];
   status: string;

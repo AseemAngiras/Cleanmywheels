@@ -38,6 +38,7 @@ import {
 import {
   useDeleteAddressMutation,
   useGetAddressesQuery,
+  useSetDefaultAddressMutation,
 } from "@/store/api/addressApi";
 import { useGetMySubscriptionQuery } from "@/store/api/subscriptionApi";
 import { useAppDispatch } from "@/store/hooks";
@@ -106,35 +107,44 @@ export default function ProfileHome() {
   const isAdmin = userData?.accountType === "Super Admin";
 
   const [deleteAddress] = useDeleteAddressMutation();
+  const [setDefaultAddressAPI] = useSetDefaultAddressMutation();
   const profileState = useSelector((state: RootState) => state.profile);
 
-  // Defensive check & mapping
-  let fetchedAddresses =
-    addressesData?.data?.addressList || addressesData?.data || [];
-
-  if (!Array.isArray(fetchedAddresses)) {
-    fetchedAddresses = [];
-  }
-
-  const savedAddresses =
-    fetchedAddresses.length > 0
-      ? fetchedAddresses.map((addr: any) => ({
+  // Sync with API data
+  const savedAddresses = React.useMemo(() => {
+    if (addressesData) {
+      const list = addressesData?.data?.addressList || addressesData?.data || [];
+      if (Array.isArray(list)) {
+        return list.map((addr: any) => ({
           ...addr,
           id: addr._id || addr.id,
           fullAddress:
             addr.fullAddress ||
             `${addr.houseOrFlatNo}, ${addr.locality}, ${addr.city} - ${addr.postalCode}`,
-        }))
-      : profileState?.addresses || [];
+        }));
+      }
+    }
+    return profileState?.addresses || [];
+  }, [addressesData, profileState?.addresses]);
 
   const [isAddressDropdownOpen, setIsAddressDropdownOpen] = useState(false);
   const [expandedAddressId, setExpandedAddressId] = useState<string | null>(
     null,
   );
 
+  const defaultAddressIdFromAPI = savedAddresses.find((a: any) => a.isDefault)?.id;
+  const currentDefaultAddressId = defaultAddressIdFromAPI || profileState.defaultAddressId;
+
   const defaultAddress =
-    savedAddresses.find((a: any) => a.id === profileState.defaultAddressId) ||
+    savedAddresses.find((a: any) => a.id === currentDefaultAddressId) ||
     savedAddresses[0];
+
+  // Effect to sync API default with local state
+  useEffect(() => {
+    if (defaultAddressIdFromAPI && defaultAddressIdFromAPI !== profileState.defaultAddressId) {
+      dispatch(setDefaultAddress(defaultAddressIdFromAPI));
+    }
+  }, [defaultAddressIdFromAPI, profileState.defaultAddressId, dispatch]);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -495,7 +505,7 @@ export default function ProfileHome() {
                     <View className="bg-background">
                       {savedAddresses.map((addr: any, idx: number) => {
                         const isDefault =
-                          profileState.defaultAddressId === addr.id;
+                          currentDefaultAddressId === addr.id || addr.isDefault;
                         const isExpanded = expandedAddressId === addr.id;
 
                         const ViewWithKey = View as any;
@@ -563,10 +573,16 @@ export default function ProfileHome() {
                                 {!isDefault && (
                                   <InteractivePressable
                                     className="flex-row items-center gap-1.5"
-                                    onPress={() => {
-                                      dispatch(setDefaultAddress(addr.id));
-                                      setExpandedAddressId(null);
-                                      setIsAddressDropdownOpen(false);
+                                    onPress={async () => {
+                                      try {
+                                        await setDefaultAddressAPI(addr.id).unwrap();
+                                        dispatch(setDefaultAddress(addr.id));
+                                        setExpandedAddressId(null);
+                                        setIsAddressDropdownOpen(false);
+                                        toast.success("Success", "Default address updated");
+                                      } catch (error) {
+                                        toast.error("Error", "Failed to set default address");
+                                      }
                                     }}
                                   >
                                     <Ionicons

@@ -107,9 +107,9 @@ export default function AdminWashPackagesScreen() {
                     .map((f) => f.trim())
                     .filter((f) => f),
                   prices: {
-                    hatchback: Number(editData.hatchback),
-                    sedan: Number(editData.sedan),
-                    suv: Number(editData.suv),
+                    hatchback: { ONE_TIME: Number(editData.hatchback) },
+                    sedan: { ONE_TIME: Number(editData.sedan) },
+                    suv: { ONE_TIME: Number(editData.suv) },
                   },
                 },
               }).unwrap();
@@ -185,9 +185,9 @@ export default function AdminWashPackagesScreen() {
             .map((f) => f.trim())
             .filter((f) => f),
           prices: {
-            hatchback: Number(editData.hatchback),
-            sedan: Number(editData.sedan),
-            suv: Number(editData.suv),
+            hatchback: { ONE_TIME: Number(editData.hatchback) },
+            sedan: { ONE_TIME: Number(editData.sedan) },
+            suv: { ONE_TIME: Number(editData.suv) },
           },
           price: Number(editData.hatchback),
           status: "Active",

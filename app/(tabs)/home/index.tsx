@@ -104,10 +104,9 @@ export default function HomeScreen() {
       if (!isLoggedIn) {
         const hasSeen = await AsyncStorage.getItem("hasSeenOnboarding");
         if (!hasSeen) {
-          // Delay to let the app settle
           setTimeout(() => {
             setShowOnboarding(true);
-          }, 1500);
+          }, 200);
         }
       }
     };
@@ -180,7 +179,7 @@ export default function HomeScreen() {
           name: trimmedName,
           countryCode: "+91",
           phone: trimmedPhone,
-          accountType: trimmedPhone === "1234567890" ? "Super Admin" : "Seeker",
+          accountType: "Seeker",
         }).unwrap();
 
         const token = result.data?.token;
@@ -564,13 +563,13 @@ export default function HomeScreen() {
         {!isLoggedIn && <MembershipPerks />}
 
         {/* Core Protocols (Replaces WhyChooseUs) */}
-        {!isLoggedIn && (
+        {/* {!isLoggedIn && (
           <Animated.View
             entering={ZoomIn.delay(400).duration(600)}
           >
             <CoreProtocols />
           </Animated.View>
-        )}
+        )} */}
 
         {/* Next Service (For Subscribers) */}
         {isLoggedIn &&

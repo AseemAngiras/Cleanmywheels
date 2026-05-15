@@ -30,9 +30,7 @@ export const HeroSection = ({ isLoggedIn = false }: HeroSectionProps) => {
     <View className="mb-6">
       <View className="w-full items-center px-4">
         <ImageBackground
-          source={{
-            uri: "https://images.unsplash.com/photo-1617788138017-80ad40651399?q=80&w=2070&auto=format&fit=crop",
-          }}
+          source={require("../../assets/images/hero_premium.png")}
           className="w-full h-[220px] overflow-hidden rounded-[24px] border border-white/10"
           style={{ overflow: "hidden" }} 
           imageStyle={{ borderRadius: 24 }}
@@ -50,15 +48,15 @@ export const HeroSection = ({ isLoggedIn = false }: HeroSectionProps) => {
                 <Text className="text-primary">SHINE</Text> SYSTEM
               </Text>
 
-              {/* <TouchableOpacity
-                className="border-2 border-primary py-[10px] px-6 rounded-[12px]"
+              <TouchableOpacity
+                className="bg-primary py-[12px] px-8 rounded-[16px] shadow-xl shadow-primary/30"
                 activeOpacity={0.8}
                 onPress={handlePress}
               >
-                <Text className="text-primary text-sm font-[900] italic tracking-[0.5px]">
-                  EXPLORE SPECS
+                <Text className="text-black text-lg font-[900] italic tracking-[0.5px]">
+                  BOOK A WASH
                 </Text>
-              </TouchableOpacity> */}
+              </TouchableOpacity>
             </View>
           </LinearGradient>
         </ImageBackground>

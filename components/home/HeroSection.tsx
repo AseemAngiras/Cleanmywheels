@@ -30,7 +30,7 @@ export const HeroSection = ({ isLoggedIn = false }: HeroSectionProps) => {
     <View className="mb-6">
       <View className="w-full items-center px-4">
         <ImageBackground
-          source={require("../../assets/images/hero_premium.png")}
+          source={require("../../assets/images/hero_premium.jpg")}
           className="w-full h-[220px] overflow-hidden rounded-[24px] border border-white/10"
           style={{ overflow: "hidden" }} 
           imageStyle={{ borderRadius: 24 }}

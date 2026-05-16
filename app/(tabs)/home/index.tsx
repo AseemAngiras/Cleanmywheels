@@ -6,7 +6,7 @@ import {
   useVerifyRegisterOtpMutation,
   useGetProfileQuery,
 } from "@/store/api/authApi";
-import { useGetAddressesQuery } from "@/store/api/addressApi";
+import { useGetAddressesQuery, useCreateAddressMutation } from "@/store/api/addressApi";
 import { useGetBookingsQuery } from "@/store/api/bookingApi";
 import { useGetMySubscriptionQuery } from "@/store/api/subscriptionApi";
 import { loginSuccess, logout } from "@/store/slices/authSlice";
@@ -136,6 +136,9 @@ export default function HomeScreen() {
   const [verifyLoginOtp] = useVerifyLoginOtpMutation();
   const [register] = useRegisterMutation();
   const [verifyRegisterOtp] = useVerifyRegisterOtpMutation();
+  const [createAddress] = useCreateAddressMutation();
+
+  const profileState = useSelector((state: RootState) => state.profile);
 
   const [refreshing, setRefreshing] = useState(false);
 
@@ -308,6 +311,24 @@ export default function HomeScreen() {
           dispatch(setUser(backendUser));
         }
         dispatch(loginSuccess(token));
+
+        // Sync local address to backend if it exists (guest flow)
+        if (profileState.addresses && profileState.addresses.length > 0) {
+          const addr = profileState.addresses[0];
+          try {
+            await createAddress({
+              houseOrFlatNo: addr.houseOrFlatNo,
+              locality: addr.locality,
+              landmark: addr.landmark,
+              city: addr.city,
+              postalCode: addr.postalCode,
+              addressType: addr.addressType,
+            }).unwrap();
+            console.log("✅ [HomeScreen] Address synced to backend");
+          } catch (syncErr) {
+            console.error("❌ [HomeScreen] Address sync failed:", syncErr);
+          }
+        }
 
         const isAdminUser = backendUser?.accountType === "Super Admin";
 

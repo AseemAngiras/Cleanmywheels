@@ -4,12 +4,12 @@
     "slug": "clean-my-wheels",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/icon.jpg",
     "scheme": "cleanmywheels",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/images/splash-icon.png",
+      "image": "./assets/images/splash-icon.jpg",
       "resizeMode": "contain",
       "backgroundColor": "#111111"
     },
@@ -23,10 +23,11 @@
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#FFFFFF",
-        "foregroundImage": "./assets/images/icon.png"
+        "foregroundImage": "./assets/images/icon.jpg"
       },
       "edgeToEdgeEnabled": true,
       "package": "com.cleanmywheels.app",
+      "versionCode": 6,
       "googleServicesFile": "./google-services.json",
       "config": {
         "googleMaps": {
@@ -43,7 +44,7 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/images/icon.png",
+          "icon": "./assets/images/icon.jpg",
           "color": "#ffffff"
         }
       ],

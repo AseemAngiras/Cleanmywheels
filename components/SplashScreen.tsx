@@ -54,7 +54,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
         style={[animatedStyle]}
       >
         <Image
-          source={require("../assets/images/splash-icon.png")}
+          source={require("../assets/images/splash-icon.jpg")}
           className="w-full h-full"
           contentFit="contain"
         />

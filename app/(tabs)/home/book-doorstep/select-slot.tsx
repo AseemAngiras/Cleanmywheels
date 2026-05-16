@@ -4,6 +4,7 @@ import {
   useVerifyLoginOtpMutation,
   useVerifyRegisterOtpMutation,
 } from "@/store/api/authApi";
+import { useCreateAddressMutation } from "@/store/api/addressApi";
 import { loginSuccess } from "@/store/slices/authSlice";
 import { updateProfile } from "@/store/slices/profileSlice";
 import { setUser } from "@/store/slices/userSlice";
@@ -90,6 +91,9 @@ export default function SelectSlotScreen() {
     useVerifyLoginOtpMutation();
   const [verifyRegisterOtp, { isLoading: isVerifyingRegOtp }] =
     useVerifyRegisterOtpMutation();
+  const [createAddress] = useCreateAddressMutation();
+
+  const profileState = useSelector((state: RootState) => state.profile);
 
   const isProcessing = isRegistering || isRequestingOtp;
   const isVerifying = isVerifyingLoginOtp || isVerifyingRegOtp;
@@ -267,6 +271,25 @@ export default function SelectSlotScreen() {
           dispatch(updateProfile({ key: "name", value: name.trim() }));
         if (phoneNumber.trim())
           dispatch(updateProfile({ key: "phone", value: phoneNumber.trim() }));
+
+        // Sync local address to backend if it exists (guest flow)
+        if (profileState.addresses && profileState.addresses.length > 0) {
+          const addr = profileState.addresses[0];
+          try {
+            await createAddress({
+              houseOrFlatNo: addr.houseOrFlatNo,
+              locality: addr.locality,
+              landmark: addr.landmark,
+              city: addr.city,
+              postalCode: addr.postalCode,
+              addressType: addr.addressType,
+            }).unwrap();
+            console.log("✅ [SelectSlot] Address synced to backend");
+          } catch (syncErr) {
+            console.error("❌ [SelectSlot] Address sync failed:", syncErr);
+          }
+        }
+
         setIsLoginModalVisible(false);
         setOtp(["", "", "", "", "", ""]);
         setModalStep("details");

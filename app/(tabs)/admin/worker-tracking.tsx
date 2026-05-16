@@ -86,6 +86,23 @@ export default function WorkerTrackingScreen() {
     Linking.openURL(`tel:${phone}`);
   };
 
+  const getFullAddress = (item: any) => {
+    const addr = item.address;
+    if (addr && typeof addr === "object") {
+      return `${addr.houseOrFlatNo || ""}, ${addr.locality || ""}, ${addr.city || ""}`
+        .trim()
+        .replace(/^, /, "")
+        .replace(/, $/, "");
+    }
+    if (item.locality) {
+      return `${item.houseOrFlatNo || ""}, ${item.locality || ""}, ${item.city || ""}`
+        .trim()
+        .replace(/^, /, "")
+        .replace(/, $/, "");
+    }
+    return item.fullAddress || "No address provided";
+  };
+
   const renderWorkerListItem = ({ item }: { item: any }) => (
     <TouchableOpacity
       onPress={() => setSelectedWorkerId(item._id)}
@@ -154,7 +171,7 @@ export default function WorkerTrackingScreen() {
         <View className="flex-row items-center">
           <Ionicons name="location-outline" size={14} color={Colors.textSecondary} />
           <Text numberOfLines={1} className="text-textSecondary text-[12px] ml-2 flex-1">
-            {task.address?.fullAddress || task.fullAddress || "Client Location"}
+            {getFullAddress(task)}
           </Text>
         </View>
         
@@ -260,7 +277,7 @@ export default function WorkerTrackingScreen() {
                   <View className="flex-row items-start">
                      <Ionicons name="location" size={18} color={Colors.textSecondary} className="mt-0.5" />
                      <Text className="text-textSecondary text-[13px] ml-2 flex-1 leading-5">
-                        {selectedTask.address?.fullAddress || selectedTask.fullAddress || "No address provided"}
+                        {getFullAddress(selectedTask)}
                      </Text>
                   </View>
                 </View>

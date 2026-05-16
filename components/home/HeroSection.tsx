@@ -48,7 +48,7 @@ export const HeroSection = ({ isLoggedIn = false }: HeroSectionProps) => {
                 <Text className="text-primary">SHINE</Text> SYSTEM
               </Text>
 
-              <TouchableOpacity
+              {/* <TouchableOpacity
                 className="bg-primary py-[12px] px-8 rounded-[16px] shadow-xl shadow-primary/30"
                 activeOpacity={0.8}
                 onPress={handlePress}
@@ -56,7 +56,7 @@ export const HeroSection = ({ isLoggedIn = false }: HeroSectionProps) => {
                 <Text className="text-black text-lg font-[900] italic tracking-[0.5px]">
                   BOOK A WASH
                 </Text>
-              </TouchableOpacity>
+              </TouchableOpacity> */}
             </View>
           </LinearGradient>
         </ImageBackground>

@@ -123,7 +123,8 @@ export default function AdminBookingsScreen() {
           booking.status === "COMPLETED"
         );
       if (filter === "Completed") return booking.status === "COMPLETED";
-      if (filter === "Pending") return booking.status === "PENDING";
+      if (filter === "Pending")
+        return booking.status === "PENDING" || booking.status === "CONFIRMED";
       return true;
     },
   );

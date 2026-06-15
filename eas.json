@@ -9,10 +9,10 @@
             "distribution": "internal",
             "channel": "development",
             "android": {
-                "buildType": "apk" 
+                "buildType": "apk"
             },
             "ios": {
-                "simulator": true 
+                "simulator": true
             },
             "env": {
                 "APP_ENV": "development",
@@ -25,7 +25,7 @@
             "distribution": "internal",
             "channel": "testing",
             "android": {
-                "buildType": "apk" 
+                "buildType": "apk"
             },
             "ios": {
                 "simulator": false
@@ -64,13 +64,13 @@
     },
     "submit": {
         "production": {
-            // "android": {
-            //   "serviceAccountKeyPath": "./credentials/google-service-account.json"
-            // },
-            // "ios": {
-            //   "appleId": "your-apple-id@example.com",
-            //   "ascAppId": "1234567890"
-            // }
+            "android": {
+                "serviceAccountKeyPath": "./credentials/google-service-account.json"
+            },
+            "ios": {
+                "appleId": "your-apple-id@example.com",
+                "ascAppId": "1234567890"
+            }
         }
     }
 }

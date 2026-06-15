@@ -44,7 +44,6 @@ import { TransformationSection } from "../../../components/home/TransformationSe
 import { ProtocolSection } from "../../../components/home/ProtocolSection";
 import { MembershipPerks } from "../../../components/home/MembershipPerks";
 import { OnboardingTour } from "../../../components/home/OnboardingTour";
-import { WeatherWidget } from "../../../components/home/WeatherWidget";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { toast } from "@/utils/toast";
 import { useAlert } from "@/components/providers/AlertProvider";
@@ -637,9 +636,6 @@ export default function HomeScreen() {
         >
           <HeroSection isLoggedIn={isLoggedIn} />
         </Animated.View>
-
-        {/* Live Weather Insight */}
-        <WeatherWidget />
 
         {/* Transformation Section (Intrigue Guest) */}
         {/* {!isLoggedIn && <TransformationSection />} */}

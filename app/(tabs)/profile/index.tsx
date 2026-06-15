@@ -417,7 +417,7 @@ export default function ProfileHome() {
               icon="newspaper-outline"
               title="Manage Blogs & Updates"
               subtitle="Create and edit articles"
-              onPress={() => router.push("/admin/blogs" as any)}
+              onPress={() => router.push("/(tabs)/admin/blogs")}
             />
             <Row
               icon="stats-chart-outline"

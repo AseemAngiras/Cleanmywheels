@@ -11,11 +11,12 @@ import {
   Linking,
   Modal,
   StyleSheet,
+  BackHandler,
 } from "react-native";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { Colors } from "@/constants/Colors";
 import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { useGetWorkersQuery, useGetWorkerScheduleQuery } from "@/store/api/workerApi";
 import Animated, { FadeInDown, FadeInUp, FadeOut } from "react-native-reanimated";
 import { LinearGradient } from "expo-linear-gradient";
@@ -30,6 +31,22 @@ export default function WorkerTrackingScreen() {
   const [selectedWorkerId, setSelectedWorkerId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTask, setSelectedTask] = useState<any>(null);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        if (selectedWorkerId) {
+          setSelectedWorkerId(null);
+          return true;
+        }
+        router.replace("/dashboard");
+        return true;
+      };
+
+      const subscription = BackHandler.addEventListener("hardwareBackPress", onBackPress);
+      return () => subscription.remove();
+    }, [selectedWorkerId])
+  );
   
   const { data: workersData, isLoading: isLoadingWorkers } = useGetWorkersQuery({ limit: 100 });
   const workers = workersData?.workers || [];
@@ -367,7 +384,7 @@ export default function WorkerTrackingScreen() {
         {/* Header */}
         <View className="flex-row items-center px-5 pt-4 pb-4 bg-card border-b border-border/50">
           <TouchableOpacity
-            onPress={() => selectedWorkerId ? setSelectedWorkerId(null) : router.back()}
+            onPress={() => selectedWorkerId ? setSelectedWorkerId(null) : router.replace("/(tabs)/profile")}
             className="w-10 h-10 rounded-full bg-background items-center justify-center border border-border"
           >
             <Ionicons name="arrow-back" size={20} color={Colors.text} />

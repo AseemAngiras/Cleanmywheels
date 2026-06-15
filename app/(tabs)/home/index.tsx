@@ -12,6 +12,7 @@ import { useGetMySubscriptionQuery } from "@/store/api/subscriptionApi";
 import { loginSuccess, logout } from "@/store/slices/authSlice";
 import { type BookingStatus } from "@/store/slices/bookingSlice";
 import { setUser } from "@/store/slices/userSlice";
+import { updateProfile } from "@/store/slices/profileSlice";
 
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -43,6 +44,7 @@ import { TransformationSection } from "../../../components/home/TransformationSe
 import { ProtocolSection } from "../../../components/home/ProtocolSection";
 import { MembershipPerks } from "../../../components/home/MembershipPerks";
 import { OnboardingTour } from "../../../components/home/OnboardingTour";
+import { WeatherWidget } from "../../../components/home/WeatherWidget";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { toast } from "@/utils/toast";
 import { useAlert } from "@/components/providers/AlertProvider";
@@ -131,6 +133,10 @@ export default function HomeScreen() {
   const inputRefs = useRef<(TextInput | null)[]>([]);
   const isNavigating = useRef(false);
   const [isExistingUser, setIsExistingUser] = useState(false);
+  const [authMode, setAuthMode] = useState<"login" | "signup">("login");
+  const [registrationToken, setRegistrationToken] = useState<string | null>(null);
+  const [registeredUser, setRegisteredUser] = useState<any>(null);
+  const [isNameWarningVisible, setIsNameWarningVisible] = useState(false);
 
   const [requestOtp] = useRequestOtpMutation();
   const [verifyLoginOtp] = useVerifyLoginOtpMutation();
@@ -172,27 +178,53 @@ export default function HomeScreen() {
 
   const handleSendOtp = async () => {
     const cleanedPhone = phoneNumber.trim();
+    if (!cleanedPhone || cleanedPhone.length < 10) {
+      showAlert({
+        title: "Invalid Phone",
+        message: "Please enter a valid 10-digit mobile number.",
+        type: "warning",
+      });
+      return;
+    }
+
+    setIsLoading(true);
     setTimer(45);
     setIsExistingUser(false);
     try {
-      if (name.trim()) {
-        const trimmedName = name.trim();
-        const trimmedPhone = cleanedPhone;
-        const result = await register({
-          name: trimmedName,
-          countryCode: "+91",
-          phone: trimmedPhone,
-          accountType: "Seeker",
-        }).unwrap();
-
-        const token = result.data?.token;
-        const backendUser = result.data?.user;
-
-        if (token) {
-          dispatch(loginSuccess(token));
+      if (authMode === "signup") {
+        if (!name.trim()) {
+          showAlert({
+            title: "Name Required",
+            message: "Please enter your name to register.",
+            type: "warning",
+          });
+          setIsLoading(false);
+          return;
         }
-        if (backendUser) {
-          dispatch(setUser(backendUser));
+
+        if (modalStep === "otp" || registrationToken) {
+          await requestOtp({
+            phone: cleanedPhone,
+            countryCode: "+91",
+            verifyType: "PHONE",
+            otpType: "REGISTER",
+          }).unwrap();
+        } else {
+          const result = await register({
+            name: name.trim(),
+            countryCode: "+91",
+            phone: cleanedPhone,
+            accountType: "Seeker",
+          }).unwrap();
+
+          const token = result.data?.token || result.token;
+          const user = result.data?.user || result.user;
+          if (token) {
+            setRegistrationToken(token);
+          }
+          if (user) {
+            setRegisteredUser(user);
+          }
         }
       } else {
         await requestOtp({
@@ -226,6 +258,8 @@ export default function HomeScreen() {
               onPress: async () => {
                 hideAlert();
                 setIsExistingUser(true);
+                setAuthMode("login");
+                setName("");
                 try {
                   await requestOtp({
                     phone: cleanedPhone,
@@ -251,11 +285,33 @@ export default function HomeScreen() {
           ],
         });
       } else {
-        showAlert({
-          title: "Auth Request Failed",
-          message: err?.data?.message || "User not found with this phone. Try entering your name to register.",
-          type: "error",
-        });
+        if (authMode === "login" && (err?.data?.message?.includes("not found") || err?.data?.message?.includes("not register"))) {
+          showAlert({
+            title: "Account Not Found",
+            message: "No account is registered with this phone number. Would you like to sign up?",
+            type: "info",
+            buttons: [
+              {
+                text: "Cancel",
+                onPress: () => hideAlert(),
+                style: "cancel",
+              },
+              {
+                text: "Sign Up",
+                onPress: () => {
+                  hideAlert();
+                  setAuthMode("signup");
+                },
+              },
+            ],
+          });
+        } else {
+          showAlert({
+            title: "Auth Request Failed",
+            message: err?.data?.message || "Authentication request failed. Please try again.",
+            type: "error",
+          });
+        }
       }
     } finally {
       setIsLoading(false);
@@ -283,10 +339,10 @@ export default function HomeScreen() {
       };
 
       let response;
-      if (name.trim() && !isExistingUser) {
+      if (authMode === "signup" && !isExistingUser) {
         response = await verifyRegisterOtp({
-          ...payload,
-          otpType: "REGISTER",
+          body: { ...payload, otpType: "REGISTER" },
+          token: registrationToken || undefined,
         }).unwrap();
       } else {
         const loginPayload = {
@@ -302,13 +358,23 @@ export default function HomeScreen() {
       const token =
           response?.data?.token ||
           response?.token ||
-          (typeof response?.data === "string" ? response?.data : null);
+          (typeof response?.data === "string" ? response?.data : null) ||
+          registrationToken;
 
       if (token) {
         console.log("🎟 [HomeScreen] New token received and stored");
-        const backendUser = response?.data?.user;
+        const backendUser = response?.data?.user || response?.user || registeredUser;
         if (backendUser) {
           dispatch(setUser(backendUser));
+          if (backendUser.name) {
+            dispatch(updateProfile({ key: "name", value: backendUser.name }));
+          }
+          if (backendUser.phone) {
+            dispatch(updateProfile({ key: "phone", value: backendUser.phone }));
+          }
+          if (backendUser.email) {
+            dispatch(updateProfile({ key: "email", value: backendUser.email }));
+          }
         }
         dispatch(loginSuccess(token));
 
@@ -336,6 +402,9 @@ export default function HomeScreen() {
         setOtp(["", "", "", "", "", ""]);
         setName("");
         setPhoneNumber("");
+        setAuthMode("login");
+        setRegistrationToken(null);
+        setRegisteredUser(null);
         setIsLoginModalVisible(false);
 
         if (isAdminUser) {
@@ -365,12 +434,13 @@ export default function HomeScreen() {
   const handleCloseModal = () => {
     setIsLoginModalVisible(false);
 
-    if (modalStep === "details") {
-      setPhoneNumber("");
-      setOtp(["", "", "", "", "", ""]);
-      setModalStep("details");
-      setName("");
-    }
+    setPhoneNumber("");
+    setOtp(["", "", "", "", "", ""]);
+    setModalStep("details");
+    setName("");
+    setAuthMode("login");
+    setRegistrationToken(null);
+    setRegisteredUser(null);
   };
 
   const allBookings = bookingsData?.data?.bookingList || [];
@@ -568,6 +638,9 @@ export default function HomeScreen() {
           <HeroSection isLoggedIn={isLoggedIn} />
         </Animated.View>
 
+        {/* Live Weather Insight */}
+        <WeatherWidget />
+
         {/* Transformation Section (Intrigue Guest) */}
         {/* {!isLoggedIn && <TransformationSection />} */}
 
@@ -749,26 +822,34 @@ export default function HomeScreen() {
             style={{ paddingTop: insets.top + 20 }}
             className="flex-1 px-6"
           >
-            {/* Header / Back Button */}
-            <InteractivePressable
-              onPress={handleCloseModal}
-              className="w-10 h-10 items-center justify-center -ml-2 mb-8"
-            >
-              <Ionicons name="chevron-back" size={28} color="white" />
-            </InteractivePressable>
-
             <KeyboardAvoidingView
               behavior={Platform.OS === "ios" ? "padding" : "height"}
               className="flex-1"
             >
-              <Text className="text-[32px] font-[800] text-white leading-[40px] mb-3">
-                {modalStep === "details" ? "Enter your\nmobile number" : "Enter\nverification code"}
-              </Text>
+              <View className="flex-row items-center mb-6">
+                {/* Header / Back Button */}
+                <InteractivePressable
+                  onPress={handleCloseModal}
+                  className="w-10 h-10 items-center justify-center -ml-2 mr-3"
+                >
+                  <Ionicons name="chevron-back" size={28} color="white" />
+                </InteractivePressable>
+
+                <Text className="text-[28px] font-[800] text-white flex-1">
+                  {modalStep === "details"
+                    ? authMode === "login"
+                      ? "Log In to your account"
+                      : "Create your account"
+                    : "Enter verification code"}
+                </Text>
+              </View>
               
               <View className="flex-row items-center mb-10">
                 <Text className="text-base text-gray-400 font-[500]">
                   {modalStep === "details"
-                    ? "to continue with Cleanmywheels"
+                    ? authMode === "login"
+                      ? "to continue with Cleanmywheels"
+                      : "enter your details to get started"
                     : "enter the verification code sent to"}
                 </Text>
                 {modalStep === "otp" && (
@@ -781,8 +862,81 @@ export default function HomeScreen() {
                 )}
               </View>
 
+              {modalStep === "details" && (
+                <View className="flex-row bg-[#1A1A1A] rounded-[16px] p-1.5 mb-8 border border-white/5">
+                  <InteractivePressable
+                    onPress={() => {
+                      setAuthMode("login");
+                      setName("");
+                    }}
+                    className={`flex-1 py-3 rounded-[12px] items-center justify-center ${
+                      authMode === "login" ? "bg-primary" : "bg-transparent"
+                    }`}
+                  >
+                    <Text className={`font-[800] text-[14px] uppercase tracking-wider ${
+                      authMode === "login" ? "text-black" : "text-[#888888]"
+                    }`}>
+                      Log In
+                    </Text>
+                  </InteractivePressable>
+                  <InteractivePressable
+                    onPress={() => setAuthMode("signup")}
+                    className={`flex-1 py-3 rounded-[12px] items-center justify-center ${
+                      authMode === "signup" ? "bg-primary" : "bg-transparent"
+                    }`}
+                  >
+                    <Text className={`font-[800] text-[14px] uppercase tracking-wider ${
+                      authMode === "signup" ? "text-black" : "text-[#888888]"
+                    }`}>
+                      Sign Up
+                    </Text>
+                  </InteractivePressable>
+                </View>
+              )}
+
               {modalStep === "details" ? (
                 <View>
+                  {authMode === "signup" && (
+                    <View className="mb-5">
+                      <View className="flex-row items-center bg-[#1A1A1A] border border-white/10 rounded-[16px] h-[64px] px-5">
+                        <Ionicons
+                          name="person-outline"
+                          size={20}
+                          color="#64748B"
+                          style={{ marginRight: 12 }}
+                        />
+                        <TextInput
+                          className="flex-1 text-lg text-white font-[700]"
+                          placeholder="Your Full Name"
+                          placeholderTextColor="#444"
+                          value={name}
+                          onChangeText={(text) => {
+                            const filtered = text.replace(/[^a-zA-Z\s]/g, "");
+                            if (filtered !== text) {
+                              setIsNameWarningVisible(true);
+                              setTimeout(() => setIsNameWarningVisible(false), 3000);
+                            }
+                            setName(filtered);
+                          }}
+                          autoCapitalize="words"
+                          maxLength={30}
+                        />
+                      </View>
+                      <View className="flex-row justify-between items-center mt-1.5 px-1">
+                        <View className="flex-1">
+                          {isNameWarningVisible && (
+                            <Text className="text-[10px] color-red-500 font-[700]">
+                              Only alphabets allowed
+                            </Text>
+                          )}
+                        </View>
+                        <Text className={`text-[11px] font-[800] ${name.length >= 25 ? 'text-primary' : 'text-gray-500'}`}>
+                          {name.length} / 30
+                        </Text>
+                      </View>
+                    </View>
+                  )}
+
                   <View className="mb-10">
                     <View className="flex-row items-center bg-[#1A1A1A] border border-white/10 rounded-[16px] h-[64px] px-5">
                       <Text className="text-lg text-white font-[700]">+91</Text>

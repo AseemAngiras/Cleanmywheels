@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, FlatList, ActivityIndicator, TouchableOpacity, Modal, TextInput, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, FlatList, ActivityIndicator, TouchableOpacity, Modal, TextInput, ScrollView, KeyboardAvoidingView, Platform, BackHandler } from 'react-native';
 import { useGetBlogsQuery, useCreateBlogMutation, useUpdateBlogMutation, useDeleteBlogMutation } from '@/store/api/blogApi';
 import { ScreenWrapper } from '@/components/ui/ScreenWrapper';
 import { Colors } from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { InteractivePressable } from '@/components/ui/InteractivePressable';
 import { toast } from '@/utils/toast';
 import { useAlert } from '@/components/providers/AlertProvider';
@@ -14,6 +14,19 @@ export default function AdminBlogsScreen() {
     const router = useRouter();
     const { showAlert } = useAlert();
     const insets = useSafeAreaInsets();
+
+    useFocusEffect(
+        React.useCallback(() => {
+            const onBackPress = () => {
+                router.replace("/dashboard");
+                return true;
+            };
+
+            const subscription = BackHandler.addEventListener("hardwareBackPress", onBackPress);
+            return () => subscription.remove();
+        }, [])
+    );
+
     const [page, setPage] = useState(1);
     const { data, isLoading, refetch, isFetching } = useGetBlogsQuery({ page, perPage: 20, status: 'all' });
     const blogs = data?.blogs || [];
@@ -138,7 +151,7 @@ export default function AdminBlogsScreen() {
                 <View className="flex-row items-center justify-between px-5 pt-4 pb-4 bg-card border-b border-border/50">
                     <View className="flex-row items-center">
                         <TouchableOpacity
-                            onPress={() => router.back()}
+                            onPress={() => router.replace("/(tabs)/profile")}
                             className="w-10 h-10 rounded-full bg-background items-center justify-center border border-border"
                         >
                             <Ionicons name="arrow-back" size={20} color={Colors.text} />

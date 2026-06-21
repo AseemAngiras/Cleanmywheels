@@ -23,6 +23,11 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { RootState } from "@/store";
 import { Colors } from "@/constants/Colors";
 import { Ionicons } from "@expo/vector-icons";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+} from "react-native-reanimated";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -37,6 +42,38 @@ import {
 } from "react-native";
 import { useAlert } from "@/components/providers/AlertProvider";
 import { InteractivePressable } from "@/components/ui/InteractivePressable";
+
+interface OtpBoxProps {
+  digit: string;
+  index: number;
+  isFocused: boolean;
+  mergeAnim: any;
+}
+
+const OtpBox: React.FC<OtpBoxProps> = ({ digit, index, isFocused, mergeAnim }) => {
+  const boxStyle = useAnimatedStyle(() => {
+    const translateX = (2.5 - index) * 44 * mergeAnim.value;
+    const opacity = 1 - mergeAnim.value;
+    const scale = 1 - 0.7 * mergeAnim.value;
+    return {
+      transform: [{ translateX }, { scale }],
+      opacity,
+    };
+  });
+
+  return (
+    <Animated.View
+      style={[boxStyle]}
+      className={`w-[14%] aspect-square bg-[#1A1A1A] rounded-xl border-[2px] items-center justify-center ${
+        isFocused ? "border-primary" : "border-white/10"
+      }`}
+    >
+      <Text className="text-[24px] font-[900] text-white">
+        {digit}
+      </Text>
+    </Animated.View>
+  );
+};
 
 type TimeSlot = {
   id: string;
@@ -181,6 +218,24 @@ export default function SelectSlotScreen() {
   );
   const [timer, setTimer] = useState(45);
   const [isExistingUser, setIsExistingUser] = useState(false);
+  const [isOtpSuccess, setIsOtpSuccess] = useState(false);
+  const mergeAnim = useSharedValue(0);
+
+  const checkmarkStyle = useAnimatedStyle(() => {
+    return {
+      opacity: mergeAnim.value,
+      transform: [{ scale: mergeAnim.value }],
+    };
+  });
+
+
+  // Auto-submit OTP when it reaches length 6
+  useEffect(() => {
+    const code = otp.join("").trim();
+    if (code.length === 6 && !isOtpSuccess) {
+      handleVerifyOtp();
+    }
+  }, [otp]);
 
   useEffect(() => {
     if (modalStep === "otp" && isLoginModalVisible) {
@@ -302,35 +357,44 @@ export default function SelectSlotScreen() {
           (typeof response.data === "string" ? response.data : null);
         const user = response.data?.user || response.user;
         const finalToken = responseToken || registrationToken;
-        if (finalToken) dispatch(loginSuccess(finalToken));
-        if (user) dispatch(setUser(user));
-        if (name.trim())
-          dispatch(updateProfile({ key: "name", value: name.trim() }));
-        if (phoneNumber.trim())
-          dispatch(updateProfile({ key: "phone", value: phoneNumber.trim() }));
 
-        // Sync local address to backend if it exists (guest flow)
-        if (profileState.addresses && profileState.addresses.length > 0) {
-          const addr = profileState.addresses[0];
-          try {
-            await createAddress({
-              houseOrFlatNo: addr.houseOrFlatNo,
-              locality: addr.locality,
-              landmark: addr.landmark,
-              city: addr.city,
-              postalCode: addr.postalCode,
-              addressType: addr.addressType,
-            }).unwrap();
-            console.log("✅ [SelectSlot] Address synced to backend");
-          } catch (syncErr) {
-            console.error("❌ [SelectSlot] Address sync failed:", syncErr);
+        // Perform merge animation
+        setIsOtpSuccess(true);
+        mergeAnim.value = withTiming(1, { duration: 600 });
+
+        setTimeout(async () => {
+          if (finalToken) dispatch(loginSuccess(finalToken));
+          if (user) dispatch(setUser(user));
+          if (name.trim())
+            dispatch(updateProfile({ key: "name", value: name.trim() }));
+          if (phoneNumber.trim())
+            dispatch(updateProfile({ key: "phone", value: phoneNumber.trim() }));
+
+          // Sync local address to backend if it exists (guest flow)
+          if (profileState.addresses && profileState.addresses.length > 0) {
+            const addr = profileState.addresses[0];
+            try {
+              await createAddress({
+                houseOrFlatNo: addr.houseOrFlatNo,
+                locality: addr.locality,
+                landmark: addr.landmark,
+                city: addr.city,
+                postalCode: addr.postalCode,
+                addressType: addr.addressType,
+              }).unwrap();
+              console.log("✅ [SelectSlot] Address synced to backend");
+            } catch (syncErr) {
+              console.error("❌ [SelectSlot] Address sync failed:", syncErr);
+            }
           }
-        }
 
-        setIsLoginModalVisible(false);
-        setOtp(["", "", "", "", "", ""]);
-        setModalStep("details");
-        navigateToSummary();
+          setIsLoginModalVisible(false);
+          setOtp(["", "", "", "", "", ""]);
+          setModalStep("details");
+          setIsOtpSuccess(false);
+          mergeAnim.value = 0;
+          navigateToSummary();
+        }, 1200);
       } else {
         showAlert({
           title: "Error",
@@ -728,21 +792,37 @@ export default function SelectSlotScreen() {
                         setOtp(newOtp);
                       }}
                     />
-                    <View className="flex-row justify-between w-full" pointerEvents="none">
+                    <View className="flex-row justify-between w-full h-[56px] relative items-center" pointerEvents="none">
+                      {/* Checkmark box */}
+                      <View className="absolute inset-0 justify-center items-center z-20" pointerEvents="none">
+                        <Animated.View 
+                          style={[
+                            checkmarkStyle, 
+                            { 
+                              justifyContent: "center", 
+                              alignItems: "center", 
+                              width: 56, 
+                              height: 56, 
+                              borderRadius: 28, 
+                              backgroundColor: Colors.primary,
+                            }
+                          ]}
+                        >
+                          <Ionicons name="checkmark" size={28} color="#000" />
+                        </Animated.View>
+                      </View>
+
                       {otp.map((digit, i) => {
                         const currentLength = otp.join("").length;
                         const isFocused = currentLength === i || (currentLength === 6 && i === 5);
                         return (
-                          <View
+                          <OtpBox
                             key={i}
-                            className={`w-[14%] aspect-square bg-[#1A1A1A] rounded-xl border-[2px] items-center justify-center ${
-                              isFocused ? "border-primary" : "border-white/10"
-                            }`}
-                          >
-                            <Text className="text-[24px] font-[900] text-white">
-                              {digit}
-                            </Text>
-                          </View>
+                            digit={digit}
+                            index={i}
+                            isFocused={isFocused}
+                            mergeAnim={mergeAnim}
+                          />
                         );
                       })}
                     </View>

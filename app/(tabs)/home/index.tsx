@@ -30,9 +30,17 @@ import {
   ScrollView,
   Text,
   TextInput,
+  TouchableOpacity,
   View,
 } from "react-native";
-import Animated, { FadeInUp, ZoomIn, SlideInRight } from "react-native-reanimated";
+import Animated, {
+  FadeInUp,
+  ZoomIn,
+  SlideInRight,
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+} from "react-native-reanimated";
 import { useDispatch, useSelector } from "react-redux";
 
 import { HomeBackground } from "../../../components/home/HomeBackground";
@@ -47,6 +55,38 @@ import { OnboardingTour } from "../../../components/home/OnboardingTour";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { toast } from "@/utils/toast";
 import { useAlert } from "@/components/providers/AlertProvider";
+
+interface OtpBoxProps {
+  digit: string;
+  index: number;
+  isFocused: boolean;
+  mergeAnim: any;
+}
+
+const OtpBox: React.FC<OtpBoxProps> = ({ digit, index, isFocused, mergeAnim }) => {
+  const boxStyle = useAnimatedStyle(() => {
+    const translateX = (2.5 - index) * 44 * mergeAnim.value;
+    const opacity = 1 - mergeAnim.value;
+    const scale = 1 - 0.7 * mergeAnim.value;
+    return {
+      transform: [{ translateX }, { scale }],
+      opacity,
+    };
+  });
+
+  return (
+    <Animated.View
+      style={[boxStyle]}
+      className={`w-[52px] h-[64px] rounded-[16px] border-[2px] items-center justify-center bg-[#1A1A1A] ${
+        digit ? "border-primary" : isFocused ? "border-primary/50" : "border-white/10"
+      }`}
+    >
+      <Text className="text-[24px] font-[900] text-white">
+        {digit}
+      </Text>
+    </Animated.View>
+  );
+};
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -133,6 +173,25 @@ export default function HomeScreen() {
   const otpInputRef = useRef<TextInput>(null);
   const isNavigating = useRef(false);
   const [isExistingUser, setIsExistingUser] = useState(false);
+
+  const [isOtpSuccess, setIsOtpSuccess] = useState(false);
+  const mergeAnim = useSharedValue(0);
+
+  const checkmarkStyle = useAnimatedStyle(() => {
+    return {
+      opacity: mergeAnim.value,
+      transform: [{ scale: mergeAnim.value }],
+    };
+  });
+
+
+  // Auto-submit OTP when it reaches length 6
+  useEffect(() => {
+    const code = otp.join("").trim();
+    if (code.length === 6 && !isOtpSuccess) {
+      handleVerifyOtp();
+    }
+  }, [otp]);
 
   useEffect(() => {
     if (modalStep === "otp" && isLoginModalVisible) {
@@ -372,54 +431,61 @@ export default function HomeScreen() {
       if (token) {
         console.log("🎟 [HomeScreen] New token received and stored");
         const backendUser = response?.data?.user || response?.user || registeredUser;
-        if (backendUser) {
-          dispatch(setUser(backendUser));
-          if (backendUser.name) {
-            dispatch(updateProfile({ key: "name", value: backendUser.name }));
-          }
-          if (backendUser.phone) {
-            dispatch(updateProfile({ key: "phone", value: backendUser.phone }));
-          }
-          if (backendUser.email) {
-            dispatch(updateProfile({ key: "email", value: backendUser.email }));
-          }
-        }
-        dispatch(loginSuccess(token));
 
-        // Sync local address to backend if it exists (guest flow)
-        if (profileState.addresses && profileState.addresses.length > 0) {
-          const addr = profileState.addresses[0];
-          try {
-            await createAddress({
-              houseOrFlatNo: addr.houseOrFlatNo,
-              locality: addr.locality,
-              landmark: addr.landmark,
-              city: addr.city,
-              postalCode: addr.postalCode,
-              addressType: addr.addressType,
-            }).unwrap();
-            console.log("✅ [HomeScreen] Address synced to backend");
-          } catch (syncErr) {
-            console.error("❌ [HomeScreen] Address sync failed:", syncErr);
+        // Perform merge animation
+        setIsOtpSuccess(true);
+        mergeAnim.value = withTiming(1, { duration: 600 });
+
+        setTimeout(async () => {
+          if (backendUser) {
+            dispatch(setUser(backendUser));
+            if (backendUser.name) {
+              dispatch(updateProfile({ key: "name", value: backendUser.name }));
+            }
+            if (backendUser.phone) {
+              dispatch(updateProfile({ key: "phone", value: backendUser.phone }));
+            }
+            if (backendUser.email) {
+              dispatch(updateProfile({ key: "email", value: backendUser.email }));
+            }
           }
-        }
+          dispatch(loginSuccess(token));
 
-        const isAdminUser = backendUser?.accountType === "Super Admin";
+          // Sync local address to backend if it exists (guest flow)
+          if (profileState.addresses && profileState.addresses.length > 0) {
+            const addr = profileState.addresses[0];
+            try {
+              await createAddress({
+                houseOrFlatNo: addr.houseOrFlatNo,
+                locality: addr.locality,
+                landmark: addr.landmark,
+                city: addr.city,
+                postalCode: addr.postalCode,
+                addressType: addr.addressType,
+              }).unwrap();
+              console.log("✅ [HomeScreen] Address synced to backend");
+            } catch (syncErr) {
+              console.error("❌ [HomeScreen] Address sync failed:", syncErr);
+            }
+          }
 
-        setModalStep("details");
-        setOtp(["", "", "", "", "", ""]);
-        setName("");
-        setPhoneNumber("");
-        setAuthMode("login");
-        setRegistrationToken(null);
-        setRegisteredUser(null);
-        setIsLoginModalVisible(false);
+          const isAdminUser = backendUser?.accountType === "Super Admin";
 
-        if (isAdminUser) {
-          setTimeout(() => {
+          setModalStep("details");
+          setOtp(["", "", "", "", "", ""]);
+          setName("");
+          setPhoneNumber("");
+          setAuthMode("login");
+          setRegistrationToken(null);
+          setRegisteredUser(null);
+          setIsLoginModalVisible(false);
+          setIsOtpSuccess(false);
+          mergeAnim.value = 0;
+
+          if (isAdminUser) {
             router.replace("/dashboard");
-          }, 100);
-        }
+          }
+        }, 1200);
       } else {
         showAlert({
           title: "Login Failed",
@@ -997,21 +1063,37 @@ export default function HomeScreen() {
                         setOtp(newOtp);
                       }}
                     />
-                    <View className="flex-row justify-between w-full" pointerEvents="none">
+                    <View className="flex-row justify-between w-full h-[64px] relative items-center" pointerEvents="none">
+                      {/* Checkmark box */}
+                      <View className="absolute inset-0 justify-center items-center z-20" pointerEvents="none">
+                        <Animated.View 
+                          style={[
+                            checkmarkStyle, 
+                            { 
+                              justifyContent: "center", 
+                              alignItems: "center", 
+                              width: 56, 
+                              height: 64, 
+                              borderRadius: 16, 
+                              backgroundColor: Colors.primary,
+                            }
+                          ]}
+                        >
+                          <Ionicons name="checkmark" size={28} color="#000" />
+                        </Animated.View>
+                      </View>
+
                       {otp.map((digit, i) => {
                         const currentLength = otp.join("").length;
                         const isFocused = currentLength === i || (currentLength === 6 && i === 5);
                         return (
-                          <View
+                          <OtpBox
                             key={i}
-                            className={`w-[52px] h-[64px] rounded-[16px] border-[2px] items-center justify-center bg-[#1A1A1A] ${
-                              digit ? "border-primary" : isFocused ? "border-primary/50" : "border-white/10"
-                            }`}
-                          >
-                            <Text className="text-[24px] font-[900] text-white">
-                              {digit}
-                            </Text>
-                          </View>
+                            digit={digit}
+                            index={i}
+                            isFocused={isFocused}
+                            mergeAnim={mergeAnim}
+                          />
                         );
                       })}
                     </View>

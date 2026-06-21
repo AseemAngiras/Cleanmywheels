@@ -20,6 +20,7 @@ export interface Booking {
     addOn: any;
     price: number;
     normalPrice?: number;
+    basePrice?: number;
   }[];
   addonsTotal?: number;
   // Raw fields from backend sometimes present

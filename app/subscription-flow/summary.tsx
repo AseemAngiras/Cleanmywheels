@@ -7,6 +7,7 @@ import {
   NativeModules,
   ScrollView,
   Text,
+  TouchableOpacity,
   View,
 } from "react-native";
 import { useAlert } from "@/components/providers/AlertProvider";
@@ -20,8 +21,9 @@ import {
 } from "@/store/api/subscriptionApi";
 import { useGetProfileQuery } from "@/store/api/authApi";
 import { useGetVehiclesQuery } from "@/store/api/vehicleApi";
-import { useGetAddressesQuery } from "@/store/api/addressApi";
-import { useSelector } from "react-redux";
+import { useGetAddressesQuery, useSetDefaultAddressMutation } from "@/store/api/addressApi";
+import { setDefaultAddress } from "@/store/slices/profileSlice";
+import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { formatPrice } from "@/utils/formatPrice";
@@ -44,6 +46,7 @@ const getPriceKey = (type: string) => {
 };
 
 export default function SubscriptionSummaryScreen() {
+  const dispatch = useDispatch();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { showAlert } = useAlert();
@@ -70,6 +73,9 @@ export default function SubscriptionSummaryScreen() {
   const { data: addressesResponse, isLoading: isLoadingAddresses } =
     useGetAddressesQuery();
   const { data: userProfile } = useGetProfileQuery({});
+
+  const [isAddressDropdownOpen, setIsAddressDropdownOpen] = React.useState(false);
+  const [setDefaultAddressAPI] = useSetDefaultAddressMutation();
 
   const [createSubscription, { isLoading: isCreating }] =
     useCreateSubscriptionMutation();
@@ -435,7 +441,10 @@ export default function SubscriptionSummaryScreen() {
                   </Text>
                 </View>
 
-                <View className="flex-row items-start bg-background p-4 rounded-2xl border border-border">
+                <InteractivePressable
+                  className="flex-row items-start bg-background p-4 rounded-2xl border border-border"
+                  onPress={() => setIsAddressDropdownOpen(!isAddressDropdownOpen)}
+                >
                   <View className="w-10 h-10 rounded-full bg-primary/10 items-center justify-center mr-3">
                     <Ionicons
                       name="location"
@@ -451,7 +460,56 @@ export default function SubscriptionSummaryScreen() {
                       {defaultAddress ? defaultAddressStr : "No default address found. Service will be provided at your registered location."}
                     </Text>
                   </View>
-                </View>
+                  <Ionicons
+                    name={isAddressDropdownOpen ? "chevron-up" : "chevron-down"}
+                    size={20}
+                    color={Colors.textSecondary}
+                  />
+                </InteractivePressable>
+
+                {isAddressDropdownOpen && (
+                  <View className="mt-3 bg-background rounded-2xl border border-border overflow-hidden">
+                    {addressList.map((addr: any) => {
+                      const addrStr = addr.fullAddress || `${addr.houseOrFlatNo}, ${addr.locality}, ${addr.city} - ${addr.postalCode}`;
+                      const isSelected = addr._id === defaultAddressId || addr.id === defaultAddressId || addr.isDefault;
+                      return (
+                        <TouchableOpacity
+                          key={addr._id || addr.id}
+                          className={`flex-row items-center p-4 border-b border-border/20 last:border-b-0 ${isSelected ? "bg-primary/10" : ""}`}
+                          onPress={async () => {
+                            try {
+                              const addrId = addr._id || addr.id;
+                              await setDefaultAddressAPI(addrId).unwrap();
+                              dispatch(setDefaultAddress(addrId));
+                              setIsAddressDropdownOpen(false);
+                            } catch (err) {
+                              showAlert({
+                                title: "Error",
+                                message: "Failed to update default address",
+                                type: "error",
+                              });
+                            }
+                          }}
+                        >
+                          <Ionicons
+                            name={isSelected ? "checkmark-circle" : "location-outline"}
+                            size={18}
+                            color={isSelected ? Colors.primary : Colors.textSecondary}
+                            style={{ marginRight: 10 }}
+                          />
+                          <View className="flex-1">
+                            <Text className={`text-[14px] font-[700] ${isSelected ? "color-primary" : "color-text"}`}>
+                              {addr.addressType || "Address"}
+                            </Text>
+                            <Text className="text-[12px] color-textSecondary" numberOfLines={1}>
+                              {addrStr}
+                            </Text>
+                          </View>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                )}
               </View>
             )}
           </View>

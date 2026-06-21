@@ -14,7 +14,7 @@ import {
   useNavigation,
   useRouter,
 } from "expo-router";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import BookingStepper from "@/components/BookingStepper";
@@ -78,7 +78,35 @@ export default function SelectSlotScreen() {
   const [modalStep, setModalStep] = useState<"details" | "otp">("details");
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
 
-  const [selectedDate, setSelectedDate] = useState<number>(0);
+  const hasTodaySlots = useMemo(() => {
+    return [
+      { time: "08:00 AM" },
+      { time: "08:30 AM" },
+      { time: "09:00 AM" },
+      { time: "09:30 AM" },
+      { time: "10:00 AM" },
+      { time: "10:30 AM" },
+      { time: "12:00 PM" },
+      { time: "12:30 PM" },
+      { time: "01:00 PM" },
+      { time: "01:30 PM" },
+      { time: "02:00 PM" },
+      { time: "02:30 PM" },
+      { time: "05:00 PM" },
+      { time: "05:30 PM" },
+      { time: "06:00 PM" },
+    ].some((slot) => {
+      const [timeStr, modifier] = slot.time.trim().split(/\s+/);
+      let [hours, minutes] = timeStr.split(":").map(Number);
+      if (modifier === "PM" && hours < 12) hours += 12;
+      if (modifier === "AM" && hours === 12) hours = 0;
+      const slotDate = new Date();
+      slotDate.setHours(hours, minutes, 0, 0);
+      return slotDate >= new Date(Date.now() + 30 * 60000);
+    });
+  }, []);
+
+  const [selectedDate, setSelectedDate] = useState<number>(hasTodaySlots ? 0 : 1);
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
 
   useEffect(() => {
@@ -147,11 +175,20 @@ export default function SelectSlotScreen() {
   });
 
   const inputRefs = useRef<(TextInput | null)[]>([]);
+  const otpInputRef = useRef<TextInput>(null);
   const [registrationToken, setRegistrationToken] = useState<string | null>(
     null,
   );
   const [timer, setTimer] = useState(45);
   const [isExistingUser, setIsExistingUser] = useState(false);
+
+  useEffect(() => {
+    if (modalStep === "otp" && isLoginModalVisible) {
+      setTimeout(() => {
+        otpInputRef.current?.focus();
+      }, 100);
+    }
+  }, [modalStep, isLoginModalVisible]);
 
   useEffect(() => {
     let interval: any;
@@ -369,6 +406,15 @@ export default function SelectSlotScreen() {
             Pick a slot that suits your schedule.
           </Text>
         </View>
+
+        {!hasTodaySlots && (
+          <View className="mx-5 mb-6 bg-amber-500/10 border border-amber-500/20 p-4 rounded-[20px] flex-row items-center">
+            <Ionicons name="information-circle-outline" size={20} color="#F59E0B" style={{ marginRight: 8 }} />
+            <Text className="flex-1 text-[13px] font-[700] text-amber-500/90 leading-5">
+              No slots are available for today. Please select a different date.
+            </Text>
+          </View>
+        )}
 
         {/* Date Selection */}
         <View className="mb-10">
@@ -666,6 +712,7 @@ export default function SelectSlotScreen() {
                 <View>
                   <View className="mb-10 relative w-full">
                     <TextInput
+                      ref={otpInputRef}
                       style={{ position: 'absolute', width: '100%', height: '100%', opacity: 0, zIndex: 10 }}
                       keyboardType="number-pad"
                       textContentType="oneTimeCode"
@@ -716,31 +763,30 @@ export default function SelectSlotScreen() {
                   </TouchableOpacity>
 
                   <View className="items-center">
-                    <Text className="text-sm text-gray-500 font-[500] mb-2">
+                    <Text className="text-sm text-gray-500 font-[500] mb-3">
                       Didn&apos;t receive code?
                     </Text>
-                    <TouchableOpacity
-                      onPress={() => {
-                        if (timer === 0) {
-                          handleSendOtp();
-                        }
-                      }}
-                      disabled={timer > 0}
-                      className="flex-row items-center"
-                    >
-                      <Text
-                        className={`text-base font-[800] ${
-                          timer > 0 ? "text-gray-500" : "text-primary"
-                        }`}
-                      >
-                        Resend
-                      </Text>
-                      {timer > 0 && (
-                        <Text className="text-base font-[600] text-gray-500 ml-2">
-                          - 00:{timer < 10 ? `0${timer}` : timer}
+                    {timer > 0 ? (
+                      <View className="bg-[#1A1A1A] border border-white/5 rounded-full px-4 py-2 flex-row items-center gap-2">
+                        <Ionicons name="time-outline" size={14} color="#64748B" />
+                        <Text className="text-sm font-[700] text-primary">
+                          Resend code in 00:{timer < 10 ? `0${timer}` : timer}
                         </Text>
-                      )}
-                    </TouchableOpacity>
+                      </View>
+                    ) : (
+                      <TouchableOpacity
+                        onPress={() => {
+                          if (timer === 0) {
+                            handleSendOtp();
+                          }
+                        }}
+                        className="bg-primary/10 border border-primary/20 rounded-full px-5 py-2.5"
+                      >
+                        <Text className="text-sm font-[800] text-primary">
+                          Resend Code
+                        </Text>
+                      </TouchableOpacity>
+                    )}
                   </View>
                 </View>
               )}

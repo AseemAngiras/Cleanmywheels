@@ -141,10 +141,10 @@ export default function SubscriptionConfigureScreen() {
     });
   }
 
-  const availableCars =
-    cars?.filter((car: any) => !activeVehicleIds.has(String(car._id))) || [];
+  const allCars = cars || [];
+  const selectableCars = allCars.filter((car: any) => !activeVehicleIds.has(String(car._id)));
 
-  const selectedVehicle = availableCars.find(
+  const selectedVehicle = allCars.find(
     (c: any) => c._id === selectedVehicleId,
   );
   const priceKey = getPriceKey(selectedVehicle?.vehicleType || "Sedan") as
@@ -185,16 +185,16 @@ export default function SubscriptionConfigureScreen() {
   const currentTotalPrice = Math.round(basePrice + totalAddonsCost);
 
   useEffect(() => {
-    if (availableCars.length > 0) {
+    if (selectableCars.length > 0) {
       // If no vehicle is selected or the selected one is no longer available, select the first one
-      if (!selectedVehicleId || !availableCars.some((c: any) => c._id === selectedVehicleId)) {
-        setSelectedVehicleId(availableCars[0]._id);
+      if (!selectedVehicleId || !selectableCars.some((c: any) => c._id === selectedVehicleId)) {
+        setSelectedVehicleId(selectableCars[0]._id);
       }
     } else if (selectedVehicleId) {
       // If no cars are available, clear the selection
       setSelectedVehicleId(null);
     }
-  }, [availableCars, selectedVehicleId]);
+  }, [selectableCars, selectedVehicleId]);
 
   useEffect(() => {
     if (selectedAddons.length > 0) {
@@ -217,12 +217,12 @@ export default function SubscriptionConfigureScreen() {
       return;
     }
 
-    const cleanedNo = newCarNo.trim().replace(/\s+/g, " ").toUpperCase();
+    const normalizedNo = newCarNo.trim().replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
     
     const standardRegex = /^[A-Z]{2}[0-9]{1,2}[A-Z]{0,3}[0-9]{4}$/;
-    const bhRegex = /^[0-9]{2}\s?BH\s?[0-9]{4}\s?[A-Z]{2}$/;
+    const bhRegex = /^[0-9]{2}BH[0-9]{4}[A-Z]{2}$/;
 
-    if (!standardRegex.test(cleanedNo.replace(/\s+/g, "")) && !bhRegex.test(cleanedNo)) {
+    if (!standardRegex.test(normalizedNo) && !bhRegex.test(normalizedNo)) {
       showAlert({
         title:"Invalid Vehicle Number",
         message:"Please enter a valid format (e.g., MH01AB1234 or 22 BH 1234 AA).",
@@ -233,17 +233,17 @@ export default function SubscriptionConfigureScreen() {
     const isDuplicate = cars?.some((car: any) => {
       const existingNo = (car.vehicleNo || car.number || "")
         .trim()
-        .replace(/\s+/g, "")
+        .replace(/[^a-zA-Z0-9]/g, "")
         .toUpperCase();
       const existingType = car.vehicleType || car.type;
 
-      return existingNo === cleanedNo && existingType === newCarType;
+      return existingNo === normalizedNo && existingType === newCarType;
     });
 
     if (isDuplicate) {
       showAlert({
         title: "Duplicate Vehicle",
-        message: `A ${newCarType} with number ${cleanedNo} is already in your garage.`,
+        message: `A ${newCarType} with number ${normalizedNo} is already in your garage.`,
         type: "info",
       });
       return;
@@ -251,7 +251,7 @@ export default function SubscriptionConfigureScreen() {
 
     try {
       const result = await createVehicle({
-        vehicleNo: cleanedNo,
+        vehicleNo: normalizedNo,
         vehicleType: newCarType,
         isDefault: false,
       }).unwrap();
@@ -357,43 +357,63 @@ export default function SubscriptionConfigureScreen() {
             <ActivityIndicator color={Colors.primary} className="my-5" />
           ) : (
             <View className="flex-row flex-wrap justify-between gap-y-4 mb-8">
-              {availableCars.map((car: any) => (
-                <InteractivePressable
-                  key={car._id}
-                  className={`w-[48%] rounded-[24px] p-5 items-center border ${
-                    selectedVehicleId === car._id
-                      ? "bg-primary border-primary"
-                      : "bg-card border-border"
-                  }`}
-                  onPress={() => setSelectedVehicleId(car._id)}
-                >
-                  <MaterialCommunityIcons
-                    name={getVehicleIconName(car.vehicleType) as any}
-                    size={42}
-                    color={
+              {allCars.map((car: any) => {
+                const isSubscribed = activeVehicleIds.has(String(car._id));
+                return (
+                  <InteractivePressable
+                    key={car._id}
+                    className={`w-[48%] rounded-[24px] p-5 items-center border relative ${
                       selectedVehicleId === car._id
-                        ? "#000"
-                        : Colors.textSecondary
-                    }
-                  />
-                  <Text
-                    className={`text-[14px] font-[700] mt-3 tracking-tight ${
-                      selectedVehicleId === car._id ? "text-black" : "text-text"
-                    }`}
+                        ? "bg-primary border-primary"
+                        : "bg-card border-border"
+                    } ${isSubscribed ? "opacity-40" : ""}`}
+                    onPress={() => {
+                      if (isSubscribed) {
+                        showAlert({
+                          title: "Already Subscribed",
+                          message: `${car.vehicleNo} already has an active subscription.`,
+                          type: "info",
+                        });
+                        return;
+                      }
+                      setSelectedVehicleId(car._id);
+                    }}
                   >
-                    {car.vehicleType}
-                  </Text>
-                  <Text
-                    className={`text-[12px] font-[600] mt-1 ${
-                      selectedVehicleId === car._id
-                        ? "text-black/70"
-                        : "text-textSecondary"
-                    }`}
-                  >
-                    {car.vehicleNo}
-                  </Text>
-                </InteractivePressable>
-              ))}
+                    <MaterialCommunityIcons
+                      name={getVehicleIconName(car.vehicleType) as any}
+                      size={42}
+                      color={
+                        selectedVehicleId === car._id
+                          ? "#000"
+                          : Colors.textSecondary
+                      }
+                    />
+                    <Text
+                      className={`text-[14px] font-[700] mt-3 tracking-tight ${
+                        selectedVehicleId === car._id ? "text-black" : "text-text"
+                      }`}
+                    >
+                      {car.vehicleType}
+                    </Text>
+                    <Text
+                      className={`text-[12px] font-[600] mt-1 ${
+                        selectedVehicleId === car._id
+                          ? "text-black/70"
+                          : "text-textSecondary"
+                      }`}
+                    >
+                      {car.vehicleNo}
+                    </Text>
+                    {isSubscribed && (
+                      <View className="absolute top-2 right-2 bg-border px-2 py-0.5 rounded-full border border-border/80">
+                        <Text className="text-[9px] font-[800] text-textSecondary uppercase tracking-wider">
+                          Active
+                        </Text>
+                      </View>
+                    )}
+                  </InteractivePressable>
+                );
+              })}
 
               <InteractivePressable
                 className="w-[48%] bg-card rounded-[24px] p-5 items-center border border-primary border-dashed justify-center "

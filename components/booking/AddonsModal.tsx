@@ -101,7 +101,7 @@ export const AddonsModal: React.FC<AddonsModalProps> = ({
                       {addon.name}
                     </Text>
                     <Text className="text-[13px] font-[900] color-primary mt-0.5">
-                      +₹{formatPrice(addon.normalPrice || addon.price)}
+                      +₹{formatPrice(addon.basePrice || addon.normalPrice || addon.price)}
                     </Text>
                     {addon.description && (
                       <Text

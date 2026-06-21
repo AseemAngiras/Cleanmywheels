@@ -32,6 +32,9 @@ export interface Addon {
   name: string;
   description: string;
   price: number; // Base/Fallback price
+  normalPrice?: number;
+  basePrice?: number;
+  subscriptionPrice?: number;
   priceMatrix?: {
     ONE_TIME?: number;
     WEEKLY?: number;

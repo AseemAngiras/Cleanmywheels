@@ -24,6 +24,8 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Keyboard,
+  TouchableWithoutFeedback,
 } from "react-native";
 import Animated, {
   FadeInUp,
@@ -258,7 +260,7 @@ export default function SelectServiceScreen() {
       addonsList.forEach((addon: any) => {
         const aid = addon._id || addon.id;
         if (aid && addons[aid]) {
-          total += Number(addon.normalPrice || addon.price || 0);
+          total += Number(addon.basePrice || addon.normalPrice || addon.price || 0);
         }
       });
     }
@@ -275,8 +277,8 @@ export default function SelectServiceScreen() {
       });
       return;
     }
-    const cleanNumber = vehicleNumber.trim().toUpperCase();
-    if (!cleanNumber) {
+    const normalizedNumber = vehicleNumber.trim().replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+    if (!normalizedNumber) {
       showAlert({
         title:"Error", 
         message: "Please enter vehicle number"
@@ -284,10 +286,10 @@ export default function SelectServiceScreen() {
       return;
     }
 
-    const bhRegex = /^[0-9]{2}\s?BH\s?[0-9]{4}\s?[A-Z]{2}$/;
+    const bhRegex = /^[0-9]{2}BH[0-9]{4}[A-Z]{2}$/;
     const standardRegex = /^[A-Z]{2}[0-9]{1,2}[A-Z]{0,3}[0-9]{4}$/;
 
-    if (!bhRegex.test(cleanNumber) && !standardRegex.test(cleanNumber)) {
+    if (!bhRegex.test(normalizedNumber) && !standardRegex.test(normalizedNumber)) {
       showAlert({
         title:"Invalid Vehicle Number",
         message:"Please enter a valid format (e.g. MH01AB1234 or 22 BH 1234 AA)",
@@ -303,7 +305,7 @@ export default function SelectServiceScreen() {
         return {
           id: addon?._id || addon?.id,
           name: addon?.name,
-          price: addon?.normalPrice || addon?.price,
+          price: addon?.basePrice || addon?.normalPrice || addon?.price,
         };
       });
 
@@ -321,7 +323,7 @@ export default function SelectServiceScreen() {
         serviceId: selectedService,
         serviceName: selectedServiceData?.name,
         basePrice: actualBasePrice,
-        vehicleNumber,
+        vehicleNumber: normalizedNumber,
         vehicleType,
         address,
         latitude,
@@ -359,452 +361,457 @@ export default function SelectServiceScreen() {
           contentContainerStyle={{ paddingBottom: 350 + insets.bottom }}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
         >
-          <Text className="text-[14px] font-[800] color-textSecondary uppercase tracking-widest mb-6 px-1">
-            Wash Packages
-          </Text>
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <View>
+              <Text className="text-[14px] font-[800] color-textSecondary uppercase tracking-widest mb-6 px-1">
+                Wash Packages
+              </Text>
 
-          <View className="mb-8">
-            {isLoadingPackages ? (
-              <ListSkeleton type="service" count={3} />
-            ) : services.length === 0 ? (
-              <View className="bg-card p-8 rounded-[32px] items-center border border-border/50">
-                <Ionicons
-                  name="alert-circle-outline"
-                  size={40}
-                  color={Colors.textSecondary}
-                />
-                <Text className="color-textSecondary font-[600] mt-3">
-                  No packages available
-                </Text>
-              </View>
-            ) : (
-              <View className="px-5">
-                {services.map((service, index) => {
-                  const isSelected = selectedService === service.id;
-                  const isExpanded = detailsExpanded.has(service.id);
-                  return (
-                    <InteractivePressable
-                      key={service.id as any}
-                      onPress={() => handleServiceSelect(service.id)}
-                      onLongPress={() => {
-                        if (!isAdmin) return;
-                        setEditingService({
-                          id: service.id,
-                          name: service.name,
-                          price: service.price || 0,
-                          prices: service.prices || {
-                            hatchback: 0,
-                            sedan: 0,
-                            suv: 0,
-                          },
-                        });
-                        setNewPrices({
-                          hatchback: (
-                            service.prices?.hatchback || 0
-                          ).toString(),
-                          sedan: (service.prices?.sedan || 0).toString(),
-                          suv: (service.prices?.suv || 0).toString(),
-                        });
-                      }}
-                      className="mb-4 overflow-hidden rounded-[28px]"
-                    >
-                      <Animated.View
-                        entering={FadeInUp.delay(index * 100).duration(500)}
-                        className={`rounded-[28px] border ${
-                          isSelected
-                            ? "bg-card border-primary shadow-lg shadow-primary/20"
-                            : "bg-card border-border/50 shadow-sm"
-                        }`}
-                      >
-                        <View className="p-5">
-                          <View className="flex-row items-center justify-between mb-2">
-                            <View className="flex-1">
-                              <Text className="text-[18px] font-[800] color-text">
-                                {service.name}
-                              </Text>
-                              <View className="flex-row items-center mt-1">
-                                <Text className="text-[20px] font-[900] color-primary">
-                                  ₹
-                                  {(() => {
-                                    const priceKey =
-                                      VEHICLE_TYPE_TO_PRICE_KEY[vehicleType] ||
-                                      "sedan";
-                                    const pData = (service.prices as any)?.[
-                                      priceKey
-                                    ];
-                                    const val = typeof pData === "object"
-                                      ? pData.ONE_TIME || 0
-                                      : pData || service.price;
-                                    return formatPrice(val);
-                                  })()}
-                                </Text>
-                                {service.isBestseller && (
-                                  <Text className="ml-3 text-[12px] font-[700] color-textSecondary uppercase tracking-widest">
-                                    Bestseller
-                                  </Text>
-                                )}
-                              </View>
-                            </View>
-
-                            <View
-                              className={`w-6 h-6 rounded-full border-2 items-center justify-center ${
-                                isSelected
-                                  ? "bg-primary border-primary"
-                                  : "border-border/50"
-                              }`}
-                            >
-                              {isSelected && (
-                                <View className="w-2.5 h-2.5 rounded-full bg-black/80" />
-                              )}
-                            </View>
-                          </View>
-
-                          <Text
-                            className="text-[13px] color-textSecondary font-[500] leading-5"
-                            numberOfLines={isExpanded ? 0 : 1}
-                          >
-                            {service.description}
-                          </Text>
-
-                          <InteractivePressable
-                            onPress={(e) => toggleDetails(service.id, e)}
-                            className="flex-row items-center justify-center mt-4 border-t border-border/20"
-                          >
-                            <Text className="text-[12px] font-[800] color-primary uppercase tracking-widest mr-1.5">
-                              {isExpanded ? "Hide details" : "Show details"}
-                            </Text>
-                            <Ionicons
-                              name={isExpanded ? "chevron-up" : "chevron-down"}
-                              size={16}
-                              color={Colors.primary}
-                            />
-                          </InteractivePressable>
-
-                          {isExpanded && (
-                            <View className="mt-4">
-                              <View className="flex-row flex-wrap gap-2">
-                                {service.features.map(
-                                  (feature: string, idx: number) => (
-                                    <View
-                                      key={idx}
-                                      className="px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 flex-row items-center"
-                                    >
-                                      <View className="w-1.5 h-1.5 rounded-full bg-primary mr-2" />
-                                      <Text className="text-[11px] font-[700] color-primary uppercase">
-                                        {feature}
-                                      </Text>
-                                    </View>
-                                  ),
-                                )}
-                              </View>
-                            </View>
-                          )}
-                        </View>
-                      </Animated.View>
-                    </InteractivePressable>
-                  );
-                })}
-              </View>
-            )}
-          </View>
-
-          {selectedService && (
-            <View className="mt-8 mb-10">
-              <View className="flex-row items-center justify-between px-5 mb-6">
-                <Text className="text-[14px] font-[800] color-textSecondary uppercase tracking-widest px-1">
-                  Pick Add-ons
-                </Text>
-              </View>
-
-              <View className="px-5">
-                {isLoadingAddons ? (
-                  <ActivityIndicator color={Colors.primary} />
-                ) : addonsList.length === 0 ? (
-                  <View className="bg-card p-6 rounded-[24px] items-center border border-border/50">
-                    <Text className="color-textSecondary italic">
-                      No add-ons available
+              <View className="mb-8">
+                {isLoadingPackages ? (
+                  <ListSkeleton type="service" count={3} />
+                ) : services.length === 0 ? (
+                  <View className="bg-card p-8 rounded-[32px] items-center border border-border/50">
+                    <Ionicons
+                      name="alert-circle-outline"
+                      size={40}
+                      color={Colors.textSecondary}
+                    />
+                    <Text className="color-textSecondary font-[600] mt-3">
+                      No packages available
                     </Text>
                   </View>
                 ) : (
-                  <View>
-                    <View className="gap-3">
-                      {(addonsList as any[]).slice(0, 3).map((addon: any, idx: number) => {
-                        const aid = addon._id || addon.id;
-                        const isSelected = !!addons[aid];
-                        return (
-                          <InteractivePressable
-                            key={(aid || `addon-${idx}`) as any}
-                            onPress={() => toggleAddon(aid)}
-                            className="mb-3"
+                  <View className="px-5">
+                    {services.map((service, index) => {
+                      const isSelected = selectedService === service.id;
+                      const isExpanded = detailsExpanded.has(service.id);
+                      return (
+                        <InteractivePressable
+                          key={service.id as any}
+                          onPress={() => handleServiceSelect(service.id)}
+                          onLongPress={() => {
+                            if (!isAdmin) return;
+                            setEditingService({
+                              id: service.id,
+                              name: service.name,
+                              price: service.price || 0,
+                              prices: service.prices || {
+                                hatchback: 0,
+                                sedan: 0,
+                                suv: 0,
+                              },
+                            });
+                            setNewPrices({
+                              hatchback: (
+                                service.prices?.hatchback || 0
+                              ).toString(),
+                              sedan: (service.prices?.sedan || 0).toString(),
+                              suv: (service.prices?.suv || 0).toString(),
+                            });
+                          }}
+                          className="mb-4 overflow-hidden rounded-[28px]"
+                        >
+                          <Animated.View
+                            entering={FadeInUp.delay(index * 100).duration(500)}
+                            className={`rounded-[28px] border ${
+                              isSelected
+                                ? "bg-card border-primary shadow-lg shadow-primary/20"
+                                : "bg-card border-border/50 shadow-sm"
+                            }`}
                           >
-                            <Animated.View
-                              entering={FadeInLeft.delay(100 + idx * 50).duration(400)}
-                              className={`flex-row items-center p-5 rounded-[28px] border ${
-                                isSelected
-                                  ? "bg-primary/10 border-primary"
-                                  : "bg-card border-border/50"
-                              }`}
-                            >
-                              <View
-                                className={`w-14 h-14 rounded-2xl items-center justify-center mr-4 ${
-                                  isSelected ? "bg-primary/20" : "bg-background"
-                                }`}
-                              >
-                                <Ionicons
-                                  name={
-                                    isSelected ? "sparkles" : "add-circle-outline"
-                                  }
-                                  size={28}
-                                  color={
-                                    isSelected
-                                      ? Colors.primary
-                                      : Colors.textSecondary
-                                  }
-                                />
-                              </View>
-
-                              <View className="flex-1">
-                                <Text className="text-[16px] font-[800] color-text">
-                                  {addon.name}
-                                </Text>
-                                <View className="flex-row items-center mt-1">
-                                  <Text className="text-[14px] font-[900] color-primary">
-                                    +₹{formatPrice(addon.normalPrice || addon.price)}
+                            <View className="p-5">
+                              <View className="flex-row items-center justify-between mb-2">
+                                <View className="flex-1">
+                                  <Text className="text-[18px] font-[800] color-text">
+                                    {service.name}
                                   </Text>
-                                  {isSelected && (
-                                    <Text className="ml-2 text-[10px] font-[800] color-success uppercase tracking-widest">
-                                      Selected
+                                  <View className="flex-row items-center mt-1">
+                                    <Text className="text-[20px] font-[900] color-primary">
+                                      ₹
+                                      {(() => {
+                                        const priceKey =
+                                          VEHICLE_TYPE_TO_PRICE_KEY[vehicleType] ||
+                                          "sedan";
+                                        const pData = (service.prices as any)?.[
+                                          priceKey
+                                        ];
+                                        const val = typeof pData === "object"
+                                          ? pData.ONE_TIME || 0
+                                          : pData || service.price;
+                                        return formatPrice(val);
+                                      })()}
                                     </Text>
+                                    {service.isBestseller && (
+                                      <Text className="ml-3 text-[12px] font-[700] color-textSecondary uppercase tracking-widest">
+                                        Bestseller
+                                      </Text>
+                                    )}
+                                  </View>
+                                </View>
+
+                                <View
+                                  className={`w-6 h-6 rounded-full border-2 items-center justify-center ${
+                                    isSelected
+                                      ? "bg-primary border-primary"
+                                      : "border-border/50"
+                                  }`}
+                                >
+                                  {isSelected && (
+                                    <View className="w-2.5 h-2.5 rounded-full bg-black/80" />
                                   )}
                                 </View>
                               </View>
 
-                              {/* Info Icon */}
-                              <TouchableOpacity
-                                onPress={(e) => {
-                                  e.stopPropagation();
-                                  showAlert({
-                                    title: addon.name,
-                                    message: addon.description || "No details available.",
-                                    type: "info",
-                                  });
-                                }}
-                                hitSlop={{ top: 10, right: 10, bottom: 10, left: 10 }}
-                                className="mr-3"
+                              <Text
+                                className="text-[13px] color-textSecondary font-[500] leading-5"
+                                numberOfLines={isExpanded ? 0 : 1}
                               >
-                                <Ionicons name="information-circle-outline" size={22} color={Colors.textSecondary} />
-                              </TouchableOpacity>
+                                {service.description}
+                              </Text>
 
-                              <View
-                                className={`w-7 h-7 rounded-full items-center justify-center border-2 ${
-                                  isSelected
-                                    ? "bg-primary border-primary"
-                                    : "border-border/50"
-                                }`}
+                              <InteractivePressable
+                                onPress={(e) => toggleDetails(service.id, e)}
+                                className="flex-row items-center justify-center mt-4 border-t border-border/20"
                               >
-                                {isSelected && (
-                                  <Ionicons
-                                    name="checkmark"
-                                    size={16}
-                                    color="#000"
-                                  />
-                                )}
-                              </View>
-                            </Animated.View>
-                          </InteractivePressable>
-                        );
-                      })}
-                    </View>
+                                <Text className="text-[12px] font-[800] color-primary uppercase tracking-widest mr-1.5">
+                                  {isExpanded ? "Hide details" : "Show details"}
+                                </Text>
+                                <Ionicons
+                                  name={isExpanded ? "chevron-up" : "chevron-down"}
+                                  size={16}
+                                  color={Colors.primary}
+                                />
+                              </InteractivePressable>
 
-                    {addonsList.length > 3 && (
-                      <InteractivePressable
-                        onPress={() => setIsAddonsModalVisible(true)}
-                        className="mt-4 bg-card border border-border/50 p-5 rounded-[28px] flex-row items-center justify-center shadow-sm"
-                      >
-                        <Ionicons name="apps-outline" size={20} color={Colors.primary} style={{ marginRight: 8 }} />
-                        <Text className="text-[14px] font-[800] color-primary uppercase tracking-widest">
-                          View {addonsList.length - 3} More
-                        </Text>
-                        <View className="ml-2 bg-primary/10 px-2 py-0.5 rounded-full">
-                          <Text className="text-[10px] font-[900] color-primary">
-                            {Object.values(addons).filter(v => v).length} SELECTED
-                          </Text>
-                        </View>
-                      </InteractivePressable>
-                    )}
+                              {isExpanded && (
+                                <View className="mt-4">
+                                  <View className="flex-row flex-wrap gap-2">
+                                    {service.features.map(
+                                      (feature: string, idx: number) => (
+                                        <View
+                                          key={idx}
+                                          className="px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 flex-row items-center"
+                                        >
+                                          <View className="w-1.5 h-1.5 rounded-full bg-primary mr-2" />
+                                          <Text className="text-[11px] font-[700] color-primary uppercase">
+                                            {feature}
+                                          </Text>
+                                        </View>
+                                      ),
+                                    )}
+                                  </View>
+                                </View>
+                              )}
+                            </View>
+                          </Animated.View>
+                        </InteractivePressable>
+                      );
+                    })}
                   </View>
                 )}
               </View>
-            </View>
-          )}
 
-          {/* MY SAVED CARS */}
-          {cars.length > 0 && (
-            <View className="mb-10">
-              <Text className="text-[14px] font-[800] color-textSecondary uppercase tracking-widest mb-6 px-5">
-                My Vehicles
-              </Text>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                className="overflow-visible"
-              >
-                {cars.map((car: any, index: number) => {
-                  const isSelected = selectedCarId === (car._id || car.id);
-                  return (
-                    <InteractivePressable
-                      key={(car._id || car.id || index) as any}
-                      onPress={() => setSelectedCarId(car._id || car.id)}
-                      className="w-[100px] ml-[10px]"
-                    >
-                      <Animated.View
-                        entering={FadeInUp.delay(index * 100).duration(500)}
-                        style={{
-                          padding: 10,
-                          borderRadius: 15,
-                          borderWidth: 1,
-                          alignItems: "center",
-                          position: "relative",
-                          backgroundColor: isSelected
-                            ? Colors.primary
-                            : Colors.card,
-                          borderColor: isSelected
-                            ? Colors.primary
-                            : "rgba(226, 232, 240, 0.5)",
-                        }}
-                      >
-                        {isSelected && (
+              {selectedService && (
+                <View className="mt-8 mb-10">
+                  <View className="flex-row items-center justify-between px-5 mb-6">
+                    <Text className="text-[14px] font-[800] color-textSecondary uppercase tracking-widest px-1">
+                      Pick Add-ons
+                    </Text>
+                  </View>
+
+                  <View className="px-5">
+                    {isLoadingAddons ? (
+                      <ActivityIndicator color={Colors.primary} />
+                    ) : addonsList.length === 0 ? (
+                      <View className="bg-card p-6 rounded-[24px] items-center border border-border/50">
+                        <Text className="color-textSecondary italic">
+                          No add-ons available
+                        </Text>
+                      </View>
+                    ) : (
+                      <View>
+                        <View className="gap-3">
+                          {(addonsList as any[]).slice(0, 3).map((addon: any, idx: number) => {
+                            const aid = addon._id || addon.id;
+                            const isSelected = !!addons[aid];
+                            return (
+                              <InteractivePressable
+                                key={(aid || `addon-${idx}`) as any}
+                                onPress={() => toggleAddon(aid)}
+                                className="mb-3"
+                              >
+                                <Animated.View
+                                  entering={FadeInLeft.delay(100 + idx * 50).duration(400)}
+                                  className={`flex-row items-center p-5 rounded-[28px] border ${
+                                    isSelected
+                                      ? "bg-primary/10 border-primary"
+                                      : "bg-card border-border/50"
+                                  }`}
+                                >
+                                  <View
+                                    className={`w-14 h-14 rounded-2xl items-center justify-center mr-4 ${
+                                      isSelected ? "bg-primary/20" : "bg-background"
+                                    }`}
+                                  >
+                                    <Ionicons
+                                      name={
+                                        isSelected ? "sparkles" : "add-circle-outline"
+                                      }
+                                      size={28}
+                                      color={
+                                        isSelected
+                                          ? Colors.primary
+                                          : Colors.textSecondary
+                                      }
+                                    />
+                                  </View>
+
+                                  <View className="flex-1">
+                                    <Text className="text-[16px] font-[800] color-text">
+                                      {addon.name}
+                                    </Text>
+                                    <View className="flex-row items-center mt-1">
+                                      <Text className="text-[14px] font-[900] color-primary">
+                                        +₹{formatPrice(addon.basePrice || addon.normalPrice || addon.price)}
+                                      </Text>
+                                      {isSelected && (
+                                        <Text className="ml-2 text-[10px] font-[800] color-success uppercase tracking-widest">
+                                          Selected
+                                        </Text>
+                                      )}
+                                    </View>
+                                  </View>
+
+                                  {/* Info Icon */}
+                                  <TouchableOpacity
+                                    onPress={(e) => {
+                                      e.stopPropagation();
+                                      showAlert({
+                                        title: addon.name,
+                                        message: addon.description || "No details available.",
+                                        type: "info",
+                                      });
+                                    }}
+                                    hitSlop={{ top: 10, right: 10, bottom: 10, left: 10 }}
+                                    className="mr-3"
+                                  >
+                                    <Ionicons name="information-circle-outline" size={22} color={Colors.textSecondary} />
+                                  </TouchableOpacity>
+
+                                  <View
+                                    className={`w-7 h-7 rounded-full items-center justify-center border-2 ${
+                                      isSelected
+                                        ? "bg-primary border-primary"
+                                        : "border-border/50"
+                                    }`}
+                                  >
+                                    {isSelected && (
+                                      <Ionicons
+                                        name="checkmark"
+                                        size={16}
+                                        color="#000"
+                                      />
+                                    )}
+                                  </View>
+                                </Animated.View>
+                              </InteractivePressable>
+                            );
+                          })}
+                        </View>
+
+                        {addonsList.length > 3 && (
+                          <InteractivePressable
+                            onPress={() => setIsAddonsModalVisible(true)}
+                            className="mt-4 bg-card border border-border/50 p-5 rounded-[28px] flex-row items-center justify-center shadow-sm"
+                          >
+                            <Ionicons name="apps-outline" size={20} color={Colors.primary} style={{ marginRight: 8 }} />
+                            <Text className="text-[14px] font-[800] color-primary uppercase tracking-widest">
+                              View {addonsList.length - 3} More
+                            </Text>
+                            <View className="ml-2 bg-primary/10 px-2 py-0.5 rounded-full">
+                              <Text className="text-[10px] font-[900] color-primary">
+                                {Object.values(addons).filter(v => v).length} SELECTED
+                              </Text>
+                            </View>
+                          </InteractivePressable>
+                        )}
+                      </View>
+                    )}
+                  </View>
+                </View>
+              )}
+
+              {/* MY SAVED CARS */}
+              {cars.length > 0 && (
+                <View className="mb-10">
+                  <Text className="text-[14px] font-[800] color-textSecondary uppercase tracking-widest mb-6 px-5">
+                    My Vehicles
+                  </Text>
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    className="overflow-visible"
+                  >
+                    {cars.map((car: any, index: number) => {
+                      const isSelected = selectedCarId === (car._id || car.id);
+                      return (
+                        <InteractivePressable
+                          key={(car._id || car.id || index) as any}
+                          onPress={() => setSelectedCarId(car._id || car.id)}
+                          className="w-[100px] ml-[10px]"
+                        >
                           <Animated.View
-                            entering={ZoomIn.duration(300)}
+                            entering={FadeInUp.delay(index * 100).duration(500)}
                             style={{
-                              position: "absolute",
-                              top: 8,
-                              right: 8,
-                              backgroundColor: "rgba(0,0,0,0.2)",
-                              width: 20,
-                              height: 20,
-                              borderRadius: 10,
+                              padding: 10,
+                              borderRadius: 15,
+                              borderWidth: 1,
                               alignItems: "center",
-                              justifyContent: "center",
+                              position: "relative",
+                              backgroundColor: isSelected
+                                ? Colors.primary
+                                : Colors.card,
+                              borderColor: isSelected
+                                ? Colors.primary
+                                : "rgba(226, 232, 240, 0.5)",
                             }}
                           >
-                            <Ionicons name="checkmark" size={12} color="#000" />
+                            {isSelected && (
+                              <Animated.View
+                                entering={ZoomIn.duration(300)}
+                                style={{
+                                  position: "absolute",
+                                  top: 8,
+                                  right: 8,
+                                  backgroundColor: "rgba(0,0,0,0.2)",
+                                  width: 20,
+                                  height: 20,
+                                  borderRadius: 10,
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                }}
+                              >
+                                <Ionicons name="checkmark" size={12} color="#000" />
+                              </Animated.View>
+                            )}
+                            <View
+                              style={{
+                                width: 48,
+                                height: 48,
+                                borderRadius: 14,
+                                alignItems: "center",
+                                justifyContent: "center",
+                                marginBottom: 8,
+                                backgroundColor: isSelected
+                                  ? "rgba(0,0,0,0.1)"
+                                  : Colors.background,
+                              }}
+                            >
+                              <MaterialCommunityIcons
+                                name={
+                                  getVehicleIconName(
+                                    car.vehicleType || car.type,
+                                  ) as any
+                                }
+                                size={28}
+                                color={isSelected ? "#000" : Colors.textSecondary}
+                              />
+                            </View>
+                            <Text
+                              style={{
+                                fontSize: 12,
+                                fontWeight: "800",
+                                textAlign: "center",
+                                color: isSelected ? "#000" : Colors.text,
+                              }}
+                              numberOfLines={1}
+                            >
+                              {car.vehicleNo || car.number}
+                            </Text>
+                            <Text
+                              style={{
+                                fontSize: 10,
+                                fontWeight: "600",
+                                marginTop: 1,
+                                color: isSelected
+                                  ? "rgba(0,0,0,0.6)"
+                                  : Colors.textSecondary,
+                              }}
+                            >
+                              {car.vehicleType || car.type}
+                            </Text>
                           </Animated.View>
-                        )}
-                        <View
-                          style={{
-                            width: 48,
-                            height: 48,
-                            borderRadius: 14,
-                            alignItems: "center",
-                            justifyContent: "center",
-                            marginBottom: 8,
-                            backgroundColor: isSelected
-                              ? "rgba(0,0,0,0.1)"
-                              : Colors.background,
-                          }}
-                        >
-                          <MaterialCommunityIcons
-                            name={
-                              getVehicleIconName(
-                                car.vehicleType || car.type,
-                              ) as any
-                            }
-                            size={28}
-                            color={isSelected ? "#000" : Colors.textSecondary}
-                          />
-                        </View>
-                        <Text
-                          style={{
-                            fontSize: 12,
-                            fontWeight: "800",
-                            textAlign: "center",
-                            color: isSelected ? "#000" : Colors.text,
-                          }}
-                          numberOfLines={1}
-                        >
-                          {car.vehicleNo || car.number}
-                        </Text>
-                        <Text
-                          style={{
-                            fontSize: 10,
-                            fontWeight: "600",
-                            marginTop: 1,
-                            color: isSelected
-                              ? "rgba(0,0,0,0.6)"
-                              : Colors.textSecondary,
-                          }}
-                        >
-                          {car.vehicleType || car.type}
-                        </Text>
-                      </Animated.View>
+                        </InteractivePressable>
+                      );
+                    })}
+                  </ScrollView>
+                </View>
+              )}
+
+              {/* Manual Vehicle Selection */}
+              <Text className="text-[14px] font-[800] color-textSecondary uppercase tracking-widest mb-6 px-1">
+                Vehicle Details
+              </Text>
+              <View className="flex-row flex-wrap justify-between mb-8 px-5">
+                {vehicleTypes.map((type) => {
+                  const isSelected = vehicleType === type.id;
+                  return (
+                    <InteractivePressable
+                      key={type.id as any}
+                      className={`w-[48%] mb-4 p-5 rounded-[24px] flex-row items-center border ${
+                        isSelected
+                          ? "bg-primary/20 border-primary"
+                          : "bg-card border-border/50"
+                      }`}
+                      onPress={() => {
+                        setSelectedCarId(null);
+                        setVehicleType(type.id);
+                      }}
+                    >
+                      <View
+                        className={`w-10 h-10 rounded-xl items-center justify-center mr-3 ${isSelected ? "bg-primary/20" : "bg-background"}`}
+                      >
+                        <MaterialCommunityIcons
+                          name={type.icon as any}
+                          size={22}
+                          color={isSelected ? Colors.primary : Colors.textSecondary}
+                        />
+                      </View>
+                      <Text
+                        className={`text-[13px] font-[800] ${
+                          isSelected ? "color-text" : "color-textSecondary"
+                        }`}
+                      >
+                        {type.name}
+                      </Text>
                     </InteractivePressable>
                   );
                 })}
-              </ScrollView>
-            </View>
-          )}
+              </View>
 
-          {/* Manual Vehicle Selection */}
-          <Text className="text-[14px] font-[800] color-textSecondary uppercase tracking-widest mb-6 px-1">
-            Vehicle Details
-          </Text>
-          <View className="flex-row flex-wrap justify-between mb-8 px-5">
-            {vehicleTypes.map((type) => {
-              const isSelected = vehicleType === type.id;
-              return (
-                <InteractivePressable
-                  key={type.id as any}
-                  className={`w-[48%] mb-4 p-5 rounded-[24px] flex-row items-center border ${
-                    isSelected
-                      ? "bg-primary/20 border-primary"
-                      : "bg-card border-border/50"
-                  }`}
-                  onPress={() => {
-                    setSelectedCarId(null);
-                    setVehicleType(type.id);
-                  }}
-                >
-                  <View
-                    className={`w-10 h-10 rounded-xl items-center justify-center mr-3 ${isSelected ? "bg-primary/20" : "bg-background"}`}
-                  >
-                    <MaterialCommunityIcons
-                      name={type.icon as any}
-                      size={22}
-                      color={isSelected ? Colors.primary : Colors.textSecondary}
-                    />
-                  </View>
-                  <Text
-                    className={`text-[13px] font-[800] ${
-                      isSelected ? "color-text" : "color-textSecondary"
-                    }`}
-                  >
-                    {type.name}
-                  </Text>
-                </InteractivePressable>
-              );
-            })}
-          </View>
-
-          <View className="mx-5 bg-card border border-border/50 rounded-[24px] px-5 h-16 flex-row items-center shadow-sm">
-            <View className="w-10 h-10 rounded-xl bg-background items-center justify-center mr-4">
-              <MaterialCommunityIcons
-                name="numeric"
-                size={22}
-                color={Colors.primary}
-              />
+              <View className="mx-5 bg-card border border-border/50 rounded-[24px] px-5 h-16 flex-row items-center shadow-sm">
+                <View className="w-10 h-10 rounded-xl bg-background items-center justify-center mr-4">
+                  <MaterialCommunityIcons
+                    name="numeric"
+                    size={22}
+                    color={Colors.primary}
+                  />
+                </View>
+                <TextInput
+                  className="flex-1 text-[16px] color-text font-[800]"
+                  placeholder="E.G. MH01CK1234"
+                  placeholderTextColor="#64748B"
+                  value={vehicleNumber}
+                  onChangeText={(text) => setVehicleNumber(text.replace(/[^a-zA-Z0-9\s]/g, "").toUpperCase())}
+                  autoCapitalize="characters"
+                  maxLength={13}
+                />
+              </View>
             </View>
-            <TextInput
-              className="flex-1 text-[16px] color-text font-[800]"
-              placeholder="E.G. MH01CK1234"
-              placeholderTextColor="#64748B"
-              value={vehicleNumber}
-              onChangeText={(text) => setVehicleNumber(text.replace(/[^a-zA-Z0-9\s]/g, "").toUpperCase())}
-              autoCapitalize="characters"
-              maxLength={13}
-            />
-          </View>
+          </TouchableWithoutFeedback>
         </ScrollView>
       </KeyboardAvoidingView>
 

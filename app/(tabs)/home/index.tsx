@@ -130,8 +130,17 @@ export default function HomeScreen() {
   const [isOtpWarningVisible, setIsOtpWarningVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const inputRefs = useRef<(TextInput | null)[]>([]);
+  const otpInputRef = useRef<TextInput>(null);
   const isNavigating = useRef(false);
   const [isExistingUser, setIsExistingUser] = useState(false);
+
+  useEffect(() => {
+    if (modalStep === "otp" && isLoginModalVisible) {
+      setTimeout(() => {
+        otpInputRef.current?.focus();
+      }, 100);
+    }
+  }, [modalStep, isLoginModalVisible]);
   const [authMode, setAuthMode] = useState<"login" | "signup">("login");
   const [registrationToken, setRegistrationToken] = useState<string | null>(null);
   const [registeredUser, setRegisteredUser] = useState<any>(null);
@@ -968,6 +977,7 @@ export default function HomeScreen() {
                 <View>
                   <View className="mb-10 relative w-full">
                     <TextInput
+                      ref={otpInputRef}
                       style={{ position: 'absolute', width: '100%', height: '100%', opacity: 0, zIndex: 10 }}
                       keyboardType="number-pad"
                       textContentType="oneTimeCode"
@@ -1028,31 +1038,30 @@ export default function HomeScreen() {
                   </InteractivePressable>
 
                   <View className="items-center">
-                    <Text className="text-sm text-gray-500 font-[500] mb-2">
+                    <Text className="text-sm text-gray-500 font-[500] mb-3">
                       Didn&apos;t receive code?
                     </Text>
-                    <InteractivePressable
-                      onPress={() => {
-                        if (timer === 0) {
-                          handleSendOtp();
-                        }
-                      }}
-                      disabled={timer > 0}
-                      className="flex-row items-center"
-                    >
-                      <Text
-                        className={`text-base font-[800] ${
-                          timer > 0 ? "text-gray-500" : "text-primary"
-                        }`}
-                      >
-                        Resend
-                      </Text>
-                      {timer > 0 && (
-                        <Text className="text-base font-[600] text-gray-500 ml-2">
-                          - 00:{timer < 10 ? `0${timer}` : timer}
+                    {timer > 0 ? (
+                      <View className="bg-[#1A1A1A] border border-white/5 rounded-full px-4 py-2 flex-row items-center gap-2">
+                        <Ionicons name="time-outline" size={14} color="#64748B" />
+                        <Text className="text-sm font-[700] text-primary">
+                          Resend code in 00:{timer < 10 ? `0${timer}` : timer}
                         </Text>
-                      )}
-                    </InteractivePressable>
+                      </View>
+                    ) : (
+                      <TouchableOpacity
+                        onPress={() => {
+                          if (timer === 0) {
+                            handleSendOtp();
+                          }
+                        }}
+                        className="bg-primary/10 border border-primary/20 rounded-full px-5 py-2.5"
+                      >
+                        <Text className="text-sm font-[800] text-primary">
+                          Resend Code
+                        </Text>
+                      </TouchableOpacity>
+                    )}
                   </View>
                 </View>
               )}

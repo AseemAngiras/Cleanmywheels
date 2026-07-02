@@ -1,6 +1,6 @@
 import { Stack } from "expo-router";
 import React from "react";
-import { Colors } from "../../../../constants/Colors";
+import { Colors } from "../../../../src/constants/Colors";
 
 export default function BookDoorstepLayout() {
   return (

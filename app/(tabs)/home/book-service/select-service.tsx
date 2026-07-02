@@ -20,7 +20,7 @@ import { InteractivePressable } from "@/components/ui/InteractivePressable";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useDispatch } from "react-redux";
-import BookingStepper from "../../../../components/BookingStepper";
+import BookingStepper from "../../../../src/components/booking/BookingStepper";
 import { Colors } from "@/constants/Colors";
 
 // Define available add-ons per service

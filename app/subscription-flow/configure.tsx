@@ -23,7 +23,7 @@ import {
   useGetMySubscriptionQuery,
   useGetAddonsQuery,
 } from "@/store/api/subscriptionApi";
-import { useAlert } from "@/components/providers/AlertProvider";
+import { useAlert } from "@/providers/AlertProvider";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { formatPrice } from "@/utils/formatPrice";
 

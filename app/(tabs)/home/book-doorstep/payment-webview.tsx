@@ -13,7 +13,7 @@ import {
   useVerifyAddonPaymentMutation,
   useVerifySubscriptionMutation,
 } from "@/store/api/subscriptionApi";
-import { useAlert } from "@/components/providers/AlertProvider";
+import { useAlert } from "@/providers/AlertProvider";
 import { Colors } from "@/constants/Colors";
 import { useEffect } from "react";
 

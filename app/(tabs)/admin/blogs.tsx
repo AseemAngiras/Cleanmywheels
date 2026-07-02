@@ -7,7 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { InteractivePressable } from '@/components/ui/InteractivePressable';
 import { toast } from '@/utils/toast';
-import { useAlert } from '@/components/providers/AlertProvider';
+import { useAlert } from '@/providers/AlertProvider';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function AdminBlogsScreen() {

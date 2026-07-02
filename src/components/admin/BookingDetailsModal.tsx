@@ -10,7 +10,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/constants/Colors";
 import { formatPrice } from "@/utils/formatPrice";
-import { useAlert } from "@/components/providers/AlertProvider";
+import { useAlert } from "@/providers/AlertProvider";
 
 interface BookingDetailsModalProps {
   visible: boolean;

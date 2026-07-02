@@ -10,7 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useAlert } from "@/components/providers/AlertProvider";
+import { useAlert } from "@/providers/AlertProvider";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { InteractivePressable } from "@/components/ui/InteractivePressable";
 import RazorpayCheckout from "react-native-razorpay";

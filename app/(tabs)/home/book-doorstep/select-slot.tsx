@@ -17,7 +17,7 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import BookingStepper from "@/components/BookingStepper";
+import BookingStepper from "@/components/booking/BookingStepper";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { RootState } from "@/store";
@@ -40,7 +40,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useAlert } from "@/components/providers/AlertProvider";
+import { useAlert } from "@/providers/AlertProvider";
 import { InteractivePressable } from "@/components/ui/InteractivePressable";
 
 interface OtpBoxProps {

@@ -14,7 +14,7 @@ import {
 import { useGetWorkersQuery } from "@/store/api/workerApi";
 import { Colors } from "@/constants/Colors";
 import { Ionicons } from "@expo/vector-icons";
-import { useAlert } from "@/components/providers/AlertProvider";
+import { useAlert } from "@/providers/AlertProvider";
 
 const AdminBookingScreen = () => {
   const { showAlert } = useAlert();

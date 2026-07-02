@@ -21,12 +21,12 @@ import {
   ScrollView,
   ActivityIndicator,
 } from "react-native";
-import { useAlert } from "@/components/providers/AlertProvider";
+import { useAlert } from "@/providers/AlertProvider";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useDispatch, useSelector } from "react-redux";
-import BookingStepper from "../../../../components/BookingStepper";
-import PulseLoader from "../../../../components/PulseLoader";
+import BookingStepper from "../../../../src/components/booking/BookingStepper";
+import PulseLoader from "../../../../src/components/ui/PulseLoader";
 import socketService from "@/services/socketService";
 import { InteractivePressable } from "@/components/ui/InteractivePressable";
 import { formatPrice } from "@/utils/formatPrice";

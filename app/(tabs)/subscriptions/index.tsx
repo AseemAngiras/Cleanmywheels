@@ -20,12 +20,12 @@ import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import {
   useGetPlansQuery,
   useGetMySubscriptionQuery,
-} from "../../../store/api/subscriptionApi";
-import { ActiveSubscriptionCard } from "../../../components/subscriptions/ActiveSubscriptionCard";
-import { PlanCard, PLAN_CARD_SNAP } from "../../../components/subscriptions/PlanCard";
-import { BenefitsCard } from "../../../components/subscriptions/BenefitsCard";
-import { SavingsCard } from "../../../components/subscriptions/SavingsCard";
-import { SegmentedControl } from "../../../components/subscriptions/SegmentedControl";
+} from "../../../src/store/api/subscriptionApi";
+import { ActiveSubscriptionCard } from "../../../src/components/subscriptions/ActiveSubscriptionCard";
+import { PlanCard, PLAN_CARD_SNAP } from "../../../src/components/subscriptions/PlanCard";
+import { BenefitsCard } from "../../../src/components/subscriptions/BenefitsCard";
+import { SavingsCard } from "../../../src/components/subscriptions/SavingsCard";
+import { SegmentedControl } from "../../../src/components/subscriptions/SegmentedControl";
 import { InteractivePressable } from "@/components/ui/InteractivePressable";
 
 import { useSelector } from "react-redux";

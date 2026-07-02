@@ -43,18 +43,18 @@ import Animated, {
 } from "react-native-reanimated";
 import { useDispatch, useSelector } from "react-redux";
 
-import { HomeBackground } from "../../../components/home/HomeBackground";
-import { HeroSection } from "../../../components/home/HeroSection";
-import { ServiceActionGrid } from "../../../components/home/ServiceActionGrid";
-import { NextServiceWidget } from "../../../components/home/NextServiceWidget";
-import { CoreProtocols } from "../../../components/home/CoreProtocols";
-import { TransformationSection } from "../../../components/home/TransformationSection";
-import { ProtocolSection } from "../../../components/home/ProtocolSection";
-import { MembershipPerks } from "../../../components/home/MembershipPerks";
-import { OnboardingTour } from "../../../components/home/OnboardingTour";
+import { HomeBackground } from "../../../src/components/home/HomeBackground";
+import { HeroSection } from "../../../src/components/home/HeroSection";
+import { ServiceActionGrid } from "../../../src/components/home/ServiceActionGrid";
+import { NextServiceWidget } from "../../../src/components/home/NextServiceWidget";
+import { CoreProtocols } from "../../../src/components/home/CoreProtocols";
+import { TransformationSection } from "../../../src/components/home/TransformationSection";
+import { ProtocolSection } from "../../../src/components/home/ProtocolSection";
+import { MembershipPerks } from "../../../src/components/home/MembershipPerks";
+import { OnboardingTour } from "../../../src/components/home/OnboardingTour";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { toast } from "@/utils/toast";
-import { useAlert } from "@/components/providers/AlertProvider";
+import { useAlert } from "@/providers/AlertProvider";
 
 interface OtpBoxProps {
   digit: string;

@@ -7,7 +7,7 @@ import LottieView from "lottie-react-native";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useDispatch } from "react-redux";
-import { addBooking } from "../../../../store/slices/bookingSlice";
+import { addBooking } from "../../../../src/store/slices/bookingSlice";
 import { formatPrice } from "@/utils/formatPrice";
 
 export default function OrderConfirmationScreen() {

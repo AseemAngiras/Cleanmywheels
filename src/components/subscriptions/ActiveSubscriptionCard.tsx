@@ -13,7 +13,7 @@ import Animated, {
 import { InteractivePressable } from "@/components/ui/InteractivePressable";
 import { CircularProgress } from "./CircularProgress";
 import { useCancelSubscriptionMutation } from "@/store/api/subscriptionApi";
-import { useAlert } from "@/components/providers/AlertProvider";
+import { useAlert } from "@/providers/AlertProvider";
 
 interface ActiveSubscriptionCardProps {
   subscription: any;

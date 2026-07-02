@@ -37,13 +37,13 @@ import { InteractivePressable } from "@/components/ui/InteractivePressable";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Colors } from "@/constants/Colors";
-import BookingStepper from "../../../../components/BookingStepper";
-import { ListSkeleton } from "../../../../components/SkeletonLoader";
+import BookingStepper from "../../../../src/components/booking/BookingStepper";
+import { ListSkeleton } from "../../../../src/components/ui/SkeletonLoader";
 import {
   useGetMySubscriptionQuery,
   useGetAddonsQuery,
 } from "@/store/api/subscriptionApi";
-import { useAlert } from "@/components/providers/AlertProvider";
+import { useAlert } from "@/providers/AlertProvider";
 import { formatPrice } from "@/utils/formatPrice";
 import { AddonsModal } from "@/components/booking/AddonsModal";
 

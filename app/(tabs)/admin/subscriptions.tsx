@@ -20,7 +20,7 @@ import {
 import { InteractivePressable } from "@/components/ui/InteractivePressable";
 import { useFocusEffect } from "expo-router";
 import { Colors } from "@/constants/Colors";
-import { useAlert } from "@/components/providers/AlertProvider";
+import { useAlert } from "@/providers/AlertProvider";
 
 import {
   useAssignSubscriptionWorkerMutation,

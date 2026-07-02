@@ -5,20 +5,20 @@ import { ActivityIndicator, View, TouchableOpacity, Text } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
-import SocketManager from "../components/SocketManager";
-import { persistor, store } from "../store/index";
+import SocketManager from "../src/managers/SocketManager";
+import { persistor, store } from "../src/store/index";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
 import { useFonts } from "expo-font";
 import Toast from "react-native-toast-message";
 import { Ionicons } from "@expo/vector-icons";
-import NotificationManager from "../components/NotificationManager";
-import { Colors } from "../constants/Colors";
+import NotificationManager from "../src/managers/NotificationManager";
+import { Colors } from "../src/constants/Colors";
 
 import { DarkTheme, ThemeProvider } from "@react-navigation/native";
-import { AlertProvider } from "../components/providers/AlertProvider";
-import { NetworkBanner } from "../components/NetworkBanner";
-import { ErrorBoundary } from "../components/ErrorBoundary";
+import { AlertProvider } from "../src/providers/AlertProvider";
+import { NetworkBanner } from "../src/managers/NetworkBanner";
+import { ErrorBoundary } from "../src/ErrorBoundary";
 
 SplashScreen.preventAutoHideAsync();
 

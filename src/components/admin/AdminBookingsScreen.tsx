@@ -19,7 +19,7 @@ import {
   View,
 } from "react-native";
 import { Colors } from "@/constants/Colors";
-import { useAlert } from "@/components/providers/AlertProvider";
+import { useAlert } from "@/providers/AlertProvider";
 
 import BookingDetailsModal from "./BookingDetailsModal";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";

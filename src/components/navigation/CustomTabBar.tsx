@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useEffect, useRef } from "react";
 import { Animated, View, Text } from "react-native";
-import { InteractivePressable } from "./ui/InteractivePressable";
+import { InteractivePressable } from "../ui/InteractivePressable";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Colors } from "@/constants/Colors";
 

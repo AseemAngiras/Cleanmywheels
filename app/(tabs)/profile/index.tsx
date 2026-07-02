@@ -17,7 +17,7 @@ import {
   RefreshControl,
 } from "react-native";
 import { useFocusEffect } from "expo-router";
-import { useAlert } from "@/components/providers/AlertProvider";
+import { useAlert } from "@/providers/AlertProvider";
 import { useSelector } from "react-redux";
 import Animated, {
   FadeInUp,

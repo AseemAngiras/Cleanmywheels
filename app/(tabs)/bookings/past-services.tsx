@@ -23,11 +23,11 @@ import { InteractivePressable } from "@/components/ui/InteractivePressable";
 import { formatPrice } from "@/utils/formatPrice";
 
 import { useFocusEffect } from "expo-router";
-import { useAlert } from "@/components/providers/AlertProvider";
-import { useGetBookingsQuery } from "../../../store/api/bookingApi";
-import { useAppDispatch, useAppSelector } from "../../../store/hooks";
-import { type RootState } from "../../../store";
-import { addTicket } from "../../../store/slices/bookingSlice";
+import { useAlert } from "@/providers/AlertProvider";
+import { useGetBookingsQuery } from "../../../src/store/api/bookingApi";
+import { useAppDispatch, useAppSelector } from "../../../src/store/hooks";
+import { type RootState } from "../../../src/store";
+import { addTicket } from "../../../src/store/slices/bookingSlice";
 
 // Helper to map backend booking to display format
 const mapBackendBooking = (booking: any) => ({

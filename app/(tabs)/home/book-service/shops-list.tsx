@@ -25,7 +25,7 @@ import {
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useDispatch, useSelector } from "react-redux";
-import BookingStepper from "../../../../components/BookingStepper";
+import BookingStepper from "../../../../src/components/booking/BookingStepper";
 import { Colors } from "@/constants/Colors";
 
 // Types

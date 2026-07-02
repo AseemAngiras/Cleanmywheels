@@ -19,7 +19,7 @@ import {
   useGetAddonsQuery,
   useGetMySubscriptionQuery,
 } from "@/store/api/subscriptionApi";
-import { useAlert } from "@/components/providers/AlertProvider";
+import { useAlert } from "@/providers/AlertProvider";
 import { formatPrice } from "@/utils/formatPrice";
 
 export default function AddonsScreen() {

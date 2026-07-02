@@ -1,9 +1,9 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '../constants/Colors';
-import { InteractivePressable } from './ui/InteractivePressable';
-import { type Booking } from '../types';
+import { Colors } from '../../constants/Colors';
+import { InteractivePressable } from '../ui/InteractivePressable';
+import { type Booking } from '../../types';
 
 interface BookingItemProps {
   item: Booking;

@@ -10,7 +10,7 @@ import { InteractivePressable } from "../ui/InteractivePressable";
 import { Ionicons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
 import { Colors } from "@/constants/Colors";
-import { useAlert } from "@/components/providers/AlertProvider";
+import { useAlert } from "@/providers/AlertProvider";
 
 interface WorkerFormProps {
   initialValues?: {

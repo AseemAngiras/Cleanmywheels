@@ -16,7 +16,7 @@ import {
   View,
   ActivityIndicator,
 } from "react-native";
-import { useAlert } from "@/components/providers/AlertProvider";
+import { useAlert } from "@/providers/AlertProvider";
 import { InteractivePressable } from "@/components/ui/InteractivePressable";
 
 import {
@@ -24,15 +24,15 @@ import {
   useDeleteVehicleMutation,
   useGetVehiclesQuery,
   useUpdateVehicleMutation,
-} from "../../store/api/vehicleApi";
-import { useGetMySubscriptionQuery } from "../../store/api/subscriptionApi";
+} from "../../src/store/api/vehicleApi";
+import { useGetMySubscriptionQuery } from "../../src/store/api/subscriptionApi";
 
 import { RootState } from "@/store";
 import { useSelector } from "react-redux";
 import AdminSubscriptionsScreen from "../(tabs)/admin/subscriptions";
 import { useRouter } from "expo-router";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
-import { CarItem } from "@/components/CarItem";
+import { CarItem } from "@/components/vehicles/CarItem";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 

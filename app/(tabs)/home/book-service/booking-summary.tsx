@@ -13,10 +13,10 @@ import {
   View,
 } from "react-native";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
-import { useAlert } from "@/components/providers/AlertProvider";
+import { useAlert } from "@/providers/AlertProvider";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useDispatch, useSelector } from "react-redux";
-import BookingStepper from "../../../../components/BookingStepper";
+import BookingStepper from "../../../../src/components/booking/BookingStepper";
 import { Colors } from "@/constants/Colors";
 
 export default function BookingSummaryScreen() {

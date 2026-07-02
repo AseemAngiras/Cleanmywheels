@@ -12,28 +12,28 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Colors } from "../../../constants/Colors";
+import { Colors } from "../../../src/constants/Colors";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { InteractivePressable } from "../../../components/ui/InteractivePressable";
+import { InteractivePressable } from "../../../src/components/ui/InteractivePressable";
 import { formatPrice } from "@/utils/formatPrice";
 
 import { useFocusEffect, useRouter } from "expo-router";
-import { useAlert } from "@/components/providers/AlertProvider";
+import { useAlert } from "@/providers/AlertProvider";
 
-import type { RootState } from "../../../store";
+import type { RootState } from "../../../src/store";
 import {
   useGetBookingsQuery,
   useAssignWorkerAndNotifyMutation,
-} from "../../../store/api/bookingApi";
-import { useGetWorkersQuery } from "../../../store/api/workerApi";
+} from "../../../src/store/api/bookingApi";
+import { useGetWorkersQuery } from "../../../src/store/api/workerApi";
 import {
   useAssignSubscriptionWorkerMutation,
   useGetMySubscriptionQuery,
-} from "../../../store/api/subscriptionApi";
-import { useAppSelector } from "../../../store/hooks";
-import { type BookingStatus } from "../../../store/slices/bookingSlice";
-import { type Booking } from "../../../types";
-import { BookingItem } from "../../../components/BookingItem";
+} from "../../../src/store/api/subscriptionApi";
+import { useAppSelector } from "../../../src/store/hooks";
+import { type BookingStatus } from "../../../src/store/slices/bookingSlice";
+import { type Booking } from "../../../src/types";
+import { BookingItem } from "../../../src/components/BookingItem";
 
 // Helper to map backend booking to display format
 const mapBackendBooking = (booking: any): Booking => {

@@ -25,7 +25,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useAlert } from "@/components/providers/AlertProvider";
+import { useAlert } from "@/providers/AlertProvider";
 import { WebView } from "react-native-webview";
 import { getLeafletHtml } from "@/utils/leafletHtml";
 import { useDispatch, useSelector } from "react-redux";

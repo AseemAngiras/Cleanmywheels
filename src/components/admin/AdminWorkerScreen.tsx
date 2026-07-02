@@ -21,7 +21,7 @@ import {
 import { WorkerForm } from "./WorkerForm";
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { Colors } from "@/constants/Colors";
-import { useAlert } from "@/components/providers/AlertProvider";
+import { useAlert } from "@/providers/AlertProvider";
 
 export default function AdminWorkerScreen() {
   const { showAlert } = useAlert();

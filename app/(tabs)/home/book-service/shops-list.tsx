@@ -578,7 +578,7 @@ export default function ShopsListScreen() {
                 };
                 setShowSlotPicker(false);
                 router.push({
-                  pathname: "/(tabs)/home/book-service/booking-summary",
+                  pathname: "/home/book-service/booking-summary",
                   params: { bookingDraft: JSON.stringify(updatedDraft) },
                 });
               }}

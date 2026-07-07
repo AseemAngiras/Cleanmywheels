@@ -245,7 +245,7 @@ export default function ProfileHome() {
     setShowLogout(false);
     setTimeout(() => {
       dispatch(logout());
-      router.replace("/(tabs)/home");
+      router.replace("/home");
     }, 100);
   };
 
@@ -382,7 +382,7 @@ export default function ProfileHome() {
               icon="sparkles-outline"
               title="Manage Add-ons"
               subtitle="Update add-on names and multi-frequency pricing"
-              onPress={() => router.push("/(tabs)/admin/service-management")}
+              onPress={() => router.push("/admin/service-management")}
             />
             <Row
               icon="car-outline"
@@ -390,7 +390,7 @@ export default function ProfileHome() {
               subtitle="Update wash names and prices"
               onPress={() =>
                 router.push({
-                  pathname: "/(tabs)/admin/wash-packages",
+                  pathname: "/admin/wash-packages",
                   params: { type: "ONE_TIME" },
                 })
               }
@@ -399,7 +399,7 @@ export default function ProfileHome() {
               icon="calendar-outline"
               title="Manage Subscription Plans"
               subtitle="Update plan names and pricing"
-              onPress={() => router.push("/(tabs)/admin/subscription-plans")}
+              onPress={() => router.push("/admin/subscription-plans")}
             />
             <Row
               icon="people-outline"
@@ -411,13 +411,13 @@ export default function ProfileHome() {
               icon="map-outline"
               title="Worker Tracking"
               subtitle="Track live deployments and schedules"
-              onPress={() => router.push("/(tabs)/admin/worker-tracking")}
+              onPress={() => router.push("/admin/worker-tracking")}
             />
             <Row
               icon="newspaper-outline"
               title="Manage Blogs & Updates"
               subtitle="Create and edit articles"
-              onPress={() => router.push("/(tabs)/admin/blogs")}
+              onPress={() => router.push("/admin/blogs")}
             />
             <Row
               icon="stats-chart-outline"
@@ -446,7 +446,7 @@ export default function ProfileHome() {
                   className="flex-row items-center gap-1"
                   onPress={() =>
                     router.push({
-                      pathname: "/(tabs)/home/book-doorstep/enter-location",
+                      pathname: "/home/book-doorstep/enter-location",
                       params: { source: "profile" },
                     })
                   }

@@ -196,7 +196,7 @@ export default function SubscriptionSummaryScreen() {
 
         if (!NativeModules.RazorpayCheckout || !razorpaySubscriptionId) {
           router.push({
-            pathname: "/(tabs)/home/book-doorstep/payment-webview",
+            pathname: "/home/book-doorstep/payment-webview",
             params: {
               url: paymentLinkUrl,
               bookingId: subscriptionId,

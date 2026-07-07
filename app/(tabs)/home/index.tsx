@@ -593,7 +593,7 @@ export default function HomeScreen() {
           {
             text: "Start New Booking",
             onPress: () => {
-              router.push("/(tabs)/home/book-doorstep/enter-location");
+              router.push("/home/book-doorstep/enter-location");
               setTimeout(() => {
                 isNavigating.current = false;
               }, 1000);
@@ -611,7 +611,7 @@ export default function HomeScreen() {
     }));
 
     router.push({
-      pathname: "/(tabs)/home/book-doorstep/select-slot",
+      pathname: "/home/book-doorstep/select-slot",
       params: {
         serviceId: booking.serviceId as string,
         serviceName: booking.serviceName as string,
@@ -675,7 +675,7 @@ export default function HomeScreen() {
               ) : (
                 <InteractivePressable
                   className="w-12 h-12 rounded-full overflow-hidden border-2 border-[#333] elevation-4 shadow-lg shadow-black"
-                  onPress={() => router.push("/(tabs)/profile")}
+                  onPress={() => router.push("/profile")}
                 >
                   <View className="w-full h-full bg-[#1A1A1A] items-center justify-center">
                     <Text className="text-primary font-[900] text-[18px]">

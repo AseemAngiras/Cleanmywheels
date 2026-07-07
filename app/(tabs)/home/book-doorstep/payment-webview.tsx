@@ -78,25 +78,26 @@ export default function PaymentWebViewScreen() {
         // Wait 5 seconds for webhook to process
         setTimeout(async () => {
           if (type === "ADDON") {
-            const params = new URLSearchParams(
+            const urlParams = new URLSearchParams(
               url.includes("?") ? url.split("?")[1] : "",
             );
 
-            const razorpay_payment_id = params.get("razorpay_payment_id");
-            const razorpay_payment_link_id = params.get(
+            const razorpay_payment_id = urlParams.get("razorpay_payment_id");
+            const razorpay_payment_link_id = urlParams.get(
               "razorpay_payment_link_id",
             );
-            const razorpay_payment_link_status = params.get(
+            const razorpay_payment_link_status = urlParams.get(
               "razorpay_payment_link_status",
             );
-            const razorpay_order_id = params.get(
+            const razorpay_order_id = urlParams.get(
               "razorpay_payment_link_reference_id",
             );
-            const razorpay_signature = params.get("razorpay_signature");
+            const razorpay_signature = urlParams.get("razorpay_signature");
 
             // Verify with Backend
-            if (params.addons) {
-              const parsedAddons = JSON.parse(params.addons as string);
+            const urlAddons = urlParams.get("addons") || addons;
+            if (urlAddons) {
+              const parsedAddons = JSON.parse(urlAddons as string);
               await verifyAddonPayment({
                 razorpay_payment_id:
                   (razorpay_payment_id as string) || "demo_id",
@@ -109,28 +110,25 @@ export default function PaymentWebViewScreen() {
                   (razorpay_signature as string) || "demo_sig",
                 subscriptionId: subscriptionId as string,
                 addons: parsedAddons,
-                serviceDate: params.serviceDate
-                  ? String(params.serviceDate)
-                  : new Date().toISOString(),
-                serviceDates: (params.serviceDates as string) || "[]",
+                serviceDate: urlParams.get("serviceDate") || (serviceDate as string) || new Date().toISOString(),
               }).unwrap();
             }
           } else if (type === "SUBSCRIPTION") {
             // Logic for Subscription Verification
-            const params = new URLSearchParams(
+            const urlParams = new URLSearchParams(
               url.includes("?") ? url.split("?")[1] : "",
             );
 
-            const razorpay_payment_id = params.get("razorpay_payment_id");
-            const razorpay_signature = params.get("razorpay_signature");
-            const razorpay_payment_link_id = params.get(
+            const razorpay_payment_id = urlParams.get("razorpay_payment_id");
+            const razorpay_signature = urlParams.get("razorpay_signature");
+            const razorpay_payment_link_id = urlParams.get(
               "razorpay_payment_link_id",
             );
-            const razorpay_payment_link_status = params.get(
+            const razorpay_payment_link_status = urlParams.get(
               "razorpay_payment_link_status",
             );
             // payment_link_reference_id is usually the order_id for payment links
-            const razorpay_order_id = params.get(
+            const razorpay_order_id = urlParams.get(
               "razorpay_payment_link_reference_id",
             );
 
@@ -146,7 +144,7 @@ export default function PaymentWebViewScreen() {
           }
 
           // Redirect to Order Confirmation or Addon Success
-          let targetPath = "/(tabs)/home/book-doorstep/order-confirmation";
+          let targetPath = "/home/book-doorstep/order-confirmation";
           if (type === "ADDON") {
             targetPath = "/subscription-flow/addon-success";
           } else if (type === "SUBSCRIPTION") {
@@ -192,7 +190,7 @@ export default function PaymentWebViewScreen() {
       router.replace({
         pathname: isSubscription
           ? "/subscription-flow/payment-failed"
-          : "/(tabs)/home/book-doorstep/payment-failed",
+          : "/home/book-doorstep/payment-failed",
         params: {
           bookingId,
           grandTotal,
@@ -262,7 +260,7 @@ export default function PaymentWebViewScreen() {
             router.replace({
               pathname: isSubscription
                 ? "/subscription-flow/payment-failed"
-                : "/(tabs)/home/book-doorstep/payment-failed",
+                : "/home/book-doorstep/payment-failed",
               params: { ...params, bookingId },
             } as any);
           }}
@@ -294,7 +292,6 @@ export default function PaymentWebViewScreen() {
                     subscriptionId: subscriptionId as string,
                     addons: JSON.parse((addons as string) || "[]"),
                     serviceDate: (serviceDate as string) || new Date().toISOString(),
-                    serviceDates: (params.serviceDates as string) || "[]",
                   }).unwrap();
                 } else {
                   await verifySubscription({
@@ -307,7 +304,7 @@ export default function PaymentWebViewScreen() {
                   }).unwrap();
                 }
 
-                let devTargetPath = "/(tabs)/home/book-doorstep/order-confirmation";
+                let devTargetPath = "/home/book-doorstep/order-confirmation";
                 if (type === "ADDON") {
                   devTargetPath = "/subscription-flow/addon-success";
                 } else if (isSubscription) {

@@ -268,7 +268,7 @@ export default function EnterLocationScreen() {
       if (isFromProfile) router.back();
       else
         router.push({
-          pathname: "/(tabs)/home/book-doorstep/select-service",
+          pathname: "/home/book-doorstep/select-service",
           params: {
             address: savedAddr?.fullAddress,
             latitude: savedAddr?.latitude,
@@ -305,7 +305,7 @@ export default function EnterLocationScreen() {
       if (isFromProfile) router.back();
       else
         router.push({
-          pathname: "/(tabs)/home/book-doorstep/select-service",
+          pathname: "/home/book-doorstep/select-service",
           params: {
             address: fullAddress,
             latitude: selectedCoord?.lat,
@@ -331,7 +331,7 @@ export default function EnterLocationScreen() {
       if (isFromProfile) router.back();
       else
         router.push({
-          pathname: "/(tabs)/home/book-doorstep/select-service",
+          pathname: "/home/book-doorstep/select-service",
           params: {
             address: fullAddress,
             latitude: selectedCoord?.lat,

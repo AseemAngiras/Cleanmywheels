@@ -103,8 +103,6 @@ export default function AdminSubscriptionsScreen() {
               await assignWorker({
                 subscriptionId: selectedSub._id,
                 workerId: worker._id,
-                workerName: worker.name,
-                workerPhone: worker.phone,
               }).unwrap();
 
               showAlert({

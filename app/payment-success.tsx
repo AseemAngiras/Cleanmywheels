@@ -30,7 +30,7 @@ export default function PaymentSuccessBridge() {
 
           // Map backend response to order-confirmation params
           router.replace({
-            pathname: "/(tabs)/home/book-doorstep/order-confirmation",
+            pathname: "/home/book-doorstep/order-confirmation",
             params: {
               bookingId: booking._id,
               selectedDate: booking.bookingDate,
@@ -65,7 +65,7 @@ export default function PaymentSuccessBridge() {
           <Text className="mt-5 text-lg text-text text-center">{error}</Text>
           <Text
             className="mt-5 text-base text-primary underline"
-            onPress={() => router.replace("/(tabs)/home")}
+            onPress={() => router.replace("/home")}
           >
             Go back to Home
           </Text>

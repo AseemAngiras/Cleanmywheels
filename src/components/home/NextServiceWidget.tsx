@@ -56,7 +56,7 @@ export const NextServiceWidget = ({
       <TouchableOpacity
         className="bg-[#1C1C1C] rounded-[20px] p-5 flex-row justify-between items-center shadow-lg elevation-8"
         activeOpacity={0.95}
-        onPress={() => router.push("/(tabs)/subscriptions")}
+        onPress={() => router.push("/subscriptions")}
       >
         <View className="gap-[10px] flex-1 mr-4">
           <View className="flex-row items-center gap-3">

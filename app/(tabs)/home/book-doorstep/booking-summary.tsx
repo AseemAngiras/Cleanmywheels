@@ -137,7 +137,7 @@ export default function BookingSummaryScreen() {
         setIsVerifyingPayment(false);
         setShowGateway(false);
         router.push({
-          pathname: "/(tabs)/home/book-doorstep/order-confirmation",
+          pathname: "/home/book-doorstep/order-confirmation",
           params: {
             ...params,
             grandTotal: displayGrandTotal,
@@ -179,7 +179,7 @@ export default function BookingSummaryScreen() {
           setIsVerifyingPayment(false);
           setShowGateway(false);
           router.push({
-            pathname: "/(tabs)/home/book-doorstep/order-confirmation",
+            pathname: "/home/book-doorstep/order-confirmation",
             params: {
               ...params,
               grandTotal: displayGrandTotal,
@@ -196,7 +196,7 @@ export default function BookingSummaryScreen() {
           setIsVerifyingPayment(false);
           setShowGateway(false);
           router.push({
-            pathname: "/(tabs)/home/book-doorstep/payment-failed",
+            pathname: "/home/book-doorstep/payment-failed",
             params: {
               ...params,
               grandTotal: displayGrandTotal,
@@ -208,7 +208,7 @@ export default function BookingSummaryScreen() {
           setIsVerifyingPayment(false);
           setShowGateway(false);
           router.push({
-            pathname: "/(tabs)/home/book-doorstep/payment-failed",
+            pathname: "/home/book-doorstep/payment-failed",
             params: {
               ...params,
               grandTotal: displayGrandTotal,
@@ -230,7 +230,7 @@ export default function BookingSummaryScreen() {
             buttons: [
               {
                 text: "My Bookings",
-                onPress: () => router.push("/(tabs)/bookings"),
+                onPress: () => router.push("/bookings"),
               },
               { text: "Close", style: "cancel" },
             ],

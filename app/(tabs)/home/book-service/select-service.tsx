@@ -212,7 +212,7 @@ export default function SelectServiceScreen() {
     }
 
     router.push({
-      pathname: "/(tabs)/home/book-service/shops-list",
+      pathname: "/home/book-service/shops-list",
       params: { bookingDraft: JSON.stringify(bookingDraft) },
     });
   };

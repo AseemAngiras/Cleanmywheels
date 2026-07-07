@@ -21,7 +21,7 @@ export const ServiceActionGrid = ({
   const handleBookPress = () => {
     if (isNavigating.current) return;
     isNavigating.current = true;
-    router.push("/(tabs)/home/book-doorstep/enter-location");
+    router.push("/home/book-doorstep/enter-location");
     setTimeout(() => {
       isNavigating.current = false;
     }, 1000);
@@ -33,7 +33,7 @@ export const ServiceActionGrid = ({
     if (hasActiveSubscription) {
       router.push("/subscription-flow/addons");
     } else {
-      router.push("/(tabs)/subscriptions");
+      router.push("/subscriptions");
     }
     setTimeout(() => {
       isNavigating.current = false;

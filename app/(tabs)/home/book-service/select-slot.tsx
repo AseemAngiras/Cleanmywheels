@@ -18,6 +18,8 @@ export default function SelectSlotScreen() {
   const router = useRouter();
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
+  const params = useLocalSearchParams();
+  const { shopName, shopAddress } = params as { shopName?: string; shopAddress?: string };
   // --- State ---
   const [selectedDate, setSelectedDate] = useState<number>(0); // Index of selected date
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null); // ID of selected slot
@@ -219,7 +221,7 @@ export default function SelectSlotScreen() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ paddingHorizontal: 20 }}
           >
-            {dates.map(({ item, index }: { item: any; index: number }) => (
+            {dates.map((item, index) => (
               <DateItem key={index} item={item} index={index} />
             ))}
           </ScrollView>
@@ -321,7 +323,7 @@ export default function SelectSlotScreen() {
           disabled={!selectedSlot}
           onPress={() => {
             router.push({
-              pathname: "/(tabs)/home/book-service/booking-summary",
+              pathname: "/home/book-service/booking-summary",
               params: {
                 ...params,
                 selectedDate: dates[selectedDate].fullDate.toISOString(),

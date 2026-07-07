@@ -112,13 +112,13 @@ export default function SubscriptionDetailsScreen() {
       for (let i = 0; i < totalServices; i++) {
         const date = new Date(startDate);
 
-        if (frequencyType === "TWICE_MONTHLY") {
+        if (subscription.frequencyType === "TWICE_MONTHLY") {
           date.setDate(startDate.getDate() + i * 15);
-        } else if (frequencyType === "WEEKLY") {
+        } else if (subscription.frequencyType === "WEEKLY") {
           date.setDate(startDate.getDate() + i * 7);
-        } else if (frequencyType === "BIWEEKLY") {
+        } else if (subscription.frequencyType === "BIWEEKLY") {
           date.setDate(startDate.getDate() + i * 3.5); // Approx
-        } else if (frequencyType === "ALTERNATE_DAY") {
+        } else if (subscription.frequencyType === "ALTERNATE_DAY") {
           date.setDate(startDate.getDate() + i * 2);
         }
 

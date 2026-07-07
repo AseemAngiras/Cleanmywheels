@@ -194,7 +194,7 @@ export default function OrderConfirmationScreen() {
       >
         <TouchableOpacity
           className="bg-background h-14 rounded-2xl items-center justify-center border border-border"
-          onPress={() => router.replace("/(tabs)/home")}
+          onPress={() => router.replace("/home")}
         >
           <Text className="text-[16px] font-[900] color-textSecondary">
             Back to Dashboard

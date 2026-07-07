@@ -414,7 +414,7 @@ export default function SelectSlotScreen() {
   const navigateToSummary = () => {
     const dateOnly = dates[selectedDate].fullDate.toISOString().split("T")[0];
     router.push({
-      pathname: "/(tabs)/home/book-doorstep/booking-summary",
+      pathname: "/home/book-doorstep/booking-summary",
       params: {
         ...params,
         shopName: "Your Location",

@@ -118,7 +118,7 @@ export default function PaymentFailedScreen() {
 
         <TouchableOpacity
           className="bg-card h-14 rounded-2xl items-center justify-center border border-border/50"
-          onPress={() => router.push("/(tabs)/home")}
+          onPress={() => router.push("/home")}
         >
           <Text className="text-[16px] font-[800] color-text">
             Back to Home

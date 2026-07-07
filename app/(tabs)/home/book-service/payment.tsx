@@ -263,7 +263,7 @@ export default function PaymentScreen() {
 
         <TouchableOpacity
           className="bg-primary h-14 w-[180px] rounded-2xl flex-row items-center justify-center shadow-lg shadow-primary/30"
-          onPress={() => router.push("/(tabs)/home")}
+          onPress={() => router.push("/home")}
         >
           <Ionicons
             name="lock-closed"

@@ -318,7 +318,7 @@ export default function SelectServiceScreen() {
         : priceData || selectedServiceData?.price;
 
     router.push({
-      pathname: "/(tabs)/home/book-doorstep/select-slot",
+      pathname: "/home/book-doorstep/select-slot",
       params: {
         serviceId: selectedService,
         serviceName: selectedServiceData?.name,

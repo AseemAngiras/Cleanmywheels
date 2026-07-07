@@ -384,7 +384,7 @@ export default function WorkerTrackingScreen() {
         {/* Header */}
         <View className="flex-row items-center px-5 pt-4 pb-4 bg-card border-b border-border/50">
           <TouchableOpacity
-            onPress={() => selectedWorkerId ? setSelectedWorkerId(null) : router.replace("/(tabs)/profile")}
+            onPress={() => selectedWorkerId ? setSelectedWorkerId(null) : router.replace("/profile")}
             className="w-10 h-10 rounded-full bg-background items-center justify-center border border-border"
           >
             <Ionicons name="arrow-back" size={20} color={Colors.text} />

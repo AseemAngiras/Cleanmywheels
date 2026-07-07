@@ -33,7 +33,7 @@ import {
 import { useAppSelector } from "../../../src/store/hooks";
 import { type BookingStatus } from "../../../src/store/slices/bookingSlice";
 import { type Booking } from "../../../src/types";
-import { BookingItem } from "../../../src/components/BookingItem";
+import { BookingItem } from "@/components/booking/BookingItem";
 
 // Helper to map backend booking to display format
 const mapBackendBooking = (booking: any): Booking => {

@@ -115,7 +115,7 @@ export default function BookingSummaryScreen() {
       dispatch(addBooking(bookingPayload));
 
       router.replace({
-        pathname: "/(tabs)/home/book-service/order-confirmation",
+        pathname: "/home/book-service/order-confirmation",
         params: {
           shopName: shop.name,
           shopAddress: shop.address,

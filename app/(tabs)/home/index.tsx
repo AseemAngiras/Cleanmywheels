@@ -6,13 +6,14 @@ import {
   useVerifyRegisterOtpMutation,
   useGetProfileQuery,
 } from "@/store/api/authApi";
-import { useGetAddressesQuery, useCreateAddressMutation } from "@/store/api/addressApi";
+import { useGetAddressesQuery, useCreateAddressMutation, useSetDefaultAddressMutation } from "@/store/api/addressApi";
 import { useGetBookingsQuery } from "@/store/api/bookingApi";
 import { useGetMySubscriptionQuery } from "@/store/api/subscriptionApi";
 import { loginSuccess, logout } from "@/store/slices/authSlice";
 import { type BookingStatus } from "@/store/slices/bookingSlice";
 import { setUser } from "@/store/slices/userSlice";
-import { updateProfile } from "@/store/slices/profileSlice";
+import { updateProfile, addAddress, setDefaultAddress } from "@/store/slices/profileSlice";
+import * as Location from "expo-location";
 
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -20,7 +21,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/constants/Colors";
 import { useFocusEffect, useNavigation, useRouter } from "expo-router";
 import { InteractivePressable } from "@/components/ui/InteractivePressable";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -134,12 +135,13 @@ export default function HomeScreen() {
     skip: !isLoggedIn,
   });
 
-  useGetAddressesQuery(undefined, {
+  const { data: addressesData, isFetching: isAddressesFetching, isSuccess: isAddressesSuccess } = useGetAddressesQuery(undefined, {
     skip: !isLoggedIn,
   });
 
   const [isLoginModalVisible, setIsLoginModalVisible] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [isLocationPickerVisible, setIsLocationPickerVisible] = useState(false);
 
   useEffect(() => {
     const checkOnboarding = async () => {
@@ -220,10 +222,86 @@ export default function HomeScreen() {
   const [register] = useRegisterMutation();
   const [verifyRegisterOtp] = useVerifyRegisterOtpMutation();
   const [createAddress] = useCreateAddressMutation();
-
-  const profileState = useSelector((state: RootState) => state.profile);
+  const [setDefaultAddressAPI] = useSetDefaultAddressMutation();
 
   const [refreshing, setRefreshing] = useState(false);
+  const profileState = useSelector((state: RootState) => state.profile);
+  const defaultAddressId = profileState.defaultAddressId;
+
+  const savedAddresses = useMemo(() => {
+    if (!isLoggedIn) {
+      return profileState.addresses || [];
+    }
+    const list = addressesData?.data?.addressList || addressesData?.data || [];
+    return Array.isArray(list) ? list.map((addr: any) => ({
+      ...addr,
+      id: addr._id || addr.id,
+      fullAddress: addr.fullAddress || `${addr.houseOrFlatNo}, ${addr.locality}, ${addr.city} - ${addr.postalCode}`
+    })) : [];
+  }, [isLoggedIn, addressesData, profileState.addresses]);
+
+  const currentAddress = savedAddresses.find((a: any) => a.id === defaultAddressId) || savedAddresses[0];
+
+  const requestDeviceLocation = async () => {
+    try {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        console.log("Location permission denied");
+        return;
+      }
+      let location = await Location.getCurrentPositionAsync({});
+      const lat = location.coords.latitude;
+      const long = location.coords.longitude;
+
+      const key = process.env.EXPO_PUBLIC_LOCATIONIQ_API_KEY || "pk.df8c2b5bc75bbad345c2dbd0dfbf9a09";
+      const resp = await fetch(
+        `https://us1.locationiq.com/v1/reverse.php?key=${key}&lat=${lat}&lon=${long}&format=json&addressdetails=1`
+      );
+      const data = await resp.json();
+      if (data?.address) {
+        const addr = data.address;
+        const houseOrFlatNo = addr.house_number || addr.building || addr.name || "Doorstep";
+        const locality = addr.suburb || addr.neighbourhood || addr.residential || addr.state_district || "Locality";
+        const city = addr.city || addr.town || addr.village || addr.city_district || "";
+        const postalCode = addr.postcode || "";
+
+        const fullAddress = `${houseOrFlatNo}, ${locality}, ${city} - ${postalCode}`;
+        const payload = {
+          houseOrFlatNo,
+          locality,
+          landmark: `Near ${locality}`,
+          city,
+          postalCode,
+          addressType: "Home" as const,
+        };
+
+        const result = await createAddress(payload).unwrap();
+        const id = result?.data?._id || result?._id || result?.data?.id || `device-loc-${Date.now()}`;
+
+        dispatch(addAddress({
+          ...payload,
+          fullAddress,
+          latitude: lat,
+          longitude: long,
+          id,
+        }));
+      }
+    } catch (err) {
+      console.log("Failed to auto-request location on landing", err);
+    }
+  };
+
+  useEffect(() => {
+    if (isLoggedIn && !isAddressesFetching && isAddressesSuccess && savedAddresses.length === 0) {
+      requestDeviceLocation();
+    }
+  }, [isLoggedIn, isAddressesFetching, isAddressesSuccess, savedAddresses.length]);
+
+  const handleLocationPress = () => {
+    if (savedAddresses.length > 1) {
+      setIsLocationPickerVisible(true);
+    }
+  };
 
   const onRefresh = useCallback(async () => {
     if (!isLoggedIn) return;
@@ -998,14 +1076,40 @@ export default function HomeScreen() {
         {/* Header */}
         <View className="px-5 pt-[10px] mb-6">
           <View className="flex-row justify-between items-start mb-6">
-            <View>
-              <Text className="text-[10px] text-primary font-[700] tracking-[1px] mb-1 uppercase">
-                ON-DEMAND CARE
-              </Text>
-              <Text className="text-2xl font-[800] text-white italic tracking-[-1px]">
-                CLEANMY<Text className="text-primary">WHEELS</Text>
-              </Text>
-            </View>
+            {currentAddress ? (
+              <Animated.View 
+                entering={FadeInUp.delay(100).duration(500)}
+                className="flex-1 mr-4"
+              >
+                <TouchableOpacity
+                  onPress={handleLocationPress}
+                  activeOpacity={savedAddresses.length > 1 ? 0.7 : 1}
+                  className="flex-row items-center bg-[#1A1A1A] border border-white/5 rounded-[18px] px-4 py-3 shadow-2xl"
+                >
+                  <View className="w-8 h-8 rounded-full bg-primary/10 items-center justify-center mr-3 border border-primary/20">
+                    <Ionicons name="location" size={16} color="#C8F000" />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="text-[#666] text-[10px] font-[700] uppercase tracking-wider">Service Location</Text>
+                    <Text className="text-white text-sm font-[600]" numberOfLines={1}>
+                      {currentAddress ? currentAddress.fullAddress : "Select location"}
+                    </Text>
+                  </View>
+                  {savedAddresses.length > 1 && (
+                    <Ionicons name="chevron-down" size={18} color="#C8F000" />
+                  )}
+                </TouchableOpacity>
+              </Animated.View>
+            ) : (
+              <View>
+                <Text className="text-[10px] text-primary font-[700] tracking-[1px] mb-1 uppercase">
+                  ON-DEMAND CARE
+                </Text>
+                <Text className="text-2xl font-[800] text-white italic tracking-[-1px]">
+                  CLEANMY<Text className="text-primary">WHEELS</Text>
+                </Text>
+              </View>
+            )}
 
             <View className="mt-2">
               {isLoggedIn && (
@@ -1022,23 +1126,6 @@ export default function HomeScreen() {
               )}
             </View>
           </View>
-
-          {/* Location Bar (Professional Touch)
-          <Animated.View 
-            entering={FadeInUp.delay(100).duration(500)}
-            className="flex-row items-center bg-[#1A1A1A] border border-white/5 rounded-[18px] px-4 py-3 shadow-2xl"
-          >
-            <View className="w-8 h-8 rounded-full bg-primary/10 items-center justify-center mr-3 border border-primary/20">
-              <Ionicons name="location" size={16} color="#C8F000" />
-            </View>
-            <View className="flex-1">
-              <Text className="text-[#666] text-[10px] font-[700] uppercase tracking-wider">Service Location</Text>
-              <Text className="text-white text-sm font-[600]" numberOfLines={1}>
-                {isLoggedIn ? (userProfile?.user?.address || "Detecting address...") : "Select your area"}
-              </Text>
-            </View>
-            <Ionicons name="chevron-down" size={18} color="#444" />
-          </Animated.View> */}
         </View>
 
         {/* Hero Section */}
@@ -1217,6 +1304,81 @@ export default function HomeScreen() {
           </InteractivePressable>
         </Animated.View>
       </ScrollView>
+
+      {/* Location Picker Modal */}
+      <Modal
+        visible={isLocationPickerVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setIsLocationPickerVisible(false)}
+      >
+        <TouchableOpacity
+          activeOpacity={1}
+          onPress={() => setIsLocationPickerVisible(false)}
+          className="flex-1 bg-black/60 justify-end"
+        >
+          <TouchableOpacity
+            activeOpacity={1}
+            className="bg-[#121212] rounded-t-[32px] overflow-hidden border-t border-white/10"
+            style={{ width: '100%', maxHeight: '60%' }}
+          >
+            <View className="px-6 py-5 border-b border-white/5 flex-row justify-between items-center">
+              <Text className="text-lg font-[850] text-white italic">
+                SELECT PRIMARY <Text className="text-[#C8F000]">LOCATION</Text>
+              </Text>
+              <TouchableOpacity onPress={() => setIsLocationPickerVisible(false)} className="p-1">
+                <Ionicons name="close" size={24} color="white" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView 
+              className="px-6 py-4"
+              contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 24) }}
+            >
+              {savedAddresses.map((addr: any) => {
+                const isSelected = addr.id === defaultAddressId || (!defaultAddressId && savedAddresses[0]?.id === addr.id);
+                return (
+                  <TouchableOpacity
+                    key={addr.id}
+                    onPress={async () => {
+                      try {
+                        await setDefaultAddressAPI(addr.id).unwrap();
+                        dispatch(setDefaultAddress(addr.id));
+                        toast.success("Primary address updated!");
+                        setIsLocationPickerVisible(false);
+                      } catch (err) {
+                        toast.error("Failed to update default address");
+                      }
+                    }}
+                    className={`flex-row items-center p-4 rounded-[20px] mb-3 border ${
+                      isSelected ? "bg-[#C8F000]/10 border-[#C8F000]" : "bg-[#1C1C1E] border-white/5"
+                    }`}
+                  >
+                    <View className="w-10 h-10 rounded-full bg-white/5 items-center justify-center mr-4">
+                      <Ionicons 
+                        name={addr.addressType === "Home" ? "home" : addr.addressType === "Office" ? "briefcase" : "location"} 
+                        size={18} 
+                        color={isSelected ? "#C8F000" : "#888"} 
+                      />
+                    </View>
+                    <View className="flex-1">
+                      <Text className={`text-sm font-bold ${isSelected ? "text-[#C8F000]" : "text-white"}`}>
+                        {addr.addressType}
+                      </Text>
+                      <Text className="text-xs text-gray-400 mt-0.5" numberOfLines={1}>
+                        {addr.fullAddress}
+                      </Text>
+                    </View>
+                    {isSelected && (
+                      <Ionicons name="checkmark-circle" size={22} color="#C8F000" />
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
 
       {/* Onboarding Tour for Guest */}
       <OnboardingTour 

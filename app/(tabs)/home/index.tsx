@@ -42,6 +42,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { useDispatch, useSelector } from "react-redux";
+import { LinearGradient } from "expo-linear-gradient";
 
 import { HomeBackground } from "../../../src/components/home/HomeBackground";
 import { HeroSection } from "../../../src/components/home/HeroSection";
@@ -77,8 +78,8 @@ const OtpBox: React.FC<OtpBoxProps> = ({ digit, index, isFocused, mergeAnim }) =
   return (
     <Animated.View
       style={[boxStyle]}
-      className={`w-[52px] h-[64px] rounded-[16px] border-[2px] items-center justify-center bg-[#1A1A1A] ${
-        digit ? "border-primary" : isFocused ? "border-primary/50" : "border-white/10"
+      className={`w-[52px] h-[64px] rounded-[16px] border-[2px] items-center justify-center bg-[#1C1C1E] ${
+        digit ? "border-[#C8F000]" : isFocused ? "border-[#C8F000]/50" : "border-white/5"
       }`}
     >
       <Text className="text-[24px] font-[900] text-white">
@@ -153,6 +154,15 @@ export default function HomeScreen() {
     };
     checkOnboarding();
   }, [isLoggedIn]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!isLoggedIn) {
+        setIsLoginModalVisible(true);
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleCloseOnboarding = async () => {
     setShowOnboarding(false);
@@ -494,6 +504,7 @@ export default function HomeScreen() {
         });
       }
     } catch (err: any) {
+      setOtp(["", "", "", "", "", ""]);
       showAlert({
         title: "Verification Failed",
         message: err?.data?.message || "Invalid OTP or Server Error",
@@ -632,6 +643,340 @@ export default function HomeScreen() {
     }, 1000);
   };
 
+  if (!isLoggedIn) {
+    return (
+      <ScreenWrapper
+        background={<HomeBackground />}
+        statusBarStyle="light-content"
+        className="bg-background"
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          className="flex-1"
+        >
+          <ScrollView
+            contentContainerStyle={{ flexGrow: 1 }}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Top brand banner */}
+            <View className="h-60 bg-[#1A1A1A] relative justify-center items-center overflow-hidden">
+              <LinearGradient
+                colors={["#10172A", "#020617"]}
+                className="absolute inset-0"
+              />
+              {/* Decorative Background Lines / Drawing */}
+              <View className="absolute inset-0 opacity-15" pointerEvents="none">
+                {/* Diagonal speed lines */}
+                <View 
+                  className="absolute left-[-100px] top-[10%] w-[600px] h-[1px] bg-white" 
+                  style={{ transform: [{ rotate: "25deg" }] }} 
+                />
+                <View 
+                  className="absolute left-[-100px] top-[45%] w-[600px] h-[1px] bg-white" 
+                  style={{ transform: [{ rotate: "25deg" }] }} 
+                />
+                <View 
+                  className="absolute left-[-100px] top-[30%] w-[600px] h-[1px] bg-[#C8F000]" 
+                  style={{ transform: [{ rotate: "-35deg" }] }} 
+                />
+                <View 
+                  className="absolute left-[-100px] top-[65%] w-[600px] h-[1px] bg-[#C8F000]" 
+                  style={{ transform: [{ rotate: "-35deg" }] }} 
+                />
+                {/* Decorative circular wireframes */}
+                <View className="absolute right-[-30px] top-[-30px] w-48 h-48 rounded-full border border-white/20" />
+                <View className="absolute left-[-50px] bottom-[-50px] w-56 h-56 rounded-full border border-[#C8F000]/20" />
+              </View>
+
+              <View className="items-center z-10 w-full px-4">
+                {/* <Ionicons name="leaf-outline" size={48} color="#C8F000" className="mb-2" /> */}
+                <Text 
+                  className="text-2xl font-[500] text-white tracking-[1.5px] italic text-center w-full"
+                  numberOfLines={1}
+                >
+                  CLEANMY<Text className="text-[#C8F000]">WHEELS</Text>
+                </Text>
+                <Text 
+                  className="text-[#A3E635] text-[10px] font-[700] tracking-[2px] uppercase mt-1 text-center"
+                  numberOfLines={1}
+                >
+                  Premium Eco Car Care
+                </Text>
+              </View>
+            </View>
+
+            {/* Login / Signup Card */}
+            <View className="flex-1 bg-[#121212] px-6 pt-8 pb-12 rounded-t-[32px] mt-[-24px] border-t border-white/10 relative overflow-hidden">
+              {/* Background Drawings in Form Body */}
+              <View className="absolute inset-0 opacity-[0.05]" pointerEvents="none">
+                {/* Diagonal lines */}
+                <View 
+                  className="absolute left-[-150px] top-[20%] w-[700px] h-[1px] bg-[#C8F000]" 
+                  style={{ transform: [{ rotate: "-20deg" }] }} 
+                />
+                <View 
+                  className="absolute left-[-150px] top-[65%] w-[700px] h-[1px] bg-white" 
+                  style={{ transform: [{ rotate: "-20deg" }] }} 
+                />
+                {/* Circular wireframe */}
+                <View className="absolute right-[-60px] bottom-[15%] w-60 h-60 rounded-full border border-[#C8F000]" />
+              </View>
+              <Text className="text-3xl font-[500] text-white mb-1 text-center italic">
+                Welcome! <Text className="text-[#C8F000]"></Text>
+              </Text>
+              <Text className="text-sm font-[500] text-gray-400 mb-6 text-center">
+                {modalStep === "details"
+                  ? authMode === "login"
+                    ? "Log in to your account"
+                    : "Create your account to get started"
+                  : `Enter verification code sent to`}
+              </Text>
+
+              {modalStep === "otp" && (
+                <TouchableOpacity
+                  onPress={() => setModalStep("details")}
+                  className="flex-row items-center justify-center mb-8 bg-[#1C1C1E] border border-white/5 py-1.5 px-4 rounded-full self-center"
+                >
+                  <Text className="text-sm text-gray-300 font-[600] mr-2">+91 {phoneNumber}</Text>
+                  <Ionicons name="pencil" size={13} color="#C8F000" />
+                </TouchableOpacity>
+              )}
+
+              {modalStep === "details" ? (
+                <View>
+                  {authMode === "signup" && (
+                    <View className="mb-5">
+                      <View className="flex-row items-center bg-[#1C1C1E] rounded-[16px] h-14 px-4 border border-white/5">
+                        <Ionicons
+                          name="person-outline"
+                          size={20}
+                          color="#64748B"
+                          style={{ marginRight: 10 }}
+                        />
+                        <TextInput
+                          className="flex-1 text-base text-white font-[600]"
+                          placeholder="Your Full Name"
+                          placeholderTextColor="#64748B"
+                          value={name}
+                          onChangeText={(text) => {
+                            const filtered = text.replace(/[^a-zA-Z\s]/g, "");
+                            if (filtered !== text) {
+                              setIsNameWarningVisible(true);
+                              setTimeout(() => setIsNameWarningVisible(false), 3000);
+                            }
+                            setName(filtered);
+                          }}
+                          autoCapitalize="words"
+                          maxLength={30}
+                        />
+                      </View>
+                      {isNameWarningVisible && (
+                        <Text className="text-[10px] text-red-500 font-[600] mt-1.5 ml-1">
+                          Only alphabets allowed
+                        </Text>
+                      )}
+                    </View>
+                  )}
+
+                  <View className="mb-8">
+                    <View className="flex-row items-center bg-[#1C1C1E] rounded-[16px] h-14 px-4 border border-white/5">
+                      <Text className="text-base text-white font-[700]">+91</Text>
+                      <View className="w-[1px] h-5 bg-white/10 mx-3" />
+                      <TextInput
+                        className="flex-1 text-base text-white font-[600]"
+                        placeholder="Mobile Number"
+                        placeholderTextColor="#64748B"
+                        keyboardType="phone-pad"
+                        maxLength={10}
+                        value={phoneNumber}
+                        onChangeText={(text) => setPhoneNumber(text.replace(/[^0-9]/g, ""))}
+                      />
+                    </View>
+                  </View>
+
+                  <TouchableOpacity
+                    className="bg-[#C8F000] h-14 rounded-[16px] items-center justify-center mb-5 shadow-lg shadow-[#C8F000]/10"
+                    onPress={handleSendOtp}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <ActivityIndicator color="#000" />
+                    ) : (
+                      <Text className="text-base font-[900] text-black uppercase tracking-wider italic">
+                        {authMode === "login" ? "Login" : "Sign Up"}
+                      </Text>
+                    )}
+                  </TouchableOpacity>
+
+                  <View className="flex-row justify-center items-center mt-2">
+                    <Text className="text-sm text-gray-400 font-medium">
+                      {authMode === "login" ? "Don't have an account? " : "Already have an account? "}
+                    </Text>
+                    <TouchableOpacity
+                      onPress={() => {
+                        setAuthMode(authMode === "login" ? "signup" : "login");
+                        setName("");
+                      }}
+                    >
+                      <Text className="text-sm font-[800] text-[#C8F000]">
+                        {authMode === "login" ? "Sign Up" : "Log In"}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              ) : (
+                <View>
+                  <View className="mb-8 relative w-full">
+                    <TextInput
+                      ref={otpInputRef}
+                      style={{ position: 'absolute', width: '100%', height: '100%', opacity: 0, zIndex: 10 }}
+                      keyboardType="number-pad"
+                      textContentType="oneTimeCode"
+                      autoComplete="sms-otp"
+                      maxLength={6}
+                      autoFocus={true}
+                      value={otp.join("")}
+                      onChangeText={(text) => {
+                        if (/[^0-9]/.test(text)) {
+                          setIsOtpWarningVisible(true);
+                          setTimeout(() => setIsOtpWarningVisible(false), 3000);
+                        }
+                        const val = text.replace(/[^0-9]/g, "").slice(0, 6);
+                        const newOtp = ["", "", "", "", "", ""];
+                        for (let j = 0; j < val.length; j++) {
+                          newOtp[j] = val[j];
+                        }
+                        setOtp(newOtp);
+                      }}
+                    />
+                    <View className="flex-row justify-between w-full h-[64px] relative items-center" pointerEvents="none">
+                      <View className="absolute inset-0 justify-center items-center z-20" pointerEvents="none">
+                        <Animated.View 
+                          style={[
+                            checkmarkStyle, 
+                            { 
+                              justifyContent: "center", 
+                              alignItems: "center", 
+                              width: 56, 
+                              height: 64, 
+                              borderRadius: 16, 
+                              backgroundColor: "#C8F000",
+                            }
+                          ]}
+                        >
+                          <Ionicons name="checkmark" size={28} color="#000" />
+                        </Animated.View>
+                      </View>
+
+                      {otp.map((digit, i) => {
+                        const currentLength = otp.join("").length;
+                        const isFocused = currentLength === i || (currentLength === 6 && i === 5);
+                        return (
+                          <OtpBox
+                            key={i}
+                            digit={digit}
+                            index={i}
+                            isFocused={isFocused}
+                            mergeAnim={mergeAnim}
+                          />
+                        );
+                      })}
+                    </View>
+                  </View>
+
+                  {isOtpWarningVisible && (
+                    <Text className="text-red-500 text-[12px] mt-[-10px] mb-[15px] text-center font-[600]">
+                      Only numbers are allowed
+                    </Text>
+                  )}
+
+                  <TouchableOpacity
+                    className="bg-[#C8F000] h-14 rounded-[16px] items-center justify-center mb-6 shadow-lg shadow-[#C8F000]/10"
+                    onPress={handleVerifyOtp}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <ActivityIndicator color="#000" />
+                    ) : (
+                      <Text className="text-base font-[900] text-black uppercase tracking-wider italic">
+                        Verify
+                      </Text>
+                    )}
+                  </TouchableOpacity>
+
+                  <View className="items-center">
+                    <Text className="text-sm text-gray-400 font-medium mb-3">
+                      Didn&apos;t receive code?
+                    </Text>
+                    {timer > 0 ? (
+                      <View className="bg-[#1C1C1E] rounded-full px-4 py-2 flex-row items-center gap-2 border border-white/5">
+                        <Ionicons name="time-outline" size={14} color="#64748B" />
+                        <Text className="text-sm font-[700] text-[#C8F000]">
+                          Resend code in 00:{timer < 10 ? `0${timer}` : timer}
+                        </Text>
+                      </View>
+                    ) : (
+                      <TouchableOpacity
+                        onPress={() => {
+                          if (timer === 0) {
+                            handleSendOtp();
+                          }
+                        }}
+                        className="bg-[#C8F000]/10 border border-[#C8F000]/25 rounded-full px-5 py-2.5"
+                      >
+                        <Text className="text-sm font-[800] text-[#C8F000]">
+                          Resend Code
+                        </Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                </View>
+              )}
+
+              {/* Decorative Brand Highlight Cards */}
+              {/* <View className="mt-10 pt-8 border-t border-white/5 gap-4">
+                <Text className="text-[11px] text-gray-500 font-[800] uppercase tracking-[2px] text-center mb-2">
+                  Why Cleanmywheels?
+                </Text>
+
+                <View className="flex-row items-center gap-3 bg-[#1C1C1E] p-4 rounded-[16px] border border-white/5">
+                  <View className="w-10 h-10 rounded-full bg-[#C8F000]/10 items-center justify-center">
+                    <Ionicons name="water-outline" size={20} color="#C8F000" />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="text-white text-sm font-bold">Eco-Friendly Detailing</Text>
+                    <Text className="text-xs text-gray-400">Save water with our premium waterless nano-technology washes.</Text>
+                  </View>
+                </View>
+
+                <View className="flex-row items-center gap-3 bg-[#1C1C1E] p-4 rounded-[16px] border border-white/5">
+                  <View className="w-10 h-10 rounded-full bg-[#C8F000]/10 items-center justify-center">
+                    <Ionicons name="shield-checkmark-outline" size={20} color="#C8F000" />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="text-white text-sm font-bold">Certified Professionals</Text>
+                    <Text className="text-xs text-gray-400">Only verified and highly trained cleaners handle your car.</Text>
+                  </View>
+                </View>
+
+                <View className="flex-row items-center gap-3 bg-[#1C1C1E] p-4 rounded-[16px] border border-white/5">
+                  <View className="w-10 h-10 rounded-full bg-[#C8F000]/10 items-center justify-center">
+                    <Ionicons name="time-outline" size={20} color="#C8F000" />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="text-white text-sm font-bold">On-Demand Convenience</Text>
+                    <Text className="text-xs text-gray-400">Book in under a minute and have your wheels cleaned at your doorstep.</Text>
+                  </View>
+                </View>
+              </View> */}
+            </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </ScreenWrapper>
+    );
+  }
+
   return (
     <ScreenWrapper
       background={<HomeBackground />}
@@ -663,16 +1008,7 @@ export default function HomeScreen() {
             </View>
 
             <View className="mt-2">
-              {!isLoggedIn ? (
-                <InteractivePressable
-                  className="bg-primary px-4 py-2 rounded-md shadow-md shadow-primary"
-                  onPress={() => setIsLoginModalVisible(true)}
-                >
-                  <Text className="font-[900] text-black italic text-[12px]">
-                    LOG IN
-                  </Text>
-                </InteractivePressable>
-              ) : (
+              {isLoggedIn && (
                 <InteractivePressable
                   className="w-12 h-12 rounded-full overflow-hidden border-2 border-[#333] elevation-4 shadow-lg shadow-black"
                   onPress={() => router.push("/profile")}
@@ -719,6 +1055,7 @@ export default function HomeScreen() {
         <ServiceActionGrid
           isLoggedIn={isLoggedIn}
           hasActiveSubscription={activeSubs.length > 0}
+          onOpenLoginModal={() => setIsLoginModalVisible(true)}
         />
 
         {/* The Protocol (Intrigue Guest) */}
@@ -880,277 +1217,6 @@ export default function HomeScreen() {
           </InteractivePressable>
         </Animated.View>
       </ScrollView>
-
-      {/* Login Modal */}
-      <Modal
-        visible={isLoginModalVisible}
-        transparent
-        animationType="slide"
-        onRequestClose={handleCloseModal}
-      >
-        <View className="flex-1 bg-black">
-          <View
-            style={{ paddingTop: insets.top + 20 }}
-            className="flex-1 px-6"
-          >
-            <KeyboardAvoidingView
-              behavior={Platform.OS === "ios" ? "padding" : "height"}
-              className="flex-1"
-            >
-              <View className="flex-row items-center mb-6">
-                {/* Header / Back Button */}
-                <InteractivePressable
-                  onPress={handleCloseModal}
-                  className="w-10 h-10 items-center justify-center -ml-2 mr-3"
-                >
-                  <Ionicons name="chevron-back" size={28} color="white" />
-                </InteractivePressable>
-
-                <Text className="text-[28px] font-[800] text-white flex-1">
-                  {modalStep === "details"
-                    ? authMode === "login"
-                      ? "Log In to your account"
-                      : "Create your account"
-                    : "Enter verification code"}
-                </Text>
-              </View>
-              
-              <View className="flex-row items-center mb-10">
-                <Text className="text-base text-gray-400 font-[500]">
-                  {modalStep === "details"
-                    ? authMode === "login"
-                      ? "to continue with Cleanmywheels"
-                      : "enter your details to get started"
-                    : "enter the verification code sent to"}
-                </Text>
-                {modalStep === "otp" && (
-                  <View className="flex-row items-center ml-1">
-                    <Text className="text-base text-white font-[600]">+91 {phoneNumber}</Text>
-                    <InteractivePressable onPress={() => setModalStep("details")} className="ml-2">
-                       <Ionicons name="pencil" size={14} color="#C8F000" />
-                    </InteractivePressable>
-                  </View>
-                )}
-              </View>
-
-              {modalStep === "details" && (
-                <View className="flex-row bg-[#1A1A1A] rounded-[16px] p-1.5 mb-8 border border-white/5">
-                  <InteractivePressable
-                    onPress={() => {
-                      setAuthMode("login");
-                      setName("");
-                    }}
-                    className={`flex-1 py-3 rounded-[12px] items-center justify-center ${
-                      authMode === "login" ? "bg-primary" : "bg-transparent"
-                    }`}
-                  >
-                    <Text className={`font-[800] text-[14px] uppercase tracking-wider ${
-                      authMode === "login" ? "text-black" : "text-[#888888]"
-                    }`}>
-                      Log In
-                    </Text>
-                  </InteractivePressable>
-                  <InteractivePressable
-                    onPress={() => setAuthMode("signup")}
-                    className={`flex-1 py-3 rounded-[12px] items-center justify-center ${
-                      authMode === "signup" ? "bg-primary" : "bg-transparent"
-                    }`}
-                  >
-                    <Text className={`font-[800] text-[14px] uppercase tracking-wider ${
-                      authMode === "signup" ? "text-black" : "text-[#888888]"
-                    }`}>
-                      Sign Up
-                    </Text>
-                  </InteractivePressable>
-                </View>
-              )}
-
-              {modalStep === "details" ? (
-                <View>
-                  {authMode === "signup" && (
-                    <View className="mb-5">
-                      <View className="flex-row items-center bg-[#1A1A1A] border border-white/10 rounded-[16px] h-[64px] px-5">
-                        <Ionicons
-                          name="person-outline"
-                          size={20}
-                          color="#64748B"
-                          style={{ marginRight: 12 }}
-                        />
-                        <TextInput
-                          className="flex-1 text-lg text-white font-[700]"
-                          placeholder="Your Full Name"
-                          placeholderTextColor="#444"
-                          value={name}
-                          onChangeText={(text) => {
-                            const filtered = text.replace(/[^a-zA-Z\s]/g, "");
-                            if (filtered !== text) {
-                              setIsNameWarningVisible(true);
-                              setTimeout(() => setIsNameWarningVisible(false), 3000);
-                            }
-                            setName(filtered);
-                          }}
-                          autoCapitalize="words"
-                          maxLength={30}
-                        />
-                      </View>
-                      <View className="flex-row justify-between items-center mt-1.5 px-1">
-                        <View className="flex-1">
-                          {isNameWarningVisible && (
-                            <Text className="text-[10px] color-red-500 font-[700]">
-                              Only alphabets allowed
-                            </Text>
-                          )}
-                        </View>
-                        <Text className={`text-[11px] font-[800] ${name.length >= 25 ? 'text-primary' : 'text-gray-500'}`}>
-                          {name.length} / 30
-                        </Text>
-                      </View>
-                    </View>
-                  )}
-
-                  <View className="mb-10">
-                    <View className="flex-row items-center bg-[#1A1A1A] border border-white/10 rounded-[16px] h-[64px] px-5">
-                      <Text className="text-lg text-white font-[700]">+91</Text>
-                      <View className="w-[1px] h-6 bg-white/20 mx-4" />
-                      <TextInput
-                        className="flex-1 text-lg text-white font-[700]"
-                        placeholder="000 000 0000"
-                        placeholderTextColor="#444"
-                        keyboardType="phone-pad"
-                        maxLength={10}
-                        autoFocus
-                        value={phoneNumber}
-                        onChangeText={(text) => setPhoneNumber(text.replace(/[^0-9]/g, ""))}
-                      />
-                    </View>
-                  </View>
-
-                  <InteractivePressable
-                    className="bg-primary h-[60px] rounded-[16px] items-center justify-center shadow-2xl shadow-primary/40"
-                    onPress={handleSendOtp}
-                    disabled={isLoading}
-                  >
-                    {isLoading ? (
-                      <ActivityIndicator color="#000" />
-                    ) : (
-                      <Text className="text-[18px] font-[900] text-black">
-                        Continue
-                      </Text>
-                    )}
-                  </InteractivePressable>
-                </View>
-              ) : (
-                <View>
-                  <View className="mb-10 relative w-full">
-                    <TextInput
-                      ref={otpInputRef}
-                      style={{ position: 'absolute', width: '100%', height: '100%', opacity: 0, zIndex: 10 }}
-                      keyboardType="number-pad"
-                      textContentType="oneTimeCode"
-                      maxLength={6}
-                      autoFocus={true}
-                      value={otp.join("")}
-                      onChangeText={(text) => {
-                        if (/[^0-9]/.test(text)) {
-                          setIsOtpWarningVisible(true);
-                          setTimeout(() => setIsOtpWarningVisible(false), 3000);
-                        }
-                        const val = text.replace(/[^0-9]/g, "").slice(0, 6);
-                        const newOtp = ["", "", "", "", "", ""];
-                        for (let j = 0; j < val.length; j++) {
-                          newOtp[j] = val[j];
-                        }
-                        setOtp(newOtp);
-                      }}
-                    />
-                    <View className="flex-row justify-between w-full h-[64px] relative items-center" pointerEvents="none">
-                      {/* Checkmark box */}
-                      <View className="absolute inset-0 justify-center items-center z-20" pointerEvents="none">
-                        <Animated.View 
-                          style={[
-                            checkmarkStyle, 
-                            { 
-                              justifyContent: "center", 
-                              alignItems: "center", 
-                              width: 56, 
-                              height: 64, 
-                              borderRadius: 16, 
-                              backgroundColor: Colors.primary,
-                            }
-                          ]}
-                        >
-                          <Ionicons name="checkmark" size={28} color="#000" />
-                        </Animated.View>
-                      </View>
-
-                      {otp.map((digit, i) => {
-                        const currentLength = otp.join("").length;
-                        const isFocused = currentLength === i || (currentLength === 6 && i === 5);
-                        return (
-                          <OtpBox
-                            key={i}
-                            digit={digit}
-                            index={i}
-                            isFocused={isFocused}
-                            mergeAnim={mergeAnim}
-                          />
-                        );
-                      })}
-                    </View>
-                  </View>
-
-                  {isOtpWarningVisible && (
-                    <Text className="text-red-500 text-[12px] mt-[-20px] mb-[20px] text-center">
-                      Only numbers are allowed
-                    </Text>
-                  )}
-
-                  <InteractivePressable
-                    className="bg-primary h-[60px] rounded-[16px] items-center justify-center mb-8 shadow-2xl shadow-primary/40"
-                    onPress={handleVerifyOtp}
-                    disabled={isLoading}
-                  >
-                    {isLoading ? (
-                      <ActivityIndicator color="#000" />
-                    ) : (
-                      <Text className="text-[18px] font-[900] text-black">
-                        Verify
-                      </Text>
-                    )}
-                  </InteractivePressable>
-
-                  <View className="items-center">
-                    <Text className="text-sm text-gray-500 font-[500] mb-3">
-                      Didn&apos;t receive code?
-                    </Text>
-                    {timer > 0 ? (
-                      <View className="bg-[#1A1A1A] border border-white/5 rounded-full px-4 py-2 flex-row items-center gap-2">
-                        <Ionicons name="time-outline" size={14} color="#64748B" />
-                        <Text className="text-sm font-[700] text-primary">
-                          Resend code in 00:{timer < 10 ? `0${timer}` : timer}
-                        </Text>
-                      </View>
-                    ) : (
-                      <TouchableOpacity
-                        onPress={() => {
-                          if (timer === 0) {
-                            handleSendOtp();
-                          }
-                        }}
-                        className="bg-primary/10 border border-primary/20 rounded-full px-5 py-2.5"
-                      >
-                        <Text className="text-sm font-[800] text-primary">
-                          Resend Code
-                        </Text>
-                      </TouchableOpacity>
-                    )}
-                  </View>
-                </View>
-              )}
-            </KeyboardAvoidingView>
-          </View>
-        </View>
-      </Modal>
 
       {/* Onboarding Tour for Guest */}
       <OnboardingTour 

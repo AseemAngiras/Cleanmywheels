@@ -9,11 +9,13 @@ import { InteractivePressable } from "../ui/InteractivePressable";
 interface ServiceActionGridProps {
   isLoggedIn: boolean;
   hasActiveSubscription?: boolean;
+  onOpenLoginModal?: () => void;
 }
 
 export const ServiceActionGrid = ({
   isLoggedIn,
   hasActiveSubscription,
+  onOpenLoginModal,
 }: ServiceActionGridProps) => {
   const router = useRouter();
   const isNavigating = useRef(false);
@@ -21,7 +23,11 @@ export const ServiceActionGrid = ({
   const handleBookPress = () => {
     if (isNavigating.current) return;
     isNavigating.current = true;
-    router.push("/home/book-doorstep/enter-location");
+    if (!isLoggedIn && onOpenLoginModal) {
+      onOpenLoginModal();
+    } else {
+      router.push("/home/book-doorstep/enter-location");
+    }
     setTimeout(() => {
       isNavigating.current = false;
     }, 1000);
